@@ -1,0 +1,558 @@
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:var(--font-sans, system-ui); color:var(--color-text-primary, #1a1a1a); }
+
+.mockup-nav { display:flex; gap:6px; flex-wrap:wrap; padding:0 0 16px; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); margin-bottom:20px; }
+.mockup-nav button { font-size:12px; padding:6px 14px; border-radius:8px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); background:transparent; color:var(--color-text-secondary, #666); cursor:pointer; transition:all 0.15s; }
+.mockup-nav button.active { background:var(--color-text-primary, #1a1a1a); color:var(--color-background-primary, #fff); border-color:var(--color-text-primary, #1a1a1a); }
+
+.mockup-section { display:none; }
+.mockup-section.active { display:block; }
+.mockup-label { font-size:11px; color:var(--color-text-tertiary, #999); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+
+/* ═══════════════════════════════════════════════════════ */
+/* SHARED STYLES                                          */
+/* ═══════════════════════════════════════════════════════ */
+
+.tag { font-size:10px; padding:2px 7px; border-radius:8px; display:inline-block; }
+.tag-red { background:#FCEBEB; color:#791F1F; }
+.tag-amber { background:#FAEEDA; color:#633806; }
+.tag-blue { background:#E6F1FB; color:#0C447C; }
+.tag-green { background:#EAF3DE; color:#27500A; }
+.tag-gray { background:#F1EFE8; color:#444441; }
+.tag-purple { background:#EEEDFE; color:#3C3489; }
+.tag-coral { background:#FAECE7; color:#712B13; }
+
+/* ═══════════════════════════════════════════════════════ */
+/* 1. MAIN GAME VIEW (split screen)                       */
+/* ═══════════════════════════════════════════════════════ */
+
+.shell { display:flex; min-height:580px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:12px; overflow:hidden; }
+.map-side { flex:1.2; background:#1a1a2e; position:relative; min-width:0; }
+.map-label { position:absolute; font-size:11px; font-weight:500; padding:3px 8px; border-radius:8px; pointer-events:none; }
+.map-dot { position:absolute; width:10px; height:10px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.6); }
+.map-dot.pulse::after { content:''; position:absolute; inset:-4px; border-radius:50%; border:1.5px solid inherit; opacity:0.4; animation:ping 2s ease-out infinite; }
+@keyframes ping { 0%{transform:scale(1);opacity:0.4} 100%{transform:scale(2.2);opacity:0} }
+.map-ring { position:absolute; border-radius:50%; border:1px dashed rgba(239,159,39,0.4); pointer-events:none; }
+.strait-line { position:absolute; border-top:2px dashed #E24B4A; width:40px; transform:rotate(-20deg); pointer-events:none; }
+
+.panel-side { width:280px; background:var(--color-background-primary, #fff); border-left:0.5px solid var(--color-border-tertiary, #e0e0e0); display:flex; flex-direction:column; overflow-y:auto; }
+.panel-header { padding:12px 14px; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
+.panel-header h2 { font-size:14px; font-weight:500; }
+.panel-header p { font-size:12px; color:var(--color-text-secondary, #666); margin-top:2px; }
+.tabs { display:flex; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
+.tab { flex:1; padding:8px 0; font-size:12px; text-align:center; color:var(--color-text-secondary, #666); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.15s; }
+.tab.active { color:var(--color-text-primary, #1a1a1a); border-bottom-color:var(--color-text-primary, #1a1a1a); font-weight:500; }
+.section { padding:12px 14px; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
+.section-title { font-size:11px; color:var(--color-text-tertiary, #999); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+.actor-row { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:8px; cursor:pointer; transition:background 0.15s; }
+.actor-row:hover { background:var(--color-background-secondary, #f5f5f5); }
+.actor-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.actor-name { font-size:13px; font-weight:500; flex:1; }
+.actor-esc { font-size:11px; padding:2px 6px; border-radius:8px; }
+.metric { display:flex; justify-content:space-between; align-items:center; padding:4px 0; }
+.metric-label { font-size:12px; color:var(--color-text-secondary, #666); }
+.metric-val { font-size:12px; font-weight:500; }
+.bar-wrap { height:4px; background:var(--color-background-secondary, #f5f5f5); border-radius:2px; margin-top:4px; }
+.bar-fill { height:100%; border-radius:2px; }
+.turn-controls { padding:12px 14px; margin-top:auto; border-top:0.5px solid var(--color-border-tertiary, #e0e0e0); display:flex; gap:8px; }
+.turn-controls button { flex:1; }
+.turn-badge { font-size:11px; color:var(--color-text-secondary, #666); text-align:center; padding:6px; }
+.decision-card { padding:8px 10px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; margin-bottom:6px; cursor:pointer; transition:all 0.15s; }
+.decision-card:hover { border-color:var(--color-border-secondary, #ccc); background:var(--color-background-secondary, #f5f5f5); }
+.decision-title { font-size:12px; font-weight:500; }
+.decision-meta { font-size:11px; color:var(--color-text-secondary, #666); margin-top:2px; display:flex; gap:8px; }
+.esc-tag { font-size:10px; padding:1px 5px; border-radius:8px; }
+
+/* ═══════════════════════════════════════════════════════ */
+/* 2. ACTOR STATE PANEL                                   */
+/* ═══════════════════════════════════════════════════════ */
+
+.a-panel { max-width:680px; }
+.a-header { display:flex; align-items:center; gap:12px; padding:0 0 16px; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
+.flag-dot { width:36px; height:36px; border-radius:50%; background:#378ADD; display:flex; align-items:center; justify-content:center; font-weight:500; font-size:13px; color:#fff; flex-shrink:0; }
+.a-header h2 { font-size:18px; font-weight:500; }
+.a-header p { font-size:13px; color:var(--color-text-secondary, #666); margin-top:1px; }
+.esc-badge { display:inline-block; font-size:12px; padding:3px 10px; border-radius:8px; background:#E6F1FB; color:#0C447C; font-weight:500; margin-left:auto; }
+.a-section { padding:16px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
+.a-section:last-child { border-bottom:none; }
+.grid-2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; }
+.grid-3 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); gap:8px; }
+.stat-card { background:var(--color-background-secondary, #f5f5f5); border-radius:8px; padding:10px 12px; }
+.stat-label { font-size:11px; color:var(--color-text-secondary, #666); }
+.stat-val { font-size:18px; font-weight:500; margin-top:2px; }
+.stat-sub { font-size:11px; color:var(--color-text-secondary, #666); margin-top:1px; }
+.bar-row { display:flex; align-items:center; gap:10px; padding:5px 0; }
+.bar-row .bar-label { font-size:12px; color:var(--color-text-secondary, #666); width:120px; flex-shrink:0; }
+.bar-row .bar-val { font-size:12px; font-weight:500; width:36px; text-align:right; flex-shrink:0; }
+.figure-row { display:flex; align-items:center; gap:10px; padding:8px 10px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; margin-bottom:6px; cursor:pointer; transition:background 0.15s; }
+.figure-row:hover { background:var(--color-background-secondary, #f5f5f5); }
+.fig-avatar { width:32px; height:32px; border-radius:50%; background:var(--color-background-info, #E6F1FB); display:flex; align-items:center; justify-content:center; font-weight:500; font-size:11px; color:var(--color-text-info, #185FA5); flex-shrink:0; }
+.fig-name { font-size:13px; font-weight:500; }
+.fig-role { font-size:11px; color:var(--color-text-secondary, #666); }
+.fig-status { font-size:10px; padding:2px 6px; border-radius:8px; margin-left:auto; }
+.channel-row { padding:8px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
+.channel-row:last-child { border-bottom:none; }
+.channel-header { display:flex; justify-content:space-between; align-items:center; }
+.channel-name { font-size:13px; font-weight:500; }
+.channel-inf { font-size:11px; color:var(--color-text-secondary, #666); }
+.channel-pos { font-size:12px; color:var(--color-text-secondary, #666); margin-top:3px; }
+.asset-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
+.asset-row:last-child { border-bottom:none; }
+.asset-name { font-size:12px; font-weight:500; flex:1; }
+.asset-qty { font-size:12px; color:var(--color-text-secondary, #666); width:60px; }
+.obj-row { padding:8px 10px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; margin-bottom:6px; }
+.obj-title { font-size:13px; font-weight:500; }
+.obj-meta { font-size:11px; color:var(--color-text-secondary, #666); margin-top:3px; display:flex; gap:8px; align-items:center; }
+.prog-wrap { flex:1; height:4px; background:var(--color-background-secondary, #f5f5f5); border-radius:2px; }
+.prog-fill { height:100%; border-radius:2px; }
+.intel-row { padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); font-size:12px; }
+.intel-row:last-child { border-bottom:none; }
+.intel-label { color:var(--color-text-secondary, #666); }
+.intel-val { font-weight:500; }
+.conf { font-size:10px; padding:1px 5px; border-radius:8px; margin-left:4px; }
+
+/* ═══════════════════════════════════════════════════════ */
+/* 3. DECISION ANALYSIS                                   */
+/* ═══════════════════════════════════════════════════════ */
+
+.d-panel { max-width:680px; }
+.d-header { padding:0 0 14px; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
+.d-header h2 { font-size:18px; font-weight:500; }
+.d-header-row { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.d-section { padding:14px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
+.d-section:last-child { border-bottom:none; }
+.rationale { font-size:13px; color:var(--color-text-secondary, #666); line-height:1.65; }
+.rationale strong { color:var(--color-text-primary, #1a1a1a); font-weight:500; }
+.cost-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; }
+.cost-card { padding:10px 12px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; }
+.cost-dim { font-size:11px; color:var(--color-text-secondary, #666); }
+.cost-desc { font-size:12px; margin-top:3px; }
+.cost-mag { margin-top:4px; }
+.outcome { padding:12px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; margin-bottom:8px; }
+.outcome-header { display:flex; justify-content:space-between; align-items:center; }
+.outcome-title { font-size:13px; font-weight:500; }
+.outcome-prob { font-size:12px; font-weight:500; }
+.outcome-desc { font-size:12px; color:var(--color-text-secondary, #666); margin-top:6px; line-height:1.6; }
+.cascade-item { font-size:12px; padding:4px 0; color:var(--color-text-secondary, #666); display:flex; gap:6px; }
+.cascade-arrow { color:var(--color-text-tertiary, #999); flex-shrink:0; }
+.response-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
+.response-row:last-child { border-bottom:none; }
+.resp-actor { font-size:12px; font-weight:500; width:80px; flex-shrink:0; }
+.resp-action { font-size:12px; color:var(--color-text-secondary, #666); flex:1; }
+.obj-impact { display:flex; align-items:center; gap:8px; padding:5px 0; font-size:12px; }
+.obj-impact .obj-name { flex:1; }
+.obj-effect { font-weight:500; }
+.prereq-list { font-size:12px; color:var(--color-text-secondary, #666); line-height:1.7; }
+.constraint-warn { padding:10px 12px; background:var(--color-background-danger, #FCEBEB); border-radius:8px; margin-top:8px; }
+.constraint-warn-title { font-size:12px; font-weight:500; color:var(--color-text-danger, #A32D2D); }
+.constraint-warn-desc { font-size:11px; color:var(--color-text-secondary, #666); margin-top:3px; }
+.intel-warn { padding:10px 12px; background:var(--color-background-warning, #FAEEDA); border-radius:8px; margin-top:8px; }
+.intel-warn-title { font-size:12px; font-weight:500; color:var(--color-text-warning, #854F0B); }
+.intel-warn-desc { font-size:11px; color:var(--color-text-secondary, #666); margin-top:3px; }
+.verdict { padding:14px 16px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; background:var(--color-background-secondary, #f5f5f5); }
+.verdict-title { font-size:14px; font-weight:500; }
+.verdict-body { font-size:13px; color:var(--color-text-secondary, #666); margin-top:6px; line-height:1.65; }
+.btn-row { display:flex; gap:8px; margin-top:12px; }
+.btn-row button { flex:1; }
+
+/* ═══════════════════════════════════════════════════════ */
+/* 4. WAR CHRONICLE                                       */
+/* ═══════════════════════════════════════════════════════ */
+
+.chronicle { max-width:680px; }
+.chr-header { padding:0 0 16px; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); display:flex; justify-content:space-between; align-items:flex-end; }
+.chr-header h2 { font-size:18px; font-weight:500; }
+.chr-header p { font-size:13px; color:var(--color-text-secondary, #666); margin-top:2px; }
+.chr-filters { display:flex; gap:6px; }
+.chr-filter { font-size:11px; padding:4px 10px; border-radius:8px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); background:transparent; color:var(--color-text-secondary, #666); cursor:pointer; transition:all 0.15s; }
+.chr-filter.active { background:var(--color-background-primary, #fff); color:var(--color-text-primary, #1a1a1a); border-color:var(--color-border-primary, #999); font-weight:500; }
+.timeline { position:relative; padding:20px 0 0 28px; }
+.timeline::before { content:''; position:absolute; left:7px; top:20px; bottom:0; width:1px; background:var(--color-border-tertiary, #e0e0e0); }
+.turn-block { position:relative; margin-bottom:24px; }
+.turn-dot { position:absolute; left:-28px; top:4px; width:14px; height:14px; border-radius:50%; border:2px solid var(--color-border-secondary, #ccc); background:var(--color-background-primary, #fff); z-index:1; }
+.turn-dot.critical { border-color:#E24B4A; background:#FCEBEB; }
+.turn-dot.major { border-color:#EF9F27; background:#FAEEDA; }
+.turn-dot.moderate { border-color:#378ADD; background:#E6F1FB; }
+.turn-date { font-size:11px; color:var(--color-text-tertiary, #999); margin-bottom:4px; }
+.turn-title { font-size:15px; font-weight:500; margin-bottom:6px; }
+.turn-narrative { font-size:13px; color:var(--color-text-secondary, #666); line-height:1.7; font-family:var(--font-serif, Georgia, serif); }
+.turn-narrative strong { color:var(--color-text-primary, #1a1a1a); font-weight:500; font-family:var(--font-sans, system-ui); }
+.turn-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:8px; }
+.expand-section { margin-top:10px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; overflow:hidden; }
+.expand-toggle { padding:8px 12px; font-size:12px; color:var(--color-text-info, #185FA5); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:background 0.15s; }
+.expand-toggle:hover { background:var(--color-background-secondary, #f5f5f5); }
+.expand-content { display:none; padding:12px; border-top:0.5px solid var(--color-border-tertiary, #e0e0e0); font-size:12px; }
+.expand-content.open { display:block; }
+.decision-mini { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
+.decision-mini:last-child { border-bottom:none; }
+.dm-actor { font-weight:500; width:70px; flex-shrink:0; }
+.dm-action { flex:1; color:var(--color-text-secondary, #666); }
+.dm-by { font-size:10px; padding:1px 5px; border-radius:8px; }
+.impact-row { padding:4px 0; color:var(--color-text-secondary, #666); line-height:1.5; }
+.impact-row strong { color:var(--color-text-primary, #1a1a1a); font-weight:500; }
+.judge-mini { display:flex; gap:16px; padding:8px 0; }
+.judge-score { text-align:center; }
+.judge-num { font-size:16px; font-weight:500; }
+.judge-label { font-size:10px; color:var(--color-text-secondary, #666); }
+.esc-change { display:flex; align-items:center; gap:6px; padding:4px 0; font-size:12px; }
+.esc-change .esc-actor { font-weight:500; width:70px; }
+.esc-change .esc-arrow { color:var(--color-text-tertiary, #999); }
+.global-ticker { display:flex; gap:12px; padding:8px 0; font-size:11px; color:var(--color-text-secondary, #666); flex-wrap:wrap; }
+.ticker-item { display:flex; align-items:center; gap:4px; }
+.ticker-val { font-weight:500; color:var(--color-text-primary, #1a1a1a); }
+.ticker-delta { font-size:10px; }
+.ticker-up { color:#E24B4A; }
+.ticker-down { color:#1D9E75; }
+.reaction-block { margin-top:8px; padding:8px 10px; background:var(--color-background-secondary, #f5f5f5); border-radius:8px; }
+.reaction-label { font-size:10px; color:var(--color-text-tertiary, #999); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+</style>
+
+<div class="mockup-nav" id="nav">
+  <button class="active" onclick="showMockup('game-view')">Main game view</button>
+  <button onclick="showMockup('actor-state')">Actor state panel</button>
+  <button onclick="showMockup('decision-analysis')">Decision analysis</button>
+  <button onclick="showMockup('chronicle')">War chronicle</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 1. MAIN GAME VIEW                                      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="mockup-section active" id="game-view">
+
+<div class="shell">
+  <div class="map-side">
+    <svg width="100%" height="100%" viewBox="0 0 500 580" style="position:absolute;inset:0;">
+      <rect width="500" height="580" fill="#0f1923"/>
+      <path d="M0 200 Q80 180 120 220 Q140 240 160 230 Q200 210 220 240 Q240 260 280 250 Q310 240 340 260 Q370 280 400 270 Q440 250 480 280 L500 280 L500 320 Q460 310 420 330 Q380 350 340 340 Q300 320 260 340 Q220 360 180 350 Q140 330 100 350 Q60 370 20 360 L0 370Z" fill="#1a2a3a" stroke="#2a3a4a" stroke-width="0.5"/>
+      <path d="M320 200 Q340 190 360 200 Q380 210 400 195 Q420 180 450 190 L500 180 L500 250 Q470 240 440 250 Q410 260 380 250 Q350 240 330 250 Q310 260 290 250Z" fill="#1a2a3a" stroke="#2a3a4a" stroke-width="0.5"/>
+      <path d="M200 300 Q220 290 250 300 Q270 310 300 305 Q320 300 340 310 L340 350 Q310 340 280 350 Q250 360 220 350 Q200 340 190 350Z" fill="#1a2a3a" stroke="#2a3a4a" stroke-width="0.5"/>
+      <text x="100" y="250" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">Egypt</text>
+      <text x="220" y="280" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">Saudi Arabia</text>
+      <text x="360" y="220" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">Iran</text>
+      <text x="170" y="240" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">Israel</text>
+      <text x="290" y="330" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">UAE</text>
+      <text x="140" y="210" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">Lebanon</text>
+      <text x="240" y="220" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">Iraq</text>
+    </svg>
+    <div class="map-dot pulse" style="left:38%;top:38%;background:#378ADD;border-color:#378ADD;"></div>
+    <div class="map-dot pulse" style="left:52%;top:50%;background:#378ADD;border-color:#378ADD;"></div>
+    <div class="map-dot" style="left:34%;top:36%;background:#378ADD;border-color:#85B7EB;"></div>
+    <div class="map-dot" style="left:72%;top:35%;background:#E24B4A;border-color:#F09595;"></div>
+    <div class="map-dot" style="left:58%;top:48%;background:#E24B4A;border-color:#F09595;"></div>
+    <div class="map-dot" style="left:48%;top:55%;background:#EF9F27;border-color:#FAC775;"></div>
+    <div class="strait-line" style="left:60%;top:52%;"></div>
+    <div class="map-label" style="left:62%;top:49%;background:rgba(226,75,74,0.2);color:#F09595;font-size:10px;">Strait blocked</div>
+    <div class="map-label" style="left:36%;top:42%;background:rgba(55,138,221,0.15);color:#85B7EB;">USS Eisenhower</div>
+    <div class="map-label" style="left:50%;top:54%;background:rgba(55,138,221,0.15);color:#85B7EB;">USS Lincoln</div>
+    <div class="map-ring" style="left:30%;top:30%;width:80px;height:80px;"></div>
+    <div style="position:absolute;bottom:12px;left:12px;display:flex;gap:12px;font-size:10px;">
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#378ADD;display:inline-block;"></span><span style="color:#85B7EB;">US / Israel</span></span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#E24B4A;display:inline-block;"></span><span style="color:#F09595;">Iran</span></span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#EF9F27;display:inline-block;"></span><span style="color:#FAC775;">Gulf states</span></span>
+    </div>
+  </div>
+
+  <div class="panel-side">
+    <div class="panel-header"><h2>Iran conflict scenario</h2><p>Turn 4 — Week of March 22</p></div>
+    <div class="tabs" id="game-tabs">
+      <div class="tab active" onclick="showGameTab('g-actors')">Actors</div>
+      <div class="tab" onclick="showGameTab('g-decisions')">Decisions</div>
+      <div class="tab" onclick="showGameTab('g-events')">Events</div>
+    </div>
+    <div id="g-actors">
+      <div class="section">
+        <div class="section-title">Active actors</div>
+        <div class="actor-row"><span class="actor-dot" style="background:#378ADD;"></span><span class="actor-name">United States</span><span class="actor-esc" style="background:#E6F1FB;color:#0C447C;">Rung 5</span></div>
+        <div class="actor-row"><span class="actor-dot" style="background:#E24B4A;"></span><span class="actor-name">Iran</span><span class="actor-esc" style="background:#FCEBEB;color:#791F1F;">Rung 6</span></div>
+        <div class="actor-row"><span class="actor-dot" style="background:#378ADD;"></span><span class="actor-name">Israel</span><span class="actor-esc" style="background:#E6F1FB;color:#0C447C;">Rung 6</span></div>
+        <div class="actor-row"><span class="actor-dot" style="background:#888780;"></span><span class="actor-name">Russia / China</span><span class="actor-esc" style="background:#F1EFE8;color:#444441;">Rung 1</span></div>
+        <div class="actor-row"><span class="actor-dot" style="background:#EF9F27;"></span><span class="actor-name">Gulf States</span><span class="actor-esc" style="background:#FAEEDA;color:#633806;">Rung 2</span></div>
+      </div>
+      <div class="section">
+        <div class="section-title">Global indicators</div>
+        <div class="metric"><span class="metric-label">Oil price</span><span class="metric-val" style="color:#E24B4A;">$142/bbl (+94%)</span></div>
+        <div class="metric"><span class="metric-label">Strait of Hormuz</span><span class="metric-val" style="color:#E24B4A;">Blocked</span></div>
+        <div class="metric" style="margin-top:8px;"><span class="metric-label">US domestic support</span><span class="metric-val">31%</span></div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:31%;background:#E24B4A;"></div></div>
+        <div class="metric" style="margin-top:8px;"><span class="metric-label">US air defense reserves</span><span class="metric-val">42%</span></div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:42%;background:#EF9F27;"></div></div>
+        <div class="metric" style="margin-top:8px;"><span class="metric-label">Iran regime stability</span><span class="metric-val">68%</span></div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:68%;background:#1D9E75;"></div></div>
+      </div>
+    </div>
+    <div id="g-decisions" style="display:none;">
+      <div class="section">
+        <div class="section-title">Your decisions (playing as US)</div>
+        <div class="decision-card"><div class="decision-title">Launch coastal ground operation</div><div class="decision-meta"><span class="esc-tag" style="background:#FCEBEB;color:#791F1F;">Escalation</span><span>Military</span></div></div>
+        <div class="decision-card"><div class="decision-title">Propose ceasefire via backchannel</div><div class="decision-meta"><span class="esc-tag" style="background:#EAF3DE;color:#27500A;">De-escalation</span><span>Diplomatic</span></div></div>
+        <div class="decision-card"><div class="decision-title">Intensify air campaign on military targets</div><div class="decision-meta"><span class="esc-tag" style="background:#FAEEDA;color:#633806;">Hold rung</span><span>Military</span></div></div>
+        <div class="decision-card"><div class="decision-title">Tighten sanctions on Iranian allies</div><div class="decision-meta"><span class="esc-tag" style="background:#FAEEDA;color:#633806;">Hold rung</span><span>Economic</span></div></div>
+      </div>
+      <div class="section"><div class="section-title">Or propose a custom decision</div><input type="text" placeholder="Describe your move..." style="width:100%;font-size:12px;" /></div>
+    </div>
+    <div id="g-events" style="display:none;">
+      <div class="section">
+        <div class="section-title">Turn 3 resolution</div>
+        <div style="font-size:12px;color:var(--color-text-secondary, #666);line-height:1.6;">
+          <p style="margin-bottom:8px;"><span style="font-weight:500;color:var(--color-text-primary, #1a1a1a);">Iran</span> launched 340 Shahed drones at Israeli air bases. 89% intercepted. US expended ~180 Patriot missiles.</p>
+          <p style="margin-bottom:8px;"><span style="font-weight:500;color:var(--color-text-primary, #1a1a1a);">US/Israel</span> struck 12 IRGC command posts. Limited effect — decentralized structure.</p>
+          <p style="margin-bottom:8px;"><span style="font-weight:500;color:var(--color-text-primary, #1a1a1a);">Iran</span> struck Ras Tanura facility in Saudi Arabia. Oil output reduced 15%.</p>
+          <p><span style="font-weight:500;color:var(--color-text-primary, #1a1a1a);">Global:</span> Oil to $142/bbl. Gulf states issued joint statement criticizing US.</p>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Judge assessment</div>
+        <div class="metric"><span class="metric-label">Plausibility</span><span class="metric-val" style="color:#1D9E75;">82</span></div>
+        <div class="metric"><span class="metric-label">Consistency</span><span class="metric-val" style="color:#1D9E75;">78</span></div>
+        <div class="metric"><span class="metric-label">Rationality</span><span class="metric-val" style="color:#EF9F27;">71</span></div>
+      </div>
+    </div>
+    <div class="turn-badge">Turn 4 of 12 — Planning phase</div>
+    <div class="turn-controls">
+      <button>Rewind</button>
+      <button style="background:var(--color-background-info, #E6F1FB);color:var(--color-text-info, #185FA5);border-color:var(--color-border-info, #85B7EB);">Advance turn</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 2. ACTOR STATE PANEL                                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="mockup-section" id="actor-state">
+<div class="a-panel">
+  <div class="a-header">
+    <div class="flag-dot">US</div>
+    <div><h2>United States of America</h2><p>Federal republic — war of choice</p></div>
+    <span class="esc-badge">Escalation rung 5 / 8</span>
+  </div>
+
+  <div class="a-section">
+    <div class="section-title">Key figures</div>
+    <div class="figure-row"><div class="fig-avatar">DT</div><div><div class="fig-name">Donald Trump</div><div class="fig-role">President / Commander in Chief</div></div><span class="tag tag-red">Hawk</span><span class="fig-status tag-green">Active</span></div>
+    <div class="figure-row"><div class="fig-avatar">MR</div><div><div class="fig-name">Marco Rubio</div><div class="fig-role">Secretary of State</div></div><span class="tag tag-amber">Wavering</span><span class="fig-status tag-green">Active</span></div>
+    <div class="figure-row"><div class="fig-avatar">JK</div><div><div class="fig-name">Joe Kent</div><div class="fig-role">Dir. of Counterterrorism</div></div><span class="tag tag-gray">Opposed</span><span class="fig-status tag-red">Resigned</span></div>
+  </div>
+
+  <div class="a-section">
+    <div class="section-title">Military state</div>
+    <div class="grid-3" style="margin-bottom:12px;">
+      <div class="stat-card"><div class="stat-label">Readiness</div><div class="stat-val" style="color:#EF9F27;">58</div><div class="stat-sub">Degraded</div></div>
+      <div class="stat-card"><div class="stat-label">Posture</div><div class="stat-val" style="font-size:14px;">Offensive</div><div class="stat-sub">Air campaign</div></div>
+      <div class="stat-card"><div class="stat-label">Nuclear</div><div class="stat-val" style="font-size:14px;">Confirmed</div><div class="stat-sub">Rung 8 to use</div></div>
+    </div>
+    <div class="section-title">Key assets</div>
+    <div class="asset-row"><div class="asset-name">Patriot PAC-3</div><div class="asset-qty">~320 left</div><span class="tag tag-red">Depleting</span></div>
+    <div class="asset-row"><div class="asset-name">THAAD systems</div><div class="asset-qty">2 of 7</div><span class="tag tag-red">Critical</span></div>
+    <div class="asset-row"><div class="asset-name">Carrier strike groups</div><div class="asset-qty">2 deployed</div><span class="tag tag-amber">Strained</span></div>
+    <div class="asset-row"><div class="asset-name">F-35A / F-15E</div><div class="asset-qty">~180</div><span class="tag tag-green">Operational</span></div>
+    <div class="asset-row"><div class="asset-name">Tomahawk cruise</div><div class="asset-qty">~400</div><span class="tag tag-amber">Depleting</span></div>
+  </div>
+
+  <div class="a-section">
+    <div class="section-title">Political state — influence channels</div>
+    <div class="channel-row"><div class="channel-header"><span class="channel-name">General public</span><span class="channel-inf">Policy influence: 25/100</span></div><div class="channel-pos">Position: 31% support war. Protests growing. But no electoral mechanism — bipartisan consensus on Israel.</div><div class="bar-wrap" style="margin-top:4px;"><div class="bar-fill" style="width:31%;background:#E24B4A;"></div></div></div>
+    <div class="channel-row"><div class="channel-header"><span class="channel-name">Israel lobby (AIPAC et al.)</span><span class="channel-inf">Policy influence: 82/100</span></div><div class="channel-pos">Position: Full support for continued operations. Bipartisan funding ensures both parties align. Override cost: primary challenges, funding loss.</div><div class="bar-wrap" style="margin-top:4px;"><div class="bar-fill" style="width:95%;background:#1D9E75;"></div></div></div>
+    <div class="channel-row"><div class="channel-header"><span class="channel-name">Defense establishment</span><span class="channel-inf">Policy influence: 70/100</span></div><div class="channel-pos">Position: Operationally supportive but concerned about munition depletion, Pacific redeployment, and ground invasion risk.</div><div class="bar-wrap" style="margin-top:4px;"><div class="bar-fill" style="width:60%;background:#EF9F27;"></div></div></div>
+    <div style="margin-top:12px;padding:10px 12px;background:var(--color-background-secondary, #f5f5f5);border-radius:8px;">
+      <div style="font-size:12px;font-weight:500;">Policy disconnect gap: 71/100</div>
+      <div style="font-size:11px;color:var(--color-text-secondary, #666);margin-top:4px;">Estimated tolerance: 12-18 months before midterm pressure forces policy shift. Historical precedent: Vietnam gap lasted 7+ years. No viable opposition alternative — Democrats equally hawkish on Israel.</div>
+    </div>
+  </div>
+
+  <div class="a-section">
+    <div class="section-title">Objectives</div>
+    <div class="obj-row"><div class="obj-title">Regime change in Iran</div><div class="obj-meta"><span class="tag tag-red" style="margin:0;">Existential</span><span>Progress:</span><div class="prog-wrap"><div class="prog-fill" style="width:15%;background:#E24B4A;"></div></div><span>15%</span></div></div>
+    <div class="obj-row"><div class="obj-title">Neutralize Iran nuclear capability</div><div class="obj-meta"><span class="tag tag-amber" style="margin:0;">Critical</span><span>Progress:</span><div class="prog-wrap"><div class="prog-fill" style="width:35%;background:#EF9F27;"></div></div><span>35%</span></div></div>
+    <div class="obj-row"><div class="obj-title">Reopen Strait of Hormuz</div><div class="obj-meta"><span class="tag tag-amber" style="margin:0;">Critical</span><span>Progress:</span><div class="prog-wrap"><div class="prog-fill" style="width:5%;background:#E24B4A;"></div></div><span>5%</span></div></div>
+  </div>
+
+  <div class="a-section">
+    <div class="section-title">Intelligence picture — what the US believes about Iran</div>
+    <div class="intel-row"><span class="intel-label">Iran military readiness:</span> <span class="intel-val">25 (heavily degraded)</span><span class="conf tag-amber">Moderate</span></div>
+    <div class="intel-row"><span class="intel-label">Iran nuclear status:</span> <span class="intel-val">Partially neutralized</span><span class="conf tag-red">Low</span></div>
+    <div class="intel-row"><span class="intel-label">Iran regime stability:</span> <span class="intel-val">45 (weakening)</span><span class="conf tag-amber">Moderate</span></div>
+    <div style="margin-top:10px;"><div class="section-title">Known unknowns</div><div style="display:flex;flex-wrap:wrap;gap:4px;"><span class="tag tag-red">Location of dispersed enriched uranium</span><span class="tag tag-red">Remaining ballistic missile stockpile</span><span class="tag tag-amber">Hypersonic missile capability</span></div></div>
+    <div style="margin-top:10px;"><div class="section-title">Unknown unknowns (omniscient view only)</div><div style="display:flex;flex-wrap:wrap;gap:4px;opacity:0.6;"><span class="tag tag-gray">IRGC command more resilient than assessed</span><span class="tag tag-gray">Iran regime stability actually 68, not 45</span><span class="tag tag-gray">Russia sharing real-time US fleet positions</span></div></div>
+  </div>
+
+  <div class="a-section" style="border-bottom:none;">
+    <div class="section-title">Escalation ladder position</div>
+    <div style="display:flex;gap:4px;align-items:flex-end;margin-top:4px;">
+      <div style="flex:1;text-align:center;"><div style="height:20px;background:#EAF3DE;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">1</div></div>
+      <div style="flex:1;text-align:center;"><div style="height:28px;background:#EAF3DE;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">2</div></div>
+      <div style="flex:1;text-align:center;"><div style="height:36px;background:#FAEEDA;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">3</div></div>
+      <div style="flex:1;text-align:center;"><div style="height:44px;background:#FAEEDA;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">4</div></div>
+      <div style="flex:1;text-align:center;"><div style="height:52px;background:#378ADD;border-radius:3px 3px 0 0;border:1.5px solid #0C447C;"></div><div style="font-size:9px;font-weight:500;margin-top:2px;">5</div></div>
+      <div style="flex:1;text-align:center;"><div style="height:60px;background:#FCEBEB;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">6</div></div>
+      <div style="flex:1;text-align:center;"><div style="height:68px;background:#FCEBEB;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">7</div></div>
+      <div style="flex:1;text-align:center;"><div style="height:76px;background:#FCEBEB;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">8</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--color-text-secondary, #666);margin-top:6px;"><span>Diplomacy</span><span>Covert ops</span><span style="font-weight:500;color:var(--color-text-primary, #1a1a1a);">Air campaign</span><span>Ground war</span><span>Nuclear</span></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 3. DECISION ANALYSIS                                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="mockup-section" id="decision-analysis">
+<div class="d-panel">
+  <div class="d-header">
+    <h2>Launch coastal ground operation</h2>
+    <div class="d-header-row"><span class="tag tag-red">Escalation: rung 5 → 7</span><span class="tag tag-blue">Military</span><span class="tag tag-coral">Violates constraint</span><span class="tag tag-amber">Extreme cost</span></div>
+  </div>
+
+  <div class="d-section">
+    <div class="section-title">Strategic rationale</div>
+    <p class="rationale">The primary justification for a ground operation is the Strait of Hormuz. Air and naval power alone cannot reopen it — Iran only needs a single drone to threaten any commercial vessel. <strong>A coastal occupation of the Iranian shoreline along the Strait is the only reliable way to guarantee safe passage.</strong> Secondary objective: establish a staging area for deeper operations if regime change remains the goal.</p>
+  </div>
+
+  <div class="d-section">
+    <div class="section-title">Prerequisites</div>
+    <div class="prereq-list">This decision requires political authorization for ground combat operations, which the US currently lacks. It also requires sufficient ground forces in theater — current deployments are air/naval heavy. The US would need 80,000-150,000 troops, requiring 4-8 weeks of visible buildup.</div>
+    <div class="constraint-warn"><div class="constraint-warn-title">Violates soft constraint: no ground invasion without political cover</div><div class="constraint-warn-desc">Release conditions (homeland attack, mass casualty event) have not been met. Proceeding without a trigger event would dramatically accelerate the policy disconnect breaking point.</div></div>
+    <div class="intel-warn"><div class="intel-warn-title">Intelligence gap warning</div><div class="intel-warn-desc">This decision requires knowledge of Iranian coastal defenses, mine placements, and anti-ship missile positions. Current confidence: LOW. The IRGC underground facility network is a known unknown.</div></div>
+  </div>
+
+  <div class="d-section">
+    <div class="section-title">Costs</div>
+    <div class="cost-grid">
+      <div class="cost-card"><div class="cost-dim">Military</div><div class="cost-desc">80-150k troops required. Significant casualties expected from entrenched defenders, mines, anti-ship missiles.</div><div class="cost-mag"><span class="tag tag-red">Extreme</span></div></div>
+      <div class="cost-card"><div class="cost-dim">Economic</div><div class="cost-desc">$300-500M/day operational cost. Extended occupation could cost $1-2T over 5 years.</div><div class="cost-mag"><span class="tag tag-red">Extreme</span></div></div>
+      <div class="cost-card"><div class="cost-dim">Political</div><div class="cost-desc">Support likely drops to 15-20%. Draft discussion unavoidable. Midterm loss virtually guaranteed.</div><div class="cost-mag"><span class="tag tag-red">Extreme</span></div></div>
+      <div class="cost-card"><div class="cost-dim">Diplomatic</div><div class="cost-desc">International condemnation near-certain. NATO allies unlikely to participate. Gulf states may deny basing.</div><div class="cost-mag"><span class="tag tag-amber">High</span></div></div>
+    </div>
+  </div>
+
+  <div class="d-section">
+    <div class="section-title">Projected outcomes</div>
+    <div class="outcome"><div class="outcome-header"><span class="outcome-title">Best case: swift coastal seizure</span><span class="outcome-prob" style="color:#1D9E75;">20% likely</span></div><div class="outcome-desc">US forces seize key positions within 2-3 weeks. Strait reopens. Iran forced to negotiate. But ongoing occupation required indefinitely.</div><div style="margin-top:8px;"><div class="cascade-item"><span class="cascade-arrow">→</span> Oil drops to ~$100/bbl but doesn't return to pre-war</div><div class="cascade-item"><span class="cascade-arrow">→</span> Iran shifts to guerrilla resistance on occupied coast</div></div></div>
+    <div class="outcome"><div class="outcome-header"><span class="outcome-title">Most likely: attritional quagmire</span><span class="outcome-prob" style="color:#EF9F27;">50% likely</span></div><div class="outcome-desc">Initial landings succeed but Iranians fall back to prepared mountain positions. Urban warfare. US casualties mount to hundreds in first month. Becomes a second Iraq with harder terrain.</div><div style="margin-top:8px;"><div class="cascade-item"><span class="cascade-arrow">→</span> Oil stays at $130+ as Strait only partially secured</div><div class="cascade-item"><span class="cascade-arrow">→</span> US domestic support collapses below 20%</div><div class="cascade-item"><span class="cascade-arrow">→</span> Russia accelerates in Ukraine while US is pinned down</div></div></div>
+    <div class="outcome"><div class="outcome-header"><span class="outcome-title">Worst case: escalation spiral</span><span class="outcome-prob" style="color:#E24B4A;">30% likely</span></div><div class="outcome-desc">Ground invasion is the trigger Iran needs to justify nuclear breakout. Within 3-6 months, Iran announces a weapon. Israel considers preemptive nuclear strike.</div><div style="margin-top:8px;"><div class="cascade-item"><span class="cascade-arrow">→</span> <strong style="color:#E24B4A;">Nuclear breakout cascade activates</strong></div><div class="cascade-item"><span class="cascade-arrow">→</span> Israel escalates to rung 7-8, nuclear use on the table</div><div class="cascade-item"><span class="cascade-arrow">→</span> Global financial crisis — oil at $250+, markets crash</div></div></div>
+  </div>
+
+  <div class="d-section">
+    <div class="section-title">Anticipated actor responses</div>
+    <div class="response-row"><span class="resp-actor" style="color:#E24B4A;">Iran</span><span class="resp-action">Full asymmetric mobilization. Accelerate nuclear program. Deploy hypersonic missiles against carriers.</span><span class="tag tag-red">Escalate</span></div>
+    <div class="response-row"><span class="resp-actor" style="color:#378ADD;">Israel</span><span class="resp-action">Intensify Lebanon operations. Prepare contingency for Iranian nuclear breakout.</span><span class="tag tag-red">Escalate</span></div>
+    <div class="response-row"><span class="resp-actor" style="color:#888780;">Russia</span><span class="resp-action">Major Ukraine offensive. Increase intel sharing with Iran. Push UN condemnation.</span><span class="tag tag-red">Escalate</span></div>
+    <div class="response-row"><span class="resp-actor" style="color:#888780;">China</span><span class="resp-action">Accelerate Taiwan preparations. Expand yuan-for-oil. Position as diplomatic alternative.</span><span class="tag tag-amber">Lateral</span></div>
+    <div class="response-row"><span class="resp-actor" style="color:#EF9F27;">Gulf States</span><span class="resp-action">Possible denial of basing rights. Backchannel with Iran. Hedge toward BRICS.</span><span class="tag tag-amber">Lateral</span></div>
+  </div>
+
+  <div class="d-section" style="border-bottom:none;">
+    <div class="verdict"><div class="verdict-title">Assessment</div><div class="verdict-body">This is the highest-risk decision available. It addresses the Strait problem — the one objective no other option can achieve — but at potentially catastrophic cost across every other dimension. The 30% chance of triggering Iran's nuclear breakout cascade makes this especially dangerous: the ground invasion could produce the exact outcome (nuclear Iran) that the entire war was supposed to prevent.</div></div>
+    <div class="btn-row"><button>Select this decision</button><button>Compare alternatives</button><button>Propose variant</button></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- 4. WAR CHRONICLE                                       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="mockup-section" id="chronicle">
+<div class="chronicle">
+  <div class="chr-header"><div><h2>War chronicle</h2><p>Iran conflict — 4 turns completed</p></div>
+    <div class="chr-filters"><span class="chr-filter active" onclick="filterChr(this)">All</span><span class="chr-filter" onclick="filterChr(this)">Military</span><span class="chr-filter" onclick="filterChr(this)">Political</span><span class="chr-filter" onclick="filterChr(this)">Economic</span></div>
+  </div>
+
+  <div class="global-ticker" style="padding:12px 0;border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0);">
+    <div class="ticker-item">Oil: <span class="ticker-val">$142</span><span class="ticker-delta ticker-up">+94%</span></div>
+    <div class="ticker-item">US support: <span class="ticker-val">31%</span><span class="ticker-delta ticker-up">-12pts</span></div>
+    <div class="ticker-item">US air defense: <span class="ticker-val">42%</span><span class="ticker-delta ticker-up">-18pts</span></div>
+    <div class="ticker-item">Iran stability: <span class="ticker-val">68</span><span class="ticker-delta ticker-down">+8pts</span></div>
+    <div class="ticker-item">Strait: <span class="ticker-val" style="color:#E24B4A;">Blocked</span></div>
+  </div>
+
+  <div class="timeline">
+    <div class="turn-block">
+      <div class="turn-dot critical"></div>
+      <div class="turn-date">Turn 1 — Week of March 1</div>
+      <div class="turn-title">Operation Iron Resolve begins</div>
+      <div class="turn-narrative">In the predawn hours of March 2nd, <strong>US and Israeli</strong> forces launched a coordinated strike package against Iranian leadership and military infrastructure. Over 200 cruise missiles and precision-guided munitions struck targets across Tehran, Isfahan, and Bandar Abbas. Among the dead: <strong>Supreme Leader Ayatollah Khamenei</strong>, killed in a bunker strike that intelligence had been planning for months. The White House announced the goal bluntly — regime change.
+
+But the regime did not collapse. Within hours, <strong>Mojtaba Khamenei</strong> appeared on state television, flanked by IRGC commanders, declaring his father a martyr and promising retaliation that would "shake the thrones of the aggressors."</div>
+      <div class="turn-tags"><span class="tag tag-red">Ayatollah killed</span><span class="tag tag-red">Regime change declared</span><span class="tag tag-amber">Decapitation failed</span><span class="tag tag-purple">Escalation: US 3→5, Iran 3→6</span></div>
+      <div class="expand-section"><div class="expand-toggle" onclick="toggleExp(this)"><span>Detailed resolution</span><span>+</span></div><div class="expand-content">
+        <div style="margin-bottom:8px;" class="section-title">Decisions made</div>
+        <div class="decision-mini"><span class="dm-actor" style="color:#378ADD;">US</span><span class="dm-action">Joint strike on leadership + military infrastructure</span><span class="dm-by tag-blue">AI</span></div>
+        <div class="decision-mini"><span class="dm-actor" style="color:#E24B4A;">Iran</span><span class="dm-action">Disperse nuclear assets, activate proxy networks</span><span class="dm-by tag-blue">AI</span></div>
+        <div style="margin:10px 0 8px;" class="section-title">Judge assessment</div>
+        <div class="judge-mini"><div class="judge-score"><div class="judge-num" style="color:#1D9E75;">85</div><div class="judge-label">Plausibility</div></div><div class="judge-score"><div class="judge-num" style="color:#1D9E75;">80</div><div class="judge-label">Consistency</div></div><div class="judge-score"><div class="judge-num" style="color:#EF9F27;">72</div><div class="judge-label">Rationality</div></div><div class="judge-score"><div class="judge-num" style="color:#1D9E75;">83</div><div class="judge-label">Cascades</div></div></div>
+      </div></div>
+    </div>
+
+    <div class="turn-block">
+      <div class="turn-dot major"></div>
+      <div class="turn-date">Turn 2 — Week of March 8</div>
+      <div class="turn-title">Iran retaliates; the Strait closes</div>
+      <div class="turn-narrative"><strong>Iran's</strong> response was not the desperate lashing out that Washington had expected. It was methodical. Over five days, waves of Shahed-136 drones — cheap, expendable, numbering in the hundreds — swarmed toward Israeli air bases and US positions across the Gulf. Each wave forced the expenditure of Patriot interceptors costing orders of magnitude more than their targets. The math was simple and devastating: Iran was winning the accountant's war.
+
+Then came the strategic masterstroke. On March 11th, an IRGC commander announced that the <strong>Strait of Hormuz</strong> was closed to all non-allied shipping. Oil futures spiked 40% overnight. <strong>Russia</strong> quietly offered to fill the supply gap — at a premium.</div>
+      <div class="turn-tags"><span class="tag tag-red">Strait of Hormuz closed</span><span class="tag tag-amber">Drone attrition begins</span><span class="tag tag-amber">Oil +40%</span><span class="tag tag-purple">Yuan oil trade begins</span></div>
+      <div class="expand-section"><div class="expand-toggle" onclick="toggleExp(this)"><span>Detailed resolution</span><span>+</span></div><div class="expand-content">
+        <div class="reaction-block"><div class="reaction-label">Reaction phase</div><div class="impact-row"><strong>US</strong> requested allied naval support to reopen Strait — denied by all parties.</div><div class="impact-row"><strong>Gulf States</strong> issued emergency economic stabilization measures.</div></div>
+        <div style="margin:10px 0 8px;" class="section-title">Key state changes</div>
+        <div class="impact-row"><strong>US air defense reserves:</strong> 78% → 60%</div>
+        <div class="impact-row"><strong>Oil price:</strong> $73 → $104/bbl</div>
+        <div class="impact-row"><strong>US domestic support:</strong> 38% → 35%</div>
+      </div></div>
+    </div>
+
+    <div class="turn-block">
+      <div class="turn-dot major"></div>
+      <div class="turn-date">Turn 3 — Week of March 15</div>
+      <div class="turn-title">The oil war escalates</div>
+      <div class="turn-narrative">Frustrated by the Strait closure, <strong>US and Israeli</strong> forces pivoted to economic warfare, striking Iran's oil export infrastructure — Kharg Island terminal, refineries near Abadan. <strong>Iran</strong> responded in kind with devastating precision. Ballistic missiles struck the <strong>Ras Tanura</strong> complex in Saudi Arabia. The message was unmistakable: if Iran's oil burned, so would everyone else's. Dubai property values cratered 30% in a week.
+
+<strong>Joe Kent</strong> resigned as Director of Counterterrorism, publicly stating the war served Israel's interests, not America's. Oil hit $142 a barrel.</div>
+      <div class="turn-tags"><span class="tag tag-red">Gulf oil infrastructure struck</span><span class="tag tag-red">Ras Tanura hit</span><span class="tag tag-amber">Kent resigns</span><span class="tag tag-red">Oil $142/bbl</span></div>
+      <div class="expand-section"><div class="expand-toggle" onclick="toggleExp(this)"><span>Detailed resolution</span><span>+</span></div><div class="expand-content">
+        <div class="impact-row" style="color:#E24B4A;"><strong>Nuclear breakout cascade: 2 of 3 constraints now removed.</strong> Religious prohibition gone (Ayatollah dead). Deterrence constraint gone (attack already happened). Estimated time to breakout: 4-8 months.</div>
+      </div></div>
+    </div>
+
+    <div class="turn-block">
+      <div class="turn-dot moderate"></div>
+      <div class="turn-date">Turn 4 — Week of March 22</div>
+      <div class="turn-title">Attrition and stalemate</div>
+      <div class="turn-narrative">The war settled into a grim rhythm. Each day brought another wave of Iranian drones, another expenditure of irreplaceable interceptors. The THAAD radar systems — the eyes of the defense network — were now largely destroyed. Israel was flying increasingly blind.
+
+The <strong>US</strong> air campaign continued, but targeting was becoming harder. The administration claimed Iran's military was destroyed. The missiles kept coming. <strong>Marco Rubio</strong> gave a press conference where his language suggested deep reservations. Washington reporters noted he used the phrase "Israel's security objectives" three times without once saying "America's."</div>
+      <div class="turn-tags"><span class="tag tag-red">THAAD systems destroyed</span><span class="tag tag-amber">Air campaign stalling</span><span class="tag tag-gray">Diplomatic stalemate</span><span class="tag tag-amber">Rubio signals doubt</span></div>
+      <div class="expand-section"><div class="expand-toggle" onclick="toggleExp(this)"><span>Detailed resolution</span><span>+</span></div><div class="expand-content">
+        <div class="section-title">Current turn — awaiting your decision</div>
+        <div class="impact-row"><strong>US air defense:</strong> 52% → 42%</div>
+        <div class="impact-row"><strong>THAAD operational:</strong> 4 of 7 → 2 of 7</div>
+        <div class="impact-row"><strong>Iran regime stability:</strong> 63 → 68 (rallying)</div>
+      </div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+function showMockup(id) {
+  document.querySelectorAll('.mockup-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.mockup-nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+function showGameTab(id) {
+  document.querySelectorAll('#game-tabs .tab').forEach(t => t.classList.remove('active'));
+  ['g-actors','g-decisions','g-events'].forEach(t => document.getElementById(t).style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+  event.target.classList.add('active');
+}
+function toggleExp(el) {
+  var c = el.nextElementSibling;
+  var open = c.classList.toggle('open');
+  el.querySelector('span:last-child').textContent = open ? '−' : '+';
+}
+function filterChr(el) {
+  document.querySelectorAll('.chr-filter').forEach(f => f.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>

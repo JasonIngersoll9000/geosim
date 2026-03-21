@@ -1,0 +1,22 @@
+# GeoSim Progress Log
+Updated by Claude Code at the end of each session.
+
+## Current sprint: Sprint 1 — Foundation
+## Last session: Not yet started
+
+### Completed
+(none yet)
+
+### In progress
+(none yet)
+
+### Next up
+- Project scaffolding (Next.js, Supabase, Vercel)
+- Database schema migration
+- TypeScript types for data model
+
+### Known bugs
+(none)
+
+### Architecture decisions
+(none yet)
