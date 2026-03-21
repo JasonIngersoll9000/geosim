@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 ## Project overview
 GeoSim is an AI-powered strategic simulation engine that models competitive
 dynamics between actors (nations, organizations, political factions) through
@@ -16,13 +18,17 @@ an interactive decision-making loop with branching scenario trees.
 
 ## Commands
 npm run dev       # Start dev server (port 3000)
-npm test          # Run vitest
+npm test          # Run all vitest tests
+npm test -- tests/game/fog-of-war.test.ts  # Run a single test file
+npm test -- --reporter=verbose             # Verbose test output
 npm run test:e2e  # Run playwright
 npm run lint      # ESLint
 npm run build     # Production build
 npm run typecheck # tsc --noEmit
 
 ## Architecture
+The project is pre-scaffolding (Sprint 1 not yet started). The intended structure once scaffolded:
+
 - app/                    — Next.js App Router pages
 - app/api/                — API routes (service layer)
 - app/api/ai/             — AI agent endpoints (actor, resolution, judge, narrator)
@@ -36,6 +42,8 @@ npm run typecheck # tsc --noEmit
 - hooks/                  — Custom React hooks
 - supabase/migrations/    — Database migrations
 - tests/                  — All tests (game/, api/, components/, e2e/)
+
+Currently present: `docs/` (all reference docs), `features.json`, `claude-progress.txt`, `.claude/` (settings, hooks).
 
 ## Key design patterns
 - Git-like branching: scenarios have branches, turns are immutable commits
@@ -118,7 +126,7 @@ When working on a task spanning many tool calls (research pipeline, game loop):
 @docs/prd.md
 — Full product requirements: vision, principles, domain model, architecture, game loop, frontend, branching, sprint plan. START HERE for any high-level question.
 
-@docs/data-model.ts
+@docs/geosim-data-model.ts
 — TypeScript types for every entity: Scenario, Actor, ActorState, EscalationLadder, Decision, Event, etc. Source of truth for all data structures.
 
 @docs/db-schema.sql
