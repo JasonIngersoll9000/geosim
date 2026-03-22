@@ -664,6 +664,39 @@ export interface TurnPlanValidationResult {
   resourceUtilization: number;          // % of capacity used (should be 100)
 }
 
+// ------------------------------------------------------------
+// SCENARIO FRAME — Stage 0 output (scenario framing)
+// ------------------------------------------------------------
+
+export interface ScenarioFrame {
+  conflictName: string;
+  coreQuestion: string;
+  timeframeStart: string;
+  timeframeCurrent: string;
+  geographicScope: string;
+  userAnalysis: string;
+  suggestedActors: SuggestedActor[];
+  relevanceCriteria: string;
+  keyDynamics: string[];
+  actorFramings: ActorFraming[];
+}
+
+export interface SuggestedActor {
+  name: string;
+  type: ActorType;
+  whyRelevant: string;
+  suggestedByUser: boolean;
+  confirmed: boolean;
+}
+
+export interface ActorFraming {
+  actorName: string;
+  stakesLevel: ObjectivePriority;
+  winCondition: string;
+  loseCondition: string;
+  strategicPosture: string;
+}
+
 export interface SimulationTurn {
   turnNumber: number;
   timestamp: string;
