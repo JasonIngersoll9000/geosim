@@ -1,6 +1,6 @@
 ---
 name: end-session
-disable-model-invocation: true
+description: "Use when ending a Claude Code session to commit changes, update progress notes, and push to remote"
 ---
 
 ## Description

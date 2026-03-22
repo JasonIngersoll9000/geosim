@@ -1,6 +1,6 @@
 ---
 name: start-session
-disable-model-invocation: true
+description: "Use when starting a new Claude Code session to restore project context and verify build health before beginning work"
 ---
 
 ## Description

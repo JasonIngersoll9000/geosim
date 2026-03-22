@@ -1,6 +1,6 @@
 ---
 name: quality-gate
-disable-model-invocation: true
+description: "Use when auditing project quality across tests, types, linting, security, and CI/CD — produces read-only report"
 ---
 
 ## Description

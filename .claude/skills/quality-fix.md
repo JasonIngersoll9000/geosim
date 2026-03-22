@@ -1,6 +1,6 @@
 ---
 name: quality-fix
-disable-model-invocation: true
+description: "Use after running quality-gate and reviewing the report to implement approved fixes for identified gaps"
 ---
 
 ## Description

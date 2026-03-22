@@ -1,5 +1,6 @@
 ---
 name: add-feature
+description: "Use when implementing any new feature or bugfix, before writing any implementation code"
 ---
 
 ## Description

@@ -1,5 +1,6 @@
 ---
 name: update-ground-truth
+description: "Use when researching current Iran conflict developments to update the simulation ground truth trunk with verified events"
 ---
 
 ## Description

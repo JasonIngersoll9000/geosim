@@ -1,6 +1,6 @@
 ---
 name: create-sprint-issues
-disable-model-invocation: true
+description: "Use when batch-creating GitHub issues for a sprint from docs/scrum-issues.md"
 ---
 
 ## Description

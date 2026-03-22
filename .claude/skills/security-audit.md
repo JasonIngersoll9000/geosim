@@ -1,6 +1,6 @@
 ---
 name: security-audit
-disable-model-invocation: true
+description: "Use when running a full security review covering secrets, OWASP Top 10, dependencies, and Supabase RLS policies"
 ---
 
 ## Description

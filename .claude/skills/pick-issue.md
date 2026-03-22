@@ -1,5 +1,6 @@
 ---
 name: pick-issue
+description: "Use when selecting a GitHub issue from the sprint board to begin end-to-end implementation on a branch"
 ---
 
 ## Description

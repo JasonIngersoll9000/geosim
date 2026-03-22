@@ -1,6 +1,6 @@
 ---
 name: run-turn
-disable-model-invocation: true
+description: "Use when executing a complete game simulation turn through planning, resolution, reaction, judging, and narration phases"
 ---
 
 ## Description

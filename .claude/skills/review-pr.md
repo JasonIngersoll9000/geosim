@@ -1,5 +1,6 @@
 ---
 name: review-pr
+description: "Use when reviewing a partner pull request using the C.L.E.A.R. framework before approving or requesting changes"
 ---
 
 ## Description

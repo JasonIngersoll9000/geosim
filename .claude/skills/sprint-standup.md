@@ -1,6 +1,6 @@
 ---
 name: sprint-standup
-disable-model-invocation: true
+description: "Use when generating a sprint standup report showing completed, in-progress, and blocked issues with sprint health metrics"
 ---
 
 ## Description
