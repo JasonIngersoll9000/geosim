@@ -111,6 +111,28 @@ describe('applyStateUpdates', () => {
     const updated = applyStateUpdates(scenario, deltas)
     expect(updated.actors.find(a => a.id === 'iran')!.state.military.overallReadiness).toBeGreaterThanOrEqual(0)
   })
+
+  it('should clamp score fields to 100 when a change would exceed 100', () => {
+    const scenario = createMockScenario()
+    // A change of +1000 on any score field must be clamped to 100, not 1000+
+    const deltas = [{ actorId: 'iran', deltas: { 'military.overallReadiness': { change: +1000 } } }]
+    const updated = applyStateUpdates(scenario, deltas)
+    const readiness = updated.actors.find(a => a.id === 'iran')!.state.military.overallReadiness
+    expect(readiness).toBeLessThanOrEqual(100)
+    expect(readiness).toBe(100)
+  })
+
+  it('should silently ignore deltas for unknown actorId', () => {
+    const scenario = createMockScenario()
+    // 'nonexistent_actor' does not exist in the mock scenario
+    const deltas = [
+      { actorId: 'nonexistent_actor', deltas: { 'military.overallReadiness': { change: -50 } } },
+    ]
+    const updated = applyStateUpdates(scenario, deltas)
+    // Scenario actors and global state should be identical to original
+    expect(updated.actors).toEqual(scenario.actors)
+    expect(updated.globalState).toEqual(scenario.globalState)
+  })
 })
 
 describe('applyEventImpact', () => {

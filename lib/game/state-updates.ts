@@ -62,6 +62,13 @@ function applyNestedPath(
     const fieldRest = rest.slice(1)
     const updatedArray = (value as Record<string, unknown>[]).map(item => {
       if (item['name'] === lookupKey || item['description'] === lookupKey) {
+        // WARNING: Terminating a path at the array item level (fieldRest.length === 0)
+        // is NOT a supported usage pattern. applyOp returns a scalar value and
+        // spreading it onto an array item object will produce unexpected results.
+        // Always include a field name after the array key in your path, e.g.:
+        //   'political.influenceChannels.general_public.supportForCurrentPolicy'
+        //                                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+        //   NOT: 'political.influenceChannels.general_public' (terminates at item)
         return fieldRest.length === 0
           ? { ...item, ...applyOp(item, op, lookupKey) }
           : applyNestedPath(item, fieldRest, op)
