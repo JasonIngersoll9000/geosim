@@ -751,13 +751,182 @@ Milestone: Sprint 2
 - [ ] Branch creation connects to API
 ```
 
+**Issue #28: Classification banner + document ID header + three-font design system**
+```
+Title: feat: Classification banner, document ID header, three-font design system
+Labels: sprint-2, P0-critical, frontend
+Assignee: @partner-a
+Milestone: Sprint 2
+
+## Description
+Implement the core GeoSim visual identity from docs/frontend-design.md — the
+single most important aesthetic decision. This must be done BEFORE building any
+other components so everything is built on the right foundation.
+
+- Load Barlow Condensed, EB Garamond, and IBM Plex Mono from Google Fonts
+- Set CSS variables: --font-sans, --font-serif, --font-mono
+- Apply typography rules from the Application Rules table in frontend-design.md
+- Add the fixed 24px classification banner to the root layout:
+    ◆  SECRET // GEOSIM ANALYTICAL FRAMEWORK // FOR RESEARCH USE ONLY  ◆
+  (Iran scenario variant: TOP SECRET // NOFORN // IRAN-CONFLICT)
+- Add document ID header component (replaces breadcrumb):
+    GEOSIM-IRN-2026-0322 // BRANCH: MAIN // TURN 04 / 12
+- Add section divider component:
+    ━━━━━ SECTION TITLE ━━━━━ (monospace, 8px, tertiary)
+- Update top bar (42px) with: GEOSIM wordmark (Barlow Condensed Bold, 16px, gold),
+  scenario name (IBM Plex Mono, 10px, tertiary), turn indicator right-aligned
+
+## Acceptance criteria
+- [ ] All three fonts load and are accessible via CSS variables
+- [ ] Classification banner visible on every page (fixed, non-interactive)
+- [ ] Document ID header renders on all major views
+- [ ] Section divider component used in actor panel and chronicle
+- [ ] Top bar matches spec (wordmark left, turn indicator right)
+- [ ] No Inter/system-ui as only font anywhere in the UI
+- [ ] No rounded corners above 6px, no box-shadow, no gradient backgrounds
+```
+
+**Issue #29: Turn resolution dispatch terminal animation**
+```
+Title: feat: Turn resolution dispatch terminal animation (no spinner)
+Labels: sprint-2, P0-critical, frontend
+Assignee: @partner-a
+Milestone: Sprint 2
+
+## Description
+When the AI resolves a turn, the center panel switches to a full terminal view
+showing live incoming dispatches. This is the most memorable UI moment — it must
+feel real. See docs/frontend-design.md "Turn Resolution: The Dispatch Sequence".
+
+- Replace any loading spinner or progress bar with a full-panel terminal view
+- Each dispatch line stamps in with a 40ms stagger (opacity 0 → 1, no animation curve)
+- Timestamp prefix in --text-tertiary, event lines in --text-secondary
+- COLLISION DETECTED lines in --status-critical
+- EVENT CONFIRMED lines in --gold
+- Blinking amber block cursor (▋) after last line while engine is processing
+- Cursor disappears when complete
+- Connect to Supabase Realtime channel for live progress events
+- On completion, transition back to the normal panel view
+
+## Acceptance criteria
+- [ ] No spinner or progress bar during turn resolution
+- [ ] Lines appear sequentially with 40ms stagger
+- [ ] Timestamp, event, critical, and confirmed line styles match spec
+- [ ] Blinking cursor present during processing, gone on complete
+- [ ] Animation works with mock dispatch data (API not required for UI proof)
+- [ ] Supabase Realtime hook ready for wiring
+```
+
+**Issue #30: Constraint cascade detection and alerting (TDD)**
+```
+Title: feat: Constraint cascade detection and alerting (TDD)
+Labels: sprint-2, P0-critical, game-logic
+Assignee: @partner-b
+Milestone: Sprint 2
+
+## Description
+Constraint cascades are a core PRD abstraction (Section 3.1): multi-step chains
+where constraint removal enables escalation. The classic example is Iran's nuclear
+cascade: Ayatollah killed → religious constraint removed → attack already happened
+→ deterrence constraint removed → nuclear breakout rational → Israel faces nuclear
+adversary → potential first strike.
+
+TDD workflow (red → green → refactor):
+1. Write failing tests in tests/game/constraint-cascades.test.ts
+2. Implement lib/game/constraint-cascades.ts
+3. Refactor
+
+## Test cases (write FIRST)
+- detectActiveCascades: finds cascades where 2+ steps have been triggered
+- evaluateCascadeRisk: computes likelihood of full activation from current state
+- getNextCascadeStep: returns the next un-triggered step for an active cascade
+- checkConstraintStatusChange: updates constraint.status when event removes it
+- alertOnCascadeFormation: returns alert when cascade likelihood crosses threshold
+- perceivedByActor: returns only cascades the actor is aware of (fog of war)
+- unknownCascades: returns cascades no actor is aware of (engine/omniscient only)
+
+## Acceptance criteria
+- [ ] Git history shows red-green-refactor pattern
+- [ ] All 7+ tests pass
+- [ ] detectActiveCascades correctly identifies the Iran nuclear cascade given mock data
+- [ ] Cascade alerts surface in the chronicle (expandable detail section)
+- [ ] Fog of war: actor agents don't see cascades they're unaware of
+```
+
+**Issue #31: Reaction phase UI flow**
+```
+Title: feat: Reaction phase UI flow
+Labels: sprint-2, P1-important, frontend
+Assignee: @partner-a
+Milestone: Sprint 2
+
+## Description
+The reaction phase (PRD Section 5.1) is a distinct game phase where actors respond
+to "immediate" triggers from the resolution engine. Currently only the backend has
+reaction phase coverage. The frontend needs a dedicated UI flow.
+
+- After turn resolution completes, check for immediate reaction triggers
+- Show a "Reaction Phase" notification panel (visually distinct from planning)
+- List each triggered actor with their trigger description
+- For user-controlled actors, show a simplified decision picker (1-2 actions, not
+  the full TurnPlan builder — reactions are faster and more constrained)
+- AI-controlled actors react automatically (show their reaction in the terminal log)
+- Once all reactions resolved, show a "Reaction resolved" dispatch line and advance
+- In the chronicle, reaction phase entries are visually separated (indented, labeled
+  "REACTION PHASE" in the dispatch header)
+
+## Acceptance criteria
+- [ ] Reaction phase panel appears only when immediate triggers exist
+- [ ] Triggered actors and their triggers are clearly displayed
+- [ ] User-controlled actor gets simplified action picker (not full TurnPlan builder)
+- [ ] AI reactions shown as dispatch lines in terminal view
+- [ ] Chronicle entries distinguish reaction phase from planning phase
+- [ ] No reaction panel if no immediate triggers
+```
+
+**Issue #32: Supabase Realtime subscriptions (observer mode and turn progress)**
+```
+Title: feat: Supabase Realtime subscriptions for observer mode and turn progress
+Labels: sprint-2, P1-important, backend
+Assignee: @partner-b
+Milestone: Sprint 2
+
+## Description
+The turn resolution terminal animation (Issue #29) and observer mode both require
+live updates pushed from the server. Implement Supabase Realtime subscriptions.
+
+Channels to implement (from docs/api-routes.md):
+- channel: branch:[id]
+  events: turn_started, decision_submitted, resolution_progress,
+          turn_completed, branch_rewound
+- channel: commit:[id]
+  events: phase_changed, narrative_ready, eval_ready
+
+Create useRealtime hook in hooks/useRealtime.ts:
+- Subscribes to branch and commit channels
+- Dispatches GameContext actions on events
+- Cleans up subscription on unmount
+
+During turn resolution, emit resolution_progress events from the game loop
+controller for each dispatch line (timestamp + message). The terminal animation
+component subscribes to these and renders each line as it arrives.
+
+## Acceptance criteria
+- [ ] useRealtime hook subscribes to branch and commit channels
+- [ ] resolution_progress events feed the dispatch terminal animation
+- [ ] turn_completed event transitions UI from terminal back to panel view
+- [ ] Observer mode receives all actor decisions and resolution in real-time
+- [ ] Subscription cleaned up on component unmount
+- [ ] Works with Supabase local development instance
+```
+
 ---
 
 ## SPRINT 3 — Ship It (Week 3-4)
 
 ### Both Partners
 
-**Issue #28: CI/CD pipeline**
+**Issue #33: CI/CD pipeline**
 ```
 Title: feat: GitHub Actions CI/CD with AI PR review
 Labels: sprint-3, P0-critical, infrastructure
@@ -777,7 +946,7 @@ Milestone: Sprint 3
 - [ ] Vercel deploys automatically
 ```
 
-**Issue #29: Sentry monitoring & health check**
+**Issue #34: Sentry monitoring & health check**
 ```
 Title: feat: Sentry error tracking and health monitoring
 Labels: sprint-3, P1-important, infrastructure
@@ -796,7 +965,7 @@ Milestone: Sprint 3
 - [ ] Source maps uploaded for readable stack traces
 ```
 
-**Issue #30: Security audit**
+**Issue #35: Security audit**
 ```
 Title: feat: Security audit — OWASP Top 10, secrets, dependencies
 Labels: sprint-3, P0-critical, infrastructure
@@ -819,7 +988,7 @@ Run /security-audit skill and address findings:
 - [ ] RLS policies verified active
 ```
 
-**Issue #31: Eval metrics dashboard**
+**Issue #36: Eval metrics dashboard**
 ```
 Title: feat: Eval metrics — historical judge scores and bias tracking
 Labels: sprint-3, P1-important, ai-pipeline
@@ -841,7 +1010,7 @@ Milestone: Sprint 3
 - [ ] Bias detection flags systematic favoritism
 ```
 
-**Issue #32: Seed Iran scenario with verified data**
+**Issue #37: Seed Iran scenario with verified data**
 ```
 Title: feat: Seed Iran conflict scenario from research data
 Labels: sprint-3, P0-critical, ai-pipeline
@@ -865,7 +1034,7 @@ create the ground truth trunk for the Iran scenario:
 - [ ] Ground truth trunk created as the base branch
 ```
 
-**Issue #33: Mapbox Tier 2 — asset markers**
+**Issue #38: Mapbox Tier 2 — asset markers**
 ```
 Title: feat: Mapbox Tier 2 — military assets, oil facilities, pulsing markers
 Labels: sprint-3, P2-nice, frontend
@@ -885,7 +1054,7 @@ Milestone: Sprint 3
 - [ ] Click marker shows asset details
 ```
 
-**Issue #34: Connect frontend to live API data**
+**Issue #39: Connect frontend to live API data**
 ```
 Title: feat: Replace mock data with live API connections
 Labels: sprint-3, P0-critical, frontend
@@ -906,7 +1075,7 @@ Wire up all frontend components to real API endpoints:
 - [ ] Supabase realtime subscription working for observer mode
 ```
 
-**Issue #35: Quality gate & polish**
+**Issue #40: Quality gate & polish**
 ```
 Title: feat: Quality gate pass and UI polish
 Labels: sprint-3, P1-important, infrastructure, frontend
@@ -927,7 +1096,7 @@ Milestone: Sprint 3
 - [ ] Lighthouse performance > 80
 ```
 
-**Issue #36: Documentation, blog post, presentation prep**
+**Issue #41: Documentation, blog post, presentation prep**
 ```
 Title: docs: System documentation, API docs, blog post, and presentation
 Labels: sprint-3, P0-critical, docs
@@ -953,7 +1122,7 @@ Milestone: Sprint 3
 
 ## HW-Specific Issues
 
-**Issue #37: HW4 — Reflection & session log**
+**Issue #42: HW4 — Reflection & session log**
 ```
 Title: docs: HW4 reflection and annotated Claude Code session log
 Labels: hw4, docs
@@ -970,7 +1139,7 @@ Milestone: HW4 Deadline
 - [ ] Reflection covers all required questions
 ```
 
-**Issue #38: HW5 — Custom skill v1 → v2 iteration**
+**Issue #43: HW5 — Custom skill v1 → v2 iteration**
 ```
 Title: feat: HW5 custom skill iteration — /add-feature v1 → v2
 Labels: hw5
@@ -989,7 +1158,7 @@ Milestone: HW5 Deadline
 - [ ] Documented iteration (what changed, why)
 ```
 
-**Issue #39: HW5 — MCP integration demonstration**
+**Issue #44: HW5 — MCP integration demonstration**
 ```
 Title: feat: HW5 MCP integration — Context Mode + Supabase/Playwright
 Labels: hw5
@@ -1008,7 +1177,7 @@ Milestone: HW5 Deadline
 - [ ] Setup documentation (reproducible)
 ```
 
-**Issue #40: HW5 — Retrospective**
+**Issue #45: HW5 — Retrospective**
 ```
 Title: docs: HW5 retrospective on skills and MCP
 Labels: hw5, docs

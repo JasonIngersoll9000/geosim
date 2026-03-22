@@ -14,7 +14,10 @@ Pick up a GitHub issue from the sprint board and work on it end-to-end.
 5. Create a feature branch: `git checkout -b issue-NUMBER-short-description`
 6. Read the acceptance criteria carefully
 7. If the issue has a `game-logic` label, use /add-feature workflow (TDD)
-8. If the issue has a `frontend` label, use (plan) mode for multi-file work
+8. If the issue has a `frontend` label:
+   - Read `docs/frontend-design.md` before planning
+   - Confirm the component plan follows the signature elements and avoids the anti-patterns list
+   - Then use (plan) mode for multi-file work
 9. If the issue has an `infrastructure` label, use (plan) mode
 10. Work through all acceptance criteria, checking each off
 11. Run full test suite: `bun run test -- --run`

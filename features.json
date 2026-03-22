@@ -19,7 +19,9 @@
     { "id": "F016", "category": "frontend", "name": "Split-screen layout (map + panels)", "priority": "P0", "sprint": 2, "passes": false },
     { "id": "F017", "category": "frontend", "name": "Mapbox Tier 1 (country fills, chokepoints)", "priority": "P0", "sprint": 2, "passes": false },
     { "id": "F018", "category": "frontend", "name": "Actor list + global indicators panel", "priority": "P0", "sprint": 2, "passes": false },
-    { "id": "F019", "category": "frontend", "name": "Decision cards + analysis view", "priority": "P0", "sprint": 2, "passes": false },
+    { "id": "F019a", "category": "frontend", "name": "Decision catalog (dimension groups, escalation tags)", "priority": "P0", "sprint": 2, "passes": false },
+    { "id": "F019b", "category": "frontend", "name": "Decision detail panel (parameter configurator, profiles, live costs)", "priority": "P0", "sprint": 2, "passes": false },
+    { "id": "F019c", "category": "frontend", "name": "TurnPlan builder (concurrent slots, resource allocation, validation)", "priority": "P0", "sprint": 2, "passes": false },
     { "id": "F020", "category": "frontend", "name": "War chronicle timeline", "priority": "P0", "sprint": 2, "passes": false },
     { "id": "F021", "category": "frontend", "name": "Actor state detail panel", "priority": "P1", "sprint": 2, "passes": false },
     { "id": "F022", "category": "frontend", "name": "Game mode selection", "priority": "P1", "sprint": 2, "passes": false },
@@ -30,6 +32,11 @@
     { "id": "F027", "category": "infrastructure", "name": "Eval metrics dashboard", "priority": "P1", "sprint": 3, "passes": false },
     { "id": "F028", "category": "frontend", "name": "Mapbox Tier 2 (asset markers)", "priority": "P2", "sprint": 3, "passes": false },
     { "id": "F029", "category": "frontend", "name": "Scenario browser (public library)", "priority": "P2", "sprint": 3, "passes": false },
-    { "id": "F030", "category": "frontend", "name": "Scenario creation wizard", "priority": "P2", "sprint": 3, "passes": false }
+    { "id": "F030", "category": "frontend", "name": "Scenario creation wizard", "priority": "P2", "sprint": 3, "passes": false },
+    { "id": "F031", "category": "frontend", "name": "Classification banner + three-font design system (Barlow / EB Garamond / IBM Plex Mono)", "priority": "P0", "sprint": 2, "passes": false },
+    { "id": "F032", "category": "frontend", "name": "Turn resolution dispatch terminal animation", "priority": "P0", "sprint": 2, "passes": false },
+    { "id": "F033", "category": "game_logic", "name": "Constraint cascade detection and alerting", "priority": "P0", "sprint": 2, "passes": false, "test_file": "tests/game/constraint-cascades.test.ts" },
+    { "id": "F034", "category": "frontend", "name": "Reaction phase UI flow", "priority": "P1", "sprint": 2, "passes": false },
+    { "id": "F035", "category": "infrastructure", "name": "Supabase Realtime subscriptions (observer mode, turn progress)", "priority": "P1", "sprint": 2, "passes": false }
   ]
 }

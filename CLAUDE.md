@@ -163,8 +163,11 @@ When working on a task spanning many tool calls (research pipeline, game loop):
 — Interactive mockups: split-screen game view, actor state panel, decision analysis, war chronicle.
 
 ### Design system
+@docs/frontend-design.md
+— Frontend identity, concept ("Declassified War Room"), signature elements, surface-by-surface treatment, implementation priority. Read this before building any UI.
+
 @docs/strategos-design-system.md
-— UI design tokens, color palette, typography, component specs for GeoSim frontend.
+— UI design tokens, color palette, typography, component specs. The token system that frontend-design.md builds on.
 
 ### Infrastructure
 @docs/env-plan.md

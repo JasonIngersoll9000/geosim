@@ -2,21 +2,49 @@
 Updated by Claude Code at the end of each session.
 
 ## Current sprint: Sprint 1 — Foundation
-## Last session: Not yet started
+## Last session: 2026-03-22
 
 ### Completed
-(none yet)
+- Next.js 14 scaffolding with App Router, TypeScript, Tailwind
+- Supabase schema migration (supabase/migrations/20260319000000_initial_schema.sql)
+- TypeScript types: lib/types/database.ts, lib/types/simulation.ts
+- Supabase client utilities: lib/supabase/client.ts, lib/supabase/server.ts
+- Supabase middleware: middleware.ts (session token refresh)
+- Vitest setup with tests passing (4 files, 6 tests)
+- Directory structure stubs (.gitkeep files for all key directories)
+- .env.example committed with placeholder values
+- CLAUDE.md updated with @imports to all /docs files, Sprint 1 status
+- .claude/settings.json configured with permissions, hooks, and skill triggers
+- All project skills created: start-session, end-session, add-feature, pick-issue,
+  run-turn, seed-iran-scenario, test-agent, review-pr, quality-gate, quality-fix,
+  security-audit, sprint-standup, update-ground-truth, create-sprint-issues
+- docs/frontend-design.md — full "Declassified War Room" design vision
+- docs/claude-code-guide.md — comprehensive Claude Code workflow guide for new users
+- Hook automation: skill triggers wired to hooks in settings.json
+- npm → bun migration across all skills and settings
+- Vercel deployment live (builds passing)
 
 ### In progress
-(none yet)
+- Sprint 1 features F004–F008b (Vitest mock factory, fog-of-war, escalation,
+  state-updates, branching, turn-plan validation) — stubs exist, tests not yet written
+- Research pipeline API routes (F009, F010) — not started
+- Iran scenario seed data — not started
 
 ### Next up
-- Project scaffolding (Next.js, Supabase, Vercel)
-- Database schema migration
-- TypeScript types for data model
+- Issue #3: Vitest setup + mock scenario factory (createMockScenario() with Iran data)
+- Issue #4: TDD fog-of-war filtering (red → green → refactor)
+- Issue #5: TDD escalation ladder validation
+- Issue #6: TDD TurnPlan validation (concurrency, resources, parameters)
+- Issue #7: TDD state update application
+- Issue #8: Research pipeline API routes (Stages 0–6)
 
 ### Known bugs
-(none)
+- None
 
 ### Architecture decisions
-(none yet)
+- Using bun (not npm/npx) for all package management — npm/npx are Windows binaries
+  in WSL2 and cannot execute Linux binaries
+- Vitest configured with node environment (not jsdom) for server-side logic tests
+- docs/ excluded from TypeScript compilation (reference docs, not compiled code)
+- Skill triggers wired via PostToolUse hooks (not memory) so automation is reliable
+- features.json tracks pass/fail per feature — only mark passes:true after tests pass
