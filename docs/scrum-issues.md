@@ -1018,20 +1018,48 @@ Assignee: @partner-b
 Milestone: Sprint 3
 
 ## Description
-Use the verified research data (military, political, economic) to
-create the ground truth trunk for the Iran scenario:
-- All actors with full profiles and state
-- Event timeline with causal links
-- Escalation ladders per actor
-- Intelligence pictures with fog of war
-- Relationships and influence channels
-- Global state (oil, supply chains, crisis countries)
+SUPERSEDED by Issue #18 (Iran research incorporation) which provides a more
+complete implementation using a CLI seed script rather than the research pipeline.
 
 ## Acceptance criteria
 - [ ] Scenario loads and is playable
 - [ ] All actors have full, researched state
 - [ ] Event history covers Twelve-Day War through current day
 - [ ] Ground truth trunk created as the base branch
+```
+
+**Issue #18: Iran research incorporation — seed verified data and verifiedContext pipeline**
+```
+Title: feat: Iran research incorporation — seed verified data and verifiedContext pipeline
+Labels: sprint-1, P0-critical, ai-pipeline, game-logic
+Assignee: @partner-b
+Milestone: Sprint 1
+
+## Description
+Incorporate verified Iran research data into the simulation as a ground truth trunk.
+- Add VerificationStatus type (verified | researched | inferred) to simulation types
+- Create lib/scenarios/iran/ with seed data (initial state + ~25 events)
+- Create scripts/seed-iran.ts CLI script that chains events into Supabase turn_commits
+- Add verifiedContext param to runPopulatePipeline() — skips stages 1-4, injects into 5-6
+- Add current_divergence column to branches table
+- Add cache_key + reuse_count to turn_commits for shared commit caching
+- Implement computeCacheKey() utility with SHA-256
+
+Run: bun run scripts/seed-iran.ts
+Append new events: bun run scripts/seed-iran.ts --from=<event_id>
+Seed data lives in: lib/scenarios/iran/
+
+## Acceptance criteria
+- [ ] bun run scripts/seed-iran.ts creates ground truth trunk with ~25-35 commits
+- [ ] Each commit has is_ground_truth: true and correct scenario_snapshot
+- [ ] All verified fields have verificationStatus: 'verified'
+- [ ] runPopulatePipeline with verifiedContext skips stages 1-4
+- [ ] branchDivergence field present in game context passed to agents
+- [ ] Cache hit returns existing commit without API call
+- [ ] --from=<event_id> flag appends without re-seeding
+- [ ] Unverified scenario pipeline (no verifiedContext) unchanged
+- [ ] All existing tests still pass
+- [ ] TypeScript strict mode: zero errors
 ```
 
 **Issue #38: Mapbox Tier 2 — asset markers**
