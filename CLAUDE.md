@@ -28,7 +28,7 @@ node_modules/.bin/vitest run <file>            # Alternative: direct binary
 bun run test:e2e                               # Run playwright
 bun run lint                                   # ESLint
 bun run build                                  # Production build
-bun run typecheck                              # tsc --noEmit (via npx tsc)
+bun run typecheck                              # tsc --noEmit
 
 ## Architecture
 Sprint 1 scaffolding is complete. The structure:
@@ -47,7 +47,13 @@ Sprint 1 scaffolding is complete. The structure:
 - supabase/migrations/    — Database migrations
 - tests/                  — All tests (game/, api/, components/, e2e/)
 
-Currently present: `docs/` (all reference docs), `features.json`, `claude-progress.txt`, `.claude/` (settings, hooks).
+Sprint 1 scaffolding complete. Key files present:
+- `lib/supabase/client.ts`, `lib/supabase/server.ts` — Supabase client utilities
+- `lib/types/database.ts` — DB row/insert/update types for all 9 tables
+- `lib/types/simulation.ts` — Full simulation types (Scenario, Actor, Decision, etc.)
+- `middleware.ts` — Supabase session refresh middleware
+- `supabase/migrations/20260319000000_initial_schema.sql` — Full schema with RLS
+- `tests/middleware.test.ts`, `tests/lib/` — Vitest tests (node environment)
 
 ## Key design patterns
 - Git-like branching: scenarios have branches, turns are immutable commits
@@ -153,8 +159,12 @@ When working on a task spanning many tool calls (research pipeline, game loop):
 @docs/component-tree.ts
 — React component hierarchy, state management, hooks, providers, file structure.
 
-@docs/ui-mockups.html
+@docs/all-ui-mockups.html
 — Interactive mockups: split-screen game view, actor state panel, decision analysis, war chronicle.
+
+### Design system
+@docs/strategos-design-system.md
+— UI design tokens, color palette, typography, component specs for GeoSim frontend.
 
 ### Infrastructure
 @docs/env-plan.md
@@ -167,13 +177,13 @@ When working on a task spanning many tool calls (research pipeline, game loop):
 — Sprint issues with acceptance criteria, labels, milestones, and partner assignments. Source of truth for /create-sprint-issues and /pick-issue skills.
 
 ### Iran scenario research
-@docs/research-military.md
+@docs/Iran Research/research-military.md
 — Verified military timeline, weapons costs, force deployments, nuclear status, Strait details.
 
-@docs/research-political.md
+@docs/Iran Research/research-political.md
 — US domestic politics (AIPAC quantified), Iranian dynamics, Israeli coalition, Gulf responses.
 
-@docs/research-economic.md
+@docs/Iran Research/research-economic.md
 — Oil prices, energy infrastructure, petrodollar/BRICS, Russia/China positioning, supply chain crises.
 
 ## Context Mode
