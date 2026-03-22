@@ -2,7 +2,7 @@
 Updated by Claude Code at the end of each session.
 
 ## Current sprint: Sprint 1 — Foundation
-## Last session: 2026-03-22
+## Last session: 2026-03-23
 
 ### Completed
 - Next.js 14 scaffolding with App Router, TypeScript, Tailwind
@@ -25,9 +25,17 @@ Updated by Claude Code at the end of each session.
 - Vercel deployment live (builds passing)
 - Issue #3 (PR #13): Vitest + mock scenario factory — createMockScenario(), createMockDecisions(), createMockTurnPlan()
 - Issue #4 (PR #14): TDD fog-of-war filtering — lib/game/fog-of-war.ts, 13 tests passing (F005 ✅)
-- Issue #5 (PR #15): TDD escalation ladder validation — lib/game/escalation.ts, 14 tests passing (F006 ✅)
-- Issue #6 (PR #16): TDD TurnPlan validation — lib/game/turn-plan.ts, 12 tests passing (F008b ✅)
-- Issue #7 (PR #17): TDD state update application — lib/game/state-updates.ts, 10 tests passing (F007 ✅)
+- Issue #5 (PR #15): TDD escalation ladder validation — lib/game/escalation.ts, 18 tests passing (F006 ✅)
+- Issue #6 (PR #16): TDD TurnPlan validation — lib/game/turn-plan.ts, 14 tests passing (F008b ✅)
+- Issue #7 (PR #17): TDD state update application — lib/game/state-updates.ts, 12 tests passing (F007 ✅)
+- C.L.E.A.R. reviews on all 5 open PRs; bugs identified and fixed before push
+- PR #15 bugfix: getDeescalationOptions floor initialization (reduce to Infinity not currentRung)
+- PR #16 bugfix: concurrent-vs-concurrent incompatibility check (nested loop i<j) + under-allocation warning
+- PR #17 bugfix: added clamping test (change +1000 → clamps to 100) + unknown-actorId no-op test
+- ESLint argsIgnorePattern fix: configured ^_ pattern in .eslintrc.json on all 4 branches (issue-4 through issue-7)
+- fog-of-war.ts: renamed unused `scenario` param to `_scenario` on all 4 branches
+- state-updates.ts: let → const for updatedGlobal (prefer-const ESLint rule)
+- All Vercel build failures resolved; 61/61 tests passing across all 8 test files
 
 ### Open PRs (need review/merge before branching further)
 - PR #13: issue-3-vitest-mock-scenario → main (F004 ✅)
@@ -45,6 +53,10 @@ Updated by Claude Code at the end of each session.
 ### Known bugs
 - None
 
+### Design debt
+- getConstraintCascadeRisk (lib/game/escalation.ts) uses Iran-specific keyword matching
+  instead of reading from Scenario.constraintCascades — tracked for Issue #30 (Sprint 2)
+
 ### Architecture decisions
 - Using bun (not npm/npx) for all package management — npm/npx are Windows binaries
   in WSL2 and cannot execute Linux binaries
@@ -52,3 +64,6 @@ Updated by Claude Code at the end of each session.
 - docs/ excluded from TypeScript compilation (reference docs, not compiled code)
 - Skill triggers wired via PostToolUse hooks (not memory) so automation is reliable
 - features.json tracks pass/fail per feature — only mark passes:true after tests pass
+- ESLint argsIgnorePattern: ^_ must be in .eslintrc.json (Vercel build requires it for _-prefixed params)
+- prefer-const applies even when mutating object properties via bracket notation — binding must be const
+- Concurrent TurnPlan validation must check every concurrent pair (i<j loop), not just vs primary
