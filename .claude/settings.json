@@ -4,10 +4,6 @@
       "Read",
       "Glob",
       "Grep",
-      "Bash(npm test)",
-      "Bash(npm run lint)",
-      "Bash(npm run typecheck)",
-      "Bash(npm run build)",
       "Bash(git status)",
       "Bash(git diff)",
       "Bash(git log*)",
@@ -18,16 +14,23 @@
       "Bash(git branch *)",
       "Bash(gh issue *)",
       "Bash(gh pr *)",
-      "Bash(npx *)",
-      "Bash(npm install*)",
-      "Bash(npm ci)",
-      "Bash(echo *)",
       "Bash(bun *)",
       "Bash(/home/jason_ingersoll/.bun/bin/bun *)",
-      "Bash(node_modules/.bin/vitest *)"
+      "Bash(node_modules/.bin/vitest *)",
+      "Bash(echo *)"
     ]
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"systemMessage\": \"Run /start-session before doing any work this session.\"}'"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
@@ -35,6 +38,15 @@
           {
             "type": "command",
             "command": "node_modules/.bin/prettier --write \"$CLAUDE_FILE_PATH\" 2>/dev/null || true"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[[ \"$CLAUDE_FILE_PATH\" =~ tests/.*\\.test\\.(ts|tsx)$ ]] && node_modules/.bin/vitest run \"$CLAUDE_FILE_PATH\" 2>&1 | tail -30 || true"
           }
         ]
       }
@@ -46,6 +58,16 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/protect-files.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git status --porcelain 2>/dev/null | grep -q . && echo '{\"systemMessage\": \"Uncommitted changes detected — run /end-session to commit, update progress notes, and push.\"}' || true"
           }
         ]
       }
