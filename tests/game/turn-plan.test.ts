@@ -79,6 +79,34 @@ describe('validateTurnPlan — concurrency rules', () => {
     const result = validateTurnPlan(plan, decisions)
     expect(result.errors.filter(e => e.includes('incompatible'))).toHaveLength(0)
   })
+
+  it('should reject two incompatible concurrent actions even if both are compatible with the primary', () => {
+    // dec-sanctions has no incompatibleWith, making it a safe primary.
+    // dec-ground-op.incompatibleWith includes 'dec-air-campaign'.
+    // Patch ground-op resourceWeight to 'heavy' so the "total" guard doesn't fire.
+    // Result: primary is fine with both concurrent actions, but ground-op and
+    // air-campaign are mutually incompatible — the concurrent-vs-concurrent check must catch it.
+    const decisions = createMockDecisions('united_states')
+    const sanctions = decisions.find(d => d.id === 'dec-sanctions')!
+    const groundOp = decisions.find(d => d.id === 'dec-ground-op')!
+    const airCampaign = decisions.find(d => d.id === 'dec-air-campaign')!
+
+    const patchedDecisions = decisions.map(d =>
+      d.id === 'dec-ground-op' ? { ...d, resourceWeight: 'heavy' as const } : d
+    )
+
+    const plan: TurnPlan = {
+      actorId: 'united_states',
+      primaryAction: { decisionId: sanctions.id, selectedProfile: null, resourcePercent: 40 },
+      concurrentActions: [
+        { decisionId: groundOp.id, selectedProfile: null, resourcePercent: 30 },
+        { decisionId: airCampaign.id, selectedProfile: null, resourcePercent: 30 },
+      ],
+    }
+    const result = validateTurnPlan(plan, patchedDecisions)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some(e => e.includes('incompatible'))).toBe(true)
+  })
 })
 
 describe('validateTurnPlan — resource allocation', () => {
@@ -142,6 +170,22 @@ describe('validateTurnPlan — resource allocation', () => {
     }
     const result = validateTurnPlan(plan, decisions)
     expect(result.warnings.some(w => w.toLowerCase().includes('primary'))).toBe(true)
+  })
+
+  it('should warn when total allocation is under 100%', () => {
+    const decisions = createMockDecisions('united_states')
+    const airCampaign = decisions.find(d => d.id === 'dec-air-campaign')!
+    const sanctions = decisions.find(d => d.id === 'dec-sanctions')!
+
+    // Total = 60 + 30 = 90% — should produce a warning but NOT an error
+    const plan: TurnPlan = {
+      actorId: 'united_states',
+      primaryAction: { decisionId: airCampaign.id, selectedProfile: null, resourcePercent: 60 },
+      concurrentActions: [{ decisionId: sanctions.id, selectedProfile: null, resourcePercent: 30 }],
+    }
+    const result = validateTurnPlan(plan, decisions)
+    expect(result.valid).toBe(true)
+    expect(result.warnings.some(w => w.includes('under 100%') || w.includes('unallocated'))).toBe(true)
   })
 })
 

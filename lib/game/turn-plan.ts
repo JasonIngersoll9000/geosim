@@ -35,6 +35,12 @@ export function validateTurnPlan(
     errors.push(`Resource allocation exceeds 100% (total: ${totalPercent}%)`)
   }
 
+  if (totalPercent < 100) {
+    warnings.push(
+      `Resource allocation is under 100% (total: ${totalPercent}%) — ${100 - totalPercent}% of resources are unallocated`
+    )
+  }
+
   for (const action of allActions) {
     if (action.resourcePercent === 0) {
       const dec = decisionMap.get(action.decisionId)
@@ -84,6 +90,26 @@ export function validateTurnPlan(
         tensions.push({
           actions: [primaryDecision.id, concurrent.id],
           penalty: `Combining ${concurrent.title} with ${primaryDecision.title} creates strategic contradiction`,
+        })
+      }
+    }
+  }
+
+  // Check each concurrent action against every other concurrent action
+  for (let i = 0; i < concurrentDecisions.length; i++) {
+    for (let j = i + 1; j < concurrentDecisions.length; j++) {
+      const decA = concurrentDecisions[i]
+      const decB = concurrentDecisions[j]
+      const aIncompat = decA.incompatibleWith ?? []
+      const bIncompat = decB.incompatibleWith ?? []
+
+      if (aIncompat.includes(decB.id) || bIncompat.includes(decA.id)) {
+        errors.push(
+          `"${decA.title}" and "${decB.title}" are incompatible — cannot run concurrently`
+        )
+        tensions.push({
+          actions: [decA.id, decB.id],
+          penalty: `Combining ${decA.title} with ${decB.title} creates strategic contradiction`,
         })
       }
     }
