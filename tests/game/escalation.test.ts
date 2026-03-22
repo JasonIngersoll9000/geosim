@@ -99,6 +99,46 @@ describe('getDeescalationOptions', () => {
       }
     }
   })
+
+  it('should allow all lower rungs when no irreversible rungs have been crossed', () => {
+    const scenario = createMockScenario()
+    const base = scenario.actors[0]
+    const actor = {
+      ...base,
+      escalation: {
+        ...base.escalation,
+        currentRung: 3,
+        rungs: [
+          { level: 0, name: 'Peace', description: '', exampleActions: [], strategicLogic: '', politicalCost: 0, reversibility: 'easy' as const },
+          { level: 1, name: 'Sanctions', description: '', exampleActions: [], strategicLogic: '', politicalCost: 10, reversibility: 'easy' as const },
+          { level: 2, name: 'Covert', description: '', exampleActions: [], strategicLogic: '', politicalCost: 20, reversibility: 'easy' as const },
+          { level: 3, name: 'Air strikes', description: '', exampleActions: [], strategicLogic: '', politicalCost: 40, reversibility: 'easy' as const },
+        ],
+      },
+    }
+    const options = getDeescalationOptions(actor)
+    // Should get all rungs below 3 (levels 0, 1, 2)
+    expect(options.length).toBe(3)
+    expect(options.every(r => r.level < 3)).toBe(true)
+  })
+
+  it('should return empty array when actor is at lowest rung', () => {
+    const scenario = createMockScenario()
+    const base = scenario.actors[0]
+    const actor = {
+      ...base,
+      escalation: {
+        ...base.escalation,
+        currentRung: 0,
+        rungs: [
+          { level: 0, name: 'Peace', description: '', exampleActions: [], strategicLogic: '', politicalCost: 0, reversibility: 'easy' as const },
+          { level: 1, name: 'Sanctions', description: '', exampleActions: [], strategicLogic: '', politicalCost: 10, reversibility: 'easy' as const },
+        ],
+      },
+    }
+    const options = getDeescalationOptions(actor)
+    expect(options).toHaveLength(0)
+  })
 })
 
 describe('applyConstraintStatusChange', () => {
@@ -119,6 +159,20 @@ describe('applyConstraintStatusChange', () => {
     )
     // At least one nuclear-related constraint should be removed/weakened
     expect(affected).toBeDefined()
+  })
+
+  it('should return actor unchanged when no constraints match the pattern', () => {
+    const scenario = createMockScenario()
+    const iran = scenario.actors.find(a => a.id === 'iran')!
+    const original = JSON.parse(JSON.stringify(iran))
+
+    const result = applyConstraintStatusChange(
+      iran,
+      'xyzzy-pattern-that-matches-nothing',
+      'removed',
+      'test-event-99'
+    )
+    expect(result.constraints).toEqual(original.constraints)
   })
 
   it('should not mutate the original actor', () => {
@@ -166,6 +220,37 @@ describe('getConstraintCascadeRisk', () => {
       c.description.toLowerCase().includes('nuclear')
     )
     expect(nuclearCascade).toBeDefined()
+  })
+
+  it('should not trigger cascade when only 1 constraint has been removed', () => {
+    const scenario = createMockScenario()
+    const base = scenario.actors.find(a => a.id === 'iran')!
+    const actor = {
+      ...base,
+      constraints: [
+        {
+          dimension: 'military' as const,
+          description: 'Religious prohibition on nuclear weapons (fatwa)',
+          severity: 'hard' as const,
+          status: 'removed' as const,  // 1 removed
+        },
+        {
+          dimension: 'military' as const,
+          description: 'Nuclear deterrence constraint — attack already happened',
+          severity: 'hard' as const,
+          status: 'active' as const,   // still active
+        },
+        {
+          dimension: 'diplomatic' as const,
+          description: 'International isolation risk from nuclear development',
+          severity: 'soft' as const,
+          status: 'active' as const,   // still active
+        },
+      ],
+    }
+    const result = getConstraintCascadeRisk(actor, scenario)
+    // Only 1 of 3 nuclear constraints removed — threshold is ≥2, so no active cascade
+    expect(result.activeCascades).toHaveLength(0)
   })
 
   it('should report likelihood as a number between 0 and 100', () => {
