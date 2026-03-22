@@ -7,7 +7,7 @@ Updated by Claude Code at the end of each session.
 ### Completed
 - Next.js 14 scaffolding with App Router, TypeScript, Tailwind
 - Supabase schema migration (supabase/migrations/20260319000000_initial_schema.sql)
-- TypeScript types: lib/types/database.ts, lib/types/simulation.ts
+- TypeScript types: lib/types/database.ts, lib/types/simulation.ts (+ TurnPlan types)
 - Supabase client utilities: lib/supabase/client.ts, lib/supabase/server.ts
 - Supabase middleware: middleware.ts (session token refresh)
 - Vitest setup with tests passing (4 files, 6 tests)
@@ -23,17 +23,21 @@ Updated by Claude Code at the end of each session.
 - Hook automation: skill triggers wired to hooks in settings.json
 - npm → bun migration across all skills and settings
 - Vercel deployment live (builds passing)
+- Issue #3 (PR #13): Vitest + mock scenario factory — createMockScenario(), createMockDecisions(), createMockTurnPlan()
+- Issue #4 (PR #14): TDD fog-of-war filtering — lib/game/fog-of-war.ts, 13 tests passing (F005 ✅)
+
+### Open PRs (need review/merge before branching further)
+- PR #13: issue-3-vitest-mock-scenario → main (F004 ✅)
+- PR #14: issue-4-fog-of-war → issue-3 (F005 ✅)
 
 ### In progress
-- Sprint 1 features F004–F008b (Vitest mock factory, fog-of-war, escalation,
-  state-updates, branching, turn-plan validation) — stubs exist, tests not yet written
-- Research pipeline API routes (F009, F010) — not started
-- Iran scenario seed data — not started
+- RED tests written (untracked, will be staged on their issue branches):
+  - tests/game/escalation.test.ts (Issue #5)
+  - tests/game/turn-plan.test.ts (Issue #6)
+  - tests/game/state-updates.test.ts (Issue #7)
 
 ### Next up
-- Issue #3: Vitest setup + mock scenario factory (createMockScenario() with Iran data)
-- Issue #4: TDD fog-of-war filtering (red → green → refactor)
-- Issue #5: TDD escalation ladder validation
+- Issue #5: TDD escalation ladder validation (branch from issue-4, stage escalation.test.ts RED, implement lib/game/escalation.ts)
 - Issue #6: TDD TurnPlan validation (concurrency, resources, parameters)
 - Issue #7: TDD state update application
 - Issue #8: Research pipeline API routes (Stages 0–6)
