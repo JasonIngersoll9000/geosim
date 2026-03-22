@@ -25,22 +25,22 @@ Updated by Claude Code at the end of each session.
 - Vercel deployment live (builds passing)
 - Issue #3 (PR #13): Vitest + mock scenario factory — createMockScenario(), createMockDecisions(), createMockTurnPlan()
 - Issue #4 (PR #14): TDD fog-of-war filtering — lib/game/fog-of-war.ts, 13 tests passing (F005 ✅)
+- Issue #5 (PR #15): TDD escalation ladder validation — lib/game/escalation.ts, 14 tests passing (F006 ✅)
+- Issue #6 (PR #16): TDD TurnPlan validation — lib/game/turn-plan.ts, 12 tests passing (F008b ✅)
+- Issue #7 (PR #17): TDD state update application — lib/game/state-updates.ts, 10 tests passing (F007 ✅)
 
 ### Open PRs (need review/merge before branching further)
 - PR #13: issue-3-vitest-mock-scenario → main (F004 ✅)
 - PR #14: issue-4-fog-of-war → issue-3 (F005 ✅)
+- PR #15: issue-5-escalation-validation → issue-4 (F006 ✅)
+- PR #16: issue-6-turnplan-validation → issue-5 (F008b ✅)
+- PR #17: issue-7-state-updates → issue-6 (F007 ✅)
 
 ### In progress
-- RED tests written (untracked, will be staged on their issue branches):
-  - tests/game/escalation.test.ts (Issue #5)
-  - tests/game/turn-plan.test.ts (Issue #6)
-  - tests/game/state-updates.test.ts (Issue #7)
+- None
 
 ### Next up
-- Issue #5: TDD escalation ladder validation (branch from issue-4, stage escalation.test.ts RED, implement lib/game/escalation.ts)
-- Issue #6: TDD TurnPlan validation (concurrency, resources, parameters)
-- Issue #7: TDD state update application
-- Issue #8: Research pipeline API routes (Stages 0–6)
+- Issue #8: Research pipeline API routes (Stages 0–6) — branch from issue-7-state-updates
 
 ### Known bugs
 - None
