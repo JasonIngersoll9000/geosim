@@ -57,8 +57,8 @@ export async function callClaude(
   const jsonMatch =
     text.match(/```json\s*([\s\S]*?)\s*```/) ||
     text.match(/```\s*([\s\S]*?)\s*```/) ||
-    text.match(/(\{[\s\S]*\})/s) ||
-    text.match(/(\[[\s\S]*\])/s);
+    text.match(/(\{[\s\S]*\})/) ||
+    text.match(/(\[[\s\S]*\])/);
 
   if (!jsonMatch) {
     throw new Error(`No JSON in response: ${text.slice(0, 300)}`);
