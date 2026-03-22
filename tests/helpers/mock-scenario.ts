@@ -173,6 +173,14 @@ function createUS(): Actor {
         status: "weakened",
         statusRationale: "Support eroding as casualties and costs mount",
       },
+      {
+        dimension: "military",
+        description: "Occupation and territorial control requires new AUMF — current authorization does not cover sustained ground occupation",
+        severity: "hard",
+        releaseCondition: "Congressional declaration of war or new AUMF specifically authorizing occupation",
+        overriddenAtEscalationRung: 7,
+        status: "active",
+      },
     ],
 
     decisionFactors: [
