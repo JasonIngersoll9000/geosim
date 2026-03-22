@@ -17,17 +17,21 @@ an interactive decision-making loop with branching scenario trees.
 - Vercel for deployment
 
 ## Commands
-npm run dev       # Start dev server (port 3000)
-npm test          # Run all vitest tests
-npm test -- tests/game/fog-of-war.test.ts  # Run a single test file
-npm test -- --reporter=verbose             # Verbose test output
-npm run test:e2e  # Run playwright
-npm run lint      # ESLint
-npm run build     # Production build
-npm run typecheck # tsc --noEmit
+**IMPORTANT (WSL2 environment):** `npm` and `npx` are Windows binaries that cannot execute
+Linux binaries. Use `bun` for all package management and script execution.
+
+bun run dev                                    # Start dev server (port 3000)
+bun run test -- --run                          # Run all vitest tests (non-interactive)
+bun run test -- --run tests/game/fog-of-war.test.ts  # Run a single test file
+bun run test -- --run --reporter=verbose       # Verbose test output
+node_modules/.bin/vitest run <file>            # Alternative: direct binary
+bun run test:e2e                               # Run playwright
+bun run lint                                   # ESLint
+bun run build                                  # Production build
+bun run typecheck                              # tsc --noEmit (via npx tsc)
 
 ## Architecture
-The project is pre-scaffolding (Sprint 1 not yet started). The intended structure once scaffolded:
+Sprint 1 scaffolding is complete. The structure:
 
 - app/                    — Next.js App Router pages
 - app/api/                — API routes (service layer)

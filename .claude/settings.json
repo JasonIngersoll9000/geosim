@@ -21,7 +21,10 @@
       "Bash(npx *)",
       "Bash(npm install*)",
       "Bash(npm ci)",
-      "Bash(echo *)"
+      "Bash(echo *)",
+      "Bash(bun *)",
+      "Bash(/home/jason_ingersoll/.bun/bin/bun *)",
+      "Bash(node_modules/.bin/vitest *)"
     ]
   },
   "hooks": {
@@ -31,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx prettier --write $CLAUDE_FILE_PATH 2>/dev/null || true"
+            "command": "node_modules/.bin/prettier --write \"$CLAUDE_FILE_PATH\" 2>/dev/null || true"
           }
         ]
       }
