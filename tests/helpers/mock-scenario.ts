@@ -811,7 +811,7 @@ export function createMockDecisions(actorId: string): Decision[] {
       resourceWeight: "heavy",
       compatibleWith: ["dec-sanctions"],
       incompatibleWith: ["dec-ceasefire"],
-      synergiesWith: [{ decisionCategory: "ground_op", bonus: "Reduced ground casualties from air prep" }],
+      synergiesWith: [{ decisionCategory: "dec-sanctions", bonus: "Combined military and economic pressure maximizes costs on Iran" }],
     },
     {
       ...base,
