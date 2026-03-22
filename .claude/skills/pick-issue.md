@@ -17,8 +17,8 @@ Pick up a GitHub issue from the sprint board and work on it end-to-end.
 8. If the issue has a `frontend` label, use (plan) mode for multi-file work
 9. If the issue has an `infrastructure` label, use (plan) mode
 10. Work through all acceptance criteria, checking each off
-11. Run full test suite: `npm test`
-12. Run lint: `npm run lint`
+11. Run full test suite: `bun run test -- --run`
+12. Run lint: `bun run lint`
 13. Commit with conventional message referencing the issue: `git commit -m "feat: description (#NUMBER)"`
 14. Push branch: `git push -u origin issue-NUMBER-short-description`
 15. Create PR: `gh pr create --title "feat: description" --body "Closes #NUMBER\n\n## Changes\n- ..."`

@@ -7,8 +7,8 @@ description: "Use when ending a Claude Code session to commit changes, update pr
 Run at the end of every Claude Code session to save state.
 
 ## Steps
-1. Run `npm test` — if tests fail, fix before proceeding
-2. Run `npm run lint` — fix any lint errors
+1. Run `bun run test -- --run` — if tests fail, fix before proceeding
+2. Run `bun run lint` — fix any lint errors
 3. Stage and commit all changes with a descriptive conventional commit message
 4. Update claude-progress.txt with:
    - What was completed this session
