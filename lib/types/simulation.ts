@@ -28,6 +28,12 @@ export type Score = number;
  */
 export type Confidence = "confirmed" | "high" | "moderate" | "low" | "unverified" | "disputed";
 
+/**
+ * Verification status for seed data events and impacts.
+ * Distinguishes verified research from inferred or AI-generated data.
+ */
+export type VerificationStatus = 'verified' | 'researched' | 'inferred'
+
 export type RelationshipType =
   | "ally"
   | "adversary"
@@ -488,6 +494,15 @@ export interface Event {
     revealed?: string;              // e.g. "strike revealed THAAD positions"
     concealed?: string;             // e.g. "uranium dispersal locations now unknown"
   }[];
+  verificationStatus?: VerificationStatus;
+}
+
+/**
+ * A verified event for seeding the ground truth trunk.
+ * Used by lib/scenarios/iran/events.ts
+ */
+export type SeedEvent = Event & {
+  verificationStatus: VerificationStatus
 }
 
 export interface EventImpact {
@@ -498,6 +513,7 @@ export interface EventImpact {
   newValue?: string | number;
   description: string;
   magnitude: "minor" | "moderate" | "major" | "critical";
+  verificationStatus?: VerificationStatus;
   // NEW: does this impact cascade to third parties?
   thirdPartyEffects?: {
     actorId: string;
