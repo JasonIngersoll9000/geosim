@@ -77,8 +77,7 @@ export function getAvailableEscalationOptions(
 export function getDeescalationOptions(actor: Actor): EscalationRung[] {
   const { currentRung, rungs } = actor.escalation
 
-  // Find the lowest irreversible rung at or below current rung (if any).
-  // If no irreversible rungs have been crossed, floor = 0 (de-escalate freely).
+  // Find the lowest irreversible rung at or below current rung (if any)
   const irreversibleRungs = rungs.filter(r => r.reversibility === 'irreversible' && r.level <= currentRung)
   const irreversibleFloor = irreversibleRungs.length === 0
     ? 0

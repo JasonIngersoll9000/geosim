@@ -102,6 +102,7 @@ describe('getDeescalationOptions', () => {
 
   it('should allow all lower rungs when no irreversible rungs have been crossed', () => {
     const scenario = createMockScenario()
+    // Build an actor where all rungs have reversibility 'easy'
     const base = scenario.actors[0]
     const actor = {
       ...base,
@@ -172,6 +173,7 @@ describe('applyConstraintStatusChange', () => {
       'removed',
       'test-event-99'
     )
+    // All constraints should be unchanged
     expect(result.constraints).toEqual(original.constraints)
   })
 
@@ -225,6 +227,7 @@ describe('getConstraintCascadeRisk', () => {
   it('should not trigger cascade when only 1 constraint has been removed', () => {
     const scenario = createMockScenario()
     const base = scenario.actors.find(a => a.id === 'iran')!
+    // Build an actor with nuclear-related constraints where only 1 is non-active
     const actor = {
       ...base,
       constraints: [
@@ -236,7 +239,7 @@ describe('getConstraintCascadeRisk', () => {
         },
         {
           dimension: 'military' as const,
-          description: 'Nuclear deterrence constraint — attack already happened',
+          description: 'Nuclear deterrence — attack already happened removes this',
           severity: 'hard' as const,
           status: 'active' as const,   // still active
         },

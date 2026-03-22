@@ -41,7 +41,7 @@ export interface FogOfWarContext {
 export function actorWouldKnowAbout(
   actor: Actor,
   event: Event,
-  scenario: Scenario
+  _scenario: Scenario
 ): boolean {
   // 1. Actor initiated the event
   if (event.initiatedBy === actor.id) return true

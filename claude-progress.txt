@@ -48,7 +48,6 @@ Updated by Claude Code at the end of each session.
 - None
 
 ### Next up
-- Merge PRs #13–#17 in order (chain: #13 → #14 → #15 → #16 → #17)
 - Issue #8: Research pipeline API routes (Stages 0–6) — branch from issue-7-state-updates
 
 ### Known bugs
