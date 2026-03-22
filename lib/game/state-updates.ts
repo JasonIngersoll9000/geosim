@@ -133,7 +133,7 @@ function applyActorDelta(actor: Actor, path: string, op: DeltaOp): Actor {
  *   'constraints.No ground invasion without AUMF.status'            { set: 'weakened' }
  */
 export function applyStateUpdates(scenario: Scenario, deltas: ActorDeltaEntry[]): Scenario {
-  let updatedGlobal = { ...scenario.globalState }
+  const updatedGlobal = { ...scenario.globalState }
   let updatedActors = scenario.actors
 
   for (const { actorId, deltas: actorDeltas } of deltas) {
