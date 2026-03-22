@@ -78,9 +78,10 @@ export function getDeescalationOptions(actor: Actor): EscalationRung[] {
   const { currentRung, rungs } = actor.escalation
 
   // Find the lowest irreversible rung at or below current rung (if any)
-  const irreversibleFloor = rungs
-    .filter(r => r.reversibility === 'irreversible' && r.level <= currentRung)
-    .reduce((min, r) => (r.level < min ? r.level : min), currentRung)
+  const irreversibleRungs = rungs.filter(r => r.reversibility === 'irreversible' && r.level <= currentRung)
+  const irreversibleFloor = irreversibleRungs.length === 0
+    ? 0
+    : irreversibleRungs.reduce((min, r) => Math.min(min, r.level), Infinity)
 
   return rungs.filter(r => r.level < currentRung && r.level >= irreversibleFloor)
 }
