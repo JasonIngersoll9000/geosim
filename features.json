@@ -8,7 +8,7 @@
     { "id": "F006", "category": "game_logic", "name": "Escalation ladder validation", "priority": "P0", "sprint": 1, "passes": true, "test_file": "tests/game/escalation.test.ts" },
     { "id": "F007", "category": "game_logic", "name": "State update application", "priority": "P0", "sprint": 1, "passes": false, "test_file": "tests/game/state-updates.test.ts" },
     { "id": "F008", "category": "game_logic", "name": "Branch/commit CRUD operations", "priority": "P0", "sprint": 1, "passes": false, "test_file": "tests/game/branching.test.ts" },
-    { "id": "F008b", "category": "game_logic", "name": "TurnPlan validation (concurrency, resources, parameters)", "priority": "P0", "sprint": 1, "passes": false, "test_file": "tests/game/turn-plan.test.ts" },
+    { "id": "F008b", "category": "game_logic", "name": "TurnPlan validation (concurrency, resources, parameters)", "priority": "P0", "sprint": 1, "passes": true, "test_file": "tests/game/turn-plan.test.ts" },
     { "id": "F009", "category": "ai_pipeline", "name": "Research pipeline API (Stage 0)", "priority": "P0", "sprint": 1, "passes": false },
     { "id": "F010", "category": "ai_pipeline", "name": "Research pipeline API (Stages 1-6)", "priority": "P0", "sprint": 1, "passes": false },
     { "id": "F011", "category": "ai_pipeline", "name": "Actor agent with prompt caching", "priority": "P0", "sprint": 2, "passes": false },
