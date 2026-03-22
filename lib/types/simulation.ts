@@ -603,6 +603,12 @@ export interface Decision {
   intelRequirements: string[];      // e.g. "need to know air defense munition levels"
   // NEW: what does the actor THINK will happen vs what might actually happen
   actorAssessment: string;          // what the deciding actor believes the outcome will be
+
+  // concurrency rules for TurnPlan building
+  resourceWeight?: ResourceWeight;
+  compatibleWith?: string[];        // decision ids/categories that can run concurrently
+  incompatibleWith?: string[];      // decision ids/categories that cannot
+  synergiesWith?: { decisionCategory: string; bonus: string }[];
 }
 
 export interface DecisionCost {
@@ -628,6 +634,34 @@ export interface ProjectedOutcome {
     actorId: string;
     interpretation: string;         // e.g. "Iran sees this as a win despite tactical losses"
   }[];
+}
+
+// ------------------------------------------------------------
+// TURN PLAN — multi-action plan submitted per turn
+// ------------------------------------------------------------
+
+export type ResourceWeight = "light" | "moderate" | "heavy" | "total";
+
+export interface TurnPlan {
+  actorId: string;
+  primaryAction: PlannedAction;
+  concurrentActions: PlannedAction[];   // 0-3
+}
+
+export interface PlannedAction {
+  decisionId: string;
+  selectedProfile: string | null;       // named profile or null for default
+  customParameters?: { parameterName: string; selectedOptionId: string }[];
+  resourcePercent: number;              // % of available resources allocated
+}
+
+export interface TurnPlanValidationResult {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+  synergies: { actions: string[]; bonus: string }[];
+  tensions: { actions: string[]; penalty: string }[];
+  resourceUtilization: number;          // % of capacity used (should be 100)
 }
 
 export interface SimulationTurn {
