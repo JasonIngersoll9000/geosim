@@ -42,4 +42,26 @@ describe('seedIranScenario (dry-run)', () => {
     const dates = (mockInsert.mock.calls as [{ simulated_date: string }][]).map(([p]) => p.simulated_date)
     expect(dates).toEqual([...dates].sort())
   })
+
+  it('--from=<eventId> seeds only events from that id onward', async () => {
+    mockInsert.mockClear()
+
+    // Use the 3rd event as the resume point
+    const fromEventId = IRAN_EVENTS[2].id
+    await seedIranScenario({ fromEventId, dryRun: true })
+
+    // Should only insert events from index 2 onward
+    const expectedCount = IRAN_EVENTS.length - 2
+    expect(mockInsert.mock.calls.length).toBe(expectedCount)
+
+    // First inserted event should be the resume point
+    const firstDate = (mockInsert.mock.calls[0] as [{ simulated_date: string }])[0].simulated_date
+    expect(firstDate).toBe(IRAN_EVENTS[2].timestamp)
+  })
+
+  it('throws when fromEventId is not found in IRAN_EVENTS', async () => {
+    await expect(
+      seedIranScenario({ fromEventId: 'evt_nonexistent', dryRun: true })
+    ).rejects.toThrow("fromEventId 'evt_nonexistent' not found in IRAN_EVENTS")
+  })
 })

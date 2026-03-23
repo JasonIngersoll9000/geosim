@@ -20,12 +20,12 @@ export interface SeedOptions {
 
 export async function seedIranScenario(options: SeedOptions = {}) {
   const { fromEventId, dryRun = false } = options
-  const supabase = createServiceClient()
 
   // Determine which events to process
-  const events: SeedEvent[] = fromEventId
-    ? IRAN_EVENTS.slice(IRAN_EVENTS.findIndex(e => e.id === fromEventId))
-    : [...IRAN_EVENTS]
+  const startIndex = fromEventId ? IRAN_EVENTS.findIndex(e => e.id === fromEventId) : 0
+  const events: SeedEvent[] = startIndex === -1
+    ? []
+    : IRAN_EVENTS.slice(startIndex)
 
   if (events.length === 0) {
     throw new Error(`fromEventId '${fromEventId}' not found in IRAN_EVENTS`)
@@ -33,6 +33,9 @@ export async function seedIranScenario(options: SeedOptions = {}) {
 
   // Sort chronologically (should already be sorted, but be defensive)
   events.sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+
+  // Initialize after event validation so a bad --from= arg throws before touching Supabase
+  const supabase = createServiceClient()
 
   if (dryRun) {
     console.log(`[dry-run] Would seed ${events.length} events`)

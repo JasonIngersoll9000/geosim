@@ -1,13 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeCacheKey } from '../../lib/game/cache-key'
-
-// The ActorDecision type we'll define in the implementation
-interface ActorDecision {
-  actorId: string
-  decisionId: string
-  selectedProfileId: string | null
-  parameters: Record<string, string>
-}
+import { computeCacheKey, type ActorDecision } from '../../lib/game/cache-key'
 
 describe('computeCacheKey', () => {
   const parentId = 'parent-commit-123'

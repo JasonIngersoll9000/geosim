@@ -19,6 +19,9 @@ export interface PipelineJob {
 
 // ---------------------------------------------------------------------------
 // In-memory job store
+// NOTE: serverless-unsafe — each Vercel function instance has its own Map,
+// so getJob() returns undefined if the poll and pipeline run in different
+// instances. Replace with a Supabase row or Redis for production.
 // ---------------------------------------------------------------------------
 
 const jobs = new Map<string, PipelineJob>();
