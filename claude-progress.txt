@@ -2,7 +2,7 @@
 Updated by Claude Code at the end of each session.
 
 ## Current sprint: Sprint 1 — Foundation
-## Last session: 2026-03-23
+## Last session: 2026-03-22
 
 ### Completed
 - Next.js 14 scaffolding with App Router, TypeScript, Tailwind
@@ -36,19 +36,38 @@ Updated by Claude Code at the end of each session.
 - fog-of-war.ts: renamed unused `scenario` param to `_scenario` on all 4 branches
 - state-updates.ts: let → const for updatedGlobal (prefer-const ESLint rule)
 - All Vercel build failures resolved; 61/61 tests passing across all 8 test files
+- Issue #8 (PR #18): Research pipeline API routes (Stages 0–6) — Anthropic SDK, callClaude helper, 7-stage pipeline with parallel stages 3&4, web search, prompt caching; 97 tests passing
+- Issue #9 (Iran Research Incorporation, PR #19): Full implementation via subagent-driven development
+  - VerificationStatus type ('verified' | 'researched' | 'inferred') added to simulation.ts
+  - SeedEvent and BranchDivergence types; ActorAgentContext interface with branchDivergence field
+  - lib/scenarios/iran/initial-state.ts — verified actor state from research docs (US, Iran, Israel, Russia, China, Gulf States)
+  - lib/scenarios/iran/events.ts — ~20 SeedEvent objects covering Phase 2 (Oman talks) and Phase 3 (Operation Epic Fury through Day 19)
+  - lib/scenarios/iran/index.ts — barrel export
+  - scripts/seed-iran.ts — CLI seed script: creates scenario → trunk branch → chains events via applyEventImpact() → inserts turn_commits; supports --from=<event_id> for incremental appending
+  - lib/game/cache-key.ts — computeCacheKey() SHA-256 for shared commit caching (order-independent)
+  - supabase/migrations/20260322000000_trunk_caching.sql — current_divergence on branches, cache_key + reuse_count on turn_commits
+  - verifiedContext param on runPopulatePipeline() — skips stages 1–4 when provided
+  - Updated docs: prd.md, geosim-data-model.ts, agent-architecture.ts, api-routes.md, research-pipeline.md, scrum-issues.md
+  - Updated .claude/skills/seed-iran-scenario.md to describe CLI approach
+  - GitHub Issue #18 created for Iran research incorporation
+  - 97 tests passing, lint clean, build clean, typecheck clean (1 pre-existing error only)
 
 ### Open PRs (need review/merge before branching further)
-- PR #13: issue-3-vitest-mock-scenario → main (F004 ✅)
-- PR #14: issue-4-fog-of-war → issue-3 (F005 ✅)
-- PR #15: issue-5-escalation-validation → issue-4 (F006 ✅)
-- PR #16: issue-6-turnplan-validation → issue-5 (F008b ✅)
-- PR #17: issue-7-state-updates → issue-6 (F007 ✅)
+- PR #13: issue-3-vitest-mock-scenario → main (F004 ✅) — merged
+- PR #14: issue-4-fog-of-war → main (F005 ✅) — merged
+- PR #15: issue-5-escalation-validation → main (F006 ✅) — merged
+- PR #16: issue-6-turnplan-validation → main (F008b ✅) — merged
+- PR #17: issue-7-state-updates → main (F007 ✅) — merged
+- PR #18: issue-8-research-pipeline → main — merged
+- PR #19: issue-9-iran-research-incorporation → main — OPEN (awaiting review/merge)
 
 ### In progress
 - None
 
 ### Next up
-- Issue #8: Research pipeline API routes (Stages 0–6) — branch from issue-7-state-updates
+- Issue #13: Actor agent implementation with prompt caching (Sprint 2)
+- Issue #17: Game loop controller — full turn orchestration (Sprint 2)
+- Issue #19: Branch forking & rewind operations (Sprint 2)
 
 ### Known bugs
 - None
