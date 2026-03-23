@@ -110,7 +110,7 @@ export async function seedIranScenario(options: SeedOptions = {}) {
       currentState = applyEventImpact(currentState as Scenario, event)
     }
 
-    const { data: commit, error: commitError } = await supabase
+    const { data: commit, error: commitError }: { data: { id: string } | null; error: { message: string } | null } = await supabase
       .from('turn_commits')
       .insert({
         branch_id: branch.id,
