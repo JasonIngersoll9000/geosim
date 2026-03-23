@@ -7,6 +7,11 @@ export interface ActorDecision {
   parameters: Record<string, string>
 }
 
+// TODO (Issue #17): increment reuse_count when returning a cached commit
+// via UPDATE turn_commits SET reuse_count = reuse_count + 1 WHERE id = cachedCommitId
+// The game loop controller will check computeCacheKey() before calling the resolution
+// engine and return the existing commit if a cache hit is found.
+
 /**
  * Compute a deterministic SHA-256 cache key for a turn commit.
  *

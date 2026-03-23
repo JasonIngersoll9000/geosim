@@ -713,6 +713,41 @@ export interface ActorFraming {
   strategicPosture: string;
 }
 
+// ------------------------------------------------------------
+// AGENT CONTEXT — passed to actor agent and resolution engine
+// ------------------------------------------------------------
+
+/**
+ * How many turns since this branch diverged from the ground truth trunk.
+ * 0 = on trunk or no divergence computed yet.
+ * Derived from branch.current_divergence, passed to each
+ * /api/ai/actor-agent and /api/ai/resolution-engine call as a
+ * top-level field in the request body.
+ *
+ * Controls web search behavior in agent prompts:
+ *   0-3:  use web search to verify facts; defer to research over priors
+ *   4-9:  blend research structure with strategic reasoning
+ *   10+:  no web search; pure strategic reasoning
+ */
+export type BranchDivergence = number
+
+/**
+ * Context passed to actor agent API calls.
+ * Fog-of-war filtered — the actor sees only what it believes, not true state.
+ * branchDivergence is computed server-side at turn start from
+ * branch.current_divergence and controls whether the agent uses web search.
+ */
+export interface ActorAgentContext {
+  actor: Actor
+  myIntelligencePicture: IntelligencePicture[]
+  myRelationships: Relationship[]
+  knownEvents: Event[]
+  framing: ActorFraming
+  ongoingOperations: ActiveOperation[]
+  /** Turns since branch diverged from ground truth trunk. 0 = on trunk. */
+  branchDivergence: BranchDivergence
+}
+
 export interface SimulationTurn {
   turnNumber: number;
   timestamp: string;
