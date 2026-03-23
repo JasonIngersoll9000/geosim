@@ -2,7 +2,7 @@
 Updated by Claude Code at the end of each session.
 
 ## Current sprint: Sprint 1 — Foundation
-## Last session: 2026-03-22
+## Last session: 2026-03-22 (PR #19 review + fixes)
 
 ### Completed
 - Next.js 14 scaffolding with App Router, TypeScript, Tailwind
@@ -51,6 +51,13 @@ Updated by Claude Code at the end of each session.
   - Updated .claude/skills/seed-iran-scenario.md to describe CLI approach
   - GitHub Issue #18 created for Iran research incorporation
   - 97 tests passing, lint clean, build clean, typecheck clean (1 pre-existing error only)
+- PR #19 C.L.E.A.R. code review + follow-up fixes (commit 7e33d1d):
+  - Fixed: ActorDecision re-declared in test; now imported from lib/game/cache-key.ts
+  - Fixed: Bug in seed-iran.ts — slice(findIndex(-1)) returned last element instead of throwing;
+    now uses explicit startIndex === -1 guard before slice
+  - Added: --from=<eventId> resume test + invalid-ID error test in tests/scripts/seed-iran.test.ts
+  - Added: serverless-unsafe note on in-memory job store in lib/ai/research-pipeline.ts
+  - 10 tests pass in affected files (cache-key: 7, seed-iran: 3)
 
 ### Open PRs (need review/merge before branching further)
 - PR #13: issue-3-vitest-mock-scenario → main (F004 ✅) — merged
@@ -59,7 +66,7 @@ Updated by Claude Code at the end of each session.
 - PR #16: issue-6-turnplan-validation → main (F008b ✅) — merged
 - PR #17: issue-7-state-updates → main (F007 ✅) — merged
 - PR #18: issue-8-research-pipeline → main — merged
-- PR #19: issue-9-iran-research-incorporation → main — OPEN (awaiting review/merge)
+- PR #19: issue-9-iran-research-incorporation → main — OPEN (review complete, fixes pushed)
 
 ### In progress
 - None
