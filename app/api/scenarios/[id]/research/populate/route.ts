@@ -19,9 +19,10 @@ export async function POST(
 
   const { id } = await params;
   const body = await request.json().catch(() => ({}));
-  const { confirmedFrame, userDescription } = body as {
+  const { confirmedFrame, userDescription, verifiedContext } = body as {
     confirmedFrame?: ScenarioFrame;
     userDescription?: string;
+    verifiedContext?: string;
   };
 
   if (!confirmedFrame || !userDescription) {
@@ -34,7 +35,7 @@ export async function POST(
   const jobId = createJob(id);
 
   // Kick off pipeline without awaiting — client polls /research/status
-  void runPopulatePipeline(jobId, id, userDescription, confirmedFrame);
+  void runPopulatePipeline(jobId, id, userDescription, confirmedFrame, verifiedContext);
 
   return Response.json({
     data: { jobId, status: "started" },

@@ -11,7 +11,19 @@ vi.mock("@anthropic-ai/sdk", () => ({
   })),
 }));
 
+// ---------------------------------------------------------------------------
+// Mock @/lib/supabase/server for route tests
+// ---------------------------------------------------------------------------
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: vi.fn().mockResolvedValue({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: { id: "test-user" } } }),
+    },
+  }),
+}));
+
 import { callClaude } from "@/lib/ai/anthropic";
+import * as pipelineModule from "@/lib/ai/research-pipeline";
 import {
   createJob,
   getJob,
@@ -19,6 +31,7 @@ import {
   runStage0,
   runStage0Confirm,
 } from "@/lib/ai/research-pipeline";
+import { POST } from "@/app/api/scenarios/[id]/research/populate/route";
 import type { ScenarioFrame } from "@/lib/types/simulation";
 
 // ---------------------------------------------------------------------------
@@ -239,5 +252,102 @@ describe("runPopulatePipeline", () => {
     const job = getJob(jobId);
     expect(job?.status).toBe("error");
     expect(job?.error).toContain("API error");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// runPopulatePipeline — verifiedContext skip path
+// ---------------------------------------------------------------------------
+describe("runPopulatePipeline — verifiedContext", () => {
+  beforeEach(() => mockCreate.mockReset());
+
+  it("skips stages 1-4 when verifiedContext is provided", async () => {
+    // Only stages 5 and 6 should fire (2 calls)
+    mockCreate.mockResolvedValue(
+      makeTextResponse({ escalationLadders: [], constraintCascades: [] })
+    );
+
+    const jobId = createJob("scenario-verified-1");
+    await runPopulatePipeline(
+      jobId,
+      "scenario-verified-1",
+      "Iran conflict",
+      mockFrame,
+      "verified-context-string"
+    );
+
+    expect(mockCreate).toHaveBeenCalledTimes(2);
+  });
+
+  it("injects verifiedContext into stage 5 prompt when provided", async () => {
+    mockCreate.mockResolvedValue(
+      makeTextResponse({ escalationLadders: [], constraintCascades: [] })
+    );
+
+    const jobId = createJob("scenario-verified-2");
+    await runPopulatePipeline(
+      jobId,
+      "scenario-verified-2",
+      "Iran conflict",
+      mockFrame,
+      "my-verified-context"
+    );
+
+    const calls = mockCreate.mock.calls;
+    // First call is stage 5 — user prompt should contain the verified context
+    const stage5UserPrompt = calls[0][0].messages[0].content as string;
+    expect(stage5UserPrompt).toContain("my-verified-context");
+  });
+
+  it("runs all 6 stages when verifiedContext is NOT provided", async () => {
+    for (let i = 0; i < 6; i++) {
+      mockCreate.mockResolvedValueOnce(
+        makeTextResponse(
+          i < 2 ? [] : i === 4 ? { escalationLadders: [], constraintCascades: [] } : []
+        )
+      );
+    }
+
+    const jobId = createJob("scenario-no-verified");
+    await runPopulatePipeline(jobId, "scenario-no-verified", "Iran conflict", mockFrame);
+
+    expect(mockCreate).toHaveBeenCalledTimes(6);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/scenarios/[id]/research/populate — verifiedContext passthrough
+// ---------------------------------------------------------------------------
+describe("POST /api/scenarios/[id]/research/populate", () => {
+  beforeEach(() => mockCreate.mockReset());
+
+  it("passes verifiedContext from request body to runPopulatePipeline", async () => {
+    const runSpy = vi
+      .spyOn(pipelineModule, "runPopulatePipeline")
+      .mockResolvedValue(undefined);
+
+    const req = new Request(
+      "http://localhost/api/scenarios/test-id/research/populate",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          confirmedFrame: mockFrame,
+          userDescription: "Iran conflict",
+          verifiedContext: "my-verified-context",
+        }),
+      }
+    );
+
+    await POST(req, { params: Promise.resolve({ id: "test-id" }) });
+
+    expect(runSpy).toHaveBeenCalledWith(
+      expect.any(String),
+      "test-id",
+      "Iran conflict",
+      mockFrame,
+      "my-verified-context"
+    );
+
+    runSpy.mockRestore();
   });
 });

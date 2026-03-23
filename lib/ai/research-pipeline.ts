@@ -177,7 +177,8 @@ export async function runPopulatePipeline(
   jobId: string,
   scenarioId: string,
   userDescription: string,
-  confirmedFrame: ScenarioFrame
+  confirmedFrame: ScenarioFrame,
+  verifiedContext?: string
 ): Promise<void> {
   const job = jobs.get(jobId);
   if (!job) return;
@@ -186,66 +187,73 @@ export async function runPopulatePipeline(
   job.progress = "Starting pipeline";
 
   try {
-    // Stage 1: Actor profiles
-    job.stage = 1;
-    job.progress = "Stage 1: Researching actors";
-    const actors = await callClaude(
-      STAGE_1_SYSTEM,
-      buildStageUserPrompt(userDescription, confirmedFrame, {}),
-      { tools: [WEB_SEARCH_TOOL] }
-    );
+    let actors: unknown = undefined;
+    let states: unknown = undefined;
+    let relationships: unknown = undefined;
+    let events: unknown = undefined;
 
-    // Stage 2: State assessments
-    job.stage = 2;
-    job.progress = "Stage 2: Assessing actor states";
-    const states = await callClaude(
-      STAGE_2_SYSTEM,
-      buildStageUserPrompt(userDescription, confirmedFrame, { actors }),
-      { tools: [WEB_SEARCH_TOOL] }
-    );
+    if (!verifiedContext) {
+      // Stage 1: Actor profiles
+      job.stage = 1;
+      job.progress = "Stage 1: Researching actors";
+      actors = await callClaude(
+        STAGE_1_SYSTEM,
+        buildStageUserPrompt(userDescription, confirmedFrame, {}),
+        { tools: [WEB_SEARCH_TOOL] }
+      );
 
-    // Stages 3 & 4 in parallel
-    job.stage = 3;
-    job.progress = "Stages 3 & 4: Mapping relationships and events (parallel)";
-    const [relationships, events] = await Promise.all([
-      callClaude(
-        STAGE_3_SYSTEM,
-        buildStageUserPrompt(userDescription, confirmedFrame, { actors, states }),
+      // Stage 2: State assessments
+      job.stage = 2;
+      job.progress = "Stage 2: Assessing actor states";
+      states = await callClaude(
+        STAGE_2_SYSTEM,
+        buildStageUserPrompt(userDescription, confirmedFrame, { actors }),
         { tools: [WEB_SEARCH_TOOL] }
-      ),
-      callClaude(
-        STAGE_4_SYSTEM,
-        buildStageUserPrompt(userDescription, confirmedFrame, { actors, states }),
-        { tools: [WEB_SEARCH_TOOL] }
-      ),
-    ]);
+      );
+
+      // Stages 3 & 4 in parallel
+      job.stage = 3;
+      job.progress = "Stages 3 & 4: Mapping relationships and events (parallel)";
+      [relationships, events] = await Promise.all([
+        callClaude(
+          STAGE_3_SYSTEM,
+          buildStageUserPrompt(userDescription, confirmedFrame, { actors, states }),
+          { tools: [WEB_SEARCH_TOOL] }
+        ),
+        callClaude(
+          STAGE_4_SYSTEM,
+          buildStageUserPrompt(userDescription, confirmedFrame, { actors, states }),
+          { tools: [WEB_SEARCH_TOOL] }
+        ),
+      ]);
+    }
+
+    // Build the verified context prefix for stages 5 & 6
+    const verifiedPrefix = verifiedContext
+      ? `<verified_context>\n${verifiedContext}\n</verified_context>\n\nThe verified context above contains pre-researched actor state and relationships. Use it as the factual foundation. Do not contradict it.\n\n`
+      : "";
 
     // Stage 5: Escalation ladders
     job.stage = 5;
     job.progress = "Stage 5: Building escalation ladders";
+    const stage5Prior = verifiedContext
+      ? {}
+      : { actors, states, relationships, events };
     const escalation = await callClaude(
       STAGE_5_SYSTEM,
-      buildStageUserPrompt(userDescription, confirmedFrame, {
-        actors,
-        states,
-        relationships,
-        events,
-      }),
+      verifiedPrefix + buildStageUserPrompt(userDescription, confirmedFrame, stage5Prior),
       { tools: [WEB_SEARCH_TOOL] }
     );
 
     // Stage 6: Fog of war
     job.stage = 6;
     job.progress = "Stage 6: Building intelligence pictures";
+    const stage6Prior = verifiedContext
+      ? { escalation }
+      : { actors, states, relationships, events, escalation };
     const fogOfWar = await callClaude(
       STAGE_6_SYSTEM,
-      buildStageUserPrompt(userDescription, confirmedFrame, {
-        actors,
-        states,
-        relationships,
-        events,
-        escalation,
-      }),
+      verifiedPrefix + buildStageUserPrompt(userDescription, confirmedFrame, stage6Prior),
       { tools: [WEB_SEARCH_TOOL] }
     );
 
