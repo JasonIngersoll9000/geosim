@@ -28,6 +28,12 @@ export type Score = number;
  */
 export type Confidence = "confirmed" | "high" | "moderate" | "low" | "unverified" | "disputed";
 
+/**
+ * Verification status for seed data events and impacts.
+ * Distinguishes verified research from inferred or AI-generated data.
+ */
+export type VerificationStatus = 'verified' | 'researched' | 'inferred'
+
 export type RelationshipType =
   | "ally"
   | "adversary"
@@ -488,6 +494,15 @@ export interface Event {
     revealed?: string;              // e.g. "strike revealed THAAD positions"
     concealed?: string;             // e.g. "uranium dispersal locations now unknown"
   }[];
+  verificationStatus?: VerificationStatus;
+}
+
+/**
+ * A verified event for seeding the ground truth trunk.
+ * Used by lib/scenarios/iran/events.ts
+ */
+export type SeedEvent = Event & {
+  verificationStatus: VerificationStatus
 }
 
 export interface EventImpact {
@@ -498,6 +513,7 @@ export interface EventImpact {
   newValue?: string | number;
   description: string;
   magnitude: "minor" | "moderate" | "major" | "critical";
+  verificationStatus?: VerificationStatus;
   // NEW: does this impact cascade to third parties?
   thirdPartyEffects?: {
     actorId: string;
@@ -662,6 +678,74 @@ export interface TurnPlanValidationResult {
   synergies: { actions: string[]; bonus: string }[];
   tensions: { actions: string[]; penalty: string }[];
   resourceUtilization: number;          // % of capacity used (should be 100)
+}
+
+// ------------------------------------------------------------
+// SCENARIO FRAME — Stage 0 output (scenario framing)
+// ------------------------------------------------------------
+
+export interface ScenarioFrame {
+  conflictName: string;
+  coreQuestion: string;
+  timeframeStart: string;
+  timeframeCurrent: string;
+  geographicScope: string;
+  userAnalysis: string;
+  suggestedActors: SuggestedActor[];
+  relevanceCriteria: string;
+  keyDynamics: string[];
+  actorFramings: ActorFraming[];
+}
+
+export interface SuggestedActor {
+  name: string;
+  type: ActorType;
+  whyRelevant: string;
+  suggestedByUser: boolean;
+  confirmed: boolean;
+}
+
+export interface ActorFraming {
+  actorName: string;
+  stakesLevel: ObjectivePriority;
+  winCondition: string;
+  loseCondition: string;
+  strategicPosture: string;
+}
+
+// ------------------------------------------------------------
+// AGENT CONTEXT — passed to actor agent and resolution engine
+// ------------------------------------------------------------
+
+/**
+ * How many turns since this branch diverged from the ground truth trunk.
+ * 0 = on trunk or no divergence computed yet.
+ * Derived from branch.current_divergence, passed to each
+ * /api/ai/actor-agent and /api/ai/resolution-engine call as a
+ * top-level field in the request body.
+ *
+ * Controls web search behavior in agent prompts:
+ *   0-3:  use web search to verify facts; defer to research over priors
+ *   4-9:  blend research structure with strategic reasoning
+ *   10+:  no web search; pure strategic reasoning
+ */
+export type BranchDivergence = number
+
+/**
+ * Context passed to actor agent API calls.
+ * Fog-of-war filtered — the actor sees only what it believes, not true state.
+ * branchDivergence is computed server-side at turn start from
+ * branch.current_divergence and controls whether the agent uses web search.
+ */
+export interface ActorAgentContext {
+  actor: Actor
+  myIntelligencePicture: IntelligencePicture[]
+  myRelationships: Relationship[]
+  knownEvents: Event[]
+  framing: ActorFraming
+  ongoingOperations: ActiveOperation[]
+  /** Turns since branch diverged from ground truth trunk. 0 = on trunk. */
+  branchDivergence: BranchDivergence
 }
 
 export interface SimulationTurn {

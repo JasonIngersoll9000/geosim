@@ -155,6 +155,10 @@ interface ActorAgentContext {
 
   // what am I currently doing? (ongoing operations carry over between turns)
   ongoingOperations: ActiveOperation[];
+
+  // how many turns since this branch diverged from the ground truth trunk
+  // 0 = on trunk, 1-3 = use web search to verify, 4-9 = blend, 10+ = pure strategic reasoning
+  branchDivergence: number;
 }
 
 const ACTOR_AGENT_SYSTEM = `

@@ -550,7 +550,7 @@ Ground truth trunk (auto-updated from real world)
 4. Actor states on the trunk are updated to reflect current reality.
 5. User branches are NOT affected — they diverged at their branch point and follow their own timeline. But users can see how the real world has progressed and create new branches from the latest ground truth.
 
-**For the class version:** the ground truth trunk for the Iran scenario will be manually updated by the team as the conflict develops over the 4-week build period. The architecture supports automation but the MVP uses manual research updates.
+**For the class version:** the ground truth trunk for the Iran scenario is seeded using a CLI script (`scripts/seed-iran.ts`) that chains verified research events into Supabase turn_commits. Run `bun run scripts/seed-iran.ts` to create the trunk from scratch, or `bun run scripts/seed-iran.ts --from=<event_id>` to append new events incrementally without re-seeding. Seed data lives in `lib/scenarios/iran/`.
 
 **For the post-class version:** automated daily research updates with human review before committing to the trunk.
 

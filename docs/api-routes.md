@@ -45,7 +45,9 @@ POST   /api/scenarios/[id]/research/populate
   Run Stages 1-6 (full pipeline)
   This is a long-running operation — returns immediately with a job id.
   Client polls for status or uses Supabase realtime subscription.
-  Body: { confirmedFrame: ScenarioFrame, userDescription: string }
+  Body: { confirmedFrame: ScenarioFrame, userDescription: string, verifiedContext?: string }
+  Note: When verifiedContext is present, stages 1-4 are skipped and the provided
+        verified data is injected directly into stages 5-6 (escalation + fog of war).
   Returns: { jobId: string, status: "started" }
 
 GET    /api/scenarios/[id]/research/status

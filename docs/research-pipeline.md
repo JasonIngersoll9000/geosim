@@ -16,6 +16,18 @@ enabled. Each stage prompt includes:
 
 ---
 
+## Verified Context Mode
+
+When `verifiedContext` is passed to `runPopulatePipeline()`, the pipeline skips
+Stages 1-4 (actor identification, state assessment, relationships, event timeline)
+and uses the provided verified data instead. Only Stages 5-6 (escalation ladders,
+fog of war) are run, using the verified context as input.
+
+This mode is used for the Iran scenario where research docs provide ground truth.
+For new unverified scenarios, all 7 stages run as normal.
+
+---
+
 ## STAGE 0: Scenario Framing (Interactive)
 
 **Goal:** Extract the conflict frame from the user's freeform description,

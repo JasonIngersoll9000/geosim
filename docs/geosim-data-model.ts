@@ -15,6 +15,16 @@ type Dimension = "military" | "economic" | "political" | "diplomatic" | "intelli
 type ActorType = "nation_state" | "non_state_actor" | "organization" | "alliance";
 type ObjectivePriority = "existential" | "critical" | "important" | "opportunistic";
 
+// ------------------------------------------------------------
+// VERIFICATION STATUS
+// How confident we are in a piece of data.
+// ------------------------------------------------------------
+
+type VerificationStatus = "verified" | "researched" | "inferred";
+// "verified"   — sourced directly from research docs (locked, not AI-overridable)
+// "researched" — AI-sourced via web search during pipeline (can be corrected)
+// "inferred"   — AI-derived from context without specific source (lowest confidence)
+
 /**
  * 0-100 scale WITH semantic anchors.
  * Every use of Score should define what key thresholds mean
@@ -488,6 +498,8 @@ interface Event {
     revealed?: string;              // e.g. "strike revealed THAAD positions"
     concealed?: string;             // e.g. "uranium dispersal locations now unknown"
   }[];
+  // how confident we are in this event's data
+  verificationStatus?: VerificationStatus;
 }
 
 interface EventImpact {
@@ -498,6 +510,8 @@ interface EventImpact {
   newValue?: string | number;
   description: string;
   magnitude: "minor" | "moderate" | "major" | "critical";
+  // how confident we are in this impact's data
+  verificationStatus?: VerificationStatus;
   // NEW: does this impact cascade to third parties?
   thirdPartyEffects?: {
     actorId: string;

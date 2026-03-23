@@ -76,6 +76,7 @@ export interface BranchRow {
   game_mode: GameMode;
   turn_timeframe: string;
   user_controlled_actors: string[];
+  current_divergence: number;
   created_at: string;
   updated_at: string;
 }
@@ -95,6 +96,8 @@ export interface TurnCommitRow {
   current_phase: TurnPhase;
   is_ground_truth: boolean;
   compute_cost_tokens: number | null;
+  cache_key: string | null;
+  reuse_count: number;
   computed_at: string;
 }
 
@@ -173,11 +176,11 @@ export type ScenarioInsert = Omit<
   "id" | "total_branches" | "total_plays" | "rating" | "created_at" | "updated_at"
 > & Partial<Pick<ScenarioRow, "id" | "rating" | "created_at" | "updated_at">>;
 
-export type BranchInsert = Omit<BranchRow, "id" | "created_at" | "updated_at"> &
-  Partial<Pick<BranchRow, "id" | "created_at" | "updated_at">>;
+export type BranchInsert = Omit<BranchRow, "id" | "current_divergence" | "created_at" | "updated_at"> &
+  Partial<Pick<BranchRow, "id" | "current_divergence" | "created_at" | "updated_at">>;
 
-export type TurnCommitInsert = Omit<TurnCommitRow, "id" | "computed_at"> &
-  Partial<Pick<TurnCommitRow, "id" | "computed_at">>;
+export type TurnCommitInsert = Omit<TurnCommitRow, "id" | "cache_key" | "reuse_count" | "computed_at"> &
+  Partial<Pick<TurnCommitRow, "id" | "cache_key" | "reuse_count" | "computed_at">>;
 
 export type ActorInsert = Omit<ActorRow, "id" | "created_at"> &
   Partial<Pick<ActorRow, "id" | "created_at">>;

@@ -70,7 +70,7 @@ function applyNestedPath(
         //                                               ^^^^^^^^^^^^^^^^^^^^^^^^^
         //   NOT: 'political.influenceChannels.general_public' (terminates at item)
         return fieldRest.length === 0
-          ? { ...item, ...applyOp(item, op, lookupKey) }
+          ? { ...item, ...(applyOp(item, op, lookupKey) as Record<string, unknown>) }
           : applyNestedPath(item, fieldRest, op)
       }
       return item
@@ -112,7 +112,7 @@ function applyActorDelta(actor: Actor, path: string, op: DeltaOp): Actor {
       path.split('.'),
       op
     )
-    return { ...actor, state: updatedState as typeof actor.state }
+    return { ...actor, state: updatedState as unknown as typeof actor.state }
   }
 
   return actor
