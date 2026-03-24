@@ -47,6 +47,7 @@ const config: Config = {
         "status-critical-border": "var(--status-critical-border)",
         "status-warning": "var(--status-warning)",
         "status-warning-bg": "var(--status-warning-bg)",
+        "status-warning-border": "var(--status-warning-border)",
         "status-stable": "var(--status-stable)",
         "status-stable-bg": "var(--status-stable-bg)",
         "status-stable-border": "var(--status-stable-border)",

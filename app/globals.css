@@ -32,7 +32,7 @@
   --actor-iran: #8B2635;
   --actor-israel: #ffba20;
   --actor-russia: #7B68C8;
-  --actor-china: #7B68C8;
+  --actor-china: #4A90B8;
   --actor-generic: #5EBD8E;
 
   /* ── Status — Command-Center palette ── */
@@ -42,6 +42,7 @@
 
   --status-warning: #ffba20;
   --status-warning-bg: rgba(255, 186, 32, 0.15);
+  --status-warning-border: rgba(255, 186, 32, 0.30);
 
   --status-stable: #a4c9ff;
   --status-stable-bg: rgba(164, 201, 255, 0.12);
@@ -162,8 +163,7 @@ body {
 .chronicle-detail {
   max-height: 0;
   overflow: hidden;
-  border-top: 0px solid var(--border-subtle);
-  transition: max-height 300ms ease, border-top-width 300ms ease;
+  transition: max-height 300ms ease;
 }
 
 .chronicle-detail.open {

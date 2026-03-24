@@ -24,7 +24,7 @@ export default function Home() {
 
         <h1
           style={{
-            fontFamily: "var(--font-condensed)",
+            fontFamily: "var(--font-space-grotesk)",
             fontWeight: 700,
             fontSize: "28px",
             color: "var(--text-primary)",
@@ -197,7 +197,7 @@ export default function Home() {
           </div>
           <div
             style={{
-              fontFamily: "var(--font-condensed)",
+              fontFamily: "var(--font-space-grotesk)",
               fontWeight: 700,
               fontSize: "15px",
               color: "var(--text-primary)",

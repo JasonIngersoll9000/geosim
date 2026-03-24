@@ -24,7 +24,7 @@ export function TopBar({
       {/* Wordmark */}
       <span
         style={{
-          fontFamily: "var(--font-condensed)",
+          fontFamily: "var(--font-space-grotesk)",
           fontWeight: 700,
           fontSize: "16px",
           color: "var(--gold)",

@@ -26,7 +26,7 @@ export function Button({
     <button
       className={`${variants[variant]} ${className}`}
       style={{
-        fontFamily: "var(--font-condensed)",
+        fontFamily: "var(--font-space-grotesk)",
         fontWeight: 600,
         fontSize: "11px",
         letterSpacing: "0.03em",

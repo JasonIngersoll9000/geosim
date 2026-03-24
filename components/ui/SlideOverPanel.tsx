@@ -60,7 +60,7 @@ export function SlideOverPanel({
             <div>
               <div
                 style={{
-                  fontFamily: "var(--font-condensed)",
+                  fontFamily: "var(--font-space-grotesk)",
                   fontWeight: 700,
                   fontSize: "14px",
                   color: "var(--text-primary)",

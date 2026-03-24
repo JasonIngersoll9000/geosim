@@ -124,8 +124,7 @@ upgrades to four fonts and loads them via `next/font/google` — never a `<link>
   stylistic emphasis without switching fonts.
 - **Space Grotesk (`--font-label`)** — slightly geometric, slightly condensed, technical without
   being cold. The "telemetry" voice: labels, badges, section overlines, button text, actor names,
-  tab labels. Gives UI elements a precision-instrument quality that Barlow had but with better
-  screen rendering.
+  tab labels. Gives UI elements a precision-instrument quality with excellent screen rendering.
 - **IBM Plex Mono (`--font-mono`)** — institutional, slightly cold, designed by IBM for technical
   documents. All numbers, all timestamps, all scores, all coordinates. Never use a proportional
   font for data.
@@ -312,8 +311,8 @@ Decisions are denser than most UIs. Each card is a miniature briefing slide.
 └─────────────────────────────────────────────────────────────┘
 ```
 
-The description line uses Barlow 12px (not EB Garamond — the catalog is UI, not prose).
-The detail panel that opens when you click "Analyze" switches to EB Garamond for the
+The description line uses Inter 12px (not Newsreader — the catalog is UI, not prose).
+The detail panel that opens when you click "Analyze" switches to Newsreader for the
 strategic rationale.
 
 ### Map
@@ -339,7 +338,7 @@ styled basemap. Additional elements:
 
 The top bar (42px, from Strategos) should contain:
 
-**Left:** GeoSim wordmark — `GEOSIM` in Barlow Condensed Bold, 16px, gold. Followed by
+**Left:** GeoSim wordmark — `GEOSIM` in Space Grotesk Bold, 16px, gold. Followed by
 a thin separator and the scenario name in IBM Plex Mono, 10px, tertiary.
 
 **Center:** Classification banner text (or blank if unclassified scenario).
