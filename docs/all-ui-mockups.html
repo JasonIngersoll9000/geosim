@@ -1,558 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoSim — Declassified War Room Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════════════════════════════════════════════════════
+   GEOSIM DESIGN SYSTEM TOKENS
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg-base: #0D1117;
+  --bg-surface-1: #161B24;
+  --bg-surface-2: #1D2433;
+  --bg-surface-3: #242B3D;
+  --border-subtle: rgba(255,255,255,0.08);
+  --border-hi: rgba(255,255,255,0.14);
+  --text-primary: #E8E4DC;
+  --text-secondary: rgba(232,228,220,0.55);
+  --text-tertiary: rgba(232,228,220,0.32);
+  --gold: #C9983A;
+  --gold-dim: rgba(201,152,58,0.18);
+  --gold-glow: rgba(201,152,58,0.08);
+  --gold-border: rgba(201,152,58,0.40);
+  --actor-us: #4A7FA5;
+  --actor-iran: #8B2635;
+  --actor-israel: #C9983A;
+  --actor-russia: #7B68C8;
+  --actor-generic: #5EBD8E;
+  --status-critical: #E27085;
+  --status-critical-bg: rgba(139,38,53,0.18);
+  --status-critical-border: rgba(139,38,53,0.30);
+  --status-warning: #C9983A;
+  --status-warning-bg: rgba(201,152,58,0.15);
+  --status-stable: #5EBD8E;
+  --status-stable-bg: rgba(40,140,90,0.20);
+  --status-info: #7BAED4;
+  --status-info-bg: rgba(74,127,165,0.15);
+  --status-info-border: rgba(74,127,165,0.25);
+  --font-condensed: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-sans: 'Barlow', system-ui, sans-serif;
+  --font-serif: 'EB Garamond', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════════════ */
+
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:var(--font-sans, system-ui); color:var(--color-text-primary, #1a1a1a); }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 100vh;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(232,228,220,0.035) 29px),
+    repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(232,228,220,0.035) 29px);
+}
 
-.mockup-nav { display:flex; gap:6px; flex-wrap:wrap; padding:0 0 16px; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); margin-bottom:20px; }
-.mockup-nav button { font-size:12px; padding:6px 14px; border-radius:8px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); background:transparent; color:var(--color-text-secondary, #666); cursor:pointer; transition:all 0.15s; }
-.mockup-nav button.active { background:var(--color-text-primary, #1a1a1a); color:var(--color-background-primary, #fff); border-color:var(--color-text-primary, #1a1a1a); }
+/* ═══════════════════════════════════════════════════════════════
+   CLASSIFICATION BANNER & TOP BAR
+   ═══════════════════════════════════════════════════════════════ */
 
-.mockup-section { display:none; }
-.mockup-section.active { display:block; }
-.mockup-label { font-size:11px; color:var(--color-text-tertiary, #999); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+.classification-banner {
+  position: fixed; top: 0; left: 0; right: 0; height: 24px;
+  background: #0A0D12; border-bottom: 1px solid rgba(201,152,58,0.25);
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em;
+  color: rgba(201,152,58,0.6); text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
 
-/* ═══════════════════════════════════════════════════════ */
-/* SHARED STYLES                                          */
-/* ═══════════════════════════════════════════════════════ */
+.top-bar {
+  position: fixed; top: 24px; left: 0; right: 0; height: 42px;
+  background: var(--bg-surface-1); border-bottom: 1px solid var(--border-subtle);
+  display: flex; align-items: center; padding: 0 20px; z-index: 999;
+}
 
-.tag { font-size:10px; padding:2px 7px; border-radius:8px; display:inline-block; }
-.tag-red { background:#FCEBEB; color:#791F1F; }
-.tag-amber { background:#FAEEDA; color:#633806; }
-.tag-blue { background:#E6F1FB; color:#0C447C; }
-.tag-green { background:#EAF3DE; color:#27500A; }
-.tag-gray { background:#F1EFE8; color:#444441; }
-.tag-purple { background:#EEEDFE; color:#3C3489; }
-.tag-coral { background:#FAECE7; color:#712B13; }
+.top-bar-wordmark { font-family: var(--font-condensed); font-weight: 700; font-size: 16px; color: var(--gold); letter-spacing: 0.06em; }
+.top-bar-sep { width: 1px; height: 18px; background: var(--border-subtle); margin: 0 12px; }
+.top-bar-scenario { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); letter-spacing: 0.04em; }
+.top-bar-right { margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); display: flex; align-items: center; gap: 12px; }
+.top-bar-turn { color: var(--gold); font-weight: 500; }
 
-/* ═══════════════════════════════════════════════════════ */
-/* 1. MAIN GAME VIEW (split screen)                       */
-/* ═══════════════════════════════════════════════════════ */
+.top-bar-field-manual {
+  padding: 3px 10px; border-radius: 3px; border: 1px solid var(--border-subtle);
+  font-family: var(--font-condensed); font-size: 10px; font-weight: 600;
+  color: var(--text-secondary); background: transparent; cursor: pointer;
+  text-transform: uppercase; letter-spacing: 0.04em; transition: all 150ms;
+}
+.top-bar-field-manual:hover { border-color: var(--gold-border); color: var(--gold); }
 
-.shell { display:flex; min-height:580px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:12px; overflow:hidden; }
-.map-side { flex:1.2; background:#1a1a2e; position:relative; min-width:0; }
-.map-label { position:absolute; font-size:11px; font-weight:500; padding:3px 8px; border-radius:8px; pointer-events:none; }
-.map-dot { position:absolute; width:10px; height:10px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.6); }
-.map-dot.pulse::after { content:''; position:absolute; inset:-4px; border-radius:50%; border:1.5px solid inherit; opacity:0.4; animation:ping 2s ease-out infinite; }
-@keyframes ping { 0%{transform:scale(1);opacity:0.4} 100%{transform:scale(2.2);opacity:0} }
-.map-ring { position:absolute; border-radius:50%; border:1px dashed rgba(239,159,39,0.4); pointer-events:none; }
-.strait-line { position:absolute; border-top:2px dashed #E24B4A; width:40px; transform:rotate(-20deg); pointer-events:none; }
+/* ═══════════════════════════════════════════════════════════════
+   MOCKUP NAV
+   ═══════════════════════════════════════════════════════════════ */
 
-.panel-side { width:280px; background:var(--color-background-primary, #fff); border-left:0.5px solid var(--color-border-tertiary, #e0e0e0); display:flex; flex-direction:column; overflow-y:auto; }
-.panel-header { padding:12px 14px; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
-.panel-header h2 { font-size:14px; font-weight:500; }
-.panel-header p { font-size:12px; color:var(--color-text-secondary, #666); margin-top:2px; }
-.tabs { display:flex; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
-.tab { flex:1; padding:8px 0; font-size:12px; text-align:center; color:var(--color-text-secondary, #666); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.15s; }
-.tab.active { color:var(--color-text-primary, #1a1a1a); border-bottom-color:var(--color-text-primary, #1a1a1a); font-weight:500; }
-.section { padding:12px 14px; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
-.section-title { font-size:11px; color:var(--color-text-tertiary, #999); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
-.actor-row { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:8px; cursor:pointer; transition:background 0.15s; }
-.actor-row:hover { background:var(--color-background-secondary, #f5f5f5); }
-.actor-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.actor-name { font-size:13px; font-weight:500; flex:1; }
-.actor-esc { font-size:11px; padding:2px 6px; border-radius:8px; }
-.metric { display:flex; justify-content:space-between; align-items:center; padding:4px 0; }
-.metric-label { font-size:12px; color:var(--color-text-secondary, #666); }
-.metric-val { font-size:12px; font-weight:500; }
-.bar-wrap { height:4px; background:var(--color-background-secondary, #f5f5f5); border-radius:2px; margin-top:4px; }
-.bar-fill { height:100%; border-radius:2px; }
-.turn-controls { padding:12px 14px; margin-top:auto; border-top:0.5px solid var(--color-border-tertiary, #e0e0e0); display:flex; gap:8px; }
-.turn-controls button { flex:1; }
-.turn-badge { font-size:11px; color:var(--color-text-secondary, #666); text-align:center; padding:6px; }
-.decision-card { padding:8px 10px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; margin-bottom:6px; cursor:pointer; transition:all 0.15s; }
-.decision-card:hover { border-color:var(--color-border-secondary, #ccc); background:var(--color-background-secondary, #f5f5f5); }
-.decision-title { font-size:12px; font-weight:500; }
-.decision-meta { font-size:11px; color:var(--color-text-secondary, #666); margin-top:2px; display:flex; gap:8px; }
-.esc-tag { font-size:10px; padding:1px 5px; border-radius:8px; }
+.mockup-wrapper { padding-top: calc(24px + 42px); }
 
-/* ═══════════════════════════════════════════════════════ */
-/* 2. ACTOR STATE PANEL                                   */
-/* ═══════════════════════════════════════════════════════ */
+.mockup-nav {
+  display: flex; gap: 4px; padding: 12px 20px; background: var(--bg-surface-1);
+  border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap;
+  position: sticky; top: 66px; z-index: 998;
+}
 
-.a-panel { max-width:680px; }
-.a-header { display:flex; align-items:center; gap:12px; padding:0 0 16px; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
-.flag-dot { width:36px; height:36px; border-radius:50%; background:#378ADD; display:flex; align-items:center; justify-content:center; font-weight:500; font-size:13px; color:#fff; flex-shrink:0; }
-.a-header h2 { font-size:18px; font-weight:500; }
-.a-header p { font-size:13px; color:var(--color-text-secondary, #666); margin-top:1px; }
-.esc-badge { display:inline-block; font-size:12px; padding:3px 10px; border-radius:8px; background:#E6F1FB; color:#0C447C; font-weight:500; margin-left:auto; }
-.a-section { padding:16px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
-.a-section:last-child { border-bottom:none; }
-.grid-2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; }
-.grid-3 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); gap:8px; }
-.stat-card { background:var(--color-background-secondary, #f5f5f5); border-radius:8px; padding:10px 12px; }
-.stat-label { font-size:11px; color:var(--color-text-secondary, #666); }
-.stat-val { font-size:18px; font-weight:500; margin-top:2px; }
-.stat-sub { font-size:11px; color:var(--color-text-secondary, #666); margin-top:1px; }
-.bar-row { display:flex; align-items:center; gap:10px; padding:5px 0; }
-.bar-row .bar-label { font-size:12px; color:var(--color-text-secondary, #666); width:120px; flex-shrink:0; }
-.bar-row .bar-val { font-size:12px; font-weight:500; width:36px; text-align:right; flex-shrink:0; }
-.figure-row { display:flex; align-items:center; gap:10px; padding:8px 10px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; margin-bottom:6px; cursor:pointer; transition:background 0.15s; }
-.figure-row:hover { background:var(--color-background-secondary, #f5f5f5); }
-.fig-avatar { width:32px; height:32px; border-radius:50%; background:var(--color-background-info, #E6F1FB); display:flex; align-items:center; justify-content:center; font-weight:500; font-size:11px; color:var(--color-text-info, #185FA5); flex-shrink:0; }
-.fig-name { font-size:13px; font-weight:500; }
-.fig-role { font-size:11px; color:var(--color-text-secondary, #666); }
-.fig-status { font-size:10px; padding:2px 6px; border-radius:8px; margin-left:auto; }
-.channel-row { padding:8px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
-.channel-row:last-child { border-bottom:none; }
-.channel-header { display:flex; justify-content:space-between; align-items:center; }
-.channel-name { font-size:13px; font-weight:500; }
-.channel-inf { font-size:11px; color:var(--color-text-secondary, #666); }
-.channel-pos { font-size:12px; color:var(--color-text-secondary, #666); margin-top:3px; }
-.asset-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
-.asset-row:last-child { border-bottom:none; }
-.asset-name { font-size:12px; font-weight:500; flex:1; }
-.asset-qty { font-size:12px; color:var(--color-text-secondary, #666); width:60px; }
-.obj-row { padding:8px 10px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; margin-bottom:6px; }
-.obj-title { font-size:13px; font-weight:500; }
-.obj-meta { font-size:11px; color:var(--color-text-secondary, #666); margin-top:3px; display:flex; gap:8px; align-items:center; }
-.prog-wrap { flex:1; height:4px; background:var(--color-background-secondary, #f5f5f5); border-radius:2px; }
-.prog-fill { height:100%; border-radius:2px; }
-.intel-row { padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); font-size:12px; }
-.intel-row:last-child { border-bottom:none; }
-.intel-label { color:var(--color-text-secondary, #666); }
-.intel-val { font-weight:500; }
-.conf { font-size:10px; padding:1px 5px; border-radius:8px; margin-left:4px; }
+.mockup-nav button {
+  font-family: var(--font-condensed); font-size: 11px; font-weight: 600;
+  padding: 5px 14px; border-radius: 3px; border: 1px solid var(--border-subtle);
+  background: transparent; color: var(--text-secondary); cursor: pointer;
+  transition: all 150ms; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.mockup-nav button:hover { border-color: var(--border-hi); color: var(--text-primary); }
+.mockup-nav button.active { background: var(--gold-dim); border-color: var(--gold-border); color: var(--gold); }
 
-/* ═══════════════════════════════════════════════════════ */
-/* 3. DECISION ANALYSIS                                   */
-/* ═══════════════════════════════════════════════════════ */
+.mockup-nav-group {
+  display: flex; gap: 4px; align-items: center;
+  padding-left: 12px; margin-left: 8px; border-left: 1px solid var(--border-subtle);
+}
+.mockup-nav-label {
+  font-family: var(--font-mono); font-size: 8px; color: var(--text-tertiary);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-right: 4px;
+}
 
-.d-panel { max-width:680px; }
-.d-header { padding:0 0 14px; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
-.d-header h2 { font-size:18px; font-weight:500; }
-.d-header-row { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
-.d-section { padding:14px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
-.d-section:last-child { border-bottom:none; }
-.rationale { font-size:13px; color:var(--color-text-secondary, #666); line-height:1.65; }
-.rationale strong { color:var(--color-text-primary, #1a1a1a); font-weight:500; }
-.cost-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; }
-.cost-card { padding:10px 12px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; }
-.cost-dim { font-size:11px; color:var(--color-text-secondary, #666); }
-.cost-desc { font-size:12px; margin-top:3px; }
-.cost-mag { margin-top:4px; }
-.outcome { padding:12px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; margin-bottom:8px; }
-.outcome-header { display:flex; justify-content:space-between; align-items:center; }
-.outcome-title { font-size:13px; font-weight:500; }
-.outcome-prob { font-size:12px; font-weight:500; }
-.outcome-desc { font-size:12px; color:var(--color-text-secondary, #666); margin-top:6px; line-height:1.6; }
-.cascade-item { font-size:12px; padding:4px 0; color:var(--color-text-secondary, #666); display:flex; gap:6px; }
-.cascade-arrow { color:var(--color-text-tertiary, #999); flex-shrink:0; }
-.response-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
-.response-row:last-child { border-bottom:none; }
-.resp-actor { font-size:12px; font-weight:500; width:80px; flex-shrink:0; }
-.resp-action { font-size:12px; color:var(--color-text-secondary, #666); flex:1; }
-.obj-impact { display:flex; align-items:center; gap:8px; padding:5px 0; font-size:12px; }
-.obj-impact .obj-name { flex:1; }
-.obj-effect { font-weight:500; }
-.prereq-list { font-size:12px; color:var(--color-text-secondary, #666); line-height:1.7; }
-.constraint-warn { padding:10px 12px; background:var(--color-background-danger, #FCEBEB); border-radius:8px; margin-top:8px; }
-.constraint-warn-title { font-size:12px; font-weight:500; color:var(--color-text-danger, #A32D2D); }
-.constraint-warn-desc { font-size:11px; color:var(--color-text-secondary, #666); margin-top:3px; }
-.intel-warn { padding:10px 12px; background:var(--color-background-warning, #FAEEDA); border-radius:8px; margin-top:8px; }
-.intel-warn-title { font-size:12px; font-weight:500; color:var(--color-text-warning, #854F0B); }
-.intel-warn-desc { font-size:11px; color:var(--color-text-secondary, #666); margin-top:3px; }
-.verdict { padding:14px 16px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; background:var(--color-background-secondary, #f5f5f5); }
-.verdict-title { font-size:14px; font-weight:500; }
-.verdict-body { font-size:13px; color:var(--color-text-secondary, #666); margin-top:6px; line-height:1.65; }
-.btn-row { display:flex; gap:8px; margin-top:12px; }
-.btn-row button { flex:1; }
+.mockup-section { display: none; }
+.mockup-section.active { display: block; }
 
-/* ═══════════════════════════════════════════════════════ */
-/* 4. WAR CHRONICLE                                       */
-/* ═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   SHARED STYLES
+   ═══════════════════════════════════════════════════════════════ */
 
-.chronicle { max-width:680px; }
-.chr-header { padding:0 0 16px; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); display:flex; justify-content:space-between; align-items:flex-end; }
-.chr-header h2 { font-size:18px; font-weight:500; }
-.chr-header p { font-size:13px; color:var(--color-text-secondary, #666); margin-top:2px; }
-.chr-filters { display:flex; gap:6px; }
-.chr-filter { font-size:11px; padding:4px 10px; border-radius:8px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); background:transparent; color:var(--color-text-secondary, #666); cursor:pointer; transition:all 0.15s; }
-.chr-filter.active { background:var(--color-background-primary, #fff); color:var(--color-text-primary, #1a1a1a); border-color:var(--color-border-primary, #999); font-weight:500; }
-.timeline { position:relative; padding:20px 0 0 28px; }
-.timeline::before { content:''; position:absolute; left:7px; top:20px; bottom:0; width:1px; background:var(--color-border-tertiary, #e0e0e0); }
-.turn-block { position:relative; margin-bottom:24px; }
-.turn-dot { position:absolute; left:-28px; top:4px; width:14px; height:14px; border-radius:50%; border:2px solid var(--color-border-secondary, #ccc); background:var(--color-background-primary, #fff); z-index:1; }
-.turn-dot.critical { border-color:#E24B4A; background:#FCEBEB; }
-.turn-dot.major { border-color:#EF9F27; background:#FAEEDA; }
-.turn-dot.moderate { border-color:#378ADD; background:#E6F1FB; }
-.turn-date { font-size:11px; color:var(--color-text-tertiary, #999); margin-bottom:4px; }
-.turn-title { font-size:15px; font-weight:500; margin-bottom:6px; }
-.turn-narrative { font-size:13px; color:var(--color-text-secondary, #666); line-height:1.7; font-family:var(--font-serif, Georgia, serif); }
-.turn-narrative strong { color:var(--color-text-primary, #1a1a1a); font-weight:500; font-family:var(--font-sans, system-ui); }
-.turn-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:8px; }
-.expand-section { margin-top:10px; border:0.5px solid var(--color-border-tertiary, #e0e0e0); border-radius:8px; overflow:hidden; }
-.expand-toggle { padding:8px 12px; font-size:12px; color:var(--color-text-info, #185FA5); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:background 0.15s; }
-.expand-toggle:hover { background:var(--color-background-secondary, #f5f5f5); }
-.expand-content { display:none; padding:12px; border-top:0.5px solid var(--color-border-tertiary, #e0e0e0); font-size:12px; }
-.expand-content.open { display:block; }
-.decision-mini { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0); }
-.decision-mini:last-child { border-bottom:none; }
-.dm-actor { font-weight:500; width:70px; flex-shrink:0; }
-.dm-action { flex:1; color:var(--color-text-secondary, #666); }
-.dm-by { font-size:10px; padding:1px 5px; border-radius:8px; }
-.impact-row { padding:4px 0; color:var(--color-text-secondary, #666); line-height:1.5; }
-.impact-row strong { color:var(--color-text-primary, #1a1a1a); font-weight:500; }
-.judge-mini { display:flex; gap:16px; padding:8px 0; }
-.judge-score { text-align:center; }
-.judge-num { font-size:16px; font-weight:500; }
-.judge-label { font-size:10px; color:var(--color-text-secondary, #666); }
-.esc-change { display:flex; align-items:center; gap:6px; padding:4px 0; font-size:12px; }
-.esc-change .esc-actor { font-weight:500; width:70px; }
-.esc-change .esc-arrow { color:var(--color-text-tertiary, #999); }
-.global-ticker { display:flex; gap:12px; padding:8px 0; font-size:11px; color:var(--color-text-secondary, #666); flex-wrap:wrap; }
-.ticker-item { display:flex; align-items:center; gap:4px; }
-.ticker-val { font-weight:500; color:var(--color-text-primary, #1a1a1a); }
-.ticker-delta { font-size:10px; }
-.ticker-up { color:#E24B4A; }
-.ticker-down { color:#1D9E75; }
-.reaction-block { margin-top:8px; padding:8px 10px; background:var(--color-background-secondary, #f5f5f5); border-radius:8px; }
-.reaction-label { font-size:10px; color:var(--color-text-tertiary, #999); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+.doc-id { font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; padding: 12px 0 4px; }
+
+.section-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0 10px; }
+.section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+.section-divider-text { font-family: var(--font-mono); font-size: 8px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+
+.badge { font-family: var(--font-mono); font-size: 9px; padding: 2px 7px; border-radius: 3px; display: inline-block; letter-spacing: 0.02em; }
+.badge-military { background: var(--status-critical-bg); color: var(--status-critical); border: 1px solid var(--status-critical-border); }
+.badge-diplomatic { background: var(--status-info-bg); color: var(--status-info); border: 1px solid var(--status-info-border); }
+.badge-economic { background: var(--status-stable-bg); color: var(--status-stable); border: 1px solid rgba(40,140,90,0.30); }
+.badge-political { background: rgba(123,104,200,0.15); color: #A899E0; border: 1px solid rgba(123,104,200,0.25); }
+.badge-intelligence { background: rgba(201,152,58,0.12); color: var(--gold); border: 1px solid rgba(201,152,58,0.25); }
+.badge-escalation { background: var(--status-critical-bg); color: var(--status-critical); border: 1px solid var(--status-critical-border); }
+.badge-de-escalation { background: var(--status-stable-bg); color: var(--status-stable); border: 1px solid rgba(40,140,90,0.30); }
+.badge-hold { background: var(--status-warning-bg); color: var(--status-warning); border: 1px solid rgba(201,152,58,0.25); }
+.badge-critical { background: var(--status-critical-bg); color: var(--status-critical); border: 1px solid var(--status-critical-border); }
+.badge-warning { background: var(--status-warning-bg); color: var(--status-warning); border: 1px solid rgba(201,152,58,0.25); }
+.badge-stable { background: var(--status-stable-bg); color: var(--status-stable); border: 1px solid rgba(40,140,90,0.30); }
+
+.btn { font-family: var(--font-condensed); font-size: 11px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; border-radius: 5px; padding: 8px 16px; cursor: pointer; transition: opacity 150ms; border: none; }
+.btn:hover { opacity: 0.88; }
+.btn-primary { background: var(--gold); color: #0D1117; }
+.btn-ghost { background: var(--bg-surface-2); border: 1px solid var(--border-hi); color: var(--text-secondary); }
+.btn-ghost:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.20); }
+
+.progress-bar { height: 4px; background: var(--bg-surface-3); border-radius: 2px; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 2px; transition: width 300ms; }
+
+/* ═══════════════════════════════════════════════════════════════
+   TOOLTIP (concept help)
+   ═══════════════════════════════════════════════════════════════ */
+
+.help-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1px solid var(--border-hi); font-family: var(--font-mono);
+  font-size: 8px; color: var(--text-tertiary); cursor: help;
+  margin-left: 4px; position: relative; vertical-align: middle;
+  transition: all 150ms;
+}
+.help-icon:hover { border-color: var(--gold-border); color: var(--gold); }
+
+.tooltip {
+  display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%); width: 240px; padding: 10px 12px;
+  background: var(--bg-surface-3); border: 1px solid var(--border-hi);
+  border-radius: 5px; z-index: 100;
+  font-family: var(--font-sans); font-size: 11px; font-weight: 400;
+  color: var(--text-secondary); line-height: 1.5; text-transform: none;
+  letter-spacing: 0;
+}
+.tooltip-title {
+  font-family: var(--font-condensed); font-size: 11px; font-weight: 700;
+  color: var(--gold); text-transform: uppercase; letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
+.help-icon:hover .tooltip { display: block; }
+
+/* ═══════════════════════════════════════════════════════════════
+   FIRST-TURN CALLOUT BOX
+   ═══════════════════════════════════════════════════════════════ */
+
+.callout {
+  padding: 10px 14px; margin: 8px 0; border-radius: 5px;
+  border: 1px solid rgba(123,174,212,0.25); background: rgba(74,127,165,0.08);
+}
+.callout-header {
+  font-family: var(--font-condensed); font-size: 10px; font-weight: 700;
+  color: var(--status-info); text-transform: uppercase; letter-spacing: 0.04em;
+  margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
+}
+.callout-body {
+  font-family: var(--font-sans); font-size: 11px; color: var(--text-secondary); line-height: 1.5;
+}
+.callout-dismiss {
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary);
+  cursor: pointer; margin-top: 6px; transition: color 150ms;
+}
+.callout-dismiss:hover { color: var(--text-secondary); }
+
+/* ═══════════════════════════════════════════════════════════════
+   GAME SHELL (split screen)
+   ═══════════════════════════════════════════════════════════════ */
+
+.game-shell { display: flex; min-height: 620px; border: 1px solid var(--border-subtle); border-radius: 4px; overflow: hidden; margin: 16px 20px; }
+
+.map-side { flex: 1.5; background: #0A0F18; position: relative; min-width: 0; overflow: hidden; }
+.map-side svg { position: absolute; inset: 0; }
+
+.map-legend { position: absolute; bottom: 12px; left: 12px; display: flex; gap: 14px; font-family: var(--font-mono); font-size: 9px; }
+.map-legend-item { display: flex; align-items: center; gap: 5px; }
+.map-legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+.map-dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.5); }
+.map-dot.pulse::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; border: 1.5px solid inherit; opacity: 0.3; animation: ping 2.5s ease-out infinite; }
+@keyframes ping { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(2.5); opacity: 0; } }
+
+.map-label { position: absolute; font-family: var(--font-mono); font-size: 9px; padding: 2px 6px; border-radius: 3px; pointer-events: none; letter-spacing: 0.03em; }
+
+.strait-marker { position: absolute; width: 50px; border-top: 2px dashed var(--status-critical); transform: rotate(-25deg); pointer-events: none; }
+
+/* MAP INFO BOX — explains what the player is looking at */
+.map-info-box {
+  position: absolute; top: 10px; left: 10px; right: 10px;
+  background: rgba(13,17,23,0.92); border: 1px solid var(--border-subtle);
+  border-radius: 4px; padding: 8px 10px;
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary);
+  pointer-events: auto; z-index: 2;
+}
+.map-info-title {
+  font-family: var(--font-condensed); font-weight: 700; font-size: 11px;
+  color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.map-info-row {
+  display: flex; align-items: center; gap: 6px; padding: 2px 0;
+  font-size: 9px; line-height: 1.4;
+}
+.map-info-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.map-info-line { width: 14px; border-top: 2px dashed; flex-shrink: 0; }
+
+/* MAP STRATEGIC ANNOTATIONS — labeled zones and features */
+.map-annotation {
+  position: absolute; font-family: var(--font-mono); font-size: 8px;
+  color: var(--text-tertiary); letter-spacing: 0.04em; pointer-events: none;
+  text-transform: uppercase; z-index: 1;
+}
+.map-annotation-box {
+  position: absolute; background: rgba(13,17,23,0.85); border: 1px solid var(--border-subtle);
+  border-radius: 3px; padding: 4px 7px; font-family: var(--font-mono); font-size: 8px;
+  color: var(--text-secondary); pointer-events: none; z-index: 1; line-height: 1.4;
+}
+.map-annotation-box .ann-label {
+  color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em;
+  font-size: 7px; margin-bottom: 2px;
+}
+.map-annotation-box .ann-value { font-weight: 500; }
+
+/* MAP KEY INDICATORS — floating metric chips */
+.map-chip {
+  position: absolute; background: rgba(13,17,23,0.88); border: 1px solid var(--border-subtle);
+  border-radius: 3px; padding: 3px 7px; font-family: var(--font-mono); font-size: 9px;
+  pointer-events: none; z-index: 2; display: flex; align-items: center; gap: 4px;
+}
+.map-chip-icon { font-size: 10px; }
+
+/* OIL FACILITY MARKER */
+.map-facility {
+  position: absolute; width: 8px; height: 8px; border-radius: 2px;
+  border: 1px solid; z-index: 1;
+}
+
+/* STRIKE ARC (simplified) */
+.map-arc {
+  position: absolute; border: 1px dashed; border-radius: 50%;
+  pointer-events: none; opacity: 0.25; z-index: 0;
+}
+
+.panel-side { width: 380px; background: var(--bg-surface-1); border-left: 1px solid var(--border-subtle); display: flex; flex-direction: column; overflow-y: auto; }
+
+.panel-header { padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); }
+.panel-header-title { font-family: var(--font-condensed); font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.04em; }
+.panel-header-sub { font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary); margin-top: 3px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.panel-section { padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); }
+
+.tabs { display: flex; border-bottom: 1px solid var(--border-subtle); }
+.tab { flex: 1; padding: 8px 0; font-family: var(--font-condensed); font-size: 11px; font-weight: 600; text-align: center; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-tertiary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 150ms; }
+.tab:hover { color: var(--text-secondary); }
+.tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+.turn-controls { padding: 10px 14px; margin-top: auto; border-top: 1px solid var(--border-subtle); display: flex; gap: 8px; }
+.turn-controls .btn { flex: 1; text-align: center; }
+.turn-badge { font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary); text-align: center; padding: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* ═══════════════════════════════════════════════════════════════
+   PLAYER MODE — ADVISOR-FIRST BRIEFING
+   ═══════════════════════════════════════════════════════════════ */
+
+.briefing-summary {
+  padding: 14px 16px; border-bottom: 1px solid var(--border-subtle);
+}
+.briefing-summary-title {
+  font-family: var(--font-condensed); font-weight: 700; font-size: 13px;
+  text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 8px;
+  color: var(--gold);
+}
+.briefing-summary-text {
+  font-family: var(--font-serif); font-size: 14px; color: var(--text-secondary);
+  line-height: 1.7;
+}
+.briefing-summary-text strong { color: var(--text-primary); font-weight: 500; }
+
+/* RECOMMENDED ACTIONS */
+.rec-action {
+  padding: 12px 14px; margin: 6px 0; border: 1px solid var(--border-subtle);
+  border-radius: 5px; cursor: pointer; transition: all 150ms;
+  background: var(--bg-surface-2);
+}
+.rec-action:hover { border-color: var(--gold-border); background: var(--gold-glow); }
+.rec-action.selected { border-color: var(--gold-border); background: var(--gold-glow); }
+
+.rec-action-num {
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;
+}
+.rec-action-title {
+  font-family: var(--font-condensed); font-size: 14px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.02em;
+}
+.rec-action-why {
+  font-family: var(--font-sans); font-size: 11px; color: var(--text-secondary);
+  margin-top: 4px; line-height: 1.5;
+}
+.rec-action-tags { display: flex; gap: 4px; margin-top: 6px; }
+
+.browse-all {
+  display: block; width: 100%; margin-top: 8px; padding: 8px;
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary);
+  background: transparent; border: 1px dashed var(--border-subtle); border-radius: 5px;
+  cursor: pointer; text-align: center; text-transform: uppercase;
+  letter-spacing: 0.06em; transition: all 150ms;
+}
+.browse-all:hover { border-color: var(--border-hi); color: var(--text-secondary); }
+
+/* SIMPLE PLAN CONFIRM */
+.plan-confirm {
+  padding: 14px 16px; border-top: 1px solid var(--border-subtle);
+  background: var(--bg-surface-2);
+}
+.plan-confirm-selected {
+  font-family: var(--font-condensed); font-size: 12px; font-weight: 600;
+  margin-bottom: 8px; text-transform: uppercase;
+}
+.plan-confirm-details {
+  font-family: var(--font-sans); font-size: 11px; color: var(--text-secondary);
+  margin-bottom: 10px; line-height: 1.5;
+}
+.advanced-toggle {
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary);
+  cursor: pointer; margin-top: 8px; transition: color 150ms;
+}
+.advanced-toggle:hover { color: var(--status-info); }
+
+/* ═══════════════════════════════════════════════════════════════
+   DECISION CARDS
+   ═══════════════════════════════════════════════════════════════ */
+
+.decision-card { padding: 9px 11px; background: var(--bg-surface-2); border: 1px solid var(--border-subtle); border-radius: 5px; margin-bottom: 6px; cursor: pointer; transition: all 150ms; }
+.decision-card:hover { border-color: var(--border-hi); background: var(--bg-surface-3); }
+.decision-card.selected { border-color: var(--gold-border); background: var(--gold-glow); }
+.decision-title { font-family: var(--font-condensed); font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.decision-meta { display: flex; gap: 6px; margin-top: 4px; align-items: center; }
+
+/* ═══════════════════════════════════════════════════════════════
+   ACTOR ROWS
+   ═══════════════════════════════════════════════════════════════ */
+
+.actor-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 150ms; }
+.actor-row:hover { background: var(--bg-surface-2); }
+.actor-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.actor-name { font-family: var(--font-condensed); font-size: 13px; font-weight: 600; flex: 1; }
+
+/* METRICS */
+.metric-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+.metric-label { font-family: var(--font-sans); font-size: 12px; color: var(--text-secondary); }
+.metric-val { font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
+
+/* ═══════════════════════════════════════════════════════════════
+   DOSSIER (actor detail)
+   ═══════════════════════════════════════════════════════════════ */
+
+.dossier { max-width: 640px; margin: 16px 20px; background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: 5px; overflow: hidden; }
+.dossier-header { padding: 14px 18px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 14px; }
+.dossier-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-condensed); font-weight: 700; font-size: 14px; color: var(--text-primary); flex-shrink: 0; }
+.dossier-header-name { font-family: var(--font-condensed); font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.03em; }
+.dossier-header-type { font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+.dossier-section { padding: 14px 18px; border-bottom: 1px solid var(--border-subtle); }
+.dossier-section:last-child { border-bottom: none; }
+
+.stat-grid { display: grid; gap: 8px; }
+.stat-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.stat-card { background: var(--bg-surface-2); border-radius: 5px; padding: 8px 10px; }
+.stat-card-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.03em; }
+.stat-card-value { font-family: var(--font-mono); font-size: 18px; font-weight: 500; margin-top: 2px; }
+.stat-card-sub { font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary); margin-top: 1px; }
+
+.figure-row { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border: 1px solid var(--border-subtle); border-radius: 5px; margin-bottom: 5px; }
+.figure-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--bg-surface-3); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10px; font-weight: 500; color: var(--text-secondary); flex-shrink: 0; }
+.figure-name { font-family: var(--font-condensed); font-size: 13px; font-weight: 600; }
+.figure-role { font-family: var(--font-sans); font-size: 10px; color: var(--text-secondary); }
+.figure-tags { margin-left: auto; display: flex; gap: 4px; }
+
+.asset-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border-subtle); font-size: 12px; }
+.asset-row:last-child { border-bottom: none; }
+.asset-name { font-family: var(--font-sans); font-weight: 500; flex: 1; }
+.asset-qty { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); width: 70px; }
+
+.channel-row { padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }
+.channel-row:last-child { border-bottom: none; }
+.channel-header { display: flex; justify-content: space-between; align-items: center; }
+.channel-name { font-family: var(--font-condensed); font-size: 13px; font-weight: 600; }
+.channel-influence { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
+.channel-position { font-family: var(--font-sans); font-size: 11px; color: var(--text-secondary); margin-top: 3px; line-height: 1.5; }
+
+.escalation-ladder { display: flex; gap: 3px; align-items: flex-end; margin-top: 6px; }
+.escalation-rung { flex: 1; border-radius: 3px 3px 0 0; text-align: center; }
+.escalation-rung-label { font-family: var(--font-mono); font-size: 9px; margin-top: 3px; color: var(--text-tertiary); }
+.escalation-rung.current .escalation-rung-label { color: var(--gold); font-weight: 500; }
+.escalation-range { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 8px; color: var(--text-tertiary); margin-top: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.obj-row { padding: 8px 10px; border: 1px solid var(--border-subtle); border-radius: 5px; margin-bottom: 5px; }
+.obj-title { font-family: var(--font-condensed); font-size: 13px; font-weight: 600; }
+.obj-meta { display: flex; gap: 8px; align-items: center; margin-top: 4px; font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
+.obj-progress { flex: 1; height: 4px; background: var(--bg-surface-3); border-radius: 2px; }
+.obj-progress-fill { height: 100%; border-radius: 2px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   ANALYSIS PANEL
+   ═══════════════════════════════════════════════════════════════ */
+
+.analysis-panel { max-width: 640px; margin: 16px 20px; background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: 5px; overflow: hidden; }
+.analysis-header { padding: 14px 18px; border-bottom: 1px solid var(--border-subtle); }
+.analysis-header h2 { font-family: var(--font-condensed); font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.03em; }
+.analysis-tags { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+.analysis-section { padding: 14px 18px; border-bottom: 1px solid var(--border-subtle); }
+.analysis-section:last-child { border-bottom: none; }
+.rationale { font-family: var(--font-serif); font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+.rationale strong { color: var(--text-primary); font-weight: 500; }
+
+.cost-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cost-card { padding: 10px; border: 1px solid var(--border-subtle); border-radius: 5px; }
+.cost-dim { font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
+.cost-desc { font-family: var(--font-sans); font-size: 11px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+
+.outcome-card { padding: 12px; border: 1px solid var(--border-subtle); border-radius: 5px; margin-bottom: 8px; }
+.outcome-header { display: flex; justify-content: space-between; align-items: center; }
+.outcome-title { font-family: var(--font-condensed); font-weight: 600; font-size: 13px; }
+.outcome-prob { font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
+.outcome-desc { font-family: var(--font-serif); font-size: 13px; color: var(--text-secondary); margin-top: 6px; line-height: 1.65; }
+.cascade-item { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); padding: 2px 0; display: flex; gap: 6px; }
+.cascade-arrow { color: var(--text-tertiary); }
+
+.response-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border-subtle); font-size: 12px; }
+.response-row:last-child { border-bottom: none; }
+.resp-actor { font-family: var(--font-condensed); font-weight: 600; width: 80px; flex-shrink: 0; }
+.resp-action { font-family: var(--font-sans); color: var(--text-secondary); flex: 1; font-size: 11px; line-height: 1.4; }
+
+.verdict { padding: 14px 16px; border: 1px solid var(--border-subtle); border-radius: 5px; background: var(--bg-surface-2); }
+.verdict-title { font-family: var(--font-condensed); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+.verdict-body { font-family: var(--font-serif); font-size: 13px; color: var(--text-secondary); margin-top: 6px; line-height: 1.65; }
+
+.warn-box { padding: 10px 12px; border-radius: 5px; margin-top: 8px; }
+.warn-critical { background: var(--status-critical-bg); border: 1px solid var(--status-critical-border); }
+.warn-warning { background: var(--status-warning-bg); border: 1px solid rgba(201,152,58,0.25); }
+.warn-title { font-family: var(--font-condensed); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; }
+.warn-desc { font-family: var(--font-sans); font-size: 11px; color: var(--text-secondary); margin-top: 3px; line-height: 1.5; }
+
+.profile-cards { display: flex; gap: 8px; }
+.profile-card { flex: 1; padding: 10px 12px; background: var(--bg-surface-2); border: 1px solid var(--border-subtle); border-radius: 5px; cursor: pointer; transition: all 150ms; }
+.profile-card:hover { border-color: var(--border-hi); }
+.profile-card.selected { border-color: var(--gold-border); background: var(--gold-glow); }
+.profile-name { font-family: var(--font-condensed); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; }
+.profile-desc { font-family: var(--font-sans); font-size: 10px; color: var(--text-secondary); margin-top: 3px; line-height: 1.4; }
+.profile-cost { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); margin-top: 5px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   CHRONICLE
+   ═══════════════════════════════════════════════════════════════ */
+
+.chronicle { max-width: 640px; margin: 16px 20px; }
+.chronicle-header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); }
+.chronicle-header h2 { font-family: var(--font-condensed); font-weight: 700; font-size: 18px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+.global-ticker { display: flex; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; }
+.ticker-item { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); display: flex; align-items: center; gap: 4px; }
+.ticker-val { font-weight: 500; color: var(--text-primary); }
+.ticker-up { color: var(--status-critical); }
+.ticker-down { color: var(--status-stable); }
+
+.timeline { position: relative; padding: 20px 0 0 28px; }
+.timeline::before { content: ''; position: absolute; left: 7px; top: 20px; bottom: 0; width: 1px; background: var(--border-subtle); }
+
+.turn-block { position: relative; margin-bottom: 28px; }
+.turn-dot { position: absolute; left: -28px; top: 4px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--border-hi); background: var(--bg-base); z-index: 1; }
+.turn-dot.critical { border-color: var(--status-critical); background: var(--status-critical-bg); }
+.turn-dot.major { border-color: var(--gold); background: var(--gold-dim); }
+.turn-dot.moderate { border-color: var(--status-info); background: var(--status-info-bg); }
+
+.turn-date { font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 4px; }
+.turn-title { font-family: var(--font-condensed); font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 8px; }
+.turn-narrative { font-family: var(--font-serif); font-size: 15px; color: var(--text-secondary); line-height: 1.75; }
+.turn-narrative strong { color: var(--text-primary); font-weight: 500; }
+.turn-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 10px; }
+
+.turn-block.severity-critical { border-left: 2px solid var(--actor-iran); padding-left: 14px; margin-left: -16px; }
+.turn-block.severity-major { border-left: 2px solid var(--gold); padding-left: 14px; margin-left: -16px; }
+
+.expand-section { margin-top: 10px; border: 1px solid var(--border-subtle); border-radius: 5px; overflow: hidden; }
+.expand-toggle { padding: 8px 12px; font-family: var(--font-mono); font-size: 11px; color: var(--status-info); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 150ms; }
+.expand-toggle:hover { background: var(--bg-surface-2); }
+.expand-content { max-height: 0; overflow: hidden; transition: max-height 300ms ease; }
+.expand-content.open { max-height: 600px; border-top: 1px solid var(--border-subtle); }
+.expand-inner { padding: 12px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   DISPATCH TERMINAL
+   ═══════════════════════════════════════════════════════════════ */
+
+.terminal { max-width: 700px; margin: 16px 20px; background: #080C12; border: 1px solid var(--border-subtle); border-radius: 5px; padding: 16px 20px; min-height: 400px; }
+.terminal-header { font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 12px; }
+.dispatch-line { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); padding: 2px 0; opacity: 0; animation: stamp-in 1ms forwards; }
+.dispatch-line .ts { color: var(--text-tertiary); margin-right: 8px; }
+.dispatch-line.critical { color: var(--status-critical); }
+.dispatch-line.confirmed { color: var(--gold); }
+.dispatch-line.info { color: var(--status-info); }
+.dispatch-line.stable { color: var(--status-stable); }
+@keyframes stamp-in { to { opacity: 1; } }
+.cursor-blink { display: inline-block; color: var(--gold); font-family: var(--font-mono); font-size: 14px; animation: blink 800ms step-end infinite; margin-top: 4px; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ═══════════════════════════════════════════════════════════════
+   ADVISOR / CASCADE
+   ═══════════════════════════════════════════════════════════════ */
+
+.advisor-panel { max-width: 640px; margin: 16px 20px; }
+.advisor-card { background: var(--bg-surface-2); border: 1px solid var(--border-subtle); border-left: 3px solid var(--gold-border); border-radius: 0 5px 5px 0; padding: 14px 16px; margin-bottom: 10px; }
+.advisor-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.advisor-name { font-family: var(--font-condensed); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; }
+.advisor-title { font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary); }
+.advisor-body { font-family: var(--font-serif); font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+.advisor-body strong { color: var(--text-primary); font-weight: 500; }
+.advisor-action { margin-top: 8px; font-family: var(--font-mono); font-size: 10px; color: var(--gold); letter-spacing: 0.03em; }
+
+.cascade-alert { background: var(--status-critical-bg); border: 1px solid var(--status-critical-border); border-radius: 5px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.cascade-alert-icon { font-size: 16px; color: var(--status-critical); }
+.cascade-alert-text { font-family: var(--font-condensed); font-size: 12px; font-weight: 600; color: var(--status-critical); text-transform: uppercase; letter-spacing: 0.03em; }
+.cascade-alert-detail { font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   TURNPLAN BUILDER (advanced)
+   ═══════════════════════════════════════════════════════════════ */
+
+.plan-builder { max-width: 640px; margin: 16px 20px; background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: 5px; overflow: hidden; }
+.plan-slot { padding: 12px 16px; border: 1px dashed var(--border-hi); border-radius: 5px; margin: 8px 0; min-height: 50px; display: flex; align-items: center; justify-content: center; }
+.plan-slot.filled { border-style: solid; border-color: var(--gold-border); background: var(--gold-glow); justify-content: flex-start; }
+.plan-slot-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; }
+.plan-slot.primary { border-color: var(--gold-border); }
+.resource-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.resource-label { font-family: var(--font-condensed); font-size: 11px; font-weight: 600; width: 160px; flex-shrink: 0; }
+.resource-slider { flex: 1; height: 4px; background: var(--bg-surface-3); border-radius: 2px; position: relative; }
+.resource-slider-fill { height: 100%; background: var(--gold); border-radius: 2px; }
+.resource-pct { font-family: var(--font-mono); font-size: 11px; font-weight: 500; width: 36px; text-align: right; color: var(--gold); }
+.validation-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-family: var(--font-mono); font-size: 10px; }
+.validation-ok { color: var(--status-stable); }
+.validation-warn { color: var(--status-warning); }
+
+/* ═══════════════════════════════════════════════════════════════
+   FIELD MANUAL
+   ═══════════════════════════════════════════════════════════════ */
+
+.field-manual { max-width: 680px; margin: 16px 20px; }
+.fm-entry { padding: 14px 18px; background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: 5px; margin-bottom: 10px; }
+.fm-term { font-family: var(--font-condensed); font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--gold); }
+.fm-definition { font-family: var(--font-serif); font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-top: 6px; }
+.fm-example { font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); margin-top: 8px; padding: 8px 10px; background: var(--bg-surface-2); border-radius: 4px; line-height: 1.6; }
+.fm-example strong { color: var(--text-secondary); }
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITY
+   ═══════════════════════════════════════════════════════════════ */
+
+.flex { display: flex; }
+.flex-wrap { flex-wrap: wrap; }
+.gap-1 { gap: 4px; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.mt-1 { margin-top: 4px; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.hidden { display: none; }
 </style>
+</head>
+<body>
 
-<div class="mockup-nav" id="nav">
-  <button class="active" onclick="showMockup('game-view')">Main game view</button>
-  <button onclick="showMockup('actor-state')">Actor state panel</button>
-  <button onclick="showMockup('decision-analysis')">Decision analysis</button>
-  <button onclick="showMockup('chronicle')">War chronicle</button>
+<div class="classification-banner">◆ &nbsp; TOP SECRET // NOFORN // IRAN-CONFLICT // GEOSIM ANALYTICAL FRAMEWORK &nbsp; ◆</div>
+
+<div class="top-bar">
+  <span class="top-bar-wordmark">GEOSIM</span>
+  <span class="top-bar-sep"></span>
+  <span class="top-bar-scenario">US-ISRAEL-IRAN CONFLICT 2025-2026</span>
+  <div class="top-bar-right">
+    <button class="top-bar-field-manual" onclick="showMockup('field-manual')">Field Manual</button>
+    <span>PLAYER MODE</span>
+    <span class="top-bar-turn">TURN 04 / 12</span>
+  </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- 1. MAIN GAME VIEW                                      -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<div class="mockup-section active" id="game-view">
+<div class="mockup-wrapper">
+<div class="mockup-nav" id="nav">
+  <button class="active" onclick="showMockup('player-view')">Player View</button>
+  <div class="mockup-nav-group">
+    <span class="mockup-nav-label">Drill-down:</span>
+    <button onclick="showMockup('actor-state')">Actor Dossier</button>
+    <button onclick="showMockup('decision-analysis')">Decision Analysis</button>
+    <button onclick="showMockup('plan-builder')">Advanced Plan</button>
+  </div>
+  <div class="mockup-nav-group">
+    <span class="mockup-nav-label">Views:</span>
+    <button onclick="showMockup('chronicle')">War Chronicle</button>
+    <button onclick="showMockup('terminal')">Dispatch Terminal</button>
+    <button onclick="showMockup('observer-view')">Observer Mode</button>
+  </div>
+  <div class="mockup-nav-group">
+    <span class="mockup-nav-label">Help:</span>
+    <button onclick="showMockup('field-manual')">Field Manual</button>
+  </div>
+</div>
 
-<div class="shell">
+<!-- ═══════════════════════════════════════════════════════════════
+     1. PLAYER VIEW — simplified, advisor-first
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="mockup-section active" id="player-view">
+<div class="doc-id" style="padding-left:20px;">GEOSIM-IRN-2026-0322 // BRANCH: MAIN // TURN 04 / 12</div>
+
+<div class="game-shell">
+  <!-- MAP SIDE — Player View (informative, explains what you're looking at) -->
   <div class="map-side">
-    <svg width="100%" height="100%" viewBox="0 0 500 580" style="position:absolute;inset:0;">
-      <rect width="500" height="580" fill="#0f1923"/>
-      <path d="M0 200 Q80 180 120 220 Q140 240 160 230 Q200 210 220 240 Q240 260 280 250 Q310 240 340 260 Q370 280 400 270 Q440 250 480 280 L500 280 L500 320 Q460 310 420 330 Q380 350 340 340 Q300 320 260 340 Q220 360 180 350 Q140 330 100 350 Q60 370 20 360 L0 370Z" fill="#1a2a3a" stroke="#2a3a4a" stroke-width="0.5"/>
-      <path d="M320 200 Q340 190 360 200 Q380 210 400 195 Q420 180 450 190 L500 180 L500 250 Q470 240 440 250 Q410 260 380 250 Q350 240 330 250 Q310 260 290 250Z" fill="#1a2a3a" stroke="#2a3a4a" stroke-width="0.5"/>
-      <path d="M200 300 Q220 290 250 300 Q270 310 300 305 Q320 300 340 310 L340 350 Q310 340 280 350 Q250 360 220 350 Q200 340 190 350Z" fill="#1a2a3a" stroke="#2a3a4a" stroke-width="0.5"/>
-      <text x="100" y="250" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">Egypt</text>
-      <text x="220" y="280" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">Saudi Arabia</text>
-      <text x="360" y="220" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">Iran</text>
-      <text x="170" y="240" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">Israel</text>
-      <text x="290" y="330" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">UAE</text>
-      <text x="140" y="210" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">Lebanon</text>
-      <text x="240" y="220" fill="#4a5a6a" font-size="10" font-family="var(--font-sans, system-ui)">Iraq</text>
+    <svg width="100%" height="100%" viewBox="0 0 600 620" preserveAspectRatio="xMidYMid slice">
+      <rect width="600" height="620" fill="#0A0F18"/>
+      <!-- Land masses -->
+      <path d="M0 250 Q60 230 100 260 Q130 280 160 270 Q200 250 240 280 Q280 310 340 290 Q390 270 440 300 Q490 320 540 300 L600 320 L600 400 Q540 380 480 400 Q420 420 360 400 Q300 380 240 400 Q180 420 120 400 Q60 380 0 400Z" fill="#131A24" stroke="#2A3D52" stroke-width="0.5"/>
+      <path d="M360 200 Q390 185 420 200 Q450 215 490 200 Q520 185 560 195 L600 185 L600 280 Q560 270 520 280 Q480 295 440 280 Q400 265 370 280 Q340 295 310 280Z" fill="#131A24" stroke="#2A3D52" stroke-width="0.5"/>
+      <path d="M230 340 Q260 325 300 340 Q330 355 370 345 Q400 335 420 350 L420 400 Q390 390 350 400 Q310 410 270 400 Q240 390 220 400Z" fill="#131A24" stroke="#2A3D52" stroke-width="0.5"/>
+      <!-- Country labels -->
+      <text x="130" y="290" fill="#3A4D5A" font-size="10" font-family="var(--font-mono)" letter-spacing="1">EGYPT</text>
+      <text x="270" y="320" fill="#3A4D5A" font-size="10" font-family="var(--font-mono)" letter-spacing="1">SAUDI ARABIA</text>
+      <text x="420" y="240" fill="#3A4D5A" font-size="10" font-family="var(--font-mono)" letter-spacing="1">IRAN</text>
+      <text x="200" y="270" fill="#3A4D5A" font-size="10" font-family="var(--font-mono)" letter-spacing="1">ISRAEL</text>
+      <text x="290" y="260" fill="#3A4D5A" font-size="10" font-family="var(--font-mono)" letter-spacing="1">IRAQ</text>
+      <text x="340" y="375" fill="#3A4D5A" font-size="9" font-family="var(--font-mono)" letter-spacing="1">UAE</text>
+      <!-- Persian Gulf label -->
+      <text x="360" y="310" fill="rgba(58,77,90,0.5)" font-size="8" font-family="var(--font-mono)" letter-spacing="2" font-style="italic">PERSIAN GULF</text>
     </svg>
-    <div class="map-dot pulse" style="left:38%;top:38%;background:#378ADD;border-color:#378ADD;"></div>
-    <div class="map-dot pulse" style="left:52%;top:50%;background:#378ADD;border-color:#378ADD;"></div>
-    <div class="map-dot" style="left:34%;top:36%;background:#378ADD;border-color:#85B7EB;"></div>
-    <div class="map-dot" style="left:72%;top:35%;background:#E24B4A;border-color:#F09595;"></div>
-    <div class="map-dot" style="left:58%;top:48%;background:#E24B4A;border-color:#F09595;"></div>
-    <div class="map-dot" style="left:48%;top:55%;background:#EF9F27;border-color:#FAC775;"></div>
-    <div class="strait-line" style="left:60%;top:52%;"></div>
-    <div class="map-label" style="left:62%;top:49%;background:rgba(226,75,74,0.2);color:#F09595;font-size:10px;">Strait blocked</div>
-    <div class="map-label" style="left:36%;top:42%;background:rgba(55,138,221,0.15);color:#85B7EB;">USS Eisenhower</div>
-    <div class="map-label" style="left:50%;top:54%;background:rgba(55,138,221,0.15);color:#85B7EB;">USS Lincoln</div>
-    <div class="map-ring" style="left:30%;top:30%;width:80px;height:80px;"></div>
-    <div style="position:absolute;bottom:12px;left:12px;display:flex;gap:12px;font-size:10px;">
-      <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#378ADD;display:inline-block;"></span><span style="color:#85B7EB;">US / Israel</span></span>
-      <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#E24B4A;display:inline-block;"></span><span style="color:#F09595;">Iran</span></span>
-      <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#EF9F27;display:inline-block;"></span><span style="color:#FAC775;">Gulf states</span></span>
+
+    <!-- MAP INFO BOX — top-level context for the player -->
+    <div class="map-info-box">
+      <div class="map-info-title">Theater of Operations — Turn 04</div>
+      <div class="map-info-row"><div class="map-info-dot" style="background:var(--actor-us);"></div> Your naval forces (pulsing = active operations)</div>
+      <div class="map-info-row"><div class="map-info-dot" style="background:var(--actor-iran);"></div> Iranian military positions</div>
+      <div class="map-info-row"><div class="map-info-line" style="border-color:var(--status-critical);"></div> Blocked chokepoint (Strait of Hormuz)</div>
+      <div class="map-info-row"><div class="map-info-dot" style="background:var(--status-warning);border-radius:2px;"></div> Oil infrastructure (square = facility)</div>
+    </div>
+
+    <!-- US Naval positions with context labels -->
+    <div class="map-dot pulse" style="left:36%;top:40%;background:var(--actor-us);border-color:var(--actor-us);"></div>
+    <div class="map-label" style="left:25%;top:44%;background:rgba(74,127,165,0.12);color:var(--actor-us);font-size:8px;">USS EISENHOWER CSG</div>
+
+    <div class="map-dot pulse" style="left:52%;top:52%;background:var(--actor-us);border-color:var(--actor-us);"></div>
+    <div class="map-label" style="left:42%;top:56%;background:rgba(74,127,165,0.12);color:var(--actor-us);font-size:8px;">USS LINCOLN CSG</div>
+
+    <!-- Iranian positions -->
+    <div class="map-dot" style="left:70%;top:36%;background:var(--actor-iran);border-color:rgba(139,38,53,0.5);"></div>
+    <div class="map-dot" style="left:63%;top:44%;background:var(--actor-iran);border-color:rgba(139,38,53,0.5);"></div>
+
+    <!-- Strait of Hormuz — the critical chokepoint -->
+    <div class="strait-marker" style="left:60%;top:54%;"></div>
+    <div class="map-label" style="left:62%;top:51%;background:rgba(226,112,133,0.15);color:var(--status-critical);">STRAIT BLOCKED</div>
+
+    <!-- Oil infrastructure markers -->
+    <div class="map-facility" style="left:68%;top:38%;background:rgba(139,38,53,0.3);border-color:var(--actor-iran);" title="Kharg Island"></div>
+    <div class="map-annotation-box" style="left:72%;top:36%;">
+      <div class="ann-label">Kharg Island</div>
+      <div class="ann-value" style="color:var(--status-critical);">Damaged — 90% of Iran exports</div>
+    </div>
+
+    <div class="map-facility" style="left:42%;top:48%;background:rgba(226,112,133,0.2);border-color:var(--status-critical);" title="Ras Tanura"></div>
+    <div class="map-annotation-box" style="left:30%;top:47%;">
+      <div class="ann-label">Ras Tanura (Saudi)</div>
+      <div class="ann-value" style="color:var(--status-critical);">Hit by Iran — output -15%</div>
+    </div>
+
+    <!-- Floating metric chips — key numbers on the map -->
+    <div class="map-chip" style="left:10px;bottom:40px;color:var(--status-critical);">
+      <span class="map-chip-icon">&#9650;</span> Oil: $142/bbl (+94%)
+    </div>
+    <div class="map-chip" style="right:10px;bottom:40px;color:var(--text-secondary);">
+      20% of world oil transits the Strait
+    </div>
+
+    <!-- Legend -->
+    <div class="map-legend" style="bottom:12px;left:50%;transform:translateX(-50%);">
+      <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--actor-us);"></div><span style="color:var(--actor-us);">US / Israel</span></div>
+      <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--actor-iran);"></div><span style="color:var(--actor-iran);">Iran</span></div>
+      <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--actor-generic);"></div><span style="color:var(--actor-generic);">Gulf States</span></div>
+    </div>
+  </div>
+
+  <!-- PANEL SIDE — player mode -->
+  <div class="panel-side">
+    <div class="panel-header">
+      <div class="panel-header-title">Your Turn — United States</div>
+      <div class="panel-header-sub">Turn 04 — Week of March 22 — Planning Phase</div>
+    </div>
+
+    <!-- SITUATION SUMMARY -->
+    <div class="briefing-summary">
+      <div class="briefing-summary-title">What Just Happened</div>
+      <div class="briefing-summary-text">
+        The war has settled into a grim rhythm. Iran's drone waves continue to deplete your air defense reserves — now at <strong>42%</strong>. The <strong>Strait of Hormuz remains blocked</strong>, pushing oil to $142/bbl. Your THAAD radar systems are largely destroyed. Domestic support has dropped to <strong>31%</strong>.
+      </div>
+    </div>
+
+    <!-- FIRST-TURN CALLOUT (would only show on turn 1) -->
+    <div class="panel-section" style="padding:8px 14px;">
+      <div class="callout">
+        <div class="callout-header">
+          <span>&#9432;</span> How This Works
+        </div>
+        <div class="callout-body">
+          Each turn, you choose actions for your country. Your advisors recommend the most important ones below. After you submit, all countries act simultaneously and the engine resolves what happens.
+        </div>
+        <div class="callout-dismiss">Dismiss &mdash; don't show again</div>
+      </div>
+    </div>
+
+    <!-- CASCADE ALERT (contextual) -->
+    <div class="panel-section" style="padding:8px 14px;">
+      <div class="cascade-alert">
+        <span class="cascade-alert-icon">⚠</span>
+        <div>
+          <div class="cascade-alert-text">Nuclear Cascade Forming
+            <span class="help-icon">?<div class="tooltip"><div class="tooltip-title">Constraint Cascade</div>When conditions preventing a dangerous action are removed one by one, new escalation becomes possible. Iran has lost 2 of 3 constraints on nuclear breakout.</div></span>
+          </div>
+          <div class="cascade-alert-detail">2/3 constraints removed. Breakout window: 4-8 months.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECOMMENDED ACTIONS -->
+    <div class="panel-section">
+      <div class="section-divider"><span class="section-divider-text">Your Advisors Recommend</span></div>
+
+      <div class="rec-action selected">
+        <div class="rec-action-num">Priority 1 — Critical</div>
+        <div class="rec-action-title">Intensify Air Campaign
+          <span class="help-icon">?<div class="tooltip"><div class="tooltip-title">Hold Rung Action</div>This action maintains your current escalation level without going higher. It continues existing operations rather than opening a new front.</div></span>
+        </div>
+        <div class="rec-action-why">Your air campaign is your primary tool right now. Targeting IRGC command nodes and remaining air defenses keeps pressure on Iran without requiring ground troops.</div>
+        <div class="rec-action-tags">
+          <span class="badge badge-hold">Holds Current Level</span>
+          <span class="badge badge-military">Military</span>
+        </div>
+      </div>
+
+      <div class="rec-action">
+        <div class="rec-action-num">Priority 2 — Critical</div>
+        <div class="rec-action-title">Backchannel Ceasefire via Oman
+          <span class="help-icon">?<div class="tooltip"><div class="tooltip-title">De-escalation</div>This action moves you down the escalation ladder. It seeks to reduce the intensity of the conflict through negotiation.</div></span>
+        </div>
+        <div class="rec-action-why">The Omanis have a channel to Tehran's pragmatists. A 48-hour diplomatic pause could open a path to reopening the Strait without a ground invasion.</div>
+        <div class="rec-action-tags">
+          <span class="badge badge-de-escalation">De-escalation</span>
+          <span class="badge badge-diplomatic">Diplomatic</span>
+        </div>
+      </div>
+
+      <div class="rec-action">
+        <div class="rec-action-num">Priority 3 — Important</div>
+        <div class="rec-action-title">Covert Nuclear Search Operation
+          <span class="help-icon">?<div class="tooltip"><div class="tooltip-title">Intelligence Operation</div>A covert action to gather information. The outcome depends heavily on the quality of your existing intelligence — check the confidence ratings in your actor dossier.</div></span>
+        </div>
+        <div class="rec-action-why">With the nuclear breakout window at 4-8 months, locating Iran's dispersed uranium is urgent. SOF teams with satellite support could narrow the search.</div>
+        <div class="rec-action-tags">
+          <span class="badge badge-hold">Holds Current Level</span>
+          <span class="badge badge-intelligence">Intelligence</span>
+        </div>
+      </div>
+
+      <button class="browse-all" onclick="showMockup('observer-view')">Browse All 10 Available Decisions →</button>
+    </div>
+
+    <!-- CONFIRM PLAN (simple) -->
+    <div class="plan-confirm">
+      <div class="plan-confirm-selected">Selected: Intensify Air Campaign</div>
+      <div class="plan-confirm-details">Your advisors suggest pairing this with the covert nuclear search. You can add a supporting action or just submit your main action.</div>
+      <div class="flex gap-2">
+        <button class="btn btn-primary" style="flex:1;">Submit Action</button>
+        <button class="btn btn-ghost">+ Add Supporting Action</button>
+      </div>
+      <div class="advanced-toggle">Advanced: Build full TurnPlan with resource allocation →</div>
+    </div>
+
+    <div class="turn-badge">TURN 04 OF 12 — PLANNING PHASE</div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     2. OBSERVER MODE — full dense view (unchanged from original)
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="mockup-section" id="observer-view">
+<div class="doc-id" style="padding-left:20px;">GEOSIM-IRN-2026-0322 // BRANCH: MAIN // TURN 04 / 12 // OBSERVER MODE</div>
+
+<div class="game-shell">
+  <!-- MAP SIDE — Observer Mode (omniscient, full detail) -->
+  <div class="map-side">
+    <svg width="100%" height="100%" viewBox="0 0 600 620" preserveAspectRatio="xMidYMid slice">
+      <rect width="600" height="620" fill="#0A0F18"/>
+      <!-- Land masses -->
+      <path d="M0 250 Q60 230 100 260 Q130 280 160 270 Q200 250 240 280 Q280 310 340 290 Q390 270 440 300 Q490 320 540 300 L600 320 L600 400 Q540 380 480 400 Q420 420 360 400 Q300 380 240 400 Q180 420 120 400 Q60 380 0 400Z" fill="#131A24" stroke="#2A3D52" stroke-width="0.5"/>
+      <path d="M360 200 Q390 185 420 200 Q450 215 490 200 Q520 185 560 195 L600 185 L600 280 Q560 270 520 280 Q480 295 440 280 Q400 265 370 280 Q340 295 310 280Z" fill="#131A24" stroke="#2A3D52" stroke-width="0.5"/>
+      <path d="M230 340 Q260 325 300 340 Q330 355 370 345 Q400 335 420 350 L420 400 Q390 390 350 400 Q310 410 270 400 Q240 390 220 400Z" fill="#131A24" stroke="#2A3D52" stroke-width="0.5"/>
+      <!-- Country labels -->
+      <text x="130" y="290" fill="#3A4D5A" font-size="10" font-family="var(--font-mono)" letter-spacing="1">EGYPT</text>
+      <text x="270" y="320" fill="#3A4D5A" font-size="10" font-family="var(--font-mono)" letter-spacing="1">SAUDI ARABIA</text>
+      <text x="420" y="240" fill="#3A4D5A" font-size="10" font-family="var(--font-mono)" letter-spacing="1">IRAN</text>
+      <text x="200" y="270" fill="#3A4D5A" font-size="10" font-family="var(--font-mono)" letter-spacing="1">ISRAEL</text>
+      <text x="290" y="260" fill="#3A4D5A" font-size="10" font-family="var(--font-mono)" letter-spacing="1">IRAQ</text>
+      <text x="175" y="245" fill="#3A4D5A" font-size="9" font-family="var(--font-mono)" letter-spacing="1">LEBANON</text>
+      <text x="340" y="375" fill="#3A4D5A" font-size="9" font-family="var(--font-mono)" letter-spacing="1">UAE</text>
+      <!-- Persian Gulf / coordinate grid -->
+      <text x="360" y="310" fill="rgba(58,77,90,0.5)" font-size="8" font-family="var(--font-mono)" letter-spacing="2" font-style="italic">PERSIAN GULF</text>
+      <text x="20" y="200" fill="rgba(255,255,255,0.04)" font-size="7" font-family="var(--font-mono)">32&#176;N</text>
+      <text x="20" y="300" fill="rgba(255,255,255,0.04)" font-size="7" font-family="var(--font-mono)">28&#176;N</text>
+      <text x="20" y="400" fill="rgba(255,255,255,0.04)" font-size="7" font-family="var(--font-mono)">24&#176;N</text>
+      <text x="200" y="590" fill="rgba(255,255,255,0.04)" font-size="7" font-family="var(--font-mono)">44&#176;E</text>
+      <text x="400" y="590" fill="rgba(255,255,255,0.04)" font-size="7" font-family="var(--font-mono)">52&#176;E</text>
+    </svg>
+
+    <!-- MAP INFO BOX — omniscient overview -->
+    <div class="map-info-box">
+      <div class="map-info-title">Omniscient View — All Positions Known</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div class="map-info-row"><div class="map-info-dot" style="background:var(--actor-us);"></div> US/Israel forces</div>
+        <div class="map-info-row"><div class="map-info-dot" style="background:var(--actor-iran);"></div> Iran/IRGC</div>
+        <div class="map-info-row"><div class="map-info-dot" style="background:var(--actor-generic);"></div> Gulf States</div>
+        <div class="map-info-row"><div class="map-info-line" style="border-color:var(--status-critical);"></div> Blocked route</div>
+        <div class="map-info-row"><div class="map-info-dot" style="background:var(--status-warning);border-radius:2px;"></div> Oil facility</div>
+      </div>
+    </div>
+
+    <!-- US Naval forces -->
+    <div class="map-dot pulse" style="left:36%;top:40%;background:var(--actor-us);border-color:var(--actor-us);"></div>
+    <div class="map-label" style="left:25%;top:44%;background:rgba(74,127,165,0.12);color:var(--actor-us);font-size:8px;">USS EISENHOWER CSG</div>
+
+    <div class="map-dot pulse" style="left:52%;top:52%;background:var(--actor-us);border-color:var(--actor-us);"></div>
+    <div class="map-label" style="left:42%;top:56%;background:rgba(74,127,165,0.12);color:var(--actor-us);font-size:8px;">USS LINCOLN CSG</div>
+
+    <!-- US air assets -->
+    <div class="map-dot" style="left:33%;top:38%;background:var(--actor-us);border-color:rgba(74,127,165,0.5);"></div>
+    <div class="map-annotation" style="left:22%;top:37%;">F-35/F-15 (~180)</div>
+
+    <!-- Iranian positions -->
+    <div class="map-dot" style="left:70%;top:36%;background:var(--actor-iran);border-color:rgba(139,38,53,0.5);"></div>
+    <div class="map-annotation" style="left:73%;top:34%;color:var(--actor-iran);">IRGC Command</div>
+
+    <div class="map-dot" style="left:63%;top:44%;background:var(--actor-iran);border-color:rgba(139,38,53,0.5);"></div>
+    <div class="map-annotation" style="left:55%;top:42%;color:var(--actor-iran);">Coastal Defense</div>
+
+    <div class="map-dot" style="left:58%;top:50%;background:var(--actor-iran);border-color:rgba(139,38,53,0.5);"></div>
+    <div class="map-annotation" style="left:49%;top:49%;color:var(--actor-iran);">Mine Warfare</div>
+
+    <!-- Gulf States -->
+    <div class="map-dot" style="left:48%;top:57%;background:var(--actor-generic);border-color:rgba(94,189,142,0.4);"></div>
+
+    <!-- Strait of Hormuz -->
+    <div class="strait-marker" style="left:60%;top:54%;"></div>
+    <div class="map-label" style="left:62%;top:51%;background:rgba(226,112,133,0.15);color:var(--status-critical);">STRAIT BLOCKED</div>
+    <div class="map-annotation-box" style="left:56%;top:58%;">
+      <div class="ann-label">Mine Threat</div>
+      <div class="ann-value" style="color:var(--status-critical);">Extreme — clearing: 3-6 months</div>
+    </div>
+
+    <!-- Oil infrastructure with status -->
+    <div class="map-facility" style="left:68%;top:38%;background:rgba(139,38,53,0.3);border-color:var(--actor-iran);"></div>
+    <div class="map-annotation-box" style="left:72%;top:36%;">
+      <div class="ann-label">Kharg Island Terminal</div>
+      <div class="ann-value" style="color:var(--status-critical);">Damaged — handles 90% Iran exports</div>
+    </div>
+
+    <div class="map-facility" style="left:42%;top:48%;background:rgba(226,112,133,0.2);border-color:var(--status-critical);"></div>
+    <div class="map-annotation-box" style="left:28%;top:47%;">
+      <div class="ann-label">Ras Tanura (Saudi Arabia)</div>
+      <div class="ann-value" style="color:var(--status-critical);">Struck by Iran — output reduced 15%</div>
+    </div>
+
+    <div class="map-facility" style="left:46%;top:44%;background:rgba(94,189,142,0.2);border-color:var(--status-stable);"></div>
+    <div class="map-annotation" style="left:39%;top:42%;color:var(--status-stable);font-size:7px;">Abqaiq (intact)</div>
+
+    <!-- Floating metric chips -->
+    <div class="map-chip" style="left:10px;bottom:40px;color:var(--status-critical);">
+      <span class="map-chip-icon">&#9650;</span> Oil: $142/bbl (+94%)
+    </div>
+    <div class="map-chip" style="left:180px;bottom:40px;color:var(--status-warning);">
+      Air Defense: 42% remaining
+    </div>
+    <div class="map-chip" style="right:10px;bottom:40px;color:var(--text-secondary);">
+      20% of world oil transits Strait
+    </div>
+
+    <!-- Legend -->
+    <div class="map-legend" style="bottom:12px;left:50%;transform:translateX(-50%);">
+      <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--actor-us);"></div><span style="color:var(--actor-us);">US / Israel</span></div>
+      <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--actor-iran);"></div><span style="color:var(--actor-iran);">Iran</span></div>
+      <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--actor-generic);"></div><span style="color:var(--actor-generic);">Gulf States</span></div>
+      <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--actor-russia);"></div><span style="color:var(--actor-russia);">Russia / China</span></div>
     </div>
   </div>
 
   <div class="panel-side">
-    <div class="panel-header"><h2>Iran conflict scenario</h2><p>Turn 4 — Week of March 22</p></div>
-    <div class="tabs" id="game-tabs">
-      <div class="tab active" onclick="showGameTab('g-actors')">Actors</div>
-      <div class="tab" onclick="showGameTab('g-decisions')">Decisions</div>
-      <div class="tab" onclick="showGameTab('g-events')">Events</div>
+    <div class="panel-header">
+      <div class="panel-header-title">Iran Conflict Scenario</div>
+      <div class="panel-header-sub">Turn 04 — Observer Mode — All Actors Visible</div>
     </div>
-    <div id="g-actors">
-      <div class="section">
-        <div class="section-title">Active actors</div>
-        <div class="actor-row"><span class="actor-dot" style="background:#378ADD;"></span><span class="actor-name">United States</span><span class="actor-esc" style="background:#E6F1FB;color:#0C447C;">Rung 5</span></div>
-        <div class="actor-row"><span class="actor-dot" style="background:#E24B4A;"></span><span class="actor-name">Iran</span><span class="actor-esc" style="background:#FCEBEB;color:#791F1F;">Rung 6</span></div>
-        <div class="actor-row"><span class="actor-dot" style="background:#378ADD;"></span><span class="actor-name">Israel</span><span class="actor-esc" style="background:#E6F1FB;color:#0C447C;">Rung 6</span></div>
-        <div class="actor-row"><span class="actor-dot" style="background:#888780;"></span><span class="actor-name">Russia / China</span><span class="actor-esc" style="background:#F1EFE8;color:#444441;">Rung 1</span></div>
-        <div class="actor-row"><span class="actor-dot" style="background:#EF9F27;"></span><span class="actor-name">Gulf States</span><span class="actor-esc" style="background:#FAEEDA;color:#633806;">Rung 2</span></div>
+
+    <div class="tabs" id="obs-tabs">
+      <div class="tab active" onclick="showObsTab('obs-actors',this)">Actors</div>
+      <div class="tab" onclick="showObsTab('obs-decisions',this)">Decisions</div>
+      <div class="tab" onclick="showObsTab('obs-events',this)">Events</div>
+      <div class="tab" onclick="showObsTab('obs-chronicle',this)">Chronicle</div>
+    </div>
+
+    <div id="obs-actors" class="obs-tab-content">
+      <div class="panel-section">
+        <div class="section-divider"><span class="section-divider-text">Active Actors</span></div>
+        <div class="actor-row"><span class="actor-dot" style="background:var(--actor-us);"></span><span class="actor-name">United States</span><span class="badge" style="background:var(--status-info-bg);color:var(--status-info);border:1px solid var(--status-info-border);font-size:9px;">Rung 5</span></div>
+        <div class="actor-row"><span class="actor-dot" style="background:var(--actor-iran);"></span><span class="actor-name">Iran</span><span class="badge" style="background:var(--status-critical-bg);color:var(--status-critical);border:1px solid var(--status-critical-border);font-size:9px;">Rung 6</span></div>
+        <div class="actor-row"><span class="actor-dot" style="background:var(--actor-israel);"></span><span class="actor-name">Israel</span><span class="badge" style="background:var(--status-info-bg);color:var(--status-info);border:1px solid var(--status-info-border);font-size:9px;">Rung 6</span></div>
+        <div class="actor-row"><span class="actor-dot" style="background:var(--actor-russia);"></span><span class="actor-name">Russia / China</span><span class="badge" style="background:rgba(255,255,255,0.05);color:var(--text-tertiary);border:1px solid var(--border-subtle);font-size:9px;">Rung 1</span></div>
+        <div class="actor-row"><span class="actor-dot" style="background:var(--actor-generic);"></span><span class="actor-name">Gulf States</span><span class="badge" style="background:var(--status-warning-bg);color:var(--status-warning);border:1px solid rgba(201,152,58,0.25);font-size:9px;">Rung 2</span></div>
       </div>
-      <div class="section">
-        <div class="section-title">Global indicators</div>
-        <div class="metric"><span class="metric-label">Oil price</span><span class="metric-val" style="color:#E24B4A;">$142/bbl (+94%)</span></div>
-        <div class="metric"><span class="metric-label">Strait of Hormuz</span><span class="metric-val" style="color:#E24B4A;">Blocked</span></div>
-        <div class="metric" style="margin-top:8px;"><span class="metric-label">US domestic support</span><span class="metric-val">31%</span></div>
-        <div class="bar-wrap"><div class="bar-fill" style="width:31%;background:#E24B4A;"></div></div>
-        <div class="metric" style="margin-top:8px;"><span class="metric-label">US air defense reserves</span><span class="metric-val">42%</span></div>
-        <div class="bar-wrap"><div class="bar-fill" style="width:42%;background:#EF9F27;"></div></div>
-        <div class="metric" style="margin-top:8px;"><span class="metric-label">Iran regime stability</span><span class="metric-val">68%</span></div>
-        <div class="bar-wrap"><div class="bar-fill" style="width:68%;background:#1D9E75;"></div></div>
+      <div class="panel-section">
+        <div class="section-divider"><span class="section-divider-text">Global Indicators</span></div>
+        <div class="metric-row"><span class="metric-label">Oil price</span><span class="metric-val" style="color:var(--status-critical);">$142/bbl (+94%)</span></div>
+        <div class="metric-row"><span class="metric-label">Strait of Hormuz</span><span class="metric-val" style="color:var(--status-critical);">BLOCKED</span></div>
+        <div class="metric-row mt-2"><span class="metric-label">US domestic support</span><span class="metric-val">31%</span></div>
+        <div class="progress-bar mt-1"><div class="progress-bar-fill" style="width:31%;background:var(--status-critical);"></div></div>
+        <div class="metric-row mt-2"><span class="metric-label">US air defense reserves</span><span class="metric-val">42%</span></div>
+        <div class="progress-bar mt-1"><div class="progress-bar-fill" style="width:42%;background:var(--status-warning);"></div></div>
+        <div class="metric-row mt-2"><span class="metric-label">Iran regime stability</span><span class="metric-val">68%</span></div>
+        <div class="progress-bar mt-1"><div class="progress-bar-fill" style="width:68%;background:var(--status-stable);"></div></div>
       </div>
     </div>
-    <div id="g-decisions" style="display:none;">
-      <div class="section">
-        <div class="section-title">Your decisions (playing as US)</div>
-        <div class="decision-card"><div class="decision-title">Launch coastal ground operation</div><div class="decision-meta"><span class="esc-tag" style="background:#FCEBEB;color:#791F1F;">Escalation</span><span>Military</span></div></div>
-        <div class="decision-card"><div class="decision-title">Propose ceasefire via backchannel</div><div class="decision-meta"><span class="esc-tag" style="background:#EAF3DE;color:#27500A;">De-escalation</span><span>Diplomatic</span></div></div>
-        <div class="decision-card"><div class="decision-title">Intensify air campaign on military targets</div><div class="decision-meta"><span class="esc-tag" style="background:#FAEEDA;color:#633806;">Hold rung</span><span>Military</span></div></div>
-        <div class="decision-card"><div class="decision-title">Tighten sanctions on Iranian allies</div><div class="decision-meta"><span class="esc-tag" style="background:#FAEEDA;color:#633806;">Hold rung</span><span>Economic</span></div></div>
+
+    <div id="obs-decisions" class="obs-tab-content hidden">
+      <div class="panel-section">
+        <div class="section-divider"><span class="section-divider-text">Military</span></div>
+        <div class="decision-card"><div class="decision-title">Launch Coastal Ground Operation</div><div class="decision-meta"><span class="badge badge-escalation">Escalation</span><span class="badge badge-military">Military</span><span class="badge" style="background:var(--bg-surface-3);color:var(--text-tertiary);border:1px solid var(--border-subtle);">Heavy</span></div></div>
+        <div class="decision-card"><div class="decision-title">Intensify Air Campaign on Military Targets</div><div class="decision-meta"><span class="badge badge-hold">Hold Rung</span><span class="badge badge-military">Military</span></div></div>
+        <div class="decision-card"><div class="decision-title">Deploy Additional THAAD Systems</div><div class="decision-meta"><span class="badge badge-hold">Hold Rung</span><span class="badge badge-military">Military</span></div></div>
+        <div class="section-divider"><span class="section-divider-text">Diplomatic</span></div>
+        <div class="decision-card"><div class="decision-title">Propose Ceasefire via Backchannel</div><div class="decision-meta"><span class="badge badge-de-escalation">De-escalation</span><span class="badge badge-diplomatic">Diplomatic</span></div></div>
+        <div class="section-divider"><span class="section-divider-text">Economic</span></div>
+        <div class="decision-card"><div class="decision-title">Tighten Sanctions on Iranian Allies</div><div class="decision-meta"><span class="badge badge-hold">Hold Rung</span><span class="badge badge-economic">Economic</span></div></div>
+        <div class="section-divider"><span class="section-divider-text">Intelligence</span></div>
+        <div class="decision-card"><div class="decision-title">Cyber Operation Against IRGC Networks</div><div class="decision-meta"><span class="badge badge-hold">Hold Rung</span><span class="badge badge-intelligence">Intelligence</span></div></div>
       </div>
-      <div class="section"><div class="section-title">Or propose a custom decision</div><input type="text" placeholder="Describe your move..." style="width:100%;font-size:12px;" /></div>
     </div>
-    <div id="g-events" style="display:none;">
-      <div class="section">
-        <div class="section-title">Turn 3 resolution</div>
-        <div style="font-size:12px;color:var(--color-text-secondary, #666);line-height:1.6;">
-          <p style="margin-bottom:8px;"><span style="font-weight:500;color:var(--color-text-primary, #1a1a1a);">Iran</span> launched 340 Shahed drones at Israeli air bases. 89% intercepted. US expended ~180 Patriot missiles.</p>
-          <p style="margin-bottom:8px;"><span style="font-weight:500;color:var(--color-text-primary, #1a1a1a);">US/Israel</span> struck 12 IRGC command posts. Limited effect — decentralized structure.</p>
-          <p style="margin-bottom:8px;"><span style="font-weight:500;color:var(--color-text-primary, #1a1a1a);">Iran</span> struck Ras Tanura facility in Saudi Arabia. Oil output reduced 15%.</p>
-          <p><span style="font-weight:500;color:var(--color-text-primary, #1a1a1a);">Global:</span> Oil to $142/bbl. Gulf states issued joint statement criticizing US.</p>
+
+    <div id="obs-events" class="obs-tab-content hidden">
+      <div class="panel-section">
+        <div class="section-divider"><span class="section-divider-text">Turn 3 Resolution</span></div>
+        <div style="font-family:var(--font-serif);font-size:13px;color:var(--text-secondary);line-height:1.7;">
+          <p style="margin-bottom:8px;"><strong style="color:var(--text-primary);font-weight:500;">Iran</strong> launched 340 Shahed drones at Israeli air bases. 89% intercepted. US expended ~180 Patriot missiles.</p>
+          <p style="margin-bottom:8px;"><strong style="color:var(--text-primary);font-weight:500;">US/Israel</strong> struck 12 IRGC command posts. Limited effect — decentralized structure.</p>
+          <p><strong style="color:var(--text-primary);font-weight:500;">Global:</strong> Oil to $142/bbl. Gulf states issued joint statement criticizing US.</p>
         </div>
       </div>
-      <div class="section">
-        <div class="section-title">Judge assessment</div>
-        <div class="metric"><span class="metric-label">Plausibility</span><span class="metric-val" style="color:#1D9E75;">82</span></div>
-        <div class="metric"><span class="metric-label">Consistency</span><span class="metric-val" style="color:#1D9E75;">78</span></div>
-        <div class="metric"><span class="metric-label">Rationality</span><span class="metric-val" style="color:#EF9F27;">71</span></div>
+    </div>
+
+    <div id="obs-chronicle" class="obs-tab-content hidden">
+      <div class="panel-section" style="font-family:var(--font-serif);font-size:13px;color:var(--text-secondary);line-height:1.7;">
+        <div style="border-left:2px solid var(--gold);padding-left:10px;">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-tertiary);letter-spacing:0.04em;margin-bottom:4px;">15 MAR 2026 // 14:32 UTC</div>
+          <div style="font-family:var(--font-condensed);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.02em;color:var(--text-primary);margin-bottom:6px;">The Oil War Escalates</div>
+          <p><strong style="color:var(--text-primary);font-weight:500;">US and Israeli</strong> forces struck Iran&rsquo;s oil export infrastructure. <strong style="color:var(--text-primary);font-weight:500;">Iran</strong> responded with ballistic missiles on Ras Tanura&hellip;</p>
+          <div class="flex gap-1 mt-2"><span class="badge badge-critical">Gulf Infrastructure</span><span class="badge badge-military">Ras Tanura Hit</span></div>
+        </div>
       </div>
     </div>
-    <div class="turn-badge">Turn 4 of 12 — Planning phase</div>
+
+    <div class="turn-badge">OBSERVER MODE — TURN 04 OF 12</div>
     <div class="turn-controls">
-      <button>Rewind</button>
-      <button style="background:var(--color-background-info, #E6F1FB);color:var(--color-text-info, #185FA5);border-color:var(--color-border-info, #85B7EB);">Advance turn</button>
+      <button class="btn btn-ghost">Rewind</button>
+      <button class="btn btn-primary">Advance Turn</button>
     </div>
   </div>
 </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- 2. ACTOR STATE PANEL                                   -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════
+     3. ACTOR DOSSIER
+     ═══════════════════════════════════════════════════════════════ -->
 <div class="mockup-section" id="actor-state">
-<div class="a-panel">
-  <div class="a-header">
-    <div class="flag-dot">US</div>
-    <div><h2>United States of America</h2><p>Federal republic — war of choice</p></div>
-    <span class="esc-badge">Escalation rung 5 / 8</span>
+<div class="doc-id" style="padding-left:20px;">DOSSIER: UNITED STATES // CLASSIFICATION: SECRET // LAST UPDATED: TURN 04</div>
+
+<div class="dossier">
+  <div class="dossier-header">
+    <div class="dossier-avatar" style="background:rgba(74,127,165,0.25);">US</div>
+    <div style="flex:1;"><div class="dossier-header-name">United States of America</div><div class="dossier-header-type">Federal Republic — War of Choice</div></div>
+    <span class="badge" style="background:var(--status-info-bg);color:var(--status-info);border:1px solid var(--status-info-border);font-size:11px;padding:4px 10px;">RUNG 5 / 8
+      <span class="help-icon" style="margin-left:2px;">?<div class="tooltip"><div class="tooltip-title">Escalation Rung</div>Actors sit on an escalation ladder from 1 (peace) to 8 (nuclear). Rung 5 = active air campaign. Moving up means more dangerous actions with higher costs.</div></span>
+    </span>
   </div>
 
-  <div class="a-section">
-    <div class="section-title">Key figures</div>
-    <div class="figure-row"><div class="fig-avatar">DT</div><div><div class="fig-name">Donald Trump</div><div class="fig-role">President / Commander in Chief</div></div><span class="tag tag-red">Hawk</span><span class="fig-status tag-green">Active</span></div>
-    <div class="figure-row"><div class="fig-avatar">MR</div><div><div class="fig-name">Marco Rubio</div><div class="fig-role">Secretary of State</div></div><span class="tag tag-amber">Wavering</span><span class="fig-status tag-green">Active</span></div>
-    <div class="figure-row"><div class="fig-avatar">JK</div><div><div class="fig-name">Joe Kent</div><div class="fig-role">Dir. of Counterterrorism</div></div><span class="tag tag-gray">Opposed</span><span class="fig-status tag-red">Resigned</span></div>
+  <div class="dossier-section">
+    <div class="section-divider"><span class="section-divider-text">Key Figures</span></div>
+    <div class="figure-row"><div class="figure-avatar">DT</div><div style="flex:1;"><div class="figure-name">Donald Trump</div><div class="figure-role">President / Commander in Chief</div></div><div class="figure-tags"><span class="badge badge-critical">Hawk</span><span class="badge badge-stable">Active</span></div></div>
+    <div class="figure-row"><div class="figure-avatar">MR</div><div style="flex:1;"><div class="figure-name">Marco Rubio</div><div class="figure-role">Secretary of State</div></div><div class="figure-tags"><span class="badge badge-warning">Wavering</span><span class="badge badge-stable">Active</span></div></div>
   </div>
 
-  <div class="a-section">
-    <div class="section-title">Military state</div>
-    <div class="grid-3" style="margin-bottom:12px;">
-      <div class="stat-card"><div class="stat-label">Readiness</div><div class="stat-val" style="color:#EF9F27;">58</div><div class="stat-sub">Degraded</div></div>
-      <div class="stat-card"><div class="stat-label">Posture</div><div class="stat-val" style="font-size:14px;">Offensive</div><div class="stat-sub">Air campaign</div></div>
-      <div class="stat-card"><div class="stat-label">Nuclear</div><div class="stat-val" style="font-size:14px;">Confirmed</div><div class="stat-sub">Rung 8 to use</div></div>
+  <div class="dossier-section">
+    <div class="section-divider"><span class="section-divider-text">Military State</span></div>
+    <div class="stat-grid stat-grid-3">
+      <div class="stat-card"><div class="stat-card-label">Readiness</div><div class="stat-card-value" style="color:var(--status-warning);">58</div><div class="stat-card-sub">Degraded</div></div>
+      <div class="stat-card"><div class="stat-card-label">Posture</div><div class="stat-card-value" style="font-size:14px;">Offensive</div><div class="stat-card-sub">Air campaign</div></div>
+      <div class="stat-card"><div class="stat-card-label">Nuclear</div><div class="stat-card-value" style="font-size:14px;">Confirmed</div><div class="stat-card-sub">Rung 8 to use</div></div>
     </div>
-    <div class="section-title">Key assets</div>
-    <div class="asset-row"><div class="asset-name">Patriot PAC-3</div><div class="asset-qty">~320 left</div><span class="tag tag-red">Depleting</span></div>
-    <div class="asset-row"><div class="asset-name">THAAD systems</div><div class="asset-qty">2 of 7</div><span class="tag tag-red">Critical</span></div>
-    <div class="asset-row"><div class="asset-name">Carrier strike groups</div><div class="asset-qty">2 deployed</div><span class="tag tag-amber">Strained</span></div>
-    <div class="asset-row"><div class="asset-name">F-35A / F-15E</div><div class="asset-qty">~180</div><span class="tag tag-green">Operational</span></div>
-    <div class="asset-row"><div class="asset-name">Tomahawk cruise</div><div class="asset-qty">~400</div><span class="tag tag-amber">Depleting</span></div>
+    <div class="section-divider"><span class="section-divider-text">Key Assets</span></div>
+    <div class="asset-row"><span class="asset-name">Patriot PAC-3</span><span class="asset-qty">~320 left</span><span class="badge badge-critical">Depleting</span></div>
+    <div class="asset-row"><span class="asset-name">THAAD systems</span><span class="asset-qty">2 of 7</span><span class="badge badge-critical">Critical</span></div>
+    <div class="asset-row"><span class="asset-name">F-35A / F-15E</span><span class="asset-qty">~180</span><span class="badge badge-stable">Operational</span></div>
   </div>
 
-  <div class="a-section">
-    <div class="section-title">Political state — influence channels</div>
-    <div class="channel-row"><div class="channel-header"><span class="channel-name">General public</span><span class="channel-inf">Policy influence: 25/100</span></div><div class="channel-pos">Position: 31% support war. Protests growing. But no electoral mechanism — bipartisan consensus on Israel.</div><div class="bar-wrap" style="margin-top:4px;"><div class="bar-fill" style="width:31%;background:#E24B4A;"></div></div></div>
-    <div class="channel-row"><div class="channel-header"><span class="channel-name">Israel lobby (AIPAC et al.)</span><span class="channel-inf">Policy influence: 82/100</span></div><div class="channel-pos">Position: Full support for continued operations. Bipartisan funding ensures both parties align. Override cost: primary challenges, funding loss.</div><div class="bar-wrap" style="margin-top:4px;"><div class="bar-fill" style="width:95%;background:#1D9E75;"></div></div></div>
-    <div class="channel-row"><div class="channel-header"><span class="channel-name">Defense establishment</span><span class="channel-inf">Policy influence: 70/100</span></div><div class="channel-pos">Position: Operationally supportive but concerned about munition depletion, Pacific redeployment, and ground invasion risk.</div><div class="bar-wrap" style="margin-top:4px;"><div class="bar-fill" style="width:60%;background:#EF9F27;"></div></div></div>
-    <div style="margin-top:12px;padding:10px 12px;background:var(--color-background-secondary, #f5f5f5);border-radius:8px;">
-      <div style="font-size:12px;font-weight:500;">Policy disconnect gap: 71/100</div>
-      <div style="font-size:11px;color:var(--color-text-secondary, #666);margin-top:4px;">Estimated tolerance: 12-18 months before midterm pressure forces policy shift. Historical precedent: Vietnam gap lasted 7+ years. No viable opposition alternative — Democrats equally hawkish on Israel.</div>
+  <div class="dossier-section">
+    <div class="section-divider"><span class="section-divider-text">Political State — Influence Channels
+      <span class="help-icon">?<div class="tooltip"><div class="tooltip-title">Influence Channels</div>Policy isn't just about public opinion. Different groups (lobbies, military, public) have different levels of influence over actual decisions. A group with 82/100 influence shapes policy more than the public at 25/100.</div></span>
+    </span></div>
+    <div class="channel-row">
+      <div class="channel-header"><span class="channel-name">General Public</span><span class="channel-influence">Policy influence: 25/100</span></div>
+      <div class="channel-position">31% support the war. No electoral mechanism for change — bipartisan consensus.</div>
+      <div class="progress-bar mt-1"><div class="progress-bar-fill" style="width:31%;background:var(--status-critical);"></div></div>
+    </div>
+    <div class="channel-row">
+      <div class="channel-header"><span class="channel-name">Israel Lobby (AIPAC)</span><span class="channel-influence">Policy influence: 82/100</span></div>
+      <div class="channel-position">Full support for continued operations. Both parties receive funding.</div>
+      <div class="progress-bar mt-1"><div class="progress-bar-fill" style="width:95%;background:var(--status-stable);"></div></div>
     </div>
   </div>
 
-  <div class="a-section">
-    <div class="section-title">Objectives</div>
-    <div class="obj-row"><div class="obj-title">Regime change in Iran</div><div class="obj-meta"><span class="tag tag-red" style="margin:0;">Existential</span><span>Progress:</span><div class="prog-wrap"><div class="prog-fill" style="width:15%;background:#E24B4A;"></div></div><span>15%</span></div></div>
-    <div class="obj-row"><div class="obj-title">Neutralize Iran nuclear capability</div><div class="obj-meta"><span class="tag tag-amber" style="margin:0;">Critical</span><span>Progress:</span><div class="prog-wrap"><div class="prog-fill" style="width:35%;background:#EF9F27;"></div></div><span>35%</span></div></div>
-    <div class="obj-row"><div class="obj-title">Reopen Strait of Hormuz</div><div class="obj-meta"><span class="tag tag-amber" style="margin:0;">Critical</span><span>Progress:</span><div class="prog-wrap"><div class="prog-fill" style="width:5%;background:#E24B4A;"></div></div><span>5%</span></div></div>
-  </div>
-
-  <div class="a-section">
-    <div class="section-title">Intelligence picture — what the US believes about Iran</div>
-    <div class="intel-row"><span class="intel-label">Iran military readiness:</span> <span class="intel-val">25 (heavily degraded)</span><span class="conf tag-amber">Moderate</span></div>
-    <div class="intel-row"><span class="intel-label">Iran nuclear status:</span> <span class="intel-val">Partially neutralized</span><span class="conf tag-red">Low</span></div>
-    <div class="intel-row"><span class="intel-label">Iran regime stability:</span> <span class="intel-val">45 (weakening)</span><span class="conf tag-amber">Moderate</span></div>
-    <div style="margin-top:10px;"><div class="section-title">Known unknowns</div><div style="display:flex;flex-wrap:wrap;gap:4px;"><span class="tag tag-red">Location of dispersed enriched uranium</span><span class="tag tag-red">Remaining ballistic missile stockpile</span><span class="tag tag-amber">Hypersonic missile capability</span></div></div>
-    <div style="margin-top:10px;"><div class="section-title">Unknown unknowns (omniscient view only)</div><div style="display:flex;flex-wrap:wrap;gap:4px;opacity:0.6;"><span class="tag tag-gray">IRGC command more resilient than assessed</span><span class="tag tag-gray">Iran regime stability actually 68, not 45</span><span class="tag tag-gray">Russia sharing real-time US fleet positions</span></div></div>
-  </div>
-
-  <div class="a-section" style="border-bottom:none;">
-    <div class="section-title">Escalation ladder position</div>
-    <div style="display:flex;gap:4px;align-items:flex-end;margin-top:4px;">
-      <div style="flex:1;text-align:center;"><div style="height:20px;background:#EAF3DE;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">1</div></div>
-      <div style="flex:1;text-align:center;"><div style="height:28px;background:#EAF3DE;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">2</div></div>
-      <div style="flex:1;text-align:center;"><div style="height:36px;background:#FAEEDA;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">3</div></div>
-      <div style="flex:1;text-align:center;"><div style="height:44px;background:#FAEEDA;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">4</div></div>
-      <div style="flex:1;text-align:center;"><div style="height:52px;background:#378ADD;border-radius:3px 3px 0 0;border:1.5px solid #0C447C;"></div><div style="font-size:9px;font-weight:500;margin-top:2px;">5</div></div>
-      <div style="flex:1;text-align:center;"><div style="height:60px;background:#FCEBEB;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">6</div></div>
-      <div style="flex:1;text-align:center;"><div style="height:68px;background:#FCEBEB;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">7</div></div>
-      <div style="flex:1;text-align:center;"><div style="height:76px;background:#FCEBEB;border-radius:3px 3px 0 0;"></div><div style="font-size:9px;color:var(--color-text-tertiary, #999);margin-top:2px;">8</div></div>
+  <div class="dossier-section">
+    <div class="section-divider"><span class="section-divider-text">Escalation Ladder Position</span></div>
+    <div class="escalation-ladder">
+      <div class="escalation-rung"><div style="height:20px;background:var(--status-stable-bg);border-radius:3px 3px 0 0;"></div><div class="escalation-rung-label">1</div></div>
+      <div class="escalation-rung"><div style="height:28px;background:var(--status-stable-bg);border-radius:3px 3px 0 0;"></div><div class="escalation-rung-label">2</div></div>
+      <div class="escalation-rung"><div style="height:36px;background:var(--status-warning-bg);border-radius:3px 3px 0 0;"></div><div class="escalation-rung-label">3</div></div>
+      <div class="escalation-rung"><div style="height:44px;background:var(--status-warning-bg);border-radius:3px 3px 0 0;"></div><div class="escalation-rung-label">4</div></div>
+      <div class="escalation-rung current"><div style="height:52px;background:var(--gold-dim);border:1.5px solid var(--gold-border);border-radius:3px 3px 0 0;"></div><div class="escalation-rung-label">5</div></div>
+      <div class="escalation-rung"><div style="height:60px;background:var(--status-critical-bg);border-radius:3px 3px 0 0;"></div><div class="escalation-rung-label">6</div></div>
+      <div class="escalation-rung"><div style="height:68px;background:var(--status-critical-bg);border-radius:3px 3px 0 0;"></div><div class="escalation-rung-label">7</div></div>
+      <div class="escalation-rung"><div style="height:76px;background:var(--status-critical-bg);border-radius:3px 3px 0 0;"></div><div class="escalation-rung-label">8</div></div>
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--color-text-secondary, #666);margin-top:6px;"><span>Diplomacy</span><span>Covert ops</span><span style="font-weight:500;color:var(--color-text-primary, #1a1a1a);">Air campaign</span><span>Ground war</span><span>Nuclear</span></div>
+    <div class="escalation-range"><span>Diplomacy</span><span>Covert ops</span><span style="color:var(--gold);font-weight:500;">Air campaign</span><span>Ground war</span><span>Nuclear</span></div>
+  </div>
+
+  <div class="dossier-section">
+    <div class="section-divider"><span class="section-divider-text">Objectives</span></div>
+    <div class="obj-row"><div class="obj-title">Regime Change in Iran</div><div class="obj-meta"><span class="badge badge-critical">Existential</span><span>Progress:</span><div class="obj-progress"><div class="obj-progress-fill" style="width:15%;background:var(--status-critical);"></div></div><span style="color:var(--status-critical);">15%</span></div></div>
+    <div class="obj-row"><div class="obj-title">Neutralize Nuclear Capability</div><div class="obj-meta"><span class="badge badge-warning">Critical</span><span>Progress:</span><div class="obj-progress"><div class="obj-progress-fill" style="width:35%;background:var(--status-warning);"></div></div><span style="color:var(--status-warning);">35%</span></div></div>
+    <div class="obj-row"><div class="obj-title">Reopen Strait of Hormuz</div><div class="obj-meta"><span class="badge badge-warning">Critical</span><span>Progress:</span><div class="obj-progress"><div class="obj-progress-fill" style="width:5%;background:var(--status-critical);"></div></div><span style="color:var(--status-critical);">5%</span></div></div>
   </div>
 </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- 3. DECISION ANALYSIS                                   -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════
+     4. DECISION ANALYSIS
+     ═══════════════════════════════════════════════════════════════ -->
 <div class="mockup-section" id="decision-analysis">
-<div class="d-panel">
-  <div class="d-header">
-    <h2>Launch coastal ground operation</h2>
-    <div class="d-header-row"><span class="tag tag-red">Escalation: rung 5 → 7</span><span class="tag tag-blue">Military</span><span class="tag tag-coral">Violates constraint</span><span class="tag tag-amber">Extreme cost</span></div>
-  </div>
+<div class="doc-id" style="padding-left:20px;">DECISION ANALYSIS // LAUNCH COASTAL GROUND OPERATION</div>
 
-  <div class="d-section">
-    <div class="section-title">Strategic rationale</div>
-    <p class="rationale">The primary justification for a ground operation is the Strait of Hormuz. Air and naval power alone cannot reopen it — Iran only needs a single drone to threaten any commercial vessel. <strong>A coastal occupation of the Iranian shoreline along the Strait is the only reliable way to guarantee safe passage.</strong> Secondary objective: establish a staging area for deeper operations if regime change remains the goal.</p>
-  </div>
-
-  <div class="d-section">
-    <div class="section-title">Prerequisites</div>
-    <div class="prereq-list">This decision requires political authorization for ground combat operations, which the US currently lacks. It also requires sufficient ground forces in theater — current deployments are air/naval heavy. The US would need 80,000-150,000 troops, requiring 4-8 weeks of visible buildup.</div>
-    <div class="constraint-warn"><div class="constraint-warn-title">Violates soft constraint: no ground invasion without political cover</div><div class="constraint-warn-desc">Release conditions (homeland attack, mass casualty event) have not been met. Proceeding without a trigger event would dramatically accelerate the policy disconnect breaking point.</div></div>
-    <div class="intel-warn"><div class="intel-warn-title">Intelligence gap warning</div><div class="intel-warn-desc">This decision requires knowledge of Iranian coastal defenses, mine placements, and anti-ship missile positions. Current confidence: LOW. The IRGC underground facility network is a known unknown.</div></div>
-  </div>
-
-  <div class="d-section">
-    <div class="section-title">Costs</div>
-    <div class="cost-grid">
-      <div class="cost-card"><div class="cost-dim">Military</div><div class="cost-desc">80-150k troops required. Significant casualties expected from entrenched defenders, mines, anti-ship missiles.</div><div class="cost-mag"><span class="tag tag-red">Extreme</span></div></div>
-      <div class="cost-card"><div class="cost-dim">Economic</div><div class="cost-desc">$300-500M/day operational cost. Extended occupation could cost $1-2T over 5 years.</div><div class="cost-mag"><span class="tag tag-red">Extreme</span></div></div>
-      <div class="cost-card"><div class="cost-dim">Political</div><div class="cost-desc">Support likely drops to 15-20%. Draft discussion unavoidable. Midterm loss virtually guaranteed.</div><div class="cost-mag"><span class="tag tag-red">Extreme</span></div></div>
-      <div class="cost-card"><div class="cost-dim">Diplomatic</div><div class="cost-desc">International condemnation near-certain. NATO allies unlikely to participate. Gulf states may deny basing.</div><div class="cost-mag"><span class="tag tag-amber">High</span></div></div>
+<div class="analysis-panel">
+  <div class="analysis-header">
+    <h2>Launch Coastal Ground Operation</h2>
+    <div class="analysis-tags">
+      <span class="badge badge-escalation">Escalation: Rung 5→7
+        <span class="help-icon">?<div class="tooltip"><div class="tooltip-title">Escalation Jump</div>This action would move you from Rung 5 (air campaign) to Rung 7 (ground war). That's a major escalation with high political costs and difficult reversibility.</div></span>
+      </span>
+      <span class="badge badge-military">Military</span>
+      <span class="badge badge-critical">Violates Constraint</span>
     </div>
   </div>
 
-  <div class="d-section">
-    <div class="section-title">Projected outcomes</div>
-    <div class="outcome"><div class="outcome-header"><span class="outcome-title">Best case: swift coastal seizure</span><span class="outcome-prob" style="color:#1D9E75;">20% likely</span></div><div class="outcome-desc">US forces seize key positions within 2-3 weeks. Strait reopens. Iran forced to negotiate. But ongoing occupation required indefinitely.</div><div style="margin-top:8px;"><div class="cascade-item"><span class="cascade-arrow">→</span> Oil drops to ~$100/bbl but doesn't return to pre-war</div><div class="cascade-item"><span class="cascade-arrow">→</span> Iran shifts to guerrilla resistance on occupied coast</div></div></div>
-    <div class="outcome"><div class="outcome-header"><span class="outcome-title">Most likely: attritional quagmire</span><span class="outcome-prob" style="color:#EF9F27;">50% likely</span></div><div class="outcome-desc">Initial landings succeed but Iranians fall back to prepared mountain positions. Urban warfare. US casualties mount to hundreds in first month. Becomes a second Iraq with harder terrain.</div><div style="margin-top:8px;"><div class="cascade-item"><span class="cascade-arrow">→</span> Oil stays at $130+ as Strait only partially secured</div><div class="cascade-item"><span class="cascade-arrow">→</span> US domestic support collapses below 20%</div><div class="cascade-item"><span class="cascade-arrow">→</span> Russia accelerates in Ukraine while US is pinned down</div></div></div>
-    <div class="outcome"><div class="outcome-header"><span class="outcome-title">Worst case: escalation spiral</span><span class="outcome-prob" style="color:#E24B4A;">30% likely</span></div><div class="outcome-desc">Ground invasion is the trigger Iran needs to justify nuclear breakout. Within 3-6 months, Iran announces a weapon. Israel considers preemptive nuclear strike.</div><div style="margin-top:8px;"><div class="cascade-item"><span class="cascade-arrow">→</span> <strong style="color:#E24B4A;">Nuclear breakout cascade activates</strong></div><div class="cascade-item"><span class="cascade-arrow">→</span> Israel escalates to rung 7-8, nuclear use on the table</div><div class="cascade-item"><span class="cascade-arrow">→</span> Global financial crisis — oil at $250+, markets crash</div></div></div>
+  <div class="analysis-section">
+    <div class="section-divider"><span class="section-divider-text">Parameter Profiles
+      <span class="help-icon">?<div class="tooltip"><div class="tooltip-title">Parameter Profiles</div>Each action can be executed different ways. "Surgical" uses fewer troops and costs less, but achieves less. "Overwhelming" commits maximum force. Pick one, or customize in Advanced mode.</div></span>
+    </span></div>
+    <div class="profile-cards">
+      <div class="profile-card"><div class="profile-name">Surgical Raid</div><div class="profile-desc">50K troops, coastal seizure only. 2-week timeline.</div><div class="profile-cost">$50M/day</div></div>
+      <div class="profile-card selected"><div class="profile-name" style="color:var(--gold);">Overwhelming Force</div><div class="profile-desc">150K troops, full coastal + port cities. 6-week prep.</div><div class="profile-cost">$500M/day</div></div>
+      <div class="profile-card"><div class="profile-name">Covert Insertion</div><div class="profile-desc">SOF only, 5K operators, night ops. Requires precise intel.</div><div class="profile-cost">$10M/day</div></div>
+    </div>
   </div>
 
-  <div class="d-section">
-    <div class="section-title">Anticipated actor responses</div>
-    <div class="response-row"><span class="resp-actor" style="color:#E24B4A;">Iran</span><span class="resp-action">Full asymmetric mobilization. Accelerate nuclear program. Deploy hypersonic missiles against carriers.</span><span class="tag tag-red">Escalate</span></div>
-    <div class="response-row"><span class="resp-actor" style="color:#378ADD;">Israel</span><span class="resp-action">Intensify Lebanon operations. Prepare contingency for Iranian nuclear breakout.</span><span class="tag tag-red">Escalate</span></div>
-    <div class="response-row"><span class="resp-actor" style="color:#888780;">Russia</span><span class="resp-action">Major Ukraine offensive. Increase intel sharing with Iran. Push UN condemnation.</span><span class="tag tag-red">Escalate</span></div>
-    <div class="response-row"><span class="resp-actor" style="color:#888780;">China</span><span class="resp-action">Accelerate Taiwan preparations. Expand yuan-for-oil. Position as diplomatic alternative.</span><span class="tag tag-amber">Lateral</span></div>
-    <div class="response-row"><span class="resp-actor" style="color:#EF9F27;">Gulf States</span><span class="resp-action">Possible denial of basing rights. Backchannel with Iran. Hedge toward BRICS.</span><span class="tag tag-amber">Lateral</span></div>
+  <div class="analysis-section">
+    <div class="section-divider"><span class="section-divider-text">Strategic Rationale</span></div>
+    <p class="rationale">The primary justification is the Strait of Hormuz. Air and naval power alone cannot reopen it — Iran only needs a single drone to threaten any commercial vessel. <strong>A coastal occupation is the only reliable way to guarantee safe passage.</strong></p>
+    <div class="warn-box warn-critical mt-2"><div class="warn-title" style="color:var(--status-critical);">Violates Constraint: No Ground Invasion Without Political Cover</div><div class="warn-desc">Release conditions (homeland attack, mass casualty event) have not been met.</div></div>
   </div>
 
-  <div class="d-section" style="border-bottom:none;">
-    <div class="verdict"><div class="verdict-title">Assessment</div><div class="verdict-body">This is the highest-risk decision available. It addresses the Strait problem — the one objective no other option can achieve — but at potentially catastrophic cost across every other dimension. The 30% chance of triggering Iran's nuclear breakout cascade makes this especially dangerous: the ground invasion could produce the exact outcome (nuclear Iran) that the entire war was supposed to prevent.</div></div>
-    <div class="btn-row"><button>Select this decision</button><button>Compare alternatives</button><button>Propose variant</button></div>
+  <div class="analysis-section">
+    <div class="section-divider"><span class="section-divider-text">Projected Outcomes</span></div>
+    <div class="outcome-card"><div class="outcome-header"><span class="outcome-title">Most Likely: Attritional Quagmire</span><span class="outcome-prob" style="color:var(--status-warning);">50%</span></div><div class="outcome-desc">Initial landings succeed but Iranians fall back to prepared mountain positions. US casualties mount. Becomes a second Iraq with harder terrain.</div><div class="mt-2"><div class="cascade-item"><span class="cascade-arrow">→</span> US domestic support collapses below 20%</div><div class="cascade-item"><span class="cascade-arrow">→</span> Russia accelerates in Ukraine while US is pinned</div></div></div>
+    <div class="outcome-card"><div class="outcome-header"><span class="outcome-title">Worst Case: Nuclear Escalation Spiral</span><span class="outcome-prob" style="color:var(--status-critical);">30%</span></div><div class="outcome-desc">Ground invasion triggers Iran&rsquo;s nuclear breakout. Israel considers preemptive nuclear strike.</div><div class="mt-2"><div class="cascade-item"><span class="cascade-arrow">→</span> <strong style="color:var(--status-critical);">Nuclear breakout cascade activates</strong></div></div></div>
+  </div>
+
+  <div class="analysis-section">
+    <div class="section-divider"><span class="section-divider-text">How Other Actors Would Respond</span></div>
+    <div class="response-row"><span class="resp-actor" style="color:var(--actor-iran);">Iran</span><span class="resp-action">Full asymmetric mobilization. Accelerate nuclear program.</span><span class="badge badge-escalation">Escalate</span></div>
+    <div class="response-row"><span class="resp-actor" style="color:var(--actor-russia);">Russia</span><span class="resp-action">Major Ukraine offensive. Increase intel sharing with Iran.</span><span class="badge badge-escalation">Escalate</span></div>
+    <div class="response-row"><span class="resp-actor" style="color:var(--actor-generic);">Gulf States</span><span class="resp-action">Possible denial of basing rights. Hedge toward BRICS.</span><span class="badge badge-hold">Lateral</span></div>
+  </div>
+
+  <div class="analysis-section">
+    <div class="verdict"><div class="verdict-title">Assessment</div><div class="verdict-body">Highest-risk decision available. The 30% chance of triggering Iran&rsquo;s nuclear breakout makes this especially dangerous — the ground invasion could produce the exact outcome the war was supposed to prevent.</div></div>
+    <div class="flex gap-2 mt-3">
+      <button class="btn btn-primary">Select This Action</button>
+      <button class="btn btn-ghost">Back to Recommendations</button>
+    </div>
   </div>
 </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- 4. WAR CHRONICLE                                       -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════
+     5. ADVANCED TURNPLAN BUILDER
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="mockup-section" id="plan-builder">
+<div class="doc-id" style="padding-left:20px;">ADVANCED TURN PLAN // UNITED STATES // TURN 04</div>
+
+<div class="plan-builder">
+  <div style="padding:14px 18px;border-bottom:1px solid var(--border-subtle);">
+    <div style="font-family:var(--font-condensed);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:0.04em;">Advanced TurnPlan Builder
+      <span class="help-icon">?<div class="tooltip"><div class="tooltip-title">TurnPlan</div>In advanced mode, you can pick a primary action plus up to 3 supporting actions. You allocate resources between them — actions with more resources are more effective. Compatible actions create synergies.</div></span>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-tertiary);margin-top:3px;">PRIMARY ACTION + UP TO 3 CONCURRENT ACTIONS // ALLOCATE RESOURCES</div>
+  </div>
+
+  <div style="padding:14px 18px;">
+    <div class="section-divider"><span class="section-divider-text">Primary Action (Required)</span></div>
+    <div class="plan-slot filled primary">
+      <div style="flex:1;">
+        <div class="decision-title">Intensify Air Campaign on Military Targets</div>
+        <div class="decision-meta mt-1"><span class="badge badge-hold">Hold Rung</span><span class="badge badge-military">Military</span></div>
+      </div>
+    </div>
+
+    <div class="section-divider"><span class="section-divider-text">Supporting Actions (Optional)</span></div>
+    <div class="plan-slot filled">
+      <div style="flex:1;">
+        <div class="decision-title">Cyber Operation Against IRGC Networks</div>
+        <div class="decision-meta mt-1"><span class="badge badge-hold">Hold Rung</span><span class="badge badge-intelligence">Intelligence</span></div>
+      </div>
+    </div>
+    <div class="plan-slot"><span class="plan-slot-label">+ Add Supporting Action (2 slots remaining)</span></div>
+
+    <div class="section-divider"><span class="section-divider-text">Resource Allocation
+      <span class="help-icon">?<div class="tooltip"><div class="tooltip-title">Resource Allocation</div>Actions with more resources assigned are more effective. Your primary action should usually get at least 50%. Resources must total 100%.</div></span>
+    </span></div>
+    <div class="resource-row"><span class="resource-label">Air Campaign</span><div class="resource-slider"><div class="resource-slider-fill" style="width:70%;"></div></div><span class="resource-pct">70%</span></div>
+    <div class="resource-row"><span class="resource-label">Cyber Operation</span><div class="resource-slider"><div class="resource-slider-fill" style="width:30%;"></div></div><span class="resource-pct">30%</span></div>
+
+    <div class="section-divider"><span class="section-divider-text">Validation</span></div>
+    <div class="validation-row validation-ok">✓ Actions are compatible</div>
+    <div class="validation-row validation-ok">✓ Resources sum to 100%</div>
+    <div class="validation-row" style="color:var(--status-info);">★ Synergy: Air Campaign + Cyber Op = targeting effectiveness +12%</div>
+
+    <div class="flex gap-2 mt-3">
+      <button class="btn btn-primary" style="flex:1;">Submit TurnPlan</button>
+      <button class="btn btn-ghost">Back to Simple View</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     6. WAR CHRONICLE
+     ═══════════════════════════════════════════════════════════════ -->
 <div class="mockup-section" id="chronicle">
+<div class="doc-id" style="padding-left:20px;">WAR CHRONICLE // US-ISRAEL-IRAN CONFLICT // 4 TURNS COMPLETED</div>
+
 <div class="chronicle">
-  <div class="chr-header"><div><h2>War chronicle</h2><p>Iran conflict — 4 turns completed</p></div>
-    <div class="chr-filters"><span class="chr-filter active" onclick="filterChr(this)">All</span><span class="chr-filter" onclick="filterChr(this)">Military</span><span class="chr-filter" onclick="filterChr(this)">Political</span><span class="chr-filter" onclick="filterChr(this)">Economic</span></div>
+  <div class="chronicle-header">
+    <h2>War Chronicle</h2>
   </div>
 
-  <div class="global-ticker" style="padding:12px 0;border-bottom:0.5px solid var(--color-border-tertiary, #e0e0e0);">
-    <div class="ticker-item">Oil: <span class="ticker-val">$142</span><span class="ticker-delta ticker-up">+94%</span></div>
-    <div class="ticker-item">US support: <span class="ticker-val">31%</span><span class="ticker-delta ticker-up">-12pts</span></div>
-    <div class="ticker-item">US air defense: <span class="ticker-val">42%</span><span class="ticker-delta ticker-up">-18pts</span></div>
-    <div class="ticker-item">Iran stability: <span class="ticker-val">68</span><span class="ticker-delta ticker-down">+8pts</span></div>
-    <div class="ticker-item">Strait: <span class="ticker-val" style="color:#E24B4A;">Blocked</span></div>
+  <div class="global-ticker">
+    <div class="ticker-item">Oil: <span class="ticker-val">$142</span> <span class="ticker-up">+94%</span></div>
+    <div class="ticker-item">US Support: <span class="ticker-val">31%</span> <span class="ticker-up">-12pts</span></div>
+    <div class="ticker-item">Strait: <span class="ticker-val" style="color:var(--status-critical);">BLOCKED</span></div>
   </div>
 
   <div class="timeline">
-    <div class="turn-block">
+    <div class="turn-block severity-critical">
       <div class="turn-dot critical"></div>
       <div class="turn-date">Turn 1 — Week of March 1</div>
-      <div class="turn-title">Operation Iron Resolve begins</div>
-      <div class="turn-narrative">In the predawn hours of March 2nd, <strong>US and Israeli</strong> forces launched a coordinated strike package against Iranian leadership and military infrastructure. Over 200 cruise missiles and precision-guided munitions struck targets across Tehran, Isfahan, and Bandar Abbas. Among the dead: <strong>Supreme Leader Ayatollah Khamenei</strong>, killed in a bunker strike that intelligence had been planning for months. The White House announced the goal bluntly — regime change.
-
-But the regime did not collapse. Within hours, <strong>Mojtaba Khamenei</strong> appeared on state television, flanked by IRGC commanders, declaring his father a martyr and promising retaliation that would "shake the thrones of the aggressors."</div>
-      <div class="turn-tags"><span class="tag tag-red">Ayatollah killed</span><span class="tag tag-red">Regime change declared</span><span class="tag tag-amber">Decapitation failed</span><span class="tag tag-purple">Escalation: US 3→5, Iran 3→6</span></div>
-      <div class="expand-section"><div class="expand-toggle" onclick="toggleExp(this)"><span>Detailed resolution</span><span>+</span></div><div class="expand-content">
-        <div style="margin-bottom:8px;" class="section-title">Decisions made</div>
-        <div class="decision-mini"><span class="dm-actor" style="color:#378ADD;">US</span><span class="dm-action">Joint strike on leadership + military infrastructure</span><span class="dm-by tag-blue">AI</span></div>
-        <div class="decision-mini"><span class="dm-actor" style="color:#E24B4A;">Iran</span><span class="dm-action">Disperse nuclear assets, activate proxy networks</span><span class="dm-by tag-blue">AI</span></div>
-        <div style="margin:10px 0 8px;" class="section-title">Judge assessment</div>
-        <div class="judge-mini"><div class="judge-score"><div class="judge-num" style="color:#1D9E75;">85</div><div class="judge-label">Plausibility</div></div><div class="judge-score"><div class="judge-num" style="color:#1D9E75;">80</div><div class="judge-label">Consistency</div></div><div class="judge-score"><div class="judge-num" style="color:#EF9F27;">72</div><div class="judge-label">Rationality</div></div><div class="judge-score"><div class="judge-num" style="color:#1D9E75;">83</div><div class="judge-label">Cascades</div></div></div>
-      </div></div>
+      <div class="turn-title">Operation Iron Resolve Begins</div>
+      <div class="turn-narrative"><strong>US and Israeli</strong> forces launched coordinated strikes against Iranian leadership and military infrastructure. Among the dead: <strong>Supreme Leader Ayatollah Khamenei</strong>. But the regime did not collapse. <strong>Mojtaba Khamenei</strong> appeared on state television, declaring his father a martyr.</div>
+      <div class="turn-tags"><span class="badge badge-critical">Ayatollah Killed</span><span class="badge badge-warning">Decapitation Failed</span></div>
+      <div class="expand-section">
+        <div class="expand-toggle" onclick="toggleExpand(this)"><span>Detailed resolution</span><span class="expand-toggle-icon" style="color:var(--text-tertiary);font-size:13px;transition:transform 200ms;">+</span></div>
+        <div class="expand-content"><div class="expand-inner">
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);line-height:1.8;">
+            <div><strong style="color:var(--text-primary);">US:</strong> Joint strike on leadership + military infrastructure</div>
+            <div><strong style="color:var(--text-primary);">Iran:</strong> Dispersed nuclear assets, activated proxy networks</div>
+            <div class="mt-2" style="color:var(--status-stable);">Judge: Plausibility 85 // Consistency 80 // Rationality 72</div>
+          </div>
+        </div></div>
+      </div>
     </div>
 
-    <div class="turn-block">
+    <div class="turn-block severity-major">
       <div class="turn-dot major"></div>
       <div class="turn-date">Turn 2 — Week of March 8</div>
-      <div class="turn-title">Iran retaliates; the Strait closes</div>
-      <div class="turn-narrative"><strong>Iran's</strong> response was not the desperate lashing out that Washington had expected. It was methodical. Over five days, waves of Shahed-136 drones — cheap, expendable, numbering in the hundreds — swarmed toward Israeli air bases and US positions across the Gulf. Each wave forced the expenditure of Patriot interceptors costing orders of magnitude more than their targets. The math was simple and devastating: Iran was winning the accountant's war.
-
-Then came the strategic masterstroke. On March 11th, an IRGC commander announced that the <strong>Strait of Hormuz</strong> was closed to all non-allied shipping. Oil futures spiked 40% overnight. <strong>Russia</strong> quietly offered to fill the supply gap — at a premium.</div>
-      <div class="turn-tags"><span class="tag tag-red">Strait of Hormuz closed</span><span class="tag tag-amber">Drone attrition begins</span><span class="tag tag-amber">Oil +40%</span><span class="tag tag-purple">Yuan oil trade begins</span></div>
-      <div class="expand-section"><div class="expand-toggle" onclick="toggleExp(this)"><span>Detailed resolution</span><span>+</span></div><div class="expand-content">
-        <div class="reaction-block"><div class="reaction-label">Reaction phase</div><div class="impact-row"><strong>US</strong> requested allied naval support to reopen Strait — denied by all parties.</div><div class="impact-row"><strong>Gulf States</strong> issued emergency economic stabilization measures.</div></div>
-        <div style="margin:10px 0 8px;" class="section-title">Key state changes</div>
-        <div class="impact-row"><strong>US air defense reserves:</strong> 78% → 60%</div>
-        <div class="impact-row"><strong>Oil price:</strong> $73 → $104/bbl</div>
-        <div class="impact-row"><strong>US domestic support:</strong> 38% → 35%</div>
-      </div></div>
+      <div class="turn-title">Iran Retaliates; The Strait Closes</div>
+      <div class="turn-narrative"><strong>Iran&rsquo;s</strong> response was methodical. Waves of Shahed-136 drones swarmed toward Israeli air bases and US positions. Each wave forced the expenditure of interceptors costing orders of magnitude more. Then the <strong>Strait of Hormuz</strong> was declared closed. Oil spiked 40% overnight.</div>
+      <div class="turn-tags"><span class="badge badge-critical">Strait Closed</span><span class="badge badge-warning">Drone Attrition</span><span class="badge badge-warning">Oil +40%</span></div>
     </div>
 
-    <div class="turn-block">
+    <div class="turn-block severity-major">
       <div class="turn-dot major"></div>
       <div class="turn-date">Turn 3 — Week of March 15</div>
-      <div class="turn-title">The oil war escalates</div>
-      <div class="turn-narrative">Frustrated by the Strait closure, <strong>US and Israeli</strong> forces pivoted to economic warfare, striking Iran's oil export infrastructure — Kharg Island terminal, refineries near Abadan. <strong>Iran</strong> responded in kind with devastating precision. Ballistic missiles struck the <strong>Ras Tanura</strong> complex in Saudi Arabia. The message was unmistakable: if Iran's oil burned, so would everyone else's. Dubai property values cratered 30% in a week.
-
-<strong>Joe Kent</strong> resigned as Director of Counterterrorism, publicly stating the war served Israel's interests, not America's. Oil hit $142 a barrel.</div>
-      <div class="turn-tags"><span class="tag tag-red">Gulf oil infrastructure struck</span><span class="tag tag-red">Ras Tanura hit</span><span class="tag tag-amber">Kent resigns</span><span class="tag tag-red">Oil $142/bbl</span></div>
-      <div class="expand-section"><div class="expand-toggle" onclick="toggleExp(this)"><span>Detailed resolution</span><span>+</span></div><div class="expand-content">
-        <div class="impact-row" style="color:#E24B4A;"><strong>Nuclear breakout cascade: 2 of 3 constraints now removed.</strong> Religious prohibition gone (Ayatollah dead). Deterrence constraint gone (attack already happened). Estimated time to breakout: 4-8 months.</div>
-      </div></div>
-    </div>
-
-    <div class="turn-block">
-      <div class="turn-dot moderate"></div>
-      <div class="turn-date">Turn 4 — Week of March 22</div>
-      <div class="turn-title">Attrition and stalemate</div>
-      <div class="turn-narrative">The war settled into a grim rhythm. Each day brought another wave of Iranian drones, another expenditure of irreplaceable interceptors. The THAAD radar systems — the eyes of the defense network — were now largely destroyed. Israel was flying increasingly blind.
-
-The <strong>US</strong> air campaign continued, but targeting was becoming harder. The administration claimed Iran's military was destroyed. The missiles kept coming. <strong>Marco Rubio</strong> gave a press conference where his language suggested deep reservations. Washington reporters noted he used the phrase "Israel's security objectives" three times without once saying "America's."</div>
-      <div class="turn-tags"><span class="tag tag-red">THAAD systems destroyed</span><span class="tag tag-amber">Air campaign stalling</span><span class="tag tag-gray">Diplomatic stalemate</span><span class="tag tag-amber">Rubio signals doubt</span></div>
-      <div class="expand-section"><div class="expand-toggle" onclick="toggleExp(this)"><span>Detailed resolution</span><span>+</span></div><div class="expand-content">
-        <div class="section-title">Current turn — awaiting your decision</div>
-        <div class="impact-row"><strong>US air defense:</strong> 52% → 42%</div>
-        <div class="impact-row"><strong>THAAD operational:</strong> 4 of 7 → 2 of 7</div>
-        <div class="impact-row"><strong>Iran regime stability:</strong> 63 → 68 (rallying)</div>
-      </div></div>
+      <div class="turn-title">The Oil War Escalates</div>
+      <div class="turn-narrative"><strong>US and Israeli</strong> forces struck Iran&rsquo;s oil infrastructure. <strong>Iran</strong> responded with ballistic missiles on <strong>Ras Tanura</strong> in Saudi Arabia. The message: if Iran&rsquo;s oil burned, so would everyone else&rsquo;s. Oil hit $142.</div>
+      <div class="turn-tags"><span class="badge badge-critical">Ras Tanura Hit</span><span class="badge badge-critical">Oil $142/bbl</span><span class="badge badge-warning">Kent Resigns</span></div>
     </div>
   </div>
 </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     7. DISPATCH TERMINAL
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="mockup-section" id="terminal">
+<div class="doc-id" style="padding-left:20px;">GEOSIM RESOLUTION ENGINE // TURN 04 ACTIVE</div>
+
+<div class="terminal">
+  <div class="terminal-header">━━━ GEOSIM RESOLUTION ENGINE // TURN 04 ACTIVE ━━━</div>
+  <div class="dispatch-line" style="animation-delay:0ms"><span class="ts">[22:14:03]</span> RESOLUTION ENGINE ACTIVE</div>
+  <div class="dispatch-line" style="animation-delay:400ms"><span class="ts">[22:14:04]</span> PROCESSING 6 ACTOR TURNPLANS...</div>
+  <div class="dispatch-line info" style="animation-delay:800ms"><span class="ts">[22:14:05]</span> ACTOR: UNITED STATES — PLAN RECEIVED (PRIMARY: AIR CAMPAIGN + CONCURRENT: CYBER OP)</div>
+  <div class="dispatch-line info" style="animation-delay:1200ms"><span class="ts">[22:14:05]</span> ACTOR: IRAN — PLAN RECEIVED (PRIMARY: DRONE SWARM + CONCURRENT: STRAIT MINING)</div>
+  <div class="dispatch-line info" style="animation-delay:1600ms"><span class="ts">[22:14:05]</span> ACTOR: ISRAEL — PLAN RECEIVED</div>
+  <div class="dispatch-line confirmed" style="animation-delay:2400ms"><span class="ts">[22:14:07]</span> SYNERGY DETECTED: US AIR CAMPAIGN + CYBER OP = TARGETING +12%</div>
+  <div class="dispatch-line critical" style="animation-delay:3200ms"><span class="ts">[22:14:08]</span> COLLISION DETECTED: STRAIT OF HORMUZ — US MINESWEEP vs IRAN MINING</div>
+  <div class="dispatch-line critical" style="animation-delay:3600ms"><span class="ts">[22:14:09]</span> EVENT: MINESWEEPER USS CHAMPION STRUCK — 3 KIA, 12 WIA</div>
+  <div class="dispatch-line confirmed" style="animation-delay:4000ms"><span class="ts">[22:14:10]</span> EVENT CONFIRMED: STRAIT REMAINS BLOCKED — SEVERITY: CRITICAL</div>
+  <div class="dispatch-line confirmed" style="animation-delay:4800ms"><span class="ts">[22:14:11]</span> ECONOMIC IMPACT: OIL PRICE +8% → $153/BBL</div>
+  <div class="dispatch-line stable" style="animation-delay:5600ms"><span class="ts">[22:14:15]</span> JUDGE: PLAUSIBILITY 84 // CONSISTENCY 81 // RATIONALITY 76</div>
+  <div class="dispatch-line confirmed" style="animation-delay:6400ms"><span class="ts">[22:14:17]</span> ━━━ TURN 04 COMPLETE ━━━</div>
+  <div class="cursor-blink" style="animation-delay:7000ms">▋</div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     8. FIELD MANUAL — concept reference
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="mockup-section" id="field-manual">
+<div class="doc-id" style="padding-left:20px;">GEOSIM FIELD MANUAL // CLASSIFIED // FOR ANALYST TRAINING</div>
+
+<div class="field-manual">
+  <div style="font-family:var(--font-condensed);font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:0.04em;padding:8px 0 16px;color:var(--gold);">Field Manual</div>
+  <div style="font-family:var(--font-serif);font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;">Everything you need to understand how GeoSim works. Hover over <span class="help-icon" style="display:inline-flex;">?<div class="tooltip" style="bottom:auto;top:calc(100% + 8px);"><div class="tooltip-title">Tooltips</div>You'll see these icons throughout the interface. Hover to learn what a term means.</div></span> icons anywhere in the interface for quick explanations.</div>
+
+  <div class="fm-entry">
+    <div class="fm-term">Turns & Phases</div>
+    <div class="fm-definition">The simulation runs in turns. Each turn represents roughly one week. Every turn has the same structure: you plan your actions, all actors act simultaneously, the engine resolves what happens, and you read the outcome.</div>
+    <div class="fm-example"><strong>Planning:</strong> You pick your actions<br><strong>Resolution:</strong> The AI determines outcomes when all plans collide<br><strong>Reaction:</strong> Actors can respond to surprising events immediately<br><strong>Chronicle:</strong> A narrative summary of what happened</div>
+  </div>
+
+  <div class="fm-entry">
+    <div class="fm-term">Escalation Ladder</div>
+    <div class="fm-definition">Every actor sits on a ladder from 1 (peace) to 8 (nuclear war). Actors prefer the lowest level that achieves their goals. Moving up the ladder is costly — it risks retaliation, burns political capital, and is hard to reverse. Some actions hold your current rung, others escalate or de-escalate.</div>
+    <div class="fm-example"><strong>Rung 1-2:</strong> Diplomacy, sanctions<br><strong>Rung 3-4:</strong> Covert operations, proxy warfare<br><strong>Rung 5-6:</strong> Air campaigns, naval blockades<br><strong>Rung 7:</strong> Ground invasion<br><strong>Rung 8:</strong> Nuclear weapons</div>
+  </div>
+
+  <div class="fm-entry">
+    <div class="fm-term">Fog of War</div>
+    <div class="fm-definition">Actors make decisions based on what they <em>believe</em>, not what is <em>true</em>. Your intelligence about other countries may be wrong. If you think Iran's military is 80% destroyed but the real number is 50%, you might make overconfident decisions. This is how miscalculation works in real life.</div>
+    <div class="fm-example"><strong>Known unknowns:</strong> Things you know you don't know (e.g. "Where is the dispersed uranium?")<br><strong>Unknown unknowns:</strong> Things you're wrong about but don't realize (only visible in Observer mode)</div>
+  </div>
+
+  <div class="fm-entry">
+    <div class="fm-term">Constraint Cascades</div>
+    <div class="fm-definition">Sometimes, conditions that prevent a dangerous action are removed one by one. When enough constraints fall, escalation that was previously impossible becomes rational. The system tracks these chains and alerts you when a cascade is forming.</div>
+    <div class="fm-example"><strong>Iran nuclear cascade:</strong><br>1. Religious prohibition on nukes → REMOVED (Ayatollah killed)<br>2. Deterrence (fear of attack) → REMOVED (attack already happening)<br>3. International isolation risk → WEAKENED (already sanctioned)<br><strong>Result:</strong> Nuclear breakout becomes rational from Iran's perspective</div>
+  </div>
+
+  <div class="fm-entry">
+    <div class="fm-term">TurnPlan & Actions</div>
+    <div class="fm-definition">Each turn, you pick a primary action plus optional supporting actions (up to 3). Actions have resource weights — you allocate your capacity between them. Compatible actions create synergies (bonuses). Incompatible actions create tensions (penalties).</div>
+    <div class="fm-example"><strong>Simple mode:</strong> Pick one recommended action and submit<br><strong>Advanced mode:</strong> Build a multi-action plan with resource allocation<br><strong>Example synergy:</strong> Air campaign + cyber operation = better targeting (+12%)<br><strong>Example tension:</strong> Ceasefire talks + military escalation = credibility loss</div>
+  </div>
+
+  <div class="fm-entry">
+    <div class="fm-term">Influence Channels</div>
+    <div class="fm-definition">In real politics, policy doesn't simply follow public opinion. Different groups — lobbies, military establishments, media, the public — have different levels of influence over actual decisions. A lobby with 82/100 policy influence shapes decisions more than a public at 25/100, even if the public opposes the policy.</div>
+    <div class="fm-example"><strong>US example:</strong> The Israel lobby has 82/100 policy influence while the general public has 25/100. Public support is at 31%, but policy hasn't changed because the groups with actual influence still support the war.</div>
+  </div>
+
+  <div class="fm-entry">
+    <div class="fm-term">Parameter Profiles</div>
+    <div class="fm-definition">Every action can be executed in different ways. A ground operation could be a "surgical raid" (50K troops, low cost, limited objective) or "overwhelming force" (150K troops, high cost, full control). The same action produces completely different outcomes depending on which profile you choose.</div>
+    <div class="fm-example"><strong>Surgical Raid:</strong> Lower cost, lower risk, but achieves less<br><strong>Overwhelming Force:</strong> Higher cost, higher risk, but more decisive<br><strong>Covert:</strong> Cheapest, deniable, but requires good intelligence</div>
+  </div>
+
+  <div class="fm-entry">
+    <div class="fm-term">Observer Mode vs Player Mode</div>
+    <div class="fm-definition">In <strong>Player Mode</strong>, you control one country and make its decisions. The AI plays everyone else. In <strong>Observer Mode</strong>, the AI plays all actors. You watch, analyze, and can rewind to any point to try a different path. Observer mode shows you everything — including fog of war gaps and unknown unknowns.</div>
+  </div>
+</div>
+</div>
+
+</div><!-- end mockup-wrapper -->
 
 <script>
 function showMockup(id) {
   document.querySelectorAll('.mockup-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.mockup-nav button').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  event.target.classList.add('active');
+  // find the button that matches
+  document.querySelectorAll('.mockup-nav button').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(id)) b.classList.add('active');
+  });
 }
-function showGameTab(id) {
-  document.querySelectorAll('#game-tabs .tab').forEach(t => t.classList.remove('active'));
-  ['g-actors','g-decisions','g-events'].forEach(t => document.getElementById(t).style.display = 'none');
-  document.getElementById(id).style.display = 'block';
-  event.target.classList.add('active');
-}
-function toggleExp(el) {
-  var c = el.nextElementSibling;
-  var open = c.classList.toggle('open');
-  el.querySelector('span:last-child').textContent = open ? '−' : '+';
-}
-function filterChr(el) {
-  document.querySelectorAll('.chr-filter').forEach(f => f.classList.remove('active'));
+
+function showObsTab(id, el) {
+  document.querySelectorAll('.obs-tab-content').forEach(t => t.classList.add('hidden'));
+  document.querySelectorAll('#obs-tabs .tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.remove('hidden');
   el.classList.add('active');
 }
+
+function toggleExpand(el) {
+  var content = el.nextElementSibling;
+  var icon = el.querySelector('.expand-toggle-icon');
+  var isOpen = content.classList.toggle('open');
+  icon.textContent = isOpen ? '−' : '+';
+}
 </script>
+</body>
+</html>
