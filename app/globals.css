@@ -3,56 +3,59 @@
 @tailwind utilities;
 
 :root {
-  /* ── Backgrounds ── */
+  /* ── Backgrounds — 6-level Stitch scale ── */
   --bg-base: #0D1117;
-  --bg-surface-1: #161B24;
-  --bg-surface-2: #1D2433;
-  --bg-surface-3: #242B3D;
+  --bg-surface-dim: #131313;
+  --bg-surface-low: #1c1b1b;
+  --bg-surface: #201f1f;
+  --bg-surface-high: #2a2a2a;
+  --bg-surface-highest: #353534;
 
-  /* ── Borders ── */
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-hi: rgba(255, 255, 255, 0.14);
+  /* ── Borders — opaque, not rgba ── */
+  --border-subtle: #414751;
+  --border-hi: #8b919d;
 
   /* ── Text ── */
-  --text-primary: #E8E4DC;
-  --text-secondary: rgba(232, 228, 220, 0.55);
-  --text-tertiary: rgba(232, 228, 220, 0.32);
+  --text-primary: #e5e2e1;
+  --text-secondary: #c1c7d3;
+  --text-tertiary: rgba(229, 226, 225, 0.45);
 
   /* ── Gold accent ── */
-  --gold: #C9983A;
-  --gold-dim: rgba(201, 152, 58, 0.18);
-  --gold-glow: rgba(201, 152, 58, 0.08);
-  --gold-border: rgba(201, 152, 58, 0.40);
+  --gold: #ffba20;
+  --gold-dim: rgba(255, 186, 32, 0.18);
+  --gold-glow: rgba(255, 186, 32, 0.08);
+  --gold-border: rgba(255, 186, 32, 0.40);
+  --gold-dark: #bc8700;
 
   /* ── Actor colors ── */
   --actor-us: #4A7FA5;
   --actor-iran: #8B2635;
-  --actor-israel: #C9983A;
+  --actor-israel: #ffba20;
   --actor-russia: #7B68C8;
   --actor-china: #7B68C8;
   --actor-generic: #5EBD8E;
 
-  /* ── Status / Escalation ── */
-  --status-critical: #E27085;
-  --status-critical-bg: rgba(139, 38, 53, 0.18);
-  --status-critical-border: rgba(139, 38, 53, 0.30);
+  /* ── Status — Command-Center palette ── */
+  --status-critical: #ffb4ac;
+  --status-critical-bg: rgba(255, 180, 172, 0.12);
+  --status-critical-border: rgba(255, 180, 172, 0.30);
 
-  --status-warning: #C9983A;
-  --status-warning-bg: rgba(201, 152, 58, 0.15);
+  --status-warning: #ffba20;
+  --status-warning-bg: rgba(255, 186, 32, 0.15);
 
-  --status-stable: #5EBD8E;
-  --status-stable-bg: rgba(40, 140, 90, 0.20);
-  --status-stable-border: rgba(40, 140, 90, 0.30);
+  --status-stable: #a4c9ff;
+  --status-stable-bg: rgba(164, 201, 255, 0.12);
+  --status-stable-border: rgba(164, 201, 255, 0.25);
 
-  --status-info: #7BAED4;
-  --status-info-bg: rgba(74, 127, 165, 0.15);
-  --status-info-border: rgba(74, 127, 165, 0.25);
+  --status-info: #a4c9ff;
+  --status-info-bg: rgba(164, 201, 255, 0.12);
+  --status-info-border: rgba(164, 201, 255, 0.25);
 
-  /* ── Font stacks ── */
-  --font-sans: 'Barlow', 'Barlow Condensed', system-ui, sans-serif;
-  --font-serif: 'EB Garamond', Georgia, serif;
-  --font-mono: 'IBM Plex Mono', monospace;
-  --font-condensed: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
+  /* ── Font stacks — resolved via next/font/google CSS variables ── */
+  --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), 'Newsreader', Georgia, serif;
+  --font-label: var(--font-space-grotesk), 'Space Grotesk', sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), 'IBM Plex Mono', monospace;
 }
 
 * {
@@ -88,7 +91,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-surface-1);
+  background: var(--bg-surface-low);
 }
 
 ::-webkit-scrollbar-thumb {

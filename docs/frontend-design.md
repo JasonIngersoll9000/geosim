@@ -99,56 +99,70 @@ margin: 16px 0 12px;
 
 ---
 
-## Typography (upgrades from Strategos)
+## Typography — Stitch Four-Font System
 
-The Strategos design system defines three font roles. This document specifies *which* fonts
-and *exactly* how they behave.
+The Strategos design system defined three font roles. The Stitch migration (2026-03-24)
+upgrades to four fonts and loads them via `next/font/google` — never a `<link>` tag.
 
 ### Font Stack
 
 ```css
---font-sans:  'Barlow', 'Barlow Condensed', system-ui, sans-serif;
---font-serif: 'EB Garamond', 'Playfair Display', Georgia, serif;
---font-mono:  'IBM Plex Mono', 'JetBrains Mono', monospace;
+--font-sans:  var(--font-inter), 'Inter', system-ui, sans-serif;
+--font-serif: var(--font-newsreader), 'Newsreader', Georgia, serif;
+--font-label: var(--font-space-grotesk), 'Space Grotesk', sans-serif;
+--font-mono:  var(--font-ibm-plex-mono), 'IBM Plex Mono', monospace;
 ```
 
 **Why these specifically:**
 
-- **Barlow** — condensed, slightly military, reads cleanly at small sizes. Feels like a
-  briefing slide, not a consumer app. Use Barlow Condensed Bold for headlines and section
-  labels. Use Barlow Regular for body UI text.
-- **EB Garamond** — genuine editorial serif. When someone reads the war chronicle, they should
-  feel like they're reading a serious book about a historical event. Georgia feels like a
-  website; EB Garamond feels like a document. 15px / line-height 1.75 in the chronicle.
-- **IBM Plex Mono** — institutional, slightly cold, designed by IBM for technical documents.
-  All numbers, all timestamps, all scores, all coordinates. Never use a proportional font
-  for data.
+- **Inter (`--font-sans`)** — the gold standard for dense UI text. Highly legible at 11–13px,
+  neutral enough to disappear as chrome. Used for body copy, descriptions, panel content —
+  anywhere text needs to be readable without calling attention to itself.
+- **Newsreader (`--font-serif`)** — an editorial serif designed for long-form reading on screen.
+  When someone reads the war chronicle, they should feel like they're reading a serious book
+  about a historical event. 15px / line-height 1.75 in the chronicle. Supports italic for
+  stylistic emphasis without switching fonts.
+- **Space Grotesk (`--font-label`)** — slightly geometric, slightly condensed, technical without
+  being cold. The "telemetry" voice: labels, badges, section overlines, button text, actor names,
+  tab labels. Gives UI elements a precision-instrument quality that Barlow had but with better
+  screen rendering.
+- **IBM Plex Mono (`--font-mono`)** — institutional, slightly cold, designed by IBM for technical
+  documents. All numbers, all timestamps, all scores, all coordinates. Never use a proportional
+  font for data.
 
-### Loading
+### Loading — next/font/google ONLY
 
-```html
-<!-- In <head> — load from Google Fonts or self-host -->
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+```tsx
+// app/layout.tsx — the ONLY correct way to load fonts in this project
+import { Inter, Newsreader, Space_Grotesk, IBM_Plex_Mono } from 'next/font/google'
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
+const newsreader = Newsreader({ subsets: ['latin'], variable: '--font-newsreader', style: ['normal', 'italic'], display: 'swap' })
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk', display: 'swap' })
+const ibmPlexMono = IBM_Plex_Mono({ subsets: ['latin'], variable: '--font-ibm-plex-mono', weight: ['400', '500'], display: 'swap' })
 ```
+
+**Never** use a `<link>` tag for Google Fonts. `next/font/google` self-hosts the fonts,
+eliminates the external request, and ensures the CSS variables are available from first render.
 
 ### Application Rules
 
-| Context | Font | Size | Weight | Notes |
-|---|---|---|---|---|
-| Classification banner | IBM Plex Mono | 9px | 400 | Letter-spacing 0.12em |
-| Document IDs | IBM Plex Mono | 9px | 400 | Tertiary color |
-| Section overlines | Barlow Condensed | 10px | 700 | Uppercase, letter-spacing 0.08em |
-| Actor names | Barlow Condensed | 13px | 600 | |
-| Panel body text | Barlow | 12px | 400 | |
-| Button labels | Barlow Condensed | 11px | 600 | Uppercase |
-| Decision titles | Barlow Condensed | 13px | 600 | |
-| Tag / badge labels | IBM Plex Mono | 9px | 400 | |
-| All scores / numbers | IBM Plex Mono | varies | 500 | Never use Barlow for numbers |
-| All timestamps | IBM Plex Mono | 9px | 400 | Tertiary color |
-| Chronicle prose | EB Garamond | 15px | 400 | Line-height 1.75, --text-secondary |
-| Chronicle entity names | EB Garamond | 15px | 500 | --text-primary, no bold |
-| Chronicle titles | Barlow Condensed | 17px | 700 | Uppercase |
-| Decision rationale | EB Garamond | 13px | 400 | Line-height 1.65 |
+| Context | Font | Tailwind class | Size | Weight | Notes |
+|---|---|---|---|---|---|
+| Classification banner | IBM Plex Mono | `font-mono` | 9px | 400 | Letter-spacing 0.12em |
+| Document IDs | IBM Plex Mono | `font-mono` | 9px | 400 | Tertiary color |
+| Section overlines | Space Grotesk | `font-label` | 10px | 700 | Uppercase, letter-spacing 0.08em |
+| Actor names | Space Grotesk | `font-label` | 13px | 600 | |
+| Panel body text | Inter | `font-sans` | 12px | 400 | |
+| Button labels | Space Grotesk | `font-label` | 11px | 600 | Uppercase |
+| Decision titles | Space Grotesk | `font-label` | 13px | 600 | |
+| Tag / badge labels | Space Grotesk | `font-label` | 9px | 500 | |
+| All scores / numbers | IBM Plex Mono | `font-mono` | varies | 500 | Never use sans for numbers |
+| All timestamps | IBM Plex Mono | `font-mono` | 9px | 400 | Tertiary color |
+| Chronicle prose | Newsreader | `font-serif` | 15px | 400 | Line-height 1.75, --text-secondary |
+| Chronicle entity names | Newsreader | `font-serif` | 15px | 500 | --text-primary, no bold |
+| Chronicle titles | Space Grotesk | `font-label` | 17px | 700 | Uppercase |
+| Decision rationale | Newsreader | `font-serif` | 13px | 400 | Line-height 1.65 |
 
 ---
 
@@ -168,9 +182,9 @@ INTEL BRIEF  //  TURN 04  //  22 MARCH 2026  //  SEVERITY: CRITICAL
 SOURCE: GEOSIM RESOLUTION ENGINE  //  CONFIDENCE: HIGH
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-[Title in Barlow Condensed Bold, ~17px]
+[Title in Space Grotesk Bold, ~17px]
 
-[Narrative prose in EB Garamond, 15px, line-height 1.75]
+[Narrative prose in Newsreader, 15px, line-height 1.75]
 
 [Tag row: severity dot + dimension tags]
 

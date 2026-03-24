@@ -9,11 +9,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Backgrounds
+        // Backgrounds — 6-level Stitch scale
         "bg-base": "var(--bg-base)",
-        "bg-surface-1": "var(--bg-surface-1)",
-        "bg-surface-2": "var(--bg-surface-2)",
-        "bg-surface-3": "var(--bg-surface-3)",
+        "bg-surface-dim": "var(--bg-surface-dim)",
+        "bg-surface-low": "var(--bg-surface-low)",
+        "bg-surface": "var(--bg-surface)",
+        "bg-surface-high": "var(--bg-surface-high)",
+        "bg-surface-highest": "var(--bg-surface-highest)",
+
+        // Borders
+        "border-subtle": "var(--border-subtle)",
+        "border-hi": "var(--border-hi)",
 
         // Text
         "text-primary": "var(--text-primary)",
@@ -25,6 +31,7 @@ const config: Config = {
         "gold-dim": "var(--gold-dim)",
         "gold-glow": "var(--gold-glow)",
         "gold-border": "var(--gold-border)",
+        "gold-dark": "var(--gold-dark)",
 
         // Actor colors
         "actor-us": "var(--actor-us)",
@@ -34,7 +41,7 @@ const config: Config = {
         "actor-china": "var(--actor-china)",
         "actor-generic": "var(--actor-generic)",
 
-        // Status
+        // Status — Command-Center palette
         "status-critical": "var(--status-critical)",
         "status-critical-bg": "var(--status-critical-bg)",
         "status-critical-border": "var(--status-critical-border)",
@@ -53,10 +60,10 @@ const config: Config = {
         gold: "var(--gold-border)",
       },
       fontFamily: {
-        sans: ["var(--font-sans)"],
-        serif: ["var(--font-serif)"],
-        mono: ["var(--font-mono)"],
-        condensed: ["var(--font-condensed)"],
+        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        serif: ["var(--font-newsreader)", "Newsreader", "Georgia", "serif"],
+        label: ["var(--font-space-grotesk)", "Space Grotesk", "sans-serif"],
+        mono: ["var(--font-ibm-plex-mono)", "IBM Plex Mono", "monospace"],
       },
       fontSize: {
         "2xs": ["9px", { lineHeight: "1.4" }],
