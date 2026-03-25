@@ -12,8 +12,8 @@ export function ClassificationBanner({
         borderBottom: "1px solid rgba(201, 152, 58, 0.25)",
         fontFamily: "var(--font-mono)",
         fontSize: "9px",
-        letterSpacing: "0.12em",
-        color: "rgba(201, 152, 58, 0.6)",
+        letterSpacing: "0.2em",
+        color: "var(--gold)",
         textTransform: "uppercase",
       }}
     >

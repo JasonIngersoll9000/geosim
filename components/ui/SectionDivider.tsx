@@ -8,8 +8,8 @@ export function SectionDivider({ title, subtitle }: SectionDividerProps) {
     <div
       className="select-none"
       style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: "8px",
+        fontFamily: "var(--font-sans)",
+        fontSize: "10px",
         letterSpacing: "0.06em",
         color: "var(--text-tertiary)",
         textTransform: "uppercase",

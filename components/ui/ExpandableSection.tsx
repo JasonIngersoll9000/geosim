@@ -25,12 +25,11 @@ export function ExpandableSection({
     >
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between transition-colors duration-150"
+        className="w-full flex items-center justify-between transition-colors duration-150 text-status-info hover:bg-bg-surface-high"
         style={{
           padding: "8px 12px",
           fontFamily: "var(--font-mono)",
           fontSize: "11px",
-          color: "var(--status-info)",
           background: "transparent",
           border: "none",
           cursor: "pointer",

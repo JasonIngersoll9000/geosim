@@ -42,10 +42,9 @@ export function SlideOverPanel({
 
       {/* Panel */}
       <div
-        className="fixed top-0 right-0 bottom-0 z-50 flex flex-col overflow-y-auto"
+        className="fixed top-0 right-0 bottom-0 z-50 flex flex-col overflow-y-auto bg-bg-surface-low"
         style={{
           width: `${width}px`,
-          background: "var(--bg-surface-1)",
           borderLeft: "1px solid var(--border-subtle)",
           transform: open ? "translateX(0)" : `translateX(${width}px)`,
           transition: "transform 200ms ease",

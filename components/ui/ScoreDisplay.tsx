@@ -6,8 +6,7 @@ interface ScoreDisplayProps {
 
 function getScoreColor(value: number): string {
   if (value >= 70) return "var(--status-stable)";
-  if (value >= 50) return "var(--gold)";
-  if (value >= 30) return "var(--status-warning)";
+  if (value >= 40) return "var(--status-warning)";
   return "var(--status-critical)";
 }
 
