@@ -44,10 +44,9 @@ export function TopBar({
 
       {/* Scenario name */}
       <span
+        className="font-mono text-text-tertiary"
         style={{
-          fontFamily: "var(--font-mono)",
           fontSize: "10px",
-          color: "var(--text-tertiary)",
           letterSpacing: "0.02em",
         }}
       >

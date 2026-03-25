@@ -6,13 +6,9 @@ interface SectionDividerProps {
 export function SectionDivider({ title, subtitle }: SectionDividerProps) {
   return (
     <div
-      className="select-none"
+      className="select-none font-sans text-[10px] text-text-tertiary uppercase"
       style={{
-        fontFamily: "var(--font-sans)",
-        fontSize: "10px",
         letterSpacing: "0.06em",
-        color: "var(--text-tertiary)",
-        textTransform: "uppercase",
         margin: "16px 0 12px",
       }}
     >

@@ -31,7 +31,7 @@ const tailwindVariants: Partial<Record<BadgeVariant, string>> = {
   "de-escalation":
     "bg-status-stable-bg text-status-stable border border-status-stable-border",
   warning: "bg-status-warning-bg text-gold border border-gold-border",
-  hold: "bg-status-warning-bg text-gold border border-gold-border",
+  hold: "bg-status-warning-bg text-status-stable border border-gold-border",
 };
 
 // Remaining variants still use inline styles (complex/rgba values not in Tailwind)

@@ -13,12 +13,10 @@ export function DocumentIdHeader({
 }: DocumentIdHeaderProps) {
   return (
     <div
+      className="font-mono text-text-tertiary uppercase"
       style={{
-        fontFamily: "var(--font-mono)",
         fontSize: "9px",
         letterSpacing: "0.04em",
-        color: "var(--text-tertiary)",
-        textTransform: "uppercase",
       }}
     >
       {scenarioCode} // BRANCH: {branchName} // TURN{" "}

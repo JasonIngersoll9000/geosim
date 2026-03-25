@@ -5,13 +5,13 @@ interface ScoreDisplayProps {
 }
 
 function getScoreColor(value: number): string {
-  if (value >= 70) return "var(--status-stable)";
-  if (value >= 40) return "var(--status-warning)";
-  return "var(--status-critical)";
+  if (value >= 70) return "text-status-stable";
+  if (value >= 40) return "text-status-warning";
+  return "text-status-critical";
 }
 
 export function ScoreDisplay({ value, label, size = "md" }: ScoreDisplayProps) {
-  const color = getScoreColor(value);
+  const colorClass = getScoreColor(value);
 
   const sizes = {
     sm: { value: "13px", label: "9px" },
@@ -36,11 +36,9 @@ export function ScoreDisplay({ value, label, size = "md" }: ScoreDisplayProps) {
         </div>
       )}
       <div
+        className={`font-mono font-medium ${colorClass}`}
         style={{
-          fontFamily: "var(--font-mono)",
           fontSize: sizes[size].value,
-          fontWeight: 500,
-          color,
         }}
       >
         {value}
