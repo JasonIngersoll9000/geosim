@@ -22,21 +22,12 @@ export function ProgressBar({
 
   return (
     <div
-      style={{
-        height: `${height}px`,
-        background: "var(--bg-surface-2)",
-        borderRadius: "2px",
-        overflow: "hidden",
-      }}
+      className="bg-bg-surface-high rounded-none overflow-hidden"
+      style={{ height: `${height}px` }}
     >
       <div
-        className={fillClass}
-        style={{
-          height: "100%",
-          width: `${percent}%`,
-          borderRadius: "2px",
-          transition: "width 300ms ease",
-        }}
+        className={`${fillClass} h-full rounded-none transition-[width] duration-300 ease-in-out`}
+        style={{ width: `${percent}%` }}
       />
     </div>
   );

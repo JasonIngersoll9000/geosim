@@ -16,34 +16,15 @@ export function ExpandableSection({
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div
-      style={{
-        border: "1px solid var(--border-subtle)",
-        borderRadius: "6px",
-        overflow: "hidden",
-      }}
-    >
+    <div className="border border-border-subtle rounded-none overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between transition-colors duration-150 text-status-info hover:bg-bg-surface-high"
-        style={{
-          padding: "8px 12px",
-          fontFamily: "var(--font-mono)",
-          fontSize: "11px",
-          background: "transparent",
-          border: "none",
-          cursor: "pointer",
-          textAlign: "left",
-        }}
+        className="w-full flex items-center justify-between px-3 py-2 font-mono text-sm text-status-info hover:bg-bg-surface-high transition-colors duration-150 bg-transparent border-none cursor-pointer text-left"
       >
         <span>{label}</span>
         <span
-          style={{
-            color: "var(--text-tertiary)",
-            fontSize: "13px",
-            transition: "transform 200ms ease",
-            transform: open ? "rotate(45deg)" : "rotate(0)",
-          }}
+          className="text-text-tertiary text-md transition-transform duration-200"
+          style={{ transform: open ? "rotate(45deg)" : "rotate(0)" }}
         >
           +
         </span>

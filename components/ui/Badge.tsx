@@ -30,34 +30,16 @@ const tailwindVariants: Partial<Record<BadgeVariant, string>> = {
     "bg-status-stable-bg text-status-stable border border-status-stable-border",
   "de-escalation":
     "bg-status-stable-bg text-status-stable border border-status-stable-border",
-  warning: "bg-status-warning-bg text-gold border border-gold-border",
+  warning: "bg-status-warning-bg text-status-warning border border-gold-border",
   hold: "bg-status-warning-bg text-status-stable border border-gold-border",
-};
-
-// Remaining variants still use inline styles (complex/rgba values not in Tailwind)
-const inlineVariantStyles: Partial<
-  Record<BadgeVariant, { bg: string; text: string; border: string }>
-> = {
-  economic: {
-    bg: "rgba(40, 140, 90, 0.20)",
-    text: "#5EBD8E",
-    border: "rgba(40, 140, 90, 0.30)",
-  },
-  political: {
-    bg: "rgba(123, 104, 200, 0.15)",
-    text: "#9B8FD8",
-    border: "rgba(123, 104, 200, 0.30)",
-  },
-  information: {
-    bg: "rgba(232, 228, 220, 0.06)",
-    text: "var(--text-secondary)",
-    border: "var(--border-hi)",
-  },
-  neutral: {
-    bg: "rgba(232, 228, 220, 0.06)",
-    text: "var(--text-secondary)",
-    border: "var(--border-hi)",
-  },
+  economic:
+    "bg-status-stable-bg text-status-stable border border-status-stable-border",
+  political:
+    "bg-actor-russia/15 text-actor-russia border border-actor-russia/25",
+  information:
+    "bg-bg-surface-high text-text-secondary border border-border-hi",
+  neutral:
+    "bg-bg-surface-high text-text-secondary border border-border-hi",
 };
 
 interface BadgeProps {
@@ -68,41 +50,12 @@ interface BadgeProps {
 
 export function Badge({ variant, children, className = "" }: BadgeProps) {
   const baseClasses =
-    "inline-flex items-center font-mono rounded-none whitespace-nowrap";
+    "inline-flex items-center font-mono text-2xs font-normal tracking-[0.03em] py-0.5 px-[7px] rounded-none whitespace-nowrap";
 
-  const twClasses = tailwindVariants[variant];
-  const inlineStyle = inlineVariantStyles[variant];
+  const twClasses = tailwindVariants[variant] ?? tailwindVariants.neutral!;
 
-  if (twClasses) {
-    return (
-      <span
-        className={`${baseClasses} ${twClasses} ${className}`}
-        style={{
-          fontSize: "9px",
-          fontWeight: 400,
-          letterSpacing: "0.03em",
-          padding: "2px 7px",
-        }}
-      >
-        {children}
-      </span>
-    );
-  }
-
-  // Fallback to inline styles for variants not in Tailwind map
   return (
-    <span
-      className={`${baseClasses} ${className}`}
-      style={{
-        fontSize: "9px",
-        fontWeight: 400,
-        letterSpacing: "0.03em",
-        padding: "2px 7px",
-        background: inlineStyle?.bg,
-        color: inlineStyle?.text,
-        border: `1px solid ${inlineStyle?.border}`,
-      }}
-    >
+    <span className={`${baseClasses} ${twClasses} ${className}`}>
       {children}
     </span>
   );

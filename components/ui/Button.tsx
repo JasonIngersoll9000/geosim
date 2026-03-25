@@ -11,7 +11,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const base =
-    "inline-flex items-center justify-center font-sans font-semibold text-sm tracking-wide uppercase rounded-none transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center font-label font-semibold text-sm tracking-wide uppercase rounded-none transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
 
   const variants = {
     primary: `${base} px-4 py-2 bg-gold text-[#0D1117] border-none hover:opacity-[0.88]`,

@@ -14,9 +14,9 @@ describe('Button', () => {
     expect(btn).toHaveClass('border')
   })
 
-  it('renders with Inter UI font class', () => {
+  it('renders with Space Grotesk label font class', () => {
     render(<Button variant="primary">Go</Button>)
     const btn = screen.getByRole('button', { name: 'Go' })
-    expect(btn).toHaveClass('font-sans')
+    expect(btn).toHaveClass('font-label')
   })
 })
