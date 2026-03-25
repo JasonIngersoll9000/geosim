@@ -15,7 +15,7 @@ export function Button({
 
   const variants = {
     primary: `${base} px-4 py-2 bg-gold text-[#0D1117] border-none hover:opacity-[0.88]`,
-    ghost: `${base} px-3 py-2 bg-bg-surface text-text-secondary border border-hi hover:text-text-primary hover:border-[rgba(255,255,255,0.20)]`,
+    ghost: `${base} px-3 py-2 bg-bg-surface text-text-secondary border border-border-hi hover:text-text-primary hover:border-[rgba(255,255,255,0.20)]`,
   };
 
   return (

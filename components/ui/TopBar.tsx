@@ -13,21 +13,18 @@ export function TopBar({
 }: TopBarProps) {
   return (
     <div
-      className="fixed left-0 right-0 z-40 flex items-center px-4"
+      className="fixed left-0 right-0 z-40 flex items-center px-4 bg-bg-surface-low"
       style={{
         top: "24px",
         height: "42px",
-        background: "var(--bg-surface-1)",
         borderBottom: "1px solid var(--border-subtle)",
       }}
     >
       {/* Wordmark */}
       <span
+        className="font-sans font-bold text-gold"
         style={{
-          fontFamily: "var(--font-space-grotesk)",
-          fontWeight: 700,
           fontSize: "16px",
-          color: "var(--gold)",
           letterSpacing: "0.04em",
         }}
       >

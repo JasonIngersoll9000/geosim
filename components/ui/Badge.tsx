@@ -25,6 +25,7 @@ const tailwindVariants: Partial<Record<BadgeVariant, string>> = {
   diplomatic:
     "bg-status-info-bg text-status-info border border-status-info-border",
   info: "bg-status-info-bg text-status-info border border-status-info-border",
+  intelligence: "bg-status-info-bg text-status-info border border-status-info-border",
   stable:
     "bg-status-stable-bg text-status-stable border border-status-stable-border",
   "de-escalation":
@@ -46,11 +47,6 @@ const inlineVariantStyles: Partial<
     bg: "rgba(123, 104, 200, 0.15)",
     text: "#9B8FD8",
     border: "rgba(123, 104, 200, 0.30)",
-  },
-  intelligence: {
-    bg: "rgba(232, 228, 220, 0.06)",
-    text: "var(--text-secondary)",
-    border: "var(--border-hi)",
   },
   information: {
     bg: "rgba(232, 228, 220, 0.06)",
