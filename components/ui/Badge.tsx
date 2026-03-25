@@ -14,56 +14,33 @@ type BadgeVariant =
   | "info"
   | "neutral";
 
-const variantStyles: Record<BadgeVariant, { bg: string; text: string; border: string }> = {
-  military: {
-    bg: "var(--status-critical-bg)",
-    text: "var(--status-critical)",
-    border: "var(--status-critical-border)",
-  },
-  escalation: {
-    bg: "var(--status-critical-bg)",
-    text: "var(--status-critical)",
-    border: "var(--status-critical-border)",
-  },
-  critical: {
-    bg: "var(--status-critical-bg)",
-    text: "var(--status-critical)",
-    border: "var(--status-critical-border)",
-  },
-  diplomatic: {
-    bg: "var(--status-info-bg)",
-    text: "var(--status-info)",
-    border: "var(--status-info-border)",
-  },
-  info: {
-    bg: "var(--status-info-bg)",
-    text: "var(--status-info)",
-    border: "var(--status-info-border)",
-  },
+// Variants that use Tailwind utility classes (so toHaveClass() works in tests)
+const tailwindVariants: Partial<Record<BadgeVariant, string>> = {
+  military:
+    "bg-status-critical-bg text-status-critical border border-status-critical-border",
+  critical:
+    "bg-status-critical-bg text-status-critical border border-status-critical-border",
+  escalation:
+    "bg-status-critical-bg text-status-critical border border-status-critical-border",
+  diplomatic:
+    "bg-status-info-bg text-status-info border border-status-info-border",
+  info: "bg-status-info-bg text-status-info border border-status-info-border",
+  stable:
+    "bg-status-stable-bg text-status-stable border border-status-stable-border",
+  "de-escalation":
+    "bg-status-stable-bg text-status-stable border border-status-stable-border",
+  warning: "bg-status-warning-bg text-gold border border-gold-border",
+  hold: "bg-status-warning-bg text-gold border border-gold-border",
+};
+
+// Remaining variants still use inline styles (complex/rgba values not in Tailwind)
+const inlineVariantStyles: Partial<
+  Record<BadgeVariant, { bg: string; text: string; border: string }>
+> = {
   economic: {
     bg: "rgba(40, 140, 90, 0.20)",
     text: "#5EBD8E",
     border: "rgba(40, 140, 90, 0.30)",
-  },
-  stable: {
-    bg: "var(--status-stable-bg)",
-    text: "var(--status-stable)",
-    border: "var(--status-stable-border)",
-  },
-  "de-escalation": {
-    bg: "var(--status-stable-bg)",
-    text: "var(--status-stable)",
-    border: "var(--status-stable-border)",
-  },
-  warning: {
-    bg: "var(--status-warning-bg)",
-    text: "var(--gold)",
-    border: "var(--gold-border)",
-  },
-  hold: {
-    bg: "var(--status-warning-bg)",
-    text: "var(--gold)",
-    border: "var(--gold-border)",
   },
   political: {
     bg: "rgba(123, 104, 200, 0.15)",
@@ -94,22 +71,40 @@ interface BadgeProps {
 }
 
 export function Badge({ variant, children, className = "" }: BadgeProps) {
-  const style = variantStyles[variant];
+  const baseClasses =
+    "inline-flex items-center font-mono rounded-none whitespace-nowrap";
 
+  const twClasses = tailwindVariants[variant];
+  const inlineStyle = inlineVariantStyles[variant];
+
+  if (twClasses) {
+    return (
+      <span
+        className={`${baseClasses} ${twClasses} ${className}`}
+        style={{
+          fontSize: "9px",
+          fontWeight: 400,
+          letterSpacing: "0.03em",
+          padding: "2px 7px",
+        }}
+      >
+        {children}
+      </span>
+    );
+  }
+
+  // Fallback to inline styles for variants not in Tailwind map
   return (
     <span
-      className={`inline-flex items-center ${className}`}
+      className={`${baseClasses} ${className}`}
       style={{
-        fontFamily: "var(--font-mono)",
         fontSize: "9px",
         fontWeight: 400,
         letterSpacing: "0.03em",
         padding: "2px 7px",
-        borderRadius: "4px",
-        background: style.bg,
-        color: style.text,
-        border: `1px solid ${style.border}`,
-        whiteSpace: "nowrap",
+        background: inlineStyle?.bg,
+        color: inlineStyle?.text,
+        border: `1px solid ${inlineStyle?.border}`,
       }}
     >
       {children}
