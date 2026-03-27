@@ -31,9 +31,8 @@ export function SlideOverPanel({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 transition-opacity duration-200"
+        className="fixed inset-0 z-40 bg-black/40 transition-opacity duration-200"
         style={{
-          background: "rgba(0, 0, 0, 0.4)",
           opacity: open ? 1 : 0,
           pointerEvents: open ? "auto" : "none",
         }}

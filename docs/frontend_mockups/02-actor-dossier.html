@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GEOSIM | Actor Dossier: Iran</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&amp;family=Space+Grotesk:wght@500;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-fixed": "#410002",
+              "surface-container-highest": "#353534",
+              "primary-container": "#bc8700",
+              "on-primary": "#412d00",
+              "on-primary-container": "#392600",
+              "on-primary-fixed-variant": "#5e4200",
+              "inverse-surface": "#e5e2e1",
+              "inverse-primary": "#7c5800",
+              "tertiary-fixed": "#ffdad6",
+              "on-secondary-container": "#d0e1ff",
+              "surface-dim": "#131313",
+              "secondary-fixed-dim": "#a4c9ff",
+              "on-tertiary-fixed-variant": "#93000d",
+              "surface-bright": "#393939",
+              "surface-tint": "#ffba20",
+              "on-secondary": "#00315d",
+              "background": "#131313",
+              "outline-variant": "#414751",
+              "primary-fixed-dim": "#ffba20",
+              "outline": "#8b919d",
+              "primary-fixed": "#ffdea8",
+              "on-error-container": "#ffdad6",
+              "on-tertiary": "#690006",
+              "tertiary-fixed-dim": "#ffb4ac",
+              "secondary-fixed": "#d4e3ff",
+              "surface-container-lowest": "#0e0e0e",
+              "on-tertiary-container": "#5c0005",
+              "secondary": "#a4c9ff",
+              "on-primary-fixed": "#271900",
+              "surface": "#131313",
+              "on-surface-variant": "#c1c7d3",
+              "inverse-on-surface": "#313030",
+              "surface-container-high": "#2a2a2a",
+              "surface-variant": "#353534",
+              "on-secondary-fixed": "#001c39",
+              "on-background": "#e5e2e1",
+              "primary": "#ffba20",
+              "tertiary": "#ffb4ac",
+              "error": "#ffb4ab",
+              "secondary-container": "#0164b4",
+              "on-secondary-fixed-variant": "#004883",
+              "tertiary-container": "#ff544c",
+              "surface-container": "#201f1f",
+              "on-error": "#690005",
+              "on-surface": "#e5e2e1",
+              "error-container": "#93000a",
+              "surface-container-low": "#1c1b1b"
+            },
+            fontFamily: {
+              "headline": ["Newsreader"],
+              "body": ["Inter"],
+              "label": ["Space Grotesk"],
+              "mono": ["IBM Plex Mono"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(53, 53, 52, 0.6);
+            backdrop-filter: blur(20px);
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #131313; }
+        ::-webkit-scrollbar-thumb { background: #bc8700; }
+
+        .help-icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.14); font-family: 'IBM Plex Mono';
+            font-size: 8px; color: rgba(232,228,220,0.32); cursor: help;
+            margin-left: 4px; position: relative; vertical-align: middle;
+            transition: all 150ms;
+        }
+        .help-icon:hover { border-color: #ffba20; color: #ffba20; }
+        .tooltip {
+            display: none; position: absolute; bottom: calc(100% + 8px); right: 0;
+            width: 240px; padding: 10px 12px;
+            background: #201f1f; border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 4px; z-index: 100;
+            font-family: 'Inter'; font-size: 11px; font-weight: 400;
+            color: #c1c7d3; line-height: 1.5; text-transform: none;
+            letter-spacing: 0; text-align: left;
+        }
+        .tooltip-title {
+            font-family: 'Space Grotesk'; font-size: 11px; font-weight: 700;
+            color: #ffba20; text-transform: uppercase; letter-spacing: 0.03em;
+            margin-bottom: 4px;
+        }
+        .help-icon:hover .tooltip { display: block; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body overflow-x-hidden selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-neutral-950/80 backdrop-blur-xl border-b border-neutral-800/50 shadow-2xl shadow-black/50 flex justify-between items-center px-6 h-16">
+<div class="text-2xl font-bold tracking-tighter text-amber-500 uppercase font-['Space_Grotesk']">
+        GEOSIM
+    </div>
+<nav class="hidden md:flex space-x-8">
+<a class="text-neutral-500 hover:text-neutral-200 transition-colors font-['Newsreader'] italic font-medium tracking-tight" href="{{DATA:SCREEN:SCREEN_3}}">SCENARIO</a>
+<a class="text-neutral-500 hover:text-neutral-200 transition-colors font-['Newsreader'] italic font-medium tracking-tight" href="{{DATA:SCREEN:SCREEN_3}}">TIMELINE</a>
+<a class="text-neutral-500 hover:text-neutral-200 transition-colors font-['Newsreader'] italic font-medium tracking-tight" href="{{DATA:SCREEN:SCREEN_17}}">SIMULATION</a>
+</nav>
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-neutral-500 hover:text-amber-400 cursor-pointer transition-all duration-200" data-icon="account_tree">account_tree</span>
+<span class="material-symbols-outlined text-neutral-500 hover:text-amber-400 cursor-pointer transition-all duration-200" data-icon="history">history</span>
+<span class="material-symbols-outlined text-amber-400" data-icon="account_circle">account_circle</span>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 bg-neutral-900 border-r border-neutral-800 flex flex-col py-4">
+<div class="px-6 mb-8">
+<h2 class="text-neutral-100 font-['Newsreader'] italic text-lg leading-tight">STRATEGIC CONTROL</h2>
+<p class="font-['Space_Grotesk'] uppercase tracking-widest text-[10px] font-bold text-amber-500/80">SECTOR 7G // ACTIVE</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-6 py-3 text-amber-500 bg-neutral-800 border-l-4 border-amber-600 font-['Space_Grotesk'] uppercase tracking-widest text-xs font-bold transition-all duration-150 translate-x-1" href="{{DATA:SCREEN:SCREEN_10}}">
+<span class="material-symbols-outlined mr-3" data-icon="groups">groups</span> Actors
+        </a>
+<a class="flex items-center px-6 py-3 text-neutral-500 hover:bg-neutral-800/30 hover:text-neutral-300 font-['Space_Grotesk'] uppercase tracking-widest text-xs font-bold transition-colors" href="{{DATA:SCREEN:SCREEN_17}}">
+<span class="material-symbols-outlined mr-3" data-icon="gavel">gavel</span> Decisions
+        </a>
+<a class="flex items-center px-6 py-3 text-neutral-500 hover:bg-neutral-800/30 hover:text-neutral-300 font-['Space_Grotesk'] uppercase tracking-widest text-xs font-bold transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="notification_important">notification_important</span> Events
+        </a>
+<a class="flex items-center px-6 py-3 text-neutral-500 hover:bg-neutral-800/30 hover:text-neutral-300 font-['Space_Grotesk'] uppercase tracking-widest text-xs font-bold transition-colors" href="{{DATA:SCREEN:SCREEN_12}}">
+<span class="material-symbols-outlined mr-3" data-icon="menu_book">menu_book</span> Chronicle
+        </a>
+</nav>
+<div class="px-6 mt-auto space-y-4">
+<button class="w-full py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary font-['Space_Grotesk'] uppercase tracking-widest text-xs font-bold hover:brightness-110 active:scale-95 transition-all">
+            INITIATE TURN
+        </button>
+<div class="pt-4 border-t border-neutral-800 flex justify-around">
+<span class="material-symbols-outlined text-neutral-500 hover:text-neutral-300 cursor-pointer" data-icon="settings">settings</span>
+<span class="material-symbols-outlined text-neutral-500 hover:text-neutral-300 cursor-pointer" data-icon="help">help</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-16 p-8 min-h-screen">
+<!-- Header Section -->
+<div class="mb-10 flex justify-between items-end border-b border-outline-variant/15 pb-6">
+<div>
+<span class="font-label text-primary text-xs tracking-[0.3em] uppercase mb-2 block">Dossier // State Actor // ID: IR-2026</span>
+<h1 class="font-headline text-5xl italic font-medium">Islamic Republic of Iran</h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="bg-error-container/20 border border-error/30 px-4 py-2 flex items-center gap-3">
+<span class="font-mono text-xs text-error font-bold tracking-widest uppercase">RUNG 5 / 8</span>
+<span class="help-icon">?
+                    <div class="tooltip">
+<div class="tooltip-title">Escalation Rung</div>
+                        Actors sit on an escalation ladder from 1 (peace) to 8 (nuclear). Rung 5 = active air campaign. Moving up means more dangerous actions with higher costs.
+                    </div>
+</span>
+</div>
+<div class="text-right font-label">
+<div class="text-[10px] text-outline uppercase tracking-widest">Simulation Clock</div>
+<div class="text-2xl text-on-surface">14:00 <span class="text-primary text-sm tracking-normal">ZULU+3.5</span></div>
+</div>
+</div>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Strategic Overview & Key Figures -->
+<section class="col-span-12 lg:col-span-8 space-y-6">
+<div class="bg-surface-container-high p-6 border-l-2 border-primary relative overflow-hidden">
+<div class="absolute top-0 right-0 w-64 h-full opacity-10 grayscale pointer-events-none">
+<img class="w-full h-full object-cover" data-alt="high contrast aerial view of tehran at night with glowing city lights and dark mountain silhouettes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACoKgkdAu0ughLnFZf5IVJcy62lF7UfWmCzwvbFCGr0_pQTP5m-peLdRvYDhuDW_XbsXIJjK0M0ncV3MQsmO4aIkZQMAgxrF7JgX5EXkfTrtNnXQ-IotbSkbuqklYKYJh3HPS0RPuR4ZjfBvkrqlL_csRklGclqe_wd0u5XA_dAEZHFhFTrtBi8mBJWhprpDwsYJ6EhIY5lJ7bp-CpbiOJ8XFKeY7somEl8D0vmpg-EmIbk-7UozIfnHzKJ6sFlM9A0-bfHfDbVLQ"/>
+</div>
+<h3 class="font-label text-xs font-bold text-primary tracking-widest uppercase mb-4">Strategic Overview</h3>
+<div class="grid grid-cols-3 gap-8 relative z-10">
+<div>
+<p class="text-[10px] text-outline uppercase mb-1">Key Leadership</p>
+<p class="font-headline text-lg italic">Supreme Council / IRGC Command</p>
+</div>
+<div>
+<p class="text-[10px] text-outline uppercase mb-1">Objective</p>
+<p class="font-headline text-lg italic">Existential Preservation</p>
+</div>
+<div>
+<p class="text-[10px] text-outline uppercase mb-1">Current Disposition</p>
+<p class="font-headline text-lg italic">Active Deterrence</p>
+</div>
+</div>
+<div class="mt-6 text-sm text-on-surface-variant leading-relaxed max-w-2xl relative z-10">
+                    Current posture prioritizes the survival of the clerical-military apparatus against systemic economic erosion. Strategy focuses on "Strategic Patience" coupled with high-frequency grey-zone activities.
+                </div>
+</div>
+<!-- Key Figures Section -->
+<div class="bg-surface-container-low p-6">
+<div class="flex items-center gap-4 mb-4">
+<div class="h-px bg-outline-variant/30 flex-1"></div>
+<h3 class="font-label text-xs font-bold text-outline tracking-widest uppercase">Key Figures</h3>
+<div class="h-px bg-outline-variant/30 flex-1"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex items-center gap-3 p-3 bg-surface-container border border-outline-variant/10">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center font-mono text-xs text-outline">DT</div>
+<div class="flex-1">
+<div class="font-label text-sm font-bold text-on-surface">Donald Trump</div>
+<div class="text-[10px] text-on-surface-variant font-label uppercase">External Pressure / CIC</div>
+</div>
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-error-container/20 border border-error/30 text-error text-[9px] font-mono uppercase">Hawk</span>
+<span class="px-2 py-0.5 bg-primary/10 border border-primary/20 text-primary text-[9px] font-mono uppercase">Active</span>
+</div>
+</div>
+<div class="flex items-center gap-3 p-3 bg-surface-container border border-outline-variant/10">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center font-mono text-xs text-outline">MK</div>
+<div class="flex-1">
+<div class="font-label text-sm font-bold text-on-surface">Mojtaba Khamenei</div>
+<div class="text-[10px] text-on-surface-variant font-label uppercase">Supreme Leader (Acting)</div>
+</div>
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-tertiary/10 border border-tertiary/20 text-tertiary text-[9px] font-mono uppercase">Wavering</span>
+<span class="px-2 py-0.5 bg-primary/10 border border-primary/20 text-primary text-[9px] font-mono uppercase">Active</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Military State Stat Grid & Assets -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-surface-container-low p-6">
+<div class="flex items-center gap-4 mb-6">
+<h3 class="font-label text-xs font-bold text-primary tracking-widest uppercase">Military State</h3>
+</div>
+<div class="grid grid-cols-3 gap-3 mb-6">
+<div class="bg-surface-container-highest p-3 border-b-2 border-tertiary">
+<div class="font-mono text-[9px] text-outline uppercase tracking-tighter">Readiness</div>
+<div class="font-mono text-2xl text-tertiary">58</div>
+<div class="font-mono text-[9px] text-outline-variant uppercase">Degraded</div>
+</div>
+<div class="bg-surface-container-highest p-3 border-b-2 border-primary">
+<div class="font-mono text-[9px] text-outline uppercase tracking-tighter">Posture</div>
+<div class="font-mono text-sm text-primary uppercase mt-1 leading-tight">Offensive</div>
+<div class="font-mono text-[9px] text-outline-variant uppercase">Air Campaign</div>
+</div>
+<div class="bg-surface-container-highest p-3 border-b-2 border-secondary">
+<div class="font-mono text-[9px] text-outline uppercase tracking-tighter">Nuclear</div>
+<div class="font-mono text-[10px] text-secondary uppercase mt-1 leading-tight">Threshold</div>
+<div class="font-mono text-[9px] text-outline-variant uppercase">Breakout Risk</div>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/10 text-xs font-label">
+<span class="text-on-surface-variant">Shahab-3 Inventory</span>
+<span class="font-mono text-tertiary">~320 units</span>
+<span class="px-1.5 py-0.5 bg-error-container/20 border border-error/30 text-error text-[8px] uppercase">Depleting</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/10 text-xs font-label">
+<span class="text-on-surface-variant">S-300 PMU2 Batts</span>
+<span class="font-mono text-tertiary">2 of 7</span>
+<span class="px-1.5 py-0.5 bg-error-container/20 border border-error/30 text-error text-[8px] uppercase">Critical</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/10 text-xs font-label">
+<span class="text-on-surface-variant">F-14 Tomcat Fleet</span>
+<span class="font-mono text-secondary">~18 operational</span>
+<span class="px-1.5 py-0.5 bg-primary/10 border border-primary/20 text-primary text-[8px] uppercase">Stable</span>
+</div>
+</div>
+</div>
+<!-- Influence Channels -->
+<div class="bg-surface-container-low p-6">
+<div class="flex items-center gap-2 mb-6">
+<h3 class="font-label text-xs font-bold text-secondary tracking-widest uppercase">Influence Channels</h3>
+<span class="help-icon">?
+                            <div class="tooltip">
+<div class="tooltip-title">Influence Channels</div>
+                                Policy isn't just about public opinion. Different groups (lobbies, military, public) have different levels of influence over actual decisions.
+                            </div>
+</span>
+</div>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="font-label text-[11px] text-on-surface font-bold uppercase">General Public</span>
+<span class="font-mono text-[10px] text-outline">Policy Influence: 25/100</span>
+</div>
+<p class="text-[10px] text-on-surface-variant font-label mb-2 italic">31% support current posture. Civil unrest suppressed.</p>
+<div class="h-1 bg-surface-container-highest">
+<div class="h-full bg-tertiary" style="width: 31%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="font-label text-[11px] text-on-surface font-bold uppercase">IRGC Leadership</span>
+<span class="font-mono text-[10px] text-outline">Policy Influence: 92/100</span>
+</div>
+<p class="text-[10px] text-on-surface-variant font-label mb-2 italic">Unanimous support for continued asymmetric operations.</p>
+<div class="h-1 bg-surface-container-highest">
+<div class="h-full bg-primary" style="width: 92%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Escalation Ladder (Side Column) -->
+<section class="col-span-12 lg:col-span-4 bg-surface-container-highest p-8 flex flex-col">
+<h3 class="font-label text-xs font-bold text-tertiary tracking-[0.2em] uppercase mb-8">Escalation Ladder</h3>
+<div class="flex-1 flex flex-col justify-between">
+<div class="space-y-1 relative">
+<!-- Rungs 8 down to 1 -->
+<div class="flex items-end gap-1">
+<div class="flex-1 h-12 bg-error-container/20 border border-error/30 flex items-center justify-center font-mono text-[10px] text-error">8</div>
+<div class="flex-1 h-10 bg-error-container/20 border border-error/30 flex items-center justify-center font-mono text-[10px] text-error">7</div>
+<div class="flex-1 h-8 bg-error-container/20 border border-error/30 flex items-center justify-center font-mono text-[10px] text-error">6</div>
+<div class="flex-1 h-14 bg-primary/20 border-2 border-primary shadow-[0_0_15px_rgba(255,186,32,0.3)] flex items-center justify-center font-mono text-[11px] text-primary font-bold">5</div>
+<div class="flex-1 h-6 bg-surface-container-high border border-outline-variant flex items-center justify-center font-mono text-[10px] text-outline">4</div>
+<div class="flex-1 h-5 bg-surface-container-high border border-outline-variant flex items-center justify-center font-mono text-[10px] text-outline">3</div>
+<div class="flex-1 h-4 bg-surface-container-high border border-outline-variant flex items-center justify-center font-mono text-[10px] text-outline">2</div>
+<div class="flex-1 h-3 bg-surface-container-high border border-outline-variant flex items-center justify-center font-mono text-[10px] text-outline">1</div>
+</div>
+<div class="flex justify-between font-mono text-[8px] text-outline uppercase tracking-wider pt-2">
+<span>Nuclear</span>
+<span>Ground War</span>
+<span class="text-primary font-bold">Air Campaign</span>
+<span>Covert Ops</span>
+<span>Diplomacy</span>
+</div>
+</div>
+<div class="mt-10 p-4 bg-surface-container-low border border-outline-variant/10">
+<p class="font-label text-[10px] text-primary uppercase font-bold mb-4 flex items-center">
+<span class="material-symbols-outlined text-sm mr-2" data-icon="target">target</span> Strategic Objectives
+                    </p>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-[10px] font-mono uppercase mb-1">
+<span class="text-on-surface">Regime Preservation</span>
+<span class="text-primary">85%</span>
+</div>
+<div class="h-1 bg-surface-container-highest">
+<div class="h-full bg-primary" style="width: 85%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-mono uppercase mb-1">
+<span class="text-on-surface">Regional Hegemony</span>
+<span class="text-secondary">42%</span>
+</div>
+<div class="h-1 bg-surface-container-highest">
+<div class="h-full bg-secondary" style="width: 42%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-mono uppercase mb-1">
+<span class="text-on-surface">Economic Resistance</span>
+<span class="text-tertiary">15%</span>
+</div>
+<div class="h-1 bg-surface-container-highest">
+<div class="h-full bg-tertiary" style="width: 15%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 p-4 bg-tertiary/5 border border-tertiary/20">
+<p class="font-label text-[10px] text-tertiary uppercase font-bold mb-2 flex items-center">
+<span class="material-symbols-outlined text-sm mr-2" data-icon="warning">warning</span> Critical Triggers
+                </p>
+<ul class="text-xs space-y-2 text-on-surface-variant font-label">
+<li>• Targeted Strike on Natanz Facility</li>
+<li>• Blockade of Bandar Abbas Port</li>
+<li>• Direct kinetic action against IRGC-QF HQ</li>
+</ul>
+</div>
+</section>
+<!-- Map View -->
+<section class="col-span-12 h-64 bg-surface-container overflow-hidden relative">
+<img class="w-full h-full object-cover opacity-40 mix-blend-luminosity" data-alt="satellite style topographical map of the middle east with glowing orange hotspots on borders and major cities" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnqhuyvKzeN-FOCYlmhO7Iwv2n_pVDXUy2UvtAdoG4kbw6ExmHRAJ3K23qLP7FZ1jwqNkFDxy8dGmnW995aYJt1yf5XKTzCR_h8Osiyy-XvKTwCMGxRvycTolqBhCYgE9RXFLDXWjIB0TSYOtsXtf-CldKdwCm9_T0qoDp6jXyAi3_uJF4l9Zstf8mr2_fQ3RvvvACn5wxULRoLH91XXa9bpqttham7WZDj-F0vjd_b_hXL7Kod-XUMg90PS-BhkbGkVvpM0vVsN8"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+<div class="absolute bottom-6 left-6">
+<div class="flex items-center space-x-2 bg-surface-container-highest px-3 py-1 border border-primary/20">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label text-[10px] uppercase tracking-widest">Active Simulation Nodes: 14</span>
+</div>
+</div>
+<div class="absolute top-6 right-6 font-label text-[10px] text-outline tracking-widest uppercase">
+                Map Index: 35.6892° N, 51.3890° E
+            </div>
+</section>
+</div>
+</main>
+<!-- Footer Status Bar -->
+<footer class="fixed bottom-0 left-64 right-0 h-8 bg-surface-container-lowest border-t border-outline-variant/10 flex items-center px-6 justify-between z-40">
+<div class="flex items-center space-x-6">
+<div class="flex items-center space-x-2">
+<span class="text-[9px] font-label text-outline uppercase">Auth Status:</span>
+<span class="text-[9px] font-label text-secondary uppercase">Encrypted</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="text-[9px] font-label text-outline uppercase">Latency:</span>
+<span class="text-[9px] font-label text-on-surface uppercase">24ms</span>
+</div>
+</div>
+<div class="font-label text-[9px] text-outline uppercase tracking-[0.2em]">
+        Analytical Noir UI // GeoSim Core v4.2.0
+    </div>
+</footer>
+</body></html>

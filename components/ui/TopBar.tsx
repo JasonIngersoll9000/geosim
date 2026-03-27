@@ -13,8 +13,7 @@ export function TopBar({
 }: TopBarProps) {
   return (
     <div
-      className="fixed left-0 right-0 z-40 flex items-center px-4 bg-bg-surface-low border-b border-border-subtle h-topbar"
-      style={{ top: "24px" }}
+      className="fixed left-0 right-0 top-banner z-40 flex items-center px-4 bg-bg-surface-low border-b border-border-subtle h-topbar"
     >
       {/* Wordmark */}
       <span className="font-label font-bold text-gold text-[16px] tracking-[0.04em]">

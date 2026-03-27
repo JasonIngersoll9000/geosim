@@ -30,8 +30,7 @@ export function ExpandableSection({
         </span>
       </button>
       <div
-        className={`chronicle-detail ${open ? "open" : ""}`}
-        style={{ padding: open ? "12px" : "0 12px" }}
+        className={`chronicle-detail ${open ? "open p-3" : "px-3 py-0"}`}
       >
         {children}
       </div>

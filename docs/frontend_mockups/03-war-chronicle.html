@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GEOSIM | War Chronicle</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-fixed": "#410002",
+              "surface-container-highest": "#353534",
+              "primary-container": "#bc8700",
+              "on-primary": "#412d00",
+              "on-primary-container": "#392600",
+              "on-primary-fixed-variant": "#5e4200",
+              "inverse-surface": "#e5e2e1",
+              "inverse-primary": "#7c5800",
+              "tertiary-fixed": "#ffdad6",
+              "on-secondary-container": "#d0e1ff",
+              "surface-dim": "#131313",
+              "secondary-fixed-dim": "#a4c9ff",
+              "on-tertiary-fixed-variant": "#93000d",
+              "surface-bright": "#393939",
+              "surface-tint": "#ffba20",
+              "on-secondary": "#00315d",
+              "background": "#131313",
+              "outline-variant": "#414751",
+              "primary-fixed-dim": "#ffba20",
+              "outline": "#8b919d",
+              "primary-fixed": "#ffdea8",
+              "on-error-container": "#ffdad6",
+              "on-tertiary": "#690006",
+              "tertiary-fixed-dim": "#ffb4ac",
+              "secondary-fixed": "#d4e3ff",
+              "surface-container-lowest": "#0e0e0e",
+              "on-tertiary-container": "#5c0005",
+              "secondary": "#a4c9ff",
+              "on-primary-fixed": "#271900",
+              "surface": "#131313",
+              "on-surface-variant": "#c1c7d3",
+              "inverse-on-surface": "#313030",
+              "surface-container-high": "#2a2a2a",
+              "surface-variant": "#353534",
+              "on-secondary-fixed": "#001c39",
+              "on-background": "#e5e2e1",
+              "primary": "#ffba20",
+              "tertiary": "#ffb4ac",
+              "error": "#ffb4ab",
+              "secondary-container": "#0164b4",
+              "on-secondary-fixed-variant": "#004883",
+              "tertiary-container": "#ff544c",
+              "surface-container": "#201f1f",
+              "on-error": "#690005",
+              "on-surface": "#e5e2e1",
+              "error-container": "#93000a",
+              "surface-container-low": "#1c1b1b"
+            },
+            fontFamily: {
+              "headline": ["Newsreader", "serif"],
+              "body": ["Inter", "sans-serif"],
+              "label": ["Space Grotesk", "monospace"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #131313;
+            color: #e5e2e1;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1c1b1b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #ffba20;
+        }
+        .expand-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 300ms ease;
+        }
+        .expand-content.open {
+            max-height: 1000px;
+        }
+    </style>
+</head>
+<body class="font-body selection:bg-primary selection:text-on-primary overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-neutral-950/80 backdrop-blur-xl border-b border-neutral-800/50 shadow-2xl shadow-black/50 h-16 flex justify-between items-center px-6">
+<div class="text-2xl font-bold tracking-tighter text-amber-500 uppercase font-label">
+            GEOSIM
+        </div>
+<nav class="hidden md:flex items-center space-x-8 h-full">
+<a class="text-neutral-500 hover:text-neutral-200 transition-colors font-headline italic font-medium tracking-tight h-full flex items-center" href="{{DATA:SCREEN:SCREEN_3}}">SCENARIO</a>
+<a class="text-neutral-500 hover:text-neutral-200 transition-colors font-headline italic font-medium tracking-tight h-full flex items-center" href="{{DATA:SCREEN:SCREEN_3}}">TIMELINE</a>
+<a class="text-amber-400 border-b-2 border-amber-500 pb-1 font-headline italic font-medium tracking-tight h-full flex items-center mt-0.5" href="{{DATA:SCREEN:SCREEN_17}}">SIMULATION</a>
+</nav>
+<div class="flex items-center space-x-4">
+<button class="p-2 hover:bg-neutral-800/50 transition-all duration-200 text-neutral-400">
+<span class="material-symbols-outlined">account_tree</span>
+</button>
+<button class="p-2 hover:bg-neutral-800/50 transition-all duration-200 text-neutral-400">
+<span class="material-symbols-outlined">history</span>
+</button>
+<button class="p-2 hover:bg-neutral-800/50 transition-all duration-200 text-neutral-400">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 bg-neutral-900 border-r border-neutral-800 flex flex-col py-4 hidden lg:flex">
+<div class="px-6 mb-8">
+<div class="text-neutral-100 font-headline italic text-lg mb-1">STRATEGIC CONTROL</div>
+<div class="font-label uppercase tracking-widest text-[10px] font-bold text-amber-500/80">SECTOR 7G // ACTIVE</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-6 py-3 text-neutral-500 hover:bg-neutral-800/30 hover:text-neutral-300 font-label uppercase tracking-widest text-xs font-bold transition-all duration-150" href="{{DATA:SCREEN:SCREEN_10}}">
+<span class="material-symbols-outlined mr-4">groups</span>
+                Actors
+            </a>
+<a class="flex items-center px-6 py-3 text-neutral-500 hover:bg-neutral-800/30 hover:text-neutral-300 font-label uppercase tracking-widest text-xs font-bold transition-all duration-150" href="{{DATA:SCREEN:SCREEN_17}}">
+<span class="material-symbols-outlined mr-4">gavel</span>
+                Decisions
+            </a>
+<a class="flex items-center px-6 py-3 text-neutral-500 hover:bg-neutral-800/30 hover:text-neutral-300 font-label uppercase tracking-widest text-xs font-bold transition-all duration-150" href="#">
+<span class="material-symbols-outlined mr-4">notification_important</span>
+                Events
+            </a>
+<a class="flex items-center px-6 py-3 bg-neutral-800 text-amber-500 border-l-4 border-amber-600 font-label uppercase tracking-widest text-xs font-bold transition-all duration-150 translate-x-1" href="{{DATA:SCREEN:SCREEN_12}}">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+                Chronicle
+            </a>
+</nav>
+<div class="mt-auto px-6 space-y-4">
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary py-3 font-label font-bold text-xs tracking-widest hover:opacity-90 active:scale-95 transition-all">
+                INITIATE TURN
+            </button>
+<div class="flex space-x-2 border-t border-neutral-800 pt-4 pb-2">
+<button class="flex-1 flex justify-center py-2 text-neutral-500 hover:text-neutral-200 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="flex-1 flex justify-center py-2 text-neutral-500 hover:text-neutral-200 transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pt-16 lg:pl-64 min-h-screen bg-surface-dim">
+<!-- Global Ticker -->
+<div class="sticky top-16 z-30 w-full bg-surface-container-low border-b border-outline-variant/20 py-3 overflow-hidden whitespace-nowrap">
+<div class="flex items-center space-x-12 px-6">
+<div class="flex items-center space-x-2">
+<span class="font-label text-[10px] text-outline uppercase tracking-widest">Oil Price:</span>
+<span class="font-label text-sm text-primary">$142</span>
+<span class="font-label text-[10px] text-tertiary">+94%</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="font-label text-[10px] text-outline uppercase tracking-widest">US Support:</span>
+<span class="font-label text-sm text-secondary">31%</span>
+<span class="font-label text-[10px] text-error">-12pts</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="font-label text-[10px] text-outline uppercase tracking-widest">Strait Status:</span>
+<span class="font-label text-sm text-tertiary">BLOCKED</span>
+<span class="material-symbols-outlined text-xs text-tertiary">warning</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="font-label text-[10px] text-outline uppercase tracking-widest">Escalation Level:</span>
+<span class="font-label text-sm text-primary">7</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="font-label text-[10px] text-outline uppercase tracking-widest">Nuclear Breakout:</span>
+<span class="font-label text-sm text-error">CRITICAL</span>
+</div>
+</div>
+</div>
+<div class="max-w-6xl mx-auto px-6 py-12 flex gap-12 flex-col lg:flex-row">
+<!-- Narrative Feed -->
+<section class="flex-1">
+<div class="mb-16 border-l-2 border-primary pl-8 py-2">
+<h1 class="font-headline text-4xl italic text-on-surface mb-4">The War Chronicle</h1>
+<p class="font-body text-outline text-sm leading-relaxed max-w-xl">
+                        A definitive record of the US-Israel-Iran escalation simulation. 
+                        Temporal data points and strategic resolutions recorded in real-time.
+                    </p>
+</div>
+<!-- Timeline Entries -->
+<div class="relative space-y-0">
+<!-- Vertical Timeline Line -->
+<div class="absolute left-[5.5px] top-4 bottom-4 w-px bg-outline-variant/30"></div>
+<!-- Timeline Entry: Cycle 04 -->
+<article class="relative pl-12 pb-20 group">
+<!-- Turn Dot -->
+<div class="absolute left-0 top-2 w-3 h-3 rounded-full border-2 border-tertiary bg-surface-dim z-10"></div>
+<header class="mb-6">
+<div class="font-label text-[10px] text-tertiary tracking-[0.2em] mb-2 uppercase">Cycle 04 // Week of Nov 14 // Level 7</div>
+<h2 class="font-headline text-3xl text-on-surface">The Strait's Shadow</h2>
+<time class="font-label text-[10px] text-outline-variant uppercase">Nov 14, 2024 - 04:00 Zulu</time>
+</header>
+<div class="relative overflow-hidden mb-8 aspect-[21/9] bg-surface-container">
+<img class="w-full h-full object-cover opacity-60 grayscale hover:grayscale-0 transition-all duration-700" data-alt="Satellite thermal map showing naval movements in the Strait of Hormuz at night" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEB8e69UslGtmVLY3O0mlcThaiP7cGFoAYJU8R5al7yUNS7_MjrP0FAkreqAkhTsL6xFjtjm9cxSJrRzI81I5fY8jZuzwbIRqY2QdLWpqN_M3Nu9sOguAO4WoWkEA1seZV6Uvy07rnybDXRFVUPL1lq5Ow2WadQ1hzEx4FACWBAqcs0NkcFZ7kkGh-eT6uTwR2ArEIXhuZufW6tim6FviuLJcQQ3qVdz66W6bIjFyV0yR9cKQcGOeX9NYH1WwQzyBwjGFZDum5rLg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim to-transparent"></div>
+</div>
+<div class="font-headline text-lg leading-relaxed text-on-surface-variant italic space-y-6">
+<p>
+                                As dawn broke over the Persian Gulf, the silhouette of a kinetic reality became undeniable. The Iranian Revolutionary Guard Corps (IRGC) deployed unmanned aerial swarms from Bandar Abbas, casting a digital and physical shadow over the transit lanes. 
+                            </p>
+<p>
+                                In Jerusalem, the war cabinet remained in session for the twelfth hour. The intelligence gap regarding the underground facilities at Fordow had become an existential weight. The 'Constraint Cascade' had begun: a diplomatic failure in Vienna triggered a maritime provocation, which in turn forced an aerial repositioning that the United States could no longer ignore.
+                            </p>
+</div>
+<!-- Interactive Resolution Data -->
+<div class="mt-10 border border-outline-variant/10 rounded-sm overflow-hidden">
+<button class="w-full flex justify-between items-center p-4 bg-surface-container-low hover:bg-surface-container transition-colors group/btn" onclick="this.nextElementSibling.classList.toggle('open')">
+<span class="font-label text-xs font-bold text-outline uppercase tracking-widest">Resolution Telemetry</span>
+<span class="material-symbols-outlined text-outline text-sm transition-transform group-[.open]/btn:rotate-180">expand_more</span>
+</button>
+<div class="expand-content">
+<div class="p-6 grid grid-cols-2 md:grid-cols-3 gap-8 bg-surface-container-lowest/50">
+<div class="space-y-1">
+<div class="text-[10px] font-label text-outline uppercase tracking-wider">Judge Score</div>
+<div class="text-xl font-label text-primary">8.4<span class="text-[10px] text-outline ml-1">/10</span></div>
+</div>
+<div class="space-y-1">
+<div class="text-[10px] font-label text-outline uppercase tracking-wider">Israel Tension</div>
+<div class="text-xl font-label text-tertiary">+14%</div>
+</div>
+<div class="space-y-1">
+<div class="text-[10px] font-label text-outline uppercase tracking-wider">Proxy Activity</div>
+<div class="text-xl font-label text-secondary uppercase">High</div>
+</div>
+<div class="col-span-full pt-4 border-t border-outline-variant/10">
+<div class="text-[10px] font-label text-outline uppercase tracking-wider mb-2">Simulated Outcome</div>
+<p class="text-xs text-on-surface-variant leading-relaxed font-headline italic">
+                                            The collision of US minesweeping and Iranian mining operations resulted in the striking of the USS Champion. The Strait remains blocked with extreme severity.
+                                        </p>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Timeline Entry: Cycle 03 -->
+<article class="relative pl-12 pb-20 group">
+<!-- Turn Dot -->
+<div class="absolute left-0 top-2 w-3 h-3 rounded-full border-2 border-primary bg-surface-dim z-10"></div>
+<header class="mb-6 opacity-70">
+<div class="font-label text-[10px] text-primary tracking-[0.2em] mb-2 uppercase">Cycle 03 // Week of Nov 12 // Level 4</div>
+<h2 class="font-headline text-3xl text-on-surface">The Vienna Breakdown</h2>
+<time class="font-label text-[10px] text-outline-variant uppercase">Nov 12, 2024 - 18:00 Zulu</time>
+</header>
+<div class="font-headline text-lg leading-relaxed text-on-surface-variant italic space-y-6 opacity-80">
+<p>
+                                The final offer from the E3 fell silent against the backdrop of industrial enrichment. Negotiations dissolved not with a shout, but with the hollow sound of a closing door. The 'Sovereign Intelligence' noted a shift in the internal Iranian discourse—a move from strategic patience to tactical necessity.
+                            </p>
+</div>
+<div class="mt-8 flex gap-3 overflow-x-auto pb-4 custom-scrollbar">
+<span class="px-3 py-1 bg-surface-container-highest font-label text-[10px] text-secondary uppercase tracking-tighter flex-shrink-0">Diplomatic Sanction</span>
+<span class="px-3 py-1 bg-surface-container-highest font-label text-[10px] text-secondary uppercase tracking-tighter flex-shrink-0">Economic Contraction</span>
+<span class="px-3 py-1 bg-surface-container-highest font-label text-[10px] text-secondary uppercase tracking-tighter flex-shrink-0">Cyber Recon</span>
+</div>
+</article>
+</div>
+</section>
+<!-- Sidebar Panels -->
+<aside class="w-full lg:w-80 space-y-8">
+<!-- Constraint Cascade Panel -->
+<div class="bg-surface-container-high p-6 border-l-4 border-tertiary">
+<div class="flex items-center space-x-2 mb-4">
+<span class="material-symbols-outlined text-tertiary text-sm" style="font-variation-settings: 'FILL' 1;">warning</span>
+<h3 class="font-label text-xs font-bold tracking-widest text-on-surface uppercase">Constraint Cascade</h3>
+</div>
+<div class="space-y-4">
+<div class="group">
+<div class="text-[10px] font-label text-tertiary mb-1">C04.ALERT.MARITIME</div>
+<p class="text-xs text-on-surface-variant leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
+                                Straits of Hormuz traffic reduced 40% due to IRGC missile battery positioning.
+                            </p>
+</div>
+<div class="group border-t border-outline-variant/10 pt-4">
+<div class="text-[10px] font-label text-primary mb-1">C04.POLICY.OIL</div>
+<p class="text-xs text-on-surface-variant leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
+                                Strategic Reserve Release triggered by White House. Effectiveness: MODERATE.
+                            </p>
+</div>
+</div>
+</div>
+<!-- Threat Vectors Panel -->
+<div class="bg-surface-container-low p-6 border border-outline-variant/10">
+<h3 class="font-label text-xs font-bold tracking-widest text-outline uppercase mb-6">Threat Vectors</h3>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between text-[10px] font-label uppercase mb-2">
+<span class="text-outline">Nuclear Breakout</span>
+<span class="text-tertiary">Critical</span>
+</div>
+<div class="h-1 w-full bg-surface-container-highest">
+<div class="h-full bg-tertiary w-[88%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-label uppercase mb-2">
+<span class="text-outline">US Logistics Depth</span>
+<span class="text-secondary">Stable</span>
+</div>
+<div class="h-1 w-full bg-surface-container-highest">
+<div class="h-full bg-secondary w-[65%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-label uppercase mb-2">
+<span class="text-outline">Israeli Air Superiority</span>
+<span class="text-primary">Strained</span>
+</div>
+<div class="h-1 w-full bg-surface-container-highest">
+<div class="h-full bg-primary w-[42%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Analyst Notes -->
+<div class="p-6 border border-outline-variant/20 bg-surface-container-lowest/30">
+<h3 class="font-headline text-lg italic mb-4 text-on-surface">Analyst Notes</h3>
+<p class="text-xs text-outline leading-relaxed italic">
+                        "The current trajectory suggests a non-linear leap in escalation if Turn 5 results in a direct kinetic engagement between US and Iranian naval assets. The domestic threshold for a full-scale regional conflict has been reached."
+                    </p>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer Mobile Navigation -->
+<footer class="md:hidden fixed bottom-0 w-full bg-surface-container h-16 border-t border-outline-variant/20 flex items-center justify-around px-4 z-50">
+<button class="flex flex-col items-center text-amber-500" onclick="window.location.href='{{DATA:SCREEN:SCREEN_12}}'">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label text-[10px] mt-1">CHRONICLE</span>
+</button>
+<button class="flex flex-col items-center text-neutral-500" onclick="window.location.href='{{DATA:SCREEN:SCREEN_17}}'">
+<span class="material-symbols-outlined">gavel</span>
+<span class="font-label text-[10px] mt-1">DECISIONS</span>
+</button>
+<button class="flex flex-col items-center text-neutral-500" onclick="window.location.href='{{DATA:SCREEN:SCREEN_10}}'">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label text-[10px] mt-1">ACTORS</span>
+</button>
+<button class="flex flex-col items-center text-neutral-500">
+<span class="material-symbols-outlined">notification_important</span>
+<span class="font-label text-[10px] mt-1">ALERTS</span>
+</button>
+</footer>
+<script>
+        function toggleExpand(el) {
+            const content = el.nextElementSibling;
+            content.classList.toggle('open');
+        }
+    </script>
+</body></html>

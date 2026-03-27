@@ -7,9 +7,9 @@
 
 ## Overview
 
-This spec defines the frontend implementation plan for GeoSim Sprint 2, updated to adopt the Stitch mockup visual language as the authoritative design direction. The 7 Stitch-generated screens replace the existing `strategos-design-system.md` and `frontend-design.md` as the visual source of truth.
+This spec defines the frontend implementation plan for GeoSim Sprint 2, updated to adopt the **Analytical Noir** design language from `docs/frontend_mockups/DESIGN.md` as the **authoritative and guiding truth** for all frontend design decisions. The Stitch-generated DESIGN.md export supersedes `strategos-design-system.md` and `frontend-design.md` as the visual source of truth.
 
-Stitch is **inspiration, not a rigid spec**. Components that don't serve GeoSim's actual functionality are excluded. Components not in the original plan are evaluated on merit and included where they add value. The underlying GeoSim vision (Declassified War Room, intelligence dashboard aesthetic) remains — Stitch is simply a better realization of that vision.
+**Creative North Star: "The Sovereign Intelligence."** This system rejects generic SaaS aesthetics in favor of rigid architectural precision. Intentional asymmetry, tonal layering, Strategic Clusters grouped by cognitive priority — not mathematical grids. Every design decision is evaluated against this standard: does this look like a high-end command center, or a consumer app? The 7 Stitch-generated screens realize this vision; where screens conflict with DESIGN.md text, DESIGN.md takes precedence.
 
 ---
 
@@ -51,59 +51,153 @@ Replace all tokens in `strategos-design-system.md` with the following:
 --actor-russia:           #7B68C8   /* Muted purple */
 --actor-generic:          #5EBD8E   /* Neutral actors */
 
-/* Status */
+/* Surface variant + outline tokens (Analytical Noir) */
+--surface-variant:        rgba(255,255,255,0.06)  /* Floating overlays at 60% opacity + 20px blur */
+--outline:                #414751   /* Branching timeline main axis */
+--outline-variant:        rgba(65,71,81,0.15)     /* Ghost Border — felt, not seen */
+--primary-container:      #bc8700   /* Button pressed state, command gradient end */
+--on-primary:             #131313   /* Text on gold/primary backgrounds */
+--secondary-container:    rgba(164,201,255,0.15)  /* Strategic chips background */
+--on-secondary-container: #a4c9ff   /* Strategic chips text */
+
+/* Status — Analytical Noir semantics */
+/* Stable = secondary (#a4c9ff "Command-Center Blue") — NOT green */
+/* Caution = primary (#ffba20 gold) */
+/* Critical = tertiary (#ffb4ac coral) */
 --status-critical:        #ffb4ac   /* Coral — Stitch tertiary */
 --status-critical-bg:     rgba(255,180,172,0.12)
 --status-critical-border: rgba(255,180,172,0.30)
---status-warning:         #ffba20   /* Gold */
+--status-warning:         #ffba20   /* Gold — caution */
 --status-warning-bg:      rgba(255,186,32,0.15)
---status-stable:          #5EBD8E
---status-stable-bg:       rgba(40,140,90,0.20)
---status-info:            #a4c9ff   /* Stitch secondary — sky blue */
+--status-stable:          #a4c9ff   /* Command-Center Blue — stable/safe. NOT green. */
+--status-stable-bg:       rgba(164,201,255,0.12)
+--status-info:            #a4c9ff   /* Same as stable — sky blue */
 --status-info-bg:         rgba(164,201,255,0.12)
 --status-info-border:     rgba(164,201,255,0.25)
 ```
 
-### 1.2 Typography (Stitch fonts)
+### 1.2 Typography (DESIGN.md roles — three distinct fonts, three distinct roles)
 
-Replace existing font stack:
+**Critical: DESIGN.md assigns each font a specific role. Do not swap them.**
 
 ```css
---font-sans:   'Space Grotesk', system-ui, sans-serif;
---font-serif:  'Newsreader', Georgia, serif;
---font-mono:   'IBM Plex Mono', monospace;   /* unchanged */
+--font-display: 'Newsreader', Georgia, serif;         /* Display & Headline ONLY */
+--font-ui:      'Inter', system-ui, sans-serif;       /* UI & Title — all interface chrome */
+--font-label:   'Space Grotesk', sans-serif;          /* Labels ONLY — telemetry, coordinates, data */
+--font-mono:    'IBM Plex Mono', monospace;           /* Code, timestamps, classification */
 ```
 
-**Usage rules (same roles, new typefaces):**
+**Font role assignments (from DESIGN.md — strictly enforced):**
+
+| Font | Role | Contexts |
+|---|---|---|
+| **Newsreader** | Display & Headline | Chronicle narrative prose, simulation titles, war room headers — the "literary/historical" role |
+| **Inter** | UI & Title | Navigation, panel labels, button text, actor names, section overlines, body UI text — everything interactive |
+| **Space Grotesk** | Labels only (`label-md`, `label-sm`) | Telemetry readouts, coordinates, military unit data, score values, escalation rung numbers |
+| **IBM Plex Mono** | Timestamps / classification | Classification banner, document IDs, timestamps, intelligence report `[HEADERS]` |
+
+**Usage table:**
 
 | Context | Font | Size | Notes |
 |---|---|---|---|
 | Classification banner | IBM Plex Mono | 9px | Letter-spacing 0.12em, uppercase |
 | Document IDs / timestamps | IBM Plex Mono | 9px | Tertiary color |
-| Section overlines / labels | Space Grotesk | 10px | Uppercase, letter-spacing 0.08em |
-| Actor names / card titles | Space Grotesk | 13px | Semibold |
-| Button labels | Space Grotesk | 11px | Uppercase, semibold |
-| Panel body text | Space Grotesk | 12px | Regular |
-| All scores / numbers | IBM Plex Mono | varies | Never use sans for data |
-| Chronicle prose | Newsreader | 15px | Italic, line-height 1.75 |
+| Section overlines / nav labels | Inter | 10px | Uppercase, letter-spacing 0.08em |
+| Actor names / card titles | Inter | 13px | Semibold |
+| Button labels | Inter | 11px | Uppercase, semibold |
+| Panel body text | Inter | 12px | Regular |
+| All telemetry / scores / numbers | Space Grotesk | varies | `label-md` / `label-sm` — evokes command-center |
+| Coordinates, unit counts, rung numbers | Space Grotesk | 10–12px | Geometric construction = technical authority |
+| Chronicle prose | Newsreader | 15px | Italic, line-height 1.75 — literary authoritative weight |
 | Chronicle entity names | Newsreader | 15px | Non-italic, --text-primary |
-| Decision rationale | Newsreader | 14px | Italic, line-height 1.65 |
-| Intelligence report blocks | IBM Plex Mono | 10px | Monospace briefing aesthetic |
+| Simulation titles / Chronicle headers | Newsreader | 17–20px | Display weight |
+| Decision rationale prose | Newsreader | 14px | Italic, line-height 1.65 |
+| Intelligence report block headers | IBM Plex Mono | 10px | `[SECTION]` style, monospace |
 
-Load from Google Fonts:
-```html
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+Load from Google Fonts via `next/font/google` with `variable` option (not `<link>` tag):
+```ts
+// app/layout.tsx
+import { Inter, Newsreader, Space_Grotesk, IBM_Plex_Mono } from 'next/font/google'
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const newsreader = Newsreader({ subsets: ['latin'], variable: '--font-newsreader', style: ['normal', 'italic'] })
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk' })
+const ibmPlexMono = IBM_Plex_Mono({ subsets: ['latin'], variable: '--font-ibm-plex-mono', weight: ['400', '500'] })
 ```
 
-### 1.3 Design Principles (unchanged)
+### 1.3 Design Principles (Analytical Noir — DESIGN.md authoritative)
 
-- No `box-shadow` — elevation via background color stepping only
-- No rounded corners above 6px
-- No gradients on UI surfaces (fog-of-war overlay excepted)
+**Surface Hierarchy — depth via nesting, NOT elevation:**
+- `surface` (#131313) → deepest, outermost canvas
+- `surface_container_low` → large navigational sidebars
+- `surface_container_high` → primary data modules
+- Boundaries defined **solely** by background transitions — never by lines
+
+**The No-Line Rule (DESIGN.md — strict):**
+`1px solid borders are strictly prohibited for sectioning.` Use background color transitions between `surface_container_low` and `surface_container_highest` to define boundaries. No HR elements, no divider borders between sections.
+
+**The 0px Border Radius Rule (DESIGN.md — strict, no exceptions):**
+`border-radius: 0` on ALL containers, cards, panels, buttons, chips, and interactive elements. This is non-negotiable — rounded corners signal consumer/mobile UI, not analytical rigor.
+
+**Command Gradient (primary CTAs and critical status indicators only):**
+```css
+background: linear-gradient(to right, #ffba20, #bc8700);
+/* "Metallic tactical feel" — DO NOT use for secondary/ghost elements */
+```
+
+**Tactical Glass (floating overlays only — map popups, context menus):**
+```css
+background: rgba(/* surface_variant color */, 0.60);
+backdrop-filter: blur(20px);
+/* Allows map to bleed through — spatial awareness preserved */
+```
+
+**Ghost Border (high-density data tables only — NOT for sectioning):**
+```css
+border: 1px solid rgba(/* outline_variant */, 0.15);
+/* Should be "felt, not seen" — extremely subtle */
+```
+
+**Ambient Shadows (floating elements only — context menus, tooltips):**
+```css
+box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+/* Must be tinted with secondary color hint — NOT standard grey */
+/* Standard grey shadows are prohibited everywhere */
+```
+
+**Button Hover Behavior:**
+Buttons shift in tonal value on hover — e.g., `primary` (#ffba20) → `primary_fixed` (#bc8700). They do **NOT** glow. No box-shadow, no brightness increase, no neon effect.
+
+**Status Color Semantics (DESIGN.md — do NOT deviate):**
+- **Stable/Safe** = `secondary` (#a4c9ff "Command-Center Blue") — NOT safety green
+- **Caution** = `primary` (#ffba20 gold)
+- **Critical Threat** = `tertiary` (#ffb4ac coral)
+
+**Strategic Chips:**
+```css
+background: var(--secondary-container);   /* rgba(164,201,255,0.15) */
+color: var(--on-secondary-container);     /* #a4c9ff */
+border-radius: 0;                         /* square — Noir aesthetic */
+```
+
+**Threat Assessment Gauges (escalation bars, readiness bars):**
+- Stable state: filled with `secondary` (#a4c9ff)
+- Caution state: filled with `primary` (#ffba20)
+- Critical state: filled with `tertiary` (#ffb4ac)
+
+**Branching Timeline visualization:**
+```css
+/* Main axis */ border-color: var(--outline);         /* #414751 */
+/* Active node */ background: var(--gold);            /* #ffba20 */
+/* Alternate branch */ border: 1px dashed var(--outline-variant); /* 15% opacity */
+```
+
+**Additional prohibitions:**
 - No spinner during turn resolution — use dispatch terminal animation
 - No toast notifications — events log as dispatch lines
 - No modals — everything slides in as a panel
-- Topographic grid texture on page backgrounds
+- No rounded corners (0px is the system standard — see above)
+- No standard grey shadows — use ambient shadow spec above or nothing
+- Topographic grid texture on page backgrounds only
 
 ---
 
@@ -165,15 +259,15 @@ Load from Google Fonts:
 All 10 components in `components/ui/` keep their interfaces but get updated to Stitch tokens and fonts:
 
 - `Badge` — update colors to Stitch status palette
-- `Button` — update to Space Grotesk, #ffba20 primary, Stitch ghost style
-- `ClassificationBanner` — update gold to #ffba20, letter-spacing to 0.2em
-- `DocumentIdHeader` — update to IBM Plex Mono, Stitch tertiary text color
-- `ExpandableSection` — update toggle styling to Stitch
-- `ProgressBar` — update to Stitch status colors
-- `ScoreDisplay` — update to IBM Plex Mono, Stitch color thresholds
-- `SectionDivider` — update to Space Grotesk overline style
-- `SlideOverPanel` — update surface color to `--bg-surface-low`
-- `TopBar` — update to Space Grotesk wordmark, Stitch surface color
+- `Button` — **Primary:** 0px radius, Command Gradient (#ffba20→#bc8700), Inter uppercase label, hover = tonal shift to `primary_fixed` (#bc8700), no glow. **Secondary/Ghost:** 0px radius, Ghost Border (outline_variant 15%), transparent bg.
+- `ClassificationBanner` — gold #ffba20, IBM Plex Mono, letter-spacing 0.12em
+- `DocumentIdHeader` — IBM Plex Mono, 9px, `--text-tertiary`
+- `ExpandableSection` — 0px radius, no divider borders, background transition for open state
+- `ProgressBar` — Stitch status color scale: #a4c9ff (stable) / #ffba20 (caution) / #ffb4ac (critical). NO green.
+- `ScoreDisplay` — Space Grotesk (`label-md`) for numeric values, Stitch status thresholds
+- `SectionDivider` — Inter 10px uppercase overline style (Inter for UI chrome, NOT Space Grotesk)
+- `SlideOverPanel` — `--bg-surface-low` background, 0px radius, Ambient Shadow on floating edge
+- `TopBar` — Inter for wordmark and nav labels, IBM Plex Mono for scenario ID/turn counter
 
 ### 3.2 New Components to Build
 
@@ -303,8 +397,10 @@ This becomes the design token migration issue. Scope increases significantly:
 **New A: Design Token Migration** *(can be merged with updated #28 or kept separate)*
 - Update `tailwind.config.ts` with Stitch color palette as named tokens
 - Update `app/globals.css` with all CSS custom properties from Section 1.1
-- Add Google Fonts link (Space Grotesk, Newsreader, IBM Plex Mono)
-- Acceptance criteria: `bun run typecheck` passes, dev server shows correct fonts/colors
+- Load all four fonts via `next/font/google` with `variable` option in `app/layout.tsx`: Inter, Newsreader, Space_Grotesk, IBM_Plex_Mono
+- Set `fontFamily` in `tailwind.config.ts` to reference CSS variables (`var(--font-inter)`, `var(--font-newsreader)`, etc.)
+- **No `<link>` tag** for fonts — self-hosted via next/font
+- Acceptance criteria: `bun run typecheck` passes, dev server shows all four fonts in correct roles, `border-radius: 0` everywhere, Command Gradient on primary CTAs
 
 **New B: Scenario Hub Page — `/scenarios/[id]`**
 - Route: `app/scenarios/[id]/page.tsx`
@@ -315,7 +411,7 @@ This becomes the design token migration issue. Scope increases significantly:
 
 **New C: Strategic Actors Hub Section**
 - Component: `ActorCard` — Stitch screen 05 reference
-- Card contents: actor name (Space Grotesk bold, large), status badge (Stable/Escalating/Critical), key metrics grid (2-3 values with IBM Plex Mono), escalation progress bar, "View Dossier" button
+- Card contents: actor name (Inter bold, large), status badge (Stable/Escalating/Critical in Analytical Noir colors: #a4c9ff/#ffba20/#ffb4ac), key metrics grid (2-3 values in Space Grotesk `label-md`), escalation progress bar (Threat Gauge color scale), "View Dossier" button (0px radius, Inter)
 - Ghost background image: very faint actor icon/flag (opacity 0.05) behind card
 - Grid layout: 3 columns desktop, 2 tablet, 1 mobile
 - Lives inside Scenario Hub `/scenarios/[id]` Actors tab
