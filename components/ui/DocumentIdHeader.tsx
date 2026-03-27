@@ -15,7 +15,7 @@ export function DocumentIdHeader({
     <div
       className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em] py-3"
     >
-      {scenarioCode} // BRANCH: {branchName} // TURN{" "}
+      {scenarioCode}{' // BRANCH: '}{branchName}{' // TURN '}
       <span className="font-medium">
         {String(turnNumber).padStart(2, "0")}
       </span>{" "}

@@ -10,7 +10,7 @@ export function SectionDivider({ title, subtitle }: SectionDividerProps) {
     >
       <div className="border-t border-border-subtle pt-2">
         {title}
-        {subtitle && <span> // {subtitle}</span>}
+        {subtitle && <span>{' // '}{subtitle}</span>}
       </div>
     </div>
   );

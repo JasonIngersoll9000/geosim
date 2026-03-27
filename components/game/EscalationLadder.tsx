@@ -6,7 +6,7 @@ interface Props {
 
 const DEFAULT_LABELS = ['Diplomacy', 'Sanctions', 'Covert', 'Proxy', 'Air', 'Naval', 'Ground', 'Nuclear']
 
-export function EscalationLadder({ currentRung, maxRung = 8, labels = DEFAULT_LABELS }: Props) {
+export function EscalationLadder({ currentRung, maxRung = 8, labels: _labels = DEFAULT_LABELS }: Props) {
   return (
     <div className="flex gap-[3px] items-end">
       {Array.from({ length: maxRung }, (_, i) => {
