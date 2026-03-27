@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
 import { TopBar } from '@/components/ui/TopBar'
 import { DocumentIdHeader } from '@/components/ui/DocumentIdHeader'
@@ -85,6 +86,7 @@ type Tab = 'timeline' | 'actors'
 
 export default function ScenarioHubPage({ params }: { params: { id: string } }) {
   const [activeTab, setActiveTab] = useState<Tab>('actors')
+  const router = useRouter()
 
   return (
     <>
@@ -123,6 +125,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
 
             <div className="flex gap-3 mt-4">
               <button
+                onClick={() => router.push(`/scenarios/${params.id}/play/trunk`)}
                 className="font-label text-[11px] font-semibold uppercase tracking-[0.04em] px-4 py-2 transition-opacity hover:opacity-[0.88]"
                 style={{
                   background: 'var(--gold)',
@@ -157,11 +160,11 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
                 className="font-label text-[11px] font-semibold uppercase tracking-[0.04em] px-4 py-2 -mb-px transition-colors"
                 style={{
                   color: activeTab === tab ? 'var(--gold)' : 'var(--text-tertiary)',
+                  border: 'none',
                   borderBottom: activeTab === tab
                     ? '2px solid var(--gold)'
                     : '2px solid transparent',
                   background: 'transparent',
-                  border: 'none',
                 }}
               >
                 {tab === 'actors' ? 'Strategic Actors' : 'Event Timeline'}
@@ -176,10 +179,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
                 <ActorCard
                   key={actor.id}
                   actor={actor}
-                  onViewDossier={() => {
-                    // TODO: navigate to play view as this actor
-                    console.log(`Play as ${actor.id}`)
-                  }}
+                  onViewDossier={() => router.push(`/scenarios/${params.id}/play/trunk`)}
                 />
               ))}
             </div>

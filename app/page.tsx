@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { TopBar } from "@/components/ui/TopBar";
 import { DocumentIdHeader } from "@/components/ui/DocumentIdHeader";
 import { SectionDivider } from "@/components/ui/SectionDivider";
@@ -102,13 +103,12 @@ export default function Home() {
         <SectionDivider title="Actions" />
 
         <div className="flex gap-3 mt-2 items-center">
-          <Button variant="primary">Launch Simulation</Button>
-          <Button variant="ghost">Browse Scenarios</Button>
-          {process.env.NEXT_PUBLIC_DEV_MODE === 'true' && (
-            <a href="/scenarios/iran-seed/play/trunk" className="font-mono text-2xs text-gold hover:underline">
-              Jump to game →
-            </a>
-          )}
+          <Link href="/scenarios/iran-2026">
+            <Button variant="primary">Launch Simulation</Button>
+          </Link>
+          <Link href="/scenarios">
+            <Button variant="ghost">Browse Scenarios</Button>
+          </Link>
         </div>
 
         {/* Chronicle sample */}
