@@ -108,6 +108,10 @@ NEUTRALITY_PREAMBLE injected into all agent prompts.
 - Always update claude-progress.txt and commit before ending a session
 - Use /clear between unrelated tasks
 
+## Custom skills (use with Skill tool)
+- `geosim-playwright` — Playwright CLI browser testing via accessibility tree (~26K tokens, saves to /tmp/)
+- `geosim-uiux-validation` — 4-category UI/UX sign-off checklist; user must approve CAT 1–4 before committing
+
 ## Feature tracking
 - features.json tracks all planned features with pass/fail status
 - Only mark a feature as passes:true AFTER tests pass
@@ -173,6 +177,9 @@ When working on a task spanning many tool calls (research pipeline, game loop):
 - Give any actor preferential treatment in AI prompts
 - Use localStorage in components (use React state or Supabase)
 - Dump entire actor state into context — use progressive disclosure
+- Write `// text` directly inside JSX — use `{' // text '}` (triggers `react/jsx-no-comment-textnodes` ESLint error, breaks Vercel build)
+- Leave destructured params unused — prefix with `_` (e.g., `labels: _labels`) to suppress `no-unused-vars`
+- Put `border: 'none'` after `borderBottom` in the same inline style object — shorthand overwrites the specific property
 
 ## Reference docs
 
@@ -201,7 +208,7 @@ Read these files **on demand** when the task requires them. Do NOT auto-load all
 
 ### Planning / high-level reference (read when planning, not every session)
 - `docs/prd.md` — Full product requirements. Start here for high-level questions.
-- `docs/scrum-issues.md` — Sprint issues with acceptance criteria. Source of truth for /pick-issue.
+- `docs/scrum-issues.md` — Sprint issues #27–#41 (Phase A–D roadmap to playable game). Source of truth for /pick-issue.
 - `docs/env-plan.md` — Environment variables, Supabase/Vercel setup, API cost estimates.
 - `docs/superpowers/plans/2026-03-24-frontend-stitch-design.md` — Active Stitch migration plan (14 tasks).
 
