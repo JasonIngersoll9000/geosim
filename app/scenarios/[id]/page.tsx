@@ -162,9 +162,6 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
                     : '2px solid transparent',
                   background: 'transparent',
                   border: 'none',
-                  borderBottom: activeTab === tab
-                    ? '2px solid var(--gold)'
-                    : '2px solid transparent',
                 }}
               >
                 {tab === 'actors' ? 'Strategic Actors' : 'Event Timeline'}
