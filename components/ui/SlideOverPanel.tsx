@@ -62,6 +62,7 @@ export function SlideOverPanel({
             </div>
             <button
               onClick={onClose}
+              aria-label="Close"
               className="p-1 font-mono text-[14px] text-text-tertiary bg-transparent border-none cursor-pointer transition-colors duration-150"
             >
               &times;
