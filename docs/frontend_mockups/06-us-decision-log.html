@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GEOSIM | Strategic Decision Log</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,wght@0,400;0,700;0,800;1,400&amp;family=Space+Grotesk:wght@300;500;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "inverse-on-surface": "#313030",
+                "surface-container-low": "#1c1b1b",
+                "surface-container-highest": "#353534",
+                "inverse-surface": "#e5e2e1",
+                "surface-dim": "#131313",
+                "outline": "#8b919d",
+                "on-secondary-fixed": "#001c39",
+                "on-background": "#e5e2e1",
+                "primary-container": "#bc8700",
+                "surface-variant": "#353534",
+                "surface-tint": "#ffba20",
+                "background": "#131313",
+                "on-tertiary": "#690006",
+                "on-secondary-fixed-variant": "#004883",
+                "on-primary": "#412d00",
+                "on-error-container": "#ffdad6",
+                "secondary-fixed": "#d4e3ff",
+                "secondary-container": "#0164b4",
+                "on-secondary-container": "#d0e1ff",
+                "primary": "#ffba20",
+                "tertiary-fixed": "#ffdad6",
+                "on-tertiary-fixed": "#410002",
+                "on-tertiary-container": "#5c0005",
+                "surface-container": "#201f1f",
+                "on-tertiary-fixed-variant": "#93000d",
+                "on-surface": "#e5e2e1",
+                "error-container": "#93000a",
+                "on-error": "#690005",
+                "tertiary-container": "#ff544c",
+                "surface-bright": "#393939",
+                "outline-variant": "#414751",
+                "surface": "#131313",
+                "secondary": "#a4c9ff",
+                "tertiary": "#ffb4ac",
+                "on-surface-variant": "#c1c7d3",
+                "primary-fixed": "#ffdea8",
+                "on-primary-container": "#392600",
+                "primary-fixed-dim": "#ffba20",
+                "tertiary-fixed-dim": "#ffb4ac",
+                "secondary-fixed-dim": "#a4c9ff",
+                "on-secondary": "#00315d",
+                "surface-container-lowest": "#0e0e0e",
+                "surface-container-high": "#2a2a2a",
+                "on-primary-fixed": "#271900",
+                "on-primary-fixed-variant": "#5e4200",
+                "inverse-primary": "#7c5800",
+                "error": "#ffb4ab"
+              },
+              fontFamily: {
+                "headline": ["Newsreader"],
+                "body": ["Inter"],
+                "label": ["Space Grotesk"]
+              },
+              borderRadius: {"DEFAULT": "0rem", "lg": "0rem", "xl": "0rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #131313; }
+        ::-webkit-scrollbar-thumb { background: #bc8700; }
+        .analytical-noir-gradient {
+            background: linear-gradient(180deg, rgba(255,186,32,0.05) 0%, rgba(19,19,19,1) 100%);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-zinc-950/90 backdrop-blur-md">
+<div class="flex items-center gap-8">
+<span class="text-xl font-serif font-black tracking-widest text-amber-500 dark:text-amber-500 font-headline uppercase">GEOSIM</span>
+<div class="h-6 w-px bg-outline-variant/30"></div>
+<div class="bg-tertiary-container/10 border border-tertiary/20 px-3 py-0.5">
+<span class="font-label text-[10px] font-bold tracking-[0.2em] text-tertiary uppercase">Classification: TOP SECRET</span>
+</div>
+</div>
+<nav class="hidden md:flex items-center space-x-8">
+<a class="font-headline tracking-tighter uppercase text-zinc-500 hover:text-amber-200 hover:bg-zinc-800/50 px-2 transition-all duration-300" href="#">STRATEGY</a>
+<a class="font-headline tracking-tighter uppercase text-zinc-500 hover:text-amber-200 hover:bg-zinc-800/50 px-2 transition-all duration-300" href="#">INTELLIGENCE</a>
+<a class="font-headline tracking-tighter uppercase text-zinc-500 hover:text-amber-200 hover:bg-zinc-800/50 px-2 transition-all duration-300" href="#">RESOURCES</a>
+<a class="font-headline tracking-tighter uppercase text-amber-500 border-b-2 border-amber-500 px-2 transition-all duration-300" href="#">ARCHIVE</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="text-zinc-500 hover:text-amber-200 transition-colors">
+<span class="material-symbols-outlined">notifications_active</span>
+</button>
+<button class="text-zinc-500 hover:text-amber-200 transition-colors">
+<span class="material-symbols-outlined">terminal</span>
+</button>
+<div class="w-8 h-8 bg-surface-container-highest border border-outline-variant overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover grayscale opacity-80" data-alt="Close up portrait of a serious intelligence officer in a dark suit against a shadowy background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6M-RFQWoQRRzZxsubm_VtFS0btNsu0IqIHQqoNnVZyITrAntt2anCd1wDcsQjrprvgc6fwDwD2VFJKmgvwma77p49uSlNe-6FPrFAxbkZOjGGZLNeiJ4yd6q2X-RptdKzSWIEP2oEtvC0RZHMXOkz4juhWP2m-K-EpqWQdVeMwIodnyiRXoP2dCTKqLbrR8buCCGY8FynDAwyO3lrdsdMRa0LO0alpqboPMbU91UWKPqhOrx1jbKGwHl6BumtuJ4vM3O0Bf2ZO6k"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen flex flex-col pt-20 z-40 border-r border-zinc-800/50 bg-zinc-950 w-64">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 bg-surface-container overflow-hidden border border-primary/20">
+<img alt="US Actor Seal" class="w-full h-full object-cover grayscale contrast-125" data-alt="Official gold embossed seal of the United States government on dark leather background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3bOJ8ntOkzo6AUKE7agz3HonAEu-QR8Kdn5MPpMFlJCztWENc6QEtfW-tPXxk7Q02tU0XYj_N8bqogkRSFYzopU1x-XfZ6DViwja276K4AD0QVTpcuiEm8Hmtkx1zRCAl22lIRqjJ4oU3nCeWw2JgPZZHxX2qXhVBuj5Q8i4J0NaQoBFgTOXYNAqkB81oQRRnHraqR58NWmpu7tUVWSXe4wa-zRQ1GPOWBKYbPNgDfSDKCHYe1SpJshDDBexHjxAYI9PQQrvPPs4"/>
+</div>
+<div>
+<h2 class="font-headline text-amber-500 font-serif text-sm tracking-widest leading-none">US SOVEREIGN</h2>
+<p class="font-label text-[10px] text-zinc-500 font-bold tracking-widest mt-1">SECTOR 01-A</p>
+</div>
+</div>
+<div class="h-px w-full bg-outline-variant/10 mt-4"></div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-4 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest text-zinc-500 grayscale hover:bg-zinc-800 hover:text-white hover:grayscale-0 transition-transform scale-100 hover:scale-105 active:scale-95" href="#">
+<span class="material-symbols-outlined text-lg">dashboard</span>
+<span>COMMAND</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest text-zinc-500 grayscale hover:bg-zinc-800 hover:text-white hover:grayscale-0 transition-transform scale-100 hover:scale-105 active:scale-95" href="#">
+<span class="material-symbols-outlined text-lg">map</span>
+<span>THEATER</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest bg-zinc-900 text-amber-500 border-l-4 border-amber-500 transition-transform scale-100 hover:scale-105 active:scale-95" href="#">
+<span class="material-symbols-outlined text-lg">history_edu</span>
+<span>DECISIONS</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest text-zinc-500 grayscale hover:bg-zinc-800 hover:text-white hover:grayscale-0 transition-transform scale-100 hover:scale-105 active:scale-95" href="#">
+<span class="material-symbols-outlined text-lg">analytics</span>
+<span>ANALYTICS</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest text-zinc-500 grayscale hover:bg-zinc-800 hover:text-white hover:grayscale-0 transition-transform scale-100 hover:scale-105 active:scale-95" href="#">
+<span class="material-symbols-outlined text-lg">language</span>
+<span>RELATIONS</span>
+</a>
+</nav>
+<div class="mt-auto p-4 border-t border-zinc-800/50">
+<a class="flex items-center gap-4 px-4 py-3 font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-base">settings</span>
+<span>SYSTEM</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-tertiary transition-colors" href="#">
+<span class="material-symbols-outlined text-base">logout</span>
+<span>LOGOUT</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 px-12 min-h-screen analytical-noir-gradient pb-20">
+<!-- Header Section -->
+<header class="max-w-6xl mx-auto mb-16 border-l-2 border-primary/40 pl-8 py-4">
+<h1 class="font-headline text-5xl font-black text-on-surface tracking-tight mb-3">Strategic Decision Log: United States</h1>
+<p class="font-body text-outline text-lg max-w-2xl leading-relaxed italic">
+                A chronological record of all commands and outcomes from Turn 01 to Present. Every action documented for historical review and future tactical extrapolation.
+            </p>
+</header>
+<!-- Timeline Grid -->
+<div class="max-w-6xl mx-auto grid grid-cols-1 gap-6">
+<!-- Decision Card 04 -->
+<article class="bg-surface-container-low border-r border-outline-variant/10 flex flex-col md:flex-row items-stretch group hover:bg-surface-container transition-colors duration-500">
+<div class="md:w-48 bg-surface-container-high p-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-outline-variant/20">
+<div>
+<span class="font-label text-[10px] font-bold tracking-[0.3em] text-primary uppercase">Current Period</span>
+<div class="font-headline text-3xl font-bold mt-2">Turn 04</div>
+<div class="font-label text-xs text-zinc-500 mt-1 uppercase tracking-widest">March 22, 2024</div>
+</div>
+<div class="mt-8 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label text-[10px] font-bold tracking-widest text-primary uppercase">Live Outcome</span>
+</div>
+</div>
+<div class="flex-1 p-8">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="font-headline text-2xl font-bold text-on-surface mb-2">Intensify Air Campaign: Sector 7</h3>
+<p class="font-body text-sm text-outline max-w-xl leading-relaxed">
+                                Authorized deep-strike sorties against primary logistics hubs to cripple regional mobilization. Rationale: Pre-emptive denial of strategic reinforcement.
+                            </p>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="bg-surface-container-highest px-3 py-1 font-label text-[10px] font-bold tracking-widest text-secondary border border-secondary/20 uppercase">Operational: Surgical</span>
+<span class="bg-primary/10 px-3 py-1 font-label text-[10px] font-bold tracking-widest text-primary border border-primary/20 uppercase">Status: Success</span>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+<div class="bg-surface-container-lowest p-4 border-t border-outline-variant/10">
+<div class="font-label text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Oil Price Shift</div>
+<div class="font-label text-lg font-bold text-tertiary">+$4.20/bbl</div>
+</div>
+<div class="bg-surface-container-lowest p-4 border-t border-outline-variant/10">
+<div class="font-label text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Domestic Support</div>
+<div class="font-label text-lg font-bold text-secondary">-1.2%</div>
+</div>
+<div class="bg-surface-container-lowest p-4 border-t border-outline-variant/10">
+<div class="font-label text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Escalation Rung</div>
+<div class="font-label text-lg font-bold text-primary">Level 4</div>
+</div>
+<div class="bg-surface-container-lowest p-4 border-t border-outline-variant/10">
+<div class="font-label text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Global Tension</div>
+<div class="font-label text-lg font-bold text-tertiary">High</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Decision Card 03 -->
+<article class="bg-surface-container-low border-r border-outline-variant/10 flex flex-col md:flex-row items-stretch group hover:bg-surface-container transition-colors duration-500">
+<div class="md:w-48 bg-surface-container-high p-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-outline-variant/20">
+<div>
+<span class="font-label text-[10px] font-bold tracking-[0.3em] text-zinc-500 uppercase">Archive State</span>
+<div class="font-headline text-3xl font-bold mt-2">Turn 03</div>
+<div class="font-label text-xs text-zinc-500 mt-1 uppercase tracking-widest">March 08, 2024</div>
+</div>
+</div>
+<div class="flex-1 p-8">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="font-headline text-2xl font-bold text-on-surface mb-2">Diplomatic Decoupling: Protocol Alpha</h3>
+<p class="font-body text-sm text-outline max-w-xl leading-relaxed">
+                                Formal withdrawal from secondary trade accords to signal dissatisfaction with neutral bloc alignment. Rationale: Economic leverage as coercive diplomacy.
+                            </p>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="bg-surface-container-highest px-3 py-1 font-label text-[10px] font-bold tracking-widest text-zinc-400 border border-outline-variant/20 uppercase">Operational: Systematic</span>
+<span class="bg-zinc-800 px-3 py-1 font-label text-[10px] font-bold tracking-widest text-zinc-400 border border-outline-variant/20 uppercase">Status: Attritional</span>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 opacity-70 group-hover:opacity-100 transition-opacity">
+<div class="bg-surface-container-lowest p-4 border-t border-outline-variant/10">
+<div class="font-label text-[10px] text-zinc-500 uppercase tracking-widest mb-1">GDP Growth</div>
+<div class="font-label text-lg font-bold text-tertiary">-0.4%</div>
+</div>
+<div class="bg-surface-container-lowest p-4 border-t border-outline-variant/10">
+<div class="font-label text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Influence Score</div>
+<div class="font-label text-lg font-bold text-primary">+85</div>
+</div>
+<div class="bg-surface-container-lowest p-4 border-t border-outline-variant/10">
+<div class="font-label text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Trade Deficit</div>
+<div class="font-label text-lg font-bold text-on-surface">$1.2B</div>
+</div>
+<div class="bg-surface-container-lowest p-4 border-t border-outline-variant/10">
+<div class="font-label text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Sentiment</div>
+<div class="font-label text-lg font-bold text-zinc-400">Stable</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Decision Card 02 -->
+<article class="bg-surface-container-low border-r border-outline-variant/10 flex flex-col md:flex-row items-stretch group hover:bg-surface-container transition-colors duration-500">
+<div class="md:w-48 bg-surface-container-high p-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-outline-variant/20">
+<div>
+<span class="font-label text-[10px] font-bold tracking-[0.3em] text-zinc-500 uppercase">Archive State</span>
+<div class="font-headline text-3xl font-bold mt-2">Turn 02</div>
+<div class="font-label text-xs text-zinc-500 mt-1 uppercase tracking-widest">Feb 24, 2024</div>
+</div>
+</div>
+<div class="flex-1 p-8">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="font-headline text-2xl font-bold text-on-surface mb-2">Carrier Strike Group 5 Redeployment</h3>
+<p class="font-body text-sm text-outline max-w-xl leading-relaxed">
+                                Naval movement into the contested strait to establish local supremacy. Rationale: Freedom of navigation and deterrent presence.
+                            </p>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="bg-surface-container-highest px-3 py-1 font-label text-[10px] font-bold tracking-widest text-primary border border-primary/20 uppercase">Operational: Overwhelming</span>
+<span class="bg-tertiary/10 px-3 py-1 font-label text-[10px] font-bold tracking-widest text-tertiary border border-tertiary/20 uppercase">Status: Failure</span>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 opacity-70 group-hover:opacity-100 transition-opacity">
+<div class="bg-surface-container-lowest p-4 border-t border-outline-variant/10">
+<div class="font-label text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Readiness</div>
+<div class="font-label text-lg font-bold text-tertiary">-15%</div>
+</div>
+<div class="bg-surface-container-lowest p-4 border-t border-outline-variant/10">
+<div class="font-label text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Power Projection</div>
+<div class="font-label text-lg font-bold text-secondary">Diminished</div>
+</div>
+<div class="bg-surface-container-lowest p-4 border-t border-outline-variant/10">
+<div class="font-label text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Fuel Consumption</div>
+<div class="font-label text-lg font-bold text-on-surface">Peak</div>
+</div>
+<div class="bg-surface-container-lowest p-4 border-t border-outline-variant/10">
+<div class="font-label text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Aggression Index</div>
+<div class="font-label text-lg font-bold text-tertiary">9.2</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Data Decorative Card -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+<div class="col-span-2 bg-surface-container-highest/40 p-12 flex flex-col justify-center border-l-4 border-primary">
+<h4 class="font-headline text-3xl font-bold mb-4 italic text-primary/80">"History is the narrative of decisions made under duress."</h4>
+<p class="font-body text-outline text-sm leading-loose">
+                        The aggregate success rate of the United States actor currently sits at 64.2%. Strategic focus has shifted from economic containment in Turn 01 to kinetic deterrence in Turn 04. Tactical evolution suggests a heightening of conflict risk by 12% in the coming cycles.
+                    </p>
+</div>
+<div class="bg-surface-container-highest/60 p-8 border border-outline-variant/10 overflow-hidden relative">
+<img alt="Strategy Visualization" class="absolute inset-0 w-full h-full object-cover opacity-20 grayscale" data-alt="Digital schematic of a global neural network showing glowing nodes and connections over a dark topographical map" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr-OABGx1zkfz98kaHovthwPTh5kABK8Ax2TnxuJyhuZBvtf82ypZzL4PAUosH72xvzfVTac2SrisZ6RCNPNGLwWyua0KQj934JwgottMxc4WVpSf71_4_AVeXJ40h4CTWsHjQAMMggdMxRrGZyv6qNbOwXsF03KHK8Kos_1m-HAf4Dhrg4Ke7LF5FtKdNpFF-SdWg7RM0ZS9r5QtGKYEn-Tz1NLh9wXoyrE49GchWWOMOwYQMtghjPSGeFE3rCAoGEPnZXIr0C_Q"/>
+<div class="relative z-10 h-full flex flex-col justify-between">
+<span class="font-label text-[10px] font-bold tracking-widest text-primary uppercase">Active Visualization</span>
+<div>
+<div class="font-headline text-xl font-bold">Decision Cluster 04-A</div>
+<p class="font-label text-[10px] text-zinc-500 mt-2 uppercase tracking-widest">Recalculating Outcomes...</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual Status Bar (Replacement for BottomNav) -->
+<footer class="fixed bottom-0 right-0 w-[calc(100%-16rem)] h-10 bg-zinc-950/80 backdrop-blur-sm border-t border-zinc-800/50 flex items-center justify-between px-6 z-40">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings: 'FILL' 1;">terminal</span>
+<span class="font-label text-[9px] font-bold tracking-[0.2em] text-zinc-400 uppercase">SYS_LOG: STANDBY</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-zinc-600">database</span>
+<span class="font-label text-[9px] font-bold tracking-[0.2em] text-zinc-400 uppercase">DATA_SYNC: 100%</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-label text-[9px] font-bold tracking-[0.2em] text-zinc-500 uppercase">Simulation Time: 04.22.2024.1105</span>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GEOSIM | Strategic Actors</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Newsreader:opsz,wght@6-72,400;700&amp;family=Space+Grotesk:wght@300;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed-variant": "#93000d",
+                        "secondary-fixed-dim": "#a4c9ff",
+                        "on-primary-fixed-variant": "#5e4200",
+                        "primary-container": "#bc8700",
+                        "surface-container-low": "#1c1b1b",
+                        "on-secondary-fixed": "#001c39",
+                        "on-surface-variant": "#c1c7d3",
+                        "on-secondary-fixed-variant": "#004883",
+                        "on-primary-container": "#392600",
+                        "on-background": "#e5e2e1",
+                        "outline": "#8b919d",
+                        "on-secondary": "#00315d",
+                        "error": "#ffb4ab",
+                        "outline-variant": "#414751",
+                        "on-surface": "#e5e2e1",
+                        "primary": "#ffba20",
+                        "tertiary": "#ffb4ac",
+                        "surface-container-high": "#2a2a2a",
+                        "surface": "#131313",
+                        "surface-container": "#201f1f",
+                        "primary-fixed": "#ffdea8",
+                        "primary-fixed-dim": "#ffba20",
+                        "on-secondary-container": "#d0e1ff",
+                        "secondary-container": "#0164b4",
+                        "background": "#131313",
+                        "surface-dim": "#131313",
+                        "on-tertiary": "#690006",
+                        "on-primary": "#412d00",
+                        "tertiary-container": "#ff544c",
+                        "on-primary-fixed": "#271900",
+                        "inverse-surface": "#e5e2e1",
+                        "surface-variant": "#353534",
+                        "tertiary-fixed": "#ffdad6",
+                        "surface-container-lowest": "#0e0e0e",
+                        "tertiary-fixed-dim": "#ffb4ac",
+                        "secondary": "#a4c9ff",
+                        "on-tertiary-container": "#5c0005",
+                        "secondary-fixed": "#d4e3ff",
+                        "surface-bright": "#393939",
+                        "on-error-container": "#ffdad6",
+                        "inverse-primary": "#7c5800",
+                        "surface-container-highest": "#353534",
+                        "on-tertiary-fixed": "#410002",
+                        "inverse-on-surface": "#313030",
+                        "error-container": "#93000a",
+                        "surface-tint": "#ffba20",
+                        "on-error": "#690005"
+                    },
+                    fontFamily: {
+                        "headline": ["Newsreader"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #131313;
+            color: #e5e2e1;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="font-body selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-[#131313] border-none flex justify-between items-center w-full px-6 h-16">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-newsreader font-bold tracking-tighter text-[#ffba20]">GEOSIM</span>
+<nav class="hidden md:flex gap-6 items-center h-full">
+<a class="text-[#ffba20] font-bold border-b-2 border-[#ffba20] h-16 flex items-center px-1" href="#">Actors</a>
+<a class="text-[#a4c9ff] opacity-70 hover:bg-[#2c2c2c] transition-colors duration-150 h-16 flex items-center px-1" href="#">Decisions</a>
+<a class="text-[#a4c9ff] opacity-70 hover:bg-[#2c2c2c] transition-colors duration-150 h-16 flex items-center px-1" href="#">Events</a>
+<a class="text-[#a4c9ff] opacity-70 hover:bg-[#2c2c2c] transition-colors duration-150 h-16 flex items-center px-1" href="#">Chronicle</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center bg-[#212121] rounded-none px-3 py-1.5 border border-outline-variant/20">
+<span class="material-symbols-outlined text-sm text-outline mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-xs font-label tracking-widest uppercase w-48 p-0" placeholder="QUERY DATABASE" type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-[#2c2c2c] transition-colors text-[#ffba20]"><span class="material-symbols-outlined">radar</span></button>
+<button class="p-2 hover:bg-[#2c2c2c] transition-colors text-[#ffba20]"><span class="material-symbols-outlined">settings_input_component</span></button>
+<button class="p-2 hover:bg-[#2c2c2c] transition-colors text-[#ffba20]"><span class="material-symbols-outlined">notifications</span></button>
+</div>
+<img alt="Strategic Commander Profile" class="w-8 h-8 rounded-none border border-primary/30 ml-2" data-alt="Close up portrait of a high ranking military official in dark silhouette with orange terminal light reflections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDg15YHexkXmNv47H2RtFzAOc8Oazu7-1WJ0wOecNS0mnf0_vy80YLsC3itf4_AgixUlNfFjDJCAsSq_yPliTgkf7_IkCNK9D7s4_-JLmbZB9JvPwzmOqSma74rZsyXnAghZ9wPkKAnS_EDjr1bzU_7sZNRiqg7F5jOHz0iKwNIjh1-UtZZpl2ay6zllcmb-mv4wFOe5IfAU5L9wITgGinTeHwGAiX4DoxsRp3Y-MufsHewFEFFx0cHNIDd4VLVNtX6mBJPUG1kQdw"/>
+</div>
+</header>
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#1c1c1c] hidden md:flex flex-col pt-20 z-40">
+<div class="px-6 py-4 mb-4">
+<div class="text-lg font-space-grotesk text-[#ffba20] font-bold">STRATEGIC HUB</div>
+<div class="text-[10px] font-label uppercase tracking-[0.2em] text-outline opacity-60">Sector 7G-Alpha</div>
+</div>
+<nav class="flex-1 px-0">
+<a class="flex items-center gap-4 px-6 py-4 bg-gradient-to-r from-[#ffba20]/10 to-transparent border-l-4 border-[#ffba20] text-[#ffba20]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span class="font-label uppercase tracking-widest text-xs">Actors</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-4 text-[#a4c9ff] hover:text-white opacity-60 hover:bg-[#2c2c2c] transition-all" href="#">
+<span class="material-symbols-outlined">gavel</span>
+<span class="font-label uppercase tracking-widest text-xs">Decisions</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-4 text-[#a4c9ff] hover:text-white opacity-60 hover:bg-[#2c2c2c] transition-all" href="#">
+<span class="material-symbols-outlined">event_note</span>
+<span class="font-label uppercase tracking-widest text-xs">Events</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-4 text-[#a4c9ff] hover:text-white opacity-60 hover:bg-[#2c2c2c] transition-all" href="#">
+<span class="material-symbols-outlined">history_edu</span>
+<span class="font-label uppercase tracking-widest text-xs">Chronicle</span>
+</a>
+</nav>
+<div class="p-6">
+<button class="w-full bg-gradient-to-r from-[#ffba20] to-[#bc8700] text-[#412d00] font-label font-bold uppercase tracking-tighter text-xs py-3 rounded-none hover:brightness-110 active:scale-[0.99] transition-all">
+                INITIALIZE SIMULATION
+            </button>
+</div>
+<div class="mt-auto border-t border-outline-variant/10">
+<a class="flex items-center gap-4 px-6 py-3 text-[#a4c9ff] opacity-60 hover:text-white text-xs font-label uppercase" href="#">
+<span class="material-symbols-outlined text-sm">terminal</span>
+                System Logs
+            </a>
+<a class="flex items-center gap-4 px-6 py-3 text-[#a4c9ff] opacity-60 hover:text-white text-xs font-label uppercase mb-4" href="#">
+<span class="material-symbols-outlined text-sm">help_center</span>
+                Support
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-20 px-6 pb-12">
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
+<div class="w-full md:w-auto">
+<div class="flex items-center gap-2 mb-2">
+<span class="w-8 h-[1px] bg-primary"></span>
+<span class="font-label text-primary uppercase tracking-[0.3em] text-[10px]">Intelligence Assets</span>
+</div>
+<h1 class="font-headline text-5xl md:text-6xl text-on-surface">Strategic Actors</h1>
+<p class="font-body text-secondary-fixed-dim/60 max-w-xl mt-4 leading-relaxed">
+                    Overview of global sovereign entities and non-state proxies currently influential within the Sector 7G simulation environment. Data real-time synced with tactical telemetry.
+                </p>
+</div>
+<div class="flex gap-3 font-label text-[10px] tracking-widest uppercase">
+<div class="bg-surface-container-high px-4 py-2 border border-outline-variant/10">
+<span class="opacity-40 block mb-1">Active Profiles</span>
+<span class="text-xl font-bold text-primary">07</span>
+</div>
+<div class="bg-surface-container-high px-4 py-2 border border-outline-variant/10">
+<span class="opacity-40 block mb-1">Threat Level</span>
+<span class="text-xl font-bold text-tertiary">CRITICAL</span>
+</div>
+</div>
+</header>
+<!-- Filters/Tactical Tabs -->
+<div class="flex gap-4 mb-8 overflow-x-auto no-scrollbar pb-2">
+<button class="px-6 py-2 bg-primary text-on-primary font-label text-xs uppercase tracking-widest whitespace-nowrap">Global Overview</button>
+<button class="px-6 py-2 bg-surface-container-low text-secondary font-label text-xs uppercase tracking-widest whitespace-nowrap border border-outline-variant/10 hover:bg-surface-container-high transition-colors">Western Coalition</button>
+<button class="px-6 py-2 bg-surface-container-low text-secondary font-label text-xs uppercase tracking-widest whitespace-nowrap border border-outline-variant/10 hover:bg-surface-container-high transition-colors">Resistance Axis</button>
+<button class="px-6 py-2 bg-surface-container-low text-secondary font-label text-xs uppercase tracking-widest whitespace-nowrap border border-outline-variant/10 hover:bg-surface-container-high transition-colors">Non-Aligned</button>
+</div>
+<!-- Actor Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-0">
+<!-- Actor Card: USA -->
+<div class="bg-[#1c1c1c] border border-outline-variant/20 p-8 flex flex-col h-[400px] relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[120px] translate-x-1/4 -translate-y-1/4">public</span>
+</div>
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="font-label text-[10px] text-secondary-fixed-dim/50 uppercase tracking-widest block mb-2">Western Coalition</span>
+<h2 class="font-headline text-4xl text-on-surface">United States</h2>
+</div>
+<div class="bg-primary/10 border border-primary/30 px-3 py-1">
+<span class="font-label text-[9px] text-primary uppercase font-bold">Stable</span>
+</div>
+</div>
+<div class="space-y-4 mb-auto">
+<div>
+<span class="font-label text-[10px] text-outline uppercase block">Strategic Role</span>
+<p class="font-body text-sm text-on-surface/80">Security Guarantor &amp; Economic Hegemon</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex-1">
+<span class="font-label text-[10px] text-outline uppercase block mb-1">Current Stance</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-sm">balance</span>
+<span class="font-label text-xs uppercase text-secondary">Pragmatic</span>
+</div>
+</div>
+<div class="flex-1">
+<span class="font-label text-[10px] text-outline uppercase block mb-1">Alignment</span>
+<div class="font-label text-xs uppercase text-on-surface">Unipolar Core</div>
+</div>
+</div>
+<div class="pt-4 border-t border-outline-variant/10">
+<div class="flex justify-between text-[10px] font-label text-outline uppercase mb-1">
+<span>Influence Depth</span>
+<span>98%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1">
+<div class="bg-primary h-full w-[98%]"></div>
+</div>
+</div>
+</div>
+<button class="mt-8 border border-outline-variant py-3 font-label text-xs uppercase tracking-widest hover:bg-on-surface hover:text-surface transition-all active:scale-[0.98]">View Dossier</button>
+</div>
+<!-- Actor Card: Israel -->
+<div class="bg-[#131313] border border-outline-variant/20 p-8 flex flex-col h-[400px] relative overflow-hidden group">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="font-label text-[10px] text-secondary-fixed-dim/50 uppercase tracking-widest block mb-2">Western Coalition</span>
+<h2 class="font-headline text-4xl text-on-surface">Israel</h2>
+</div>
+<div class="bg-tertiary-container/10 border border-tertiary-container/30 px-3 py-1">
+<span class="font-label text-[9px] text-tertiary-container uppercase font-bold">Escalation</span>
+</div>
+</div>
+<div class="space-y-4 mb-auto">
+<div>
+<span class="font-label text-[10px] text-outline uppercase block">Strategic Role</span>
+<p class="font-body text-sm text-on-surface/80">Regional Military Powerhouse</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex-1">
+<span class="font-label text-[10px] text-outline uppercase block mb-1">Current Stance</span>
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined text-sm">sword_rose</span>
+<span class="font-label text-xs uppercase">Hawk</span>
+</div>
+</div>
+<div class="flex-1">
+<span class="font-label text-[10px] text-outline uppercase block mb-1">Alignment</span>
+<div class="font-label text-xs uppercase text-on-surface">Strategic Partner</div>
+</div>
+</div>
+<div class="pt-4 border-t border-outline-variant/10">
+<div class="flex justify-between text-[10px] font-label text-outline uppercase mb-1">
+<span>Regional Tension</span>
+<span>84%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1">
+<div class="bg-tertiary h-full w-[84%]"></div>
+</div>
+</div>
+</div>
+<button class="mt-8 border border-outline-variant py-3 font-label text-xs uppercase tracking-widest hover:bg-on-surface hover:text-surface transition-all active:scale-[0.98]">View Dossier</button>
+</div>
+<!-- Actor Card: Iran -->
+<div class="bg-[#1c1c1c] border border-outline-variant/20 p-8 flex flex-col h-[400px] relative overflow-hidden group">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="font-label text-[10px] text-tertiary/50 uppercase tracking-widest block mb-2">Resistance Axis</span>
+<h2 class="font-headline text-4xl text-on-surface">Iran</h2>
+</div>
+<div class="bg-secondary-container/10 border border-secondary-container/30 px-3 py-1">
+<span class="font-label text-[9px] text-secondary-fixed uppercase font-bold">Calculating</span>
+</div>
+</div>
+<div class="space-y-4 mb-auto">
+<div>
+<span class="font-label text-[10px] text-outline uppercase block">Strategic Role</span>
+<p class="font-body text-sm text-on-surface/80">Asymmetric Architect &amp; Regional Rival</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex-1">
+<span class="font-label text-[10px] text-outline uppercase block mb-1">Current Stance</span>
+<div class="flex items-center gap-2 text-secondary">
+<span class="material-symbols-outlined text-sm">shield_with_heart</span>
+<span class="font-label text-xs uppercase">Pragmatic</span>
+</div>
+</div>
+<div class="flex-1">
+<span class="font-label text-[10px] text-outline uppercase block mb-1">Alignment</span>
+<div class="font-label text-xs uppercase text-on-surface">Revisionist Power</div>
+</div>
+</div>
+<div class="pt-4 border-t border-outline-variant/10">
+<div class="flex justify-between text-[10px] font-label text-outline uppercase mb-1">
+<span>Proxy Control</span>
+<span>72%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1">
+<div class="bg-secondary h-full w-[72%]"></div>
+</div>
+</div>
+</div>
+<button class="mt-8 border border-outline-variant py-3 font-label text-xs uppercase tracking-widest hover:bg-on-surface hover:text-surface transition-all active:scale-[0.98]">View Dossier</button>
+</div>
+<!-- Actor Card: Russia -->
+<div class="bg-[#131313] border border-outline-variant/20 p-8 flex flex-col h-[400px] relative overflow-hidden group">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="font-label text-[10px] text-outline uppercase tracking-widest block mb-2">Non-Aligned / Pivot</span>
+<h2 class="font-headline text-4xl text-on-surface">Russia</h2>
+</div>
+<div class="bg-tertiary-container/10 border border-tertiary-container/30 px-3 py-1">
+<span class="font-label text-[9px] text-tertiary uppercase font-bold">Hostile</span>
+</div>
+</div>
+<div class="space-y-4 mb-auto">
+<div>
+<span class="font-label text-[10px] text-outline uppercase block">Strategic Role</span>
+<p class="font-body text-sm text-on-surface/80">Resource Giant &amp; Military Disruptor</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex-1">
+<span class="font-label text-[10px] text-outline uppercase block mb-1">Current Stance</span>
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined text-sm">warning</span>
+<span class="font-label text-xs uppercase">Hawk</span>
+</div>
+</div>
+<div class="flex-1">
+<span class="font-label text-[10px] text-outline uppercase block mb-1">Alignment</span>
+<div class="font-label text-xs uppercase text-on-surface">Independent Axis</div>
+</div>
+</div>
+<div class="pt-4 border-t border-outline-variant/10">
+<div class="flex justify-between text-[10px] font-label text-outline uppercase mb-1">
+<span>Isolation Index</span>
+<span>65%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1">
+<div class="bg-tertiary-container h-full w-[65%]"></div>
+</div>
+</div>
+</div>
+<button class="mt-8 border border-outline-variant py-3 font-label text-xs uppercase tracking-widest hover:bg-on-surface hover:text-surface transition-all active:scale-[0.98]">View Dossier</button>
+</div>
+<!-- Actor Card: China -->
+<div class="bg-[#1c1c1c] border border-outline-variant/20 p-8 flex flex-col h-[400px] relative overflow-hidden group">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="font-label text-[10px] text-secondary-fixed-dim/50 uppercase tracking-widest block mb-2">Global Competitor</span>
+<h2 class="font-headline text-4xl text-on-surface">China</h2>
+</div>
+<div class="bg-primary/10 border border-primary/30 px-3 py-1">
+<span class="font-label text-[9px] text-primary uppercase font-bold">Ascendant</span>
+</div>
+</div>
+<div class="space-y-4 mb-auto">
+<div>
+<span class="font-label text-[10px] text-outline uppercase block">Strategic Role</span>
+<p class="font-body text-sm text-on-surface/80">Industrial Core &amp; Emerging Superpower</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex-1">
+<span class="font-label text-[10px] text-outline uppercase block mb-1">Current Stance</span>
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-sm">timeline</span>
+<span class="font-label text-xs uppercase">Wavering</span>
+</div>
+</div>
+<div class="flex-1">
+<span class="font-label text-[10px] text-outline uppercase block mb-1">Alignment</span>
+<div class="font-label text-xs uppercase text-on-surface">Alternative Hub</div>
+</div>
+</div>
+<div class="pt-4 border-t border-outline-variant/10">
+<div class="flex justify-between text-[10px] font-label text-outline uppercase mb-1">
+<span>Economic Leverage</span>
+<span>92%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1">
+<div class="bg-primary h-full w-[92%]"></div>
+</div>
+</div>
+</div>
+<button class="mt-8 border border-outline-variant py-3 font-label text-xs uppercase tracking-widest hover:bg-on-surface hover:text-surface transition-all active:scale-[0.98]">View Dossier</button>
+</div>
+<!-- Actor Card: Gulf States -->
+<div class="bg-[#131313] border border-outline-variant/20 p-8 flex flex-col h-[400px] relative overflow-hidden group">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="font-label text-[10px] text-secondary-fixed-dim/50 uppercase tracking-widest block mb-2">Non-Aligned</span>
+<h2 class="font-headline text-4xl text-on-surface">Gulf States</h2>
+</div>
+<div class="bg-secondary/10 border border-secondary/30 px-3 py-1">
+<span class="font-label text-[9px] text-secondary uppercase font-bold">Neutral</span>
+</div>
+</div>
+<div class="space-y-4 mb-auto">
+<div>
+<span class="font-label text-[10px] text-outline uppercase block">Strategic Role</span>
+<p class="font-body text-sm text-on-surface/80">Energy Cartel &amp; Diplomatic Mediator</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex-1">
+<span class="font-label text-[10px] text-outline uppercase block mb-1">Current Stance</span>
+<div class="flex items-center gap-2 text-secondary">
+<span class="material-symbols-outlined text-sm">handshake</span>
+<span class="font-label text-xs uppercase">Pragmatic</span>
+</div>
+</div>
+<div class="flex-1">
+<span class="font-label text-[10px] text-outline uppercase block mb-1">Alignment</span>
+<div class="font-label text-xs uppercase text-on-surface">Resource Sovereign</div>
+</div>
+</div>
+<div class="pt-4 border-t border-outline-variant/10">
+<div class="flex justify-between text-[10px] font-label text-outline uppercase mb-1">
+<span>Global Liquidity</span>
+<span>78%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1">
+<div class="bg-secondary-fixed h-full w-[78%]"></div>
+</div>
+</div>
+</div>
+<button class="mt-8 border border-outline-variant py-3 font-label text-xs uppercase tracking-widest hover:bg-on-surface hover:text-surface transition-all active:scale-[0.98]">View Dossier</button>
+</div>
+</div>
+<!-- Proxies Section (Asymmetric Layout) -->
+<section class="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-12">
+<div class="lg:col-span-1">
+<div class="flex items-center gap-2 mb-4">
+<span class="w-4 h-[1px] bg-tertiary"></span>
+<span class="font-label text-tertiary uppercase tracking-[0.3em] text-[10px]">Shadow Theatre</span>
+</div>
+<h3 class="font-headline text-3xl mb-4">Non-State Proxies</h3>
+<p class="font-body text-sm leading-relaxed opacity-60">
+                    Monitoring clandestine activities and paramilitary groups operating across active sectors. These actors represent the primary friction points in low-intensity conflict scenarios.
+                </p>
+</div>
+<div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="bg-surface-container-low border-l-2 border-tertiary p-6 hover:bg-surface-container-high transition-colors">
+<div class="flex justify-between mb-4">
+<span class="font-label text-[10px] uppercase text-outline">Affiliation: Resistance Axis</span>
+<span class="material-symbols-outlined text-tertiary text-sm">dangerous</span>
+</div>
+<h4 class="font-headline text-xl mb-2">Hezbollah</h4>
+<p class="font-body text-xs opacity-60 mb-4 leading-relaxed">Active in Lebanon-Israel border sectors. High tactical proficiency and missile capabilities.</p>
+<div class="flex justify-between items-center">
+<span class="font-label text-[9px] uppercase tracking-widest text-primary">Threat Level: High</span>
+<button class="text-xs font-label uppercase text-secondary hover:underline">Intel Logs</button>
+</div>
+</div>
+<div class="bg-surface-container-low border-l-2 border-primary p-6 hover:bg-surface-container-high transition-colors">
+<div class="flex justify-between mb-4">
+<span class="font-label text-[10px] uppercase text-outline">Affiliation: Diverse</span>
+<span class="material-symbols-outlined text-primary text-sm">skull</span>
+</div>
+<h4 class="font-headline text-xl mb-2">PMC Wagner / Successors</h4>
+<p class="font-body text-xs opacity-60 mb-4 leading-relaxed">Operating in Sahel and Eastern Europe regions. Primary instrument for irregular warfare.</p>
+<div class="flex justify-between items-center">
+<span class="font-label text-[9px] uppercase tracking-widest text-primary">Threat Level: Severe</span>
+<button class="text-xs font-label uppercase text-secondary hover:underline">Intel Logs</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Mobile Navigation Shell -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#131313] border-t border-outline-variant/20 flex justify-around items-center h-16 z-50">
+<a class="flex flex-col items-center justify-center gap-1 text-[#ffba20]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span class="text-[9px] font-label uppercase tracking-widest">Actors</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-[#a4c9ff] opacity-70" href="#">
+<span class="material-symbols-outlined">gavel</span>
+<span class="text-[9px] font-label uppercase tracking-widest">Decisions</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-[#a4c9ff] opacity-70" href="#">
+<span class="material-symbols-outlined">event_note</span>
+<span class="text-[9px] font-label uppercase tracking-widest">Events</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-[#a4c9ff] opacity-70" href="#">
+<span class="material-symbols-outlined">history_edu</span>
+<span class="text-[9px] font-label uppercase tracking-widest">Chronicle</span>
+</a>
+</nav>
+</body></html>

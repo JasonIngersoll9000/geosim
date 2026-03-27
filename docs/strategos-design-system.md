@@ -16,37 +16,43 @@ This document defines the visual language for Strategos. The goal is a UI that f
 
 ## Color Tokens
 
-### Backgrounds
+> **Stitch palette — updated 2026-03-24.** These tokens replace the original Strategos values.
+> All CSS custom properties are defined in `app/globals.css`.
+
+### Backgrounds — 6-level scale
 
 ```
---bg-base:       #0D1117   /* Page / outermost shell */
---bg-surface-1:  #161B24   /* Panels, sidebars, top bar */
---bg-surface-2:  #1D2433   /* Cards, metric blocks, input fields */
---bg-surface-3:  #242B3D   /* Hovered cards, active items */
+--bg-base:           #0D1117   /* Page / outermost shell */
+--bg-surface-dim:    #131313   /* Recessed areas */
+--bg-surface-low:    #1c1b1b   /* Panels, sidebars, top bar */
+--bg-surface:        #201f1f   /* Cards, metric blocks, input fields */
+--bg-surface-high:   #2a2a2a   /* Hovered cards, active items */
+--bg-surface-highest: #353534  /* Tooltips, top-layer surfaces */
 ```
 
-### Borders
+### Borders — opaque (not rgba)
 
 ```
---border-subtle:  rgba(255, 255, 255, 0.08)   /* Default panel borders */
---border-hi:      rgba(255, 255, 255, 0.14)   /* Emphasized borders, hover states */
+--border-subtle:  #414751   /* Default panel borders */
+--border-hi:      #8b919d   /* Emphasized borders, hover states */
 ```
 
 ### Text
 
 ```
---text-primary:    #E8E4DC                    /* Headlines, labels, body */
---text-secondary:  rgba(232, 228, 220, 0.55)  /* Muted labels, descriptions */
---text-tertiary:   rgba(232, 228, 220, 0.32)  /* Hints, timestamps, section labels */
+--text-primary:    #e5e2e1                    /* Headlines, labels, body */
+--text-secondary:  #c1c7d3                    /* Muted labels, descriptions */
+--text-tertiary:   rgba(229, 226, 225, 0.45)  /* Hints, timestamps, section labels */
 ```
 
 ### Accent — Gold (primary interactive color)
 
 ```
---gold:         #C9983A
---gold-dim:     rgba(201, 152, 58, 0.18)   /* Selected card backgrounds */
---gold-glow:    rgba(201, 152, 58, 0.08)   /* Subtle active state fill */
---gold-border:  rgba(201, 152, 58, 0.40)   /* Gold-accent borders */
+--gold:         #ffba20
+--gold-dim:     rgba(255, 186, 32, 0.18)   /* Selected card backgrounds */
+--gold-glow:    rgba(255, 186, 32, 0.08)   /* Subtle active state fill */
+--gold-border:  rgba(255, 186, 32, 0.40)   /* Gold-accent borders */
+--gold-dark:    #bc8700                    /* Pressed / deeply active states */
 ```
 
 ### Actor Colors (faction identity — never use neon variants)
@@ -54,46 +60,71 @@ This document defines the visual language for Strategos. The goal is a UI that f
 ```
 --actor-us:       #4A7FA5   /* United States — steel diplomatic blue */
 --actor-iran:     #8B2635   /* Iran — muted crimson */
---actor-israel:   #C9983A   /* Israel — shares gold accent */
+--actor-israel:   #ffba20   /* Israel — shares gold accent */
 --actor-russia:   #7B68C8   /* Russia — muted purple */
 --actor-generic:  #5EBD8E   /* Neutral/other actors — desaturated green */
 ```
 
-### Status / Escalation
+### Status / Escalation — Command-Center palette
 
 ```
---status-critical:   #E27085   /* Text on crimson background */
---status-critical-bg: rgba(139, 38, 53, 0.18)
---status-critical-border: rgba(139, 38, 53, 0.30)
+--status-critical:        #ffb4ac   /* Coral/tertiary — degraded/danger */
+--status-critical-bg:     rgba(255, 180, 172, 0.12)
+--status-critical-border: rgba(255, 180, 172, 0.30)
 
---status-warning:    #C9983A   /* Same as gold — major events */
---status-warning-bg: rgba(201, 152, 58, 0.15)
+--status-warning:         #ffba20   /* Same as gold — caution/major events */
+--status-warning-bg:      rgba(255, 186, 32, 0.15)
 
---status-stable:     #5EBD8E
---status-stable-bg:  rgba(40, 140, 90, 0.20)
+--status-stable:          #a4c9ff   /* Command-Center Blue — healthy/nominal */
+--status-stable-bg:       rgba(164, 201, 255, 0.12)
+--status-stable-border:   rgba(164, 201, 255, 0.25)
 
---status-info:       #7BAED4
---status-info-bg:    rgba(74, 127, 165, 0.15)
---status-info-border: rgba(74, 127, 165, 0.25)
+--status-info:            #a4c9ff   /* Same as stable — informational */
+--status-info-bg:         rgba(164, 201, 255, 0.12)
+--status-info-border:     rgba(164, 201, 255, 0.25)
 ```
+
+> **Note:** `--status-stable` is Command-Center Blue (`#a4c9ff`), NOT green. This is intentional —
+> green reads as "go/safe" in consumer apps. The blue conveys operational normalcy without
+> the consumer-product connotation.
 
 ---
 
 ## Typography
 
+> **Stitch font system — updated 2026-03-24.** Four font roles, loaded via `next/font/google`
+> with the `variable` option. No `<link>` tags.
+
+### Font Loading
+
+Use `next/font/google` with the `variable` option in `app/layout.tsx`. Each font exposes a
+CSS variable (`--font-inter`, `--font-newsreader`, `--font-space-grotesk`, `--font-ibm-plex-mono`)
+that is then referenced by the semantic stack variables below.
+
 ### Font Stack
 
 ```
---font-sans:  system-ui, -apple-system, 'Inter', sans-serif
---font-serif: Georgia, 'Lora', 'Times New Roman', serif
---font-mono:  'JetBrains Mono', 'IBM Plex Mono', 'Fira Mono', monospace
+--font-sans:  var(--font-inter), 'Inter', system-ui, sans-serif
+--font-serif: var(--font-newsreader), 'Newsreader', Georgia, serif
+--font-label: var(--font-space-grotesk), 'Space Grotesk', sans-serif
+--font-mono:  var(--font-ibm-plex-mono), 'IBM Plex Mono', monospace
 ```
+
+### Four Font Roles
+
+| Variable | Font | Role |
+|---|---|---|
+| `--font-sans` | Inter | UI chrome: body text, descriptions, panel content |
+| `--font-serif` | Newsreader | Chronicle prose, display headings, literary narrative |
+| `--font-label` | Space Grotesk | Labels, badges, telemetry data, section overlines |
+| `--font-mono` | IBM Plex Mono | All numbers, timestamps, coordinates, scores, document IDs |
 
 ### Usage Rules
 
-- **`--font-sans`** — all UI chrome: labels, buttons, tabs, panel headers, actor names, tags.
-- **`--font-serif`** — War Chronicle narrative text only. When the UI switches into prose mode (chronicle entries, turn narratives, decision rationale), switch to serif. This is the single most important typographic decision — it signals "you are reading history."
-- **`--font-mono`** — all numerical data: turn counters, dimensional scores (military: 82), oil prices, timestamps in chronicle headers, escalation rung numbers.
+- **`--font-sans` (Inter)** — default body text, panel content, descriptions.
+- **`--font-serif` (Newsreader)** — War Chronicle narrative text only. When the UI switches into prose mode (chronicle entries, turn narratives, decision rationale), switch to serif. This is the single most important typographic decision — it signals "you are reading history."
+- **`--font-label` (Space Grotesk)** — labels, badges, section overlines, button text, actor names, tab labels. The "telemetry" voice — slightly technical, slightly condensed.
+- **`--font-mono` (IBM Plex Mono)** — all numerical data: turn counters, dimensional scores (military: 82), oil prices, timestamps in chronicle headers, escalation rung numbers, document IDs.
 
 ### Type Scale
 
@@ -147,12 +178,12 @@ font-weight: 500;
 - Emphasized border: `1px solid var(--border-hi)`
 - Active/selected border: `1px solid var(--gold-border)`
 - Border radius: `5px–6px` for cards and rows, `4px` for tags/badges
-- **No `box-shadow`** on any component. Elevation is expressed through background color stepping (`--bg-surface-1` → `--bg-surface-2` → `--bg-surface-3`), not shadows.
+- **No `box-shadow`** on any component. Elevation is expressed through background color stepping (`--bg-surface-low` → `--bg-surface` → `--bg-surface-high` → `--bg-surface-highest`), not shadows.
 
 ### Panel Layout
 
-- Top bar: `42px` height, `--bg-surface-1`, `1px` bottom border
-- Side panel: `280px` fixed width, `--bg-surface-1`, `1px` left border
+- Top bar: `42px` height, `--bg-surface-low`, `1px` bottom border
+- Side panel: `280px` fixed width, `--bg-surface-low`, `1px` left border
 - Panel sections separated by `1px solid var(--border-subtle)`
 - Section labels: 9px uppercase monochrome overline, `margin-bottom: 8px`
 - Inner padding: `12px 14px`
@@ -171,28 +202,28 @@ Escalates:  bg --status-critical-bg,   text --status-critical,   border --status
 ### Metric Cards
 
 ```
-background: var(--bg-surface-2)
-border-radius: 5px
+background: var(--bg-surface)
+border-radius: 0px   /* Stitch: no rounded corners */
 padding: 7px 9px
 no border
 
 label: 9px uppercase, --text-tertiary, margin-bottom: 3px
 value: 15px, --font-mono, font-weight: 500
-       → military/info values: --status-info (#7BAED4)
-       → warning values:       --gold (#C9983A)
-       → danger/low values:    --status-critical (#E27085)
-       → healthy values:       --status-stable (#5EBD8E)
+       → military/info values: --status-info (#a4c9ff)
+       → warning values:       --gold (#ffba20)
+       → danger/low values:    --status-critical (#ffb4ac)
+       → healthy/stable values: --status-stable (#a4c9ff)
 ```
 
 ### Decision Cards
 
 ```
-background: var(--bg-surface-2)
+background: var(--bg-surface)
 border: 1px solid var(--border-subtle)
-border-radius: 6px
+border-radius: 0px   /* Stitch: no rounded corners */
 padding: 9px 11px
 
-hover:    border-color var(--border-hi), background var(--bg-surface-3)
+hover:    border-color var(--border-hi), background var(--bg-surface-high)
 selected: border-color var(--gold-border), background var(--gold-glow)
 
 title:    12px, font-weight 500, --text-primary
@@ -206,19 +237,19 @@ Primary:
   background: var(--gold)
   color: #0D1117
   border: none
-  border-radius: 5px
+  border-radius: 0px   /* Stitch: no rounded corners */
   padding: 8px 16px
   font-size: 11px, font-weight 500, letter-spacing 0.03em
   hover: opacity 0.88
 
 Ghost:
-  background: var(--bg-surface-2)
+  background: var(--bg-surface)
   border: 1px solid var(--border-hi)
   color: var(--text-secondary)
-  border-radius: 5px
+  border-radius: 0px   /* Stitch: no rounded corners */
   padding: 8px 10px
   font-size: 11px
-  hover: color --text-primary, border-color rgba(255,255,255,0.20)
+  hover: color --text-primary, border-color var(--border-hi)
 ```
 
 ### War Chronicle Entries

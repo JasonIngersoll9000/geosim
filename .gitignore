@@ -36,3 +36,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Stitch MCP artifacts
+.superpowers/
+D3KgRAz17m5P7rF3K1Buq/
+fwzfWX0cHbALoGKluWaWV/
+rJVhgwRB6FMEbLgltoQ6D/

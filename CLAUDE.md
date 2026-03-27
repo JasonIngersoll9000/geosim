@@ -55,6 +55,12 @@ Sprint 1 scaffolding complete. Key files present:
 - `supabase/migrations/20260319000000_initial_schema.sql` — Full schema with RLS
 - `tests/middleware.test.ts`, `tests/lib/` — Vitest tests (node environment)
 
+**Sprint 2 active — Stitch frontend migration** (`feature/stitch-frontend-migration`):
+- Tasks 1–6 complete (design tokens, UI primitives, game components, ActorCard, Scenario Hub)
+- Task 7 next: Scenario Browser page (`app/scenarios/page.tsx`)
+- Plan: `docs/superpowers/plans/2026-03-24-frontend-stitch-design.md`
+- Design tokens: Space Grotesk (`font-label`), Newsreader (`font-serif`), IBM Plex Mono (`font-mono`), Inter (`font-sans`); gold `#ffba20`
+
 ## Key design patterns
 - Git-like branching: scenarios have branches, turns are immutable commits
 - Fog of war: actors only see their intelligence picture, not true state
@@ -132,62 +138,39 @@ When working on a task spanning many tool calls (research pipeline, game loop):
 
 ## Reference docs
 
-### Core architecture
-@docs/prd.md
-— Full product requirements: vision, principles, domain model, architecture, game loop, frontend, branching, sprint plan. START HERE for any high-level question.
+Read these files **on demand** when the task requires them. Do NOT auto-load all of them.
 
-@docs/geosim-data-model.ts
-— TypeScript types for every entity: Scenario, Actor, ActorState, EscalationLadder, Decision, Event, etc. Source of truth for all data structures.
+### Frontend / UI (read when building components or UI)
+- `docs/frontend-design.md` — Stitch visual identity, font rules, surface treatments, "Declassified War Room" concept. Read before building any UI.
+- `docs/frontend-mockups.md` - has frontend mockups from stitch that should be used for inspiration. these are guidelines, but should be updated for our specific goals
+- `docs/component-tree.ts` — React component hierarchy, state management, hooks, providers, file structure.
+- `docs/all-ui-mockups.html` — Interactive HTML mockups (106KB — read only relevant sections, do not load whole file).
 
-@docs/db-schema.sql
-— Supabase PostgreSQL schema: tables, enums, RLS policies, indexes, triggers, git-like branching model.
+### AI agents / game logic (read when working on AI pipeline or game loop)
+- `docs/prompt-library.ts` — All AI agent system prompts with NEUTRALITY_PREAMBLE.
+- `docs/agent-architecture.ts` — Agent roles, game modes, fog-of-war context builder, game loop pseudocode.
+- `docs/research-pipeline.md` — 7-stage research pipeline with full prompt templates.
 
-@docs/api-routes.md
-— Every API endpoint with parameters, request/response shapes, and which AI agents they call.
+### Data model / database (read when working on schema, types, or migrations)
+- `docs/geosim-data-model.ts` — TypeScript types for every entity. Source of truth for all data structures.
+- `docs/db-schema.sql` — Supabase schema, RLS policies, indexes, triggers.
 
-### AI agents & prompts
-@docs/prompt-library.ts
-— All AI agent system prompts with shared NEUTRALITY_PREAMBLE. Actor agent builder, resolution engine, judge, narrator, decision analyzer.
+### API routes (read when working on API endpoints)
+- `docs/api-routes.md` — Every endpoint with parameters, request/response shapes, and which AI agents they call.
 
-@docs/research-pipeline.md
-— 7-stage pipeline (Stage 0-6) with full prompt templates for populating scenarios.
+### Testing (read when writing tests)
+- `docs/testing-strategy.md` — Test priorities by tier, TDD workflow, mocking strategy, CI integration.
 
-@docs/agent-architecture.ts
-— Agent roles, game modes, turn structure, fog-of-war context builder, game loop pseudocode.
+### Planning / high-level reference (read when planning, not every session)
+- `docs/prd.md` — Full product requirements. Start here for high-level questions.
+- `docs/scrum-issues.md` — Sprint issues with acceptance criteria. Source of truth for /pick-issue.
+- `docs/env-plan.md` — Environment variables, Supabase/Vercel setup, API cost estimates.
+- `docs/superpowers/plans/2026-03-24-frontend-stitch-design.md` — Active Stitch migration plan (14 tasks).
 
-### Frontend
-@docs/component-tree.ts
-— React component hierarchy, state management, hooks, providers, file structure.
-
-@docs/all-ui-mockups.html
-— Interactive mockups: split-screen game view, actor state panel, decision analysis, war chronicle.
-
-### Design system
-@docs/frontend-design.md
-— Frontend identity, concept ("Declassified War Room"), signature elements, surface-by-surface treatment, implementation priority. Read this before building any UI.
-
-@docs/strategos-design-system.md
-— UI design tokens, color palette, typography, component specs. The token system that frontend-design.md builds on.
-
-### Infrastructure
-@docs/env-plan.md
-— Environment variables, secrets, Supabase/Vercel setup, API cost estimates, prompt caching strategy.
-
-@docs/testing-strategy.md
-— Test priorities by tier, TDD workflow, mocking strategy, CI integration.
-
-@docs/scrum-issues.md
-— Sprint issues with acceptance criteria, labels, milestones, and partner assignments. Source of truth for /create-sprint-issues and /pick-issue skills.
-
-### Iran scenario research
-@docs/Iran Research/research-military.md
-— Verified military timeline, weapons costs, force deployments, nuclear status, Strait details.
-
-@docs/Iran Research/research-political.md
-— US domestic politics (AIPAC quantified), Iranian dynamics, Israeli coalition, Gulf responses.
-
-@docs/Iran Research/research-economic.md
-— Oil prices, energy infrastructure, petrodollar/BRICS, Russia/China positioning, supply chain crises.
+### Iran scenario research (read when working on Iran scenario data)
+- `docs/Iran Research/research-military.md` — Verified military timeline, weapons costs, force deployments.
+- `docs/Iran Research/research-political.md` — US domestic politics, Iranian dynamics, Gulf responses.
+- `docs/Iran Research/research-economic.md` — Oil prices, energy infrastructure, petrodollar/BRICS.
 
 ## Context Mode
 Context Mode MCP is installed for context optimization and session continuity.

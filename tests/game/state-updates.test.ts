@@ -76,7 +76,7 @@ describe('applyStateUpdates', () => {
     const originalOil = scenario.globalState.oilPricePerBarrel
     const originalIranReadiness = scenario.actors.find(a => a.id === 'iran')!.state.military.overallReadiness
 
-    const deltas = [
+    const deltas: Array<{ actorId: string; deltas: Record<string, { change?: number; set?: unknown }> }> = [
       { actorId: '__global__', deltas: { 'oilPricePerBarrel': { set: 200 } } },
       { actorId: 'iran', deltas: { 'military.overallReadiness': { change: -20 } } },
     ]

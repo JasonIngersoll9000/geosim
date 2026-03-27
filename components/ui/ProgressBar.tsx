@@ -5,11 +5,10 @@ interface ProgressBarProps {
   height?: number;
 }
 
-function getAutoColor(value: number): string {
-  if (value >= 70) return "var(--status-stable)";
-  if (value >= 50) return "var(--gold)";
-  if (value >= 30) return "var(--status-warning)";
-  return "var(--status-critical)";
+function getAutoColorClass(value: number): string {
+  if (value >= 70) return "bg-status-stable";
+  if (value >= 40) return "bg-status-warning";
+  return "bg-status-critical";
 }
 
 export function ProgressBar({
@@ -19,25 +18,16 @@ export function ProgressBar({
   height = 4,
 }: ProgressBarProps) {
   const percent = Math.min((value / max) * 100, 100);
-  const fillColor = color ?? getAutoColor(value);
+  const fillClass = color ?? getAutoColorClass(value);
 
   return (
     <div
-      style={{
-        height: `${height}px`,
-        background: "var(--bg-surface-2)",
-        borderRadius: "2px",
-        overflow: "hidden",
-      }}
+      className="bg-bg-surface-high rounded-none overflow-hidden"
+      style={{ height: `${height}px` }}
     >
       <div
-        style={{
-          height: "100%",
-          width: `${percent}%`,
-          background: fillColor,
-          borderRadius: "2px",
-          transition: "width 300ms ease",
-        }}
+        className={`${fillClass} h-full rounded-none transition-[width] duration-300 ease-in-out`}
+        style={{ width: `${percent}%` }}
       />
     </div>
   );

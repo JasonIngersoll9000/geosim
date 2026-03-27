@@ -6,24 +6,11 @@ interface SectionDividerProps {
 export function SectionDivider({ title, subtitle }: SectionDividerProps) {
   return (
     <div
-      className="select-none"
-      style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: "8px",
-        letterSpacing: "0.06em",
-        color: "var(--text-tertiary)",
-        textTransform: "uppercase",
-        margin: "16px 0 12px",
-      }}
+      className="select-none font-mono text-2xs text-text-tertiary uppercase tracking-[0.06em] mt-4 mb-3"
     >
-      <div
-        style={{
-          borderTop: "1px solid var(--border-subtle)",
-          paddingTop: "8px",
-        }}
-      >
+      <div className="border-t border-border-subtle pt-2">
         {title}
-        {subtitle && <span> // {subtitle}</span>}
+        {subtitle && <span>{' // '}{subtitle}</span>}
       </div>
     </div>
   );

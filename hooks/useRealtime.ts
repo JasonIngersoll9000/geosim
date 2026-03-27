@@ -1,0 +1,46 @@
+'use client'
+import { useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useGame } from '@/components/providers/GameProvider'
+import type { Scenario } from '@/lib/types/simulation'
+
+interface TurnStartedPayload {
+  availableDecisions?: unknown[]
+}
+
+interface ResolutionProgressPayload {
+  message: string
+}
+
+interface TurnCompletedPayload {
+  commitId: string
+  turnNumber: number
+  snapshot: Scenario
+}
+
+// createClient() returns a module-level singleton — stable reference, safe outside useEffect
+const supabase = createClient()
+
+export function useRealtime(branchId: string) {
+  const { dispatch } = useGame()
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`branch:${branchId}`)
+      .on('broadcast', { event: 'turn_started' }, ({ payload }: { payload: TurnStartedPayload }) => {
+        dispatch({ type: 'SET_TURN_PHASE', payload: 'planning' })
+        // TODO: dispatch SET_AVAILABLE_DECISIONS when that action is added to GameProvider
+        void payload
+      })
+      .on('broadcast', { event: 'resolution_progress' }, ({ payload }: { payload: ResolutionProgressPayload }) => {
+        dispatch({ type: 'SET_RESOLUTION_PROGRESS', payload: payload.message })
+      })
+      .on('broadcast', { event: 'turn_completed' }, ({ payload }: { payload: TurnCompletedPayload }) => {
+        dispatch({ type: 'SET_COMMIT', payload: { commitId: payload.commitId, turnNumber: payload.turnNumber, snapshot: payload.snapshot } })
+        dispatch({ type: 'SET_TURN_PHASE', payload: 'complete' })
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [branchId, dispatch])
+}

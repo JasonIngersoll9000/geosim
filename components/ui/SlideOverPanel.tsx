@@ -31,9 +31,8 @@ export function SlideOverPanel({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 transition-opacity duration-200"
+        className="fixed inset-0 z-40 bg-black/40 transition-opacity duration-200"
         style={{
-          background: "rgba(0, 0, 0, 0.4)",
           opacity: open ? 1 : 0,
           pointerEvents: open ? "auto" : "none",
         }}
@@ -42,60 +41,29 @@ export function SlideOverPanel({
 
       {/* Panel */}
       <div
-        className="fixed top-0 right-0 bottom-0 z-50 flex flex-col overflow-y-auto"
+        className="fixed top-0 right-0 bottom-0 z-50 flex flex-col overflow-y-auto bg-bg-surface-low border-l border-border-subtle transition-transform duration-200 ease-in-out"
         style={{
           width: `${width}px`,
-          background: "var(--bg-surface-1)",
-          borderLeft: "1px solid var(--border-subtle)",
           transform: open ? "translateX(0)" : `translateX(${width}px)`,
-          transition: "transform 200ms ease",
         }}
       >
         {/* Header */}
         {title && (
-          <div
-            className="flex items-start justify-between px-4 py-3"
-            style={{ borderBottom: "1px solid var(--border-subtle)" }}
-          >
+          <div className="flex items-start justify-between px-4 py-3 border-b border-border-subtle">
             <div>
-              <div
-                style={{
-                  fontFamily: "var(--font-condensed)",
-                  fontWeight: 700,
-                  fontSize: "14px",
-                  color: "var(--text-primary)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.04em",
-                }}
-              >
+              <div className="font-label font-bold text-md text-text-primary uppercase tracking-[0.04em]">
                 {title}
               </div>
               {subtitle && (
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "9px",
-                    color: "var(--text-tertiary)",
-                    marginTop: "4px",
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                  }}
-                >
+                <div className="font-mono text-2xs text-text-tertiary mt-1 tracking-[0.04em] uppercase">
                   {subtitle}
                 </div>
               )}
             </div>
             <button
               onClick={onClose}
-              className="p-1 transition-colors duration-150"
-              style={{
-                color: "var(--text-tertiary)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "var(--font-mono)",
-                fontSize: "14px",
-              }}
+              aria-label="Close"
+              className="p-1 font-mono text-[14px] text-text-tertiary bg-transparent border-none cursor-pointer transition-colors duration-150"
             >
               &times;
             </button>

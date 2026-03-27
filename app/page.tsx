@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { TopBar } from "@/components/ui/TopBar";
 import { DocumentIdHeader } from "@/components/ui/DocumentIdHeader";
 import { SectionDivider } from "@/components/ui/SectionDivider";
@@ -11,40 +12,18 @@ export default function Home() {
     <>
       <TopBar />
       <main
-        className="topo-grid"
-        style={{
-          paddingTop: "calc(24px + 42px + 24px)",
-          paddingLeft: "32px",
-          paddingRight: "32px",
-          paddingBottom: "48px",
-          minHeight: "100vh",
-        }}
+        className="topo-grid pt-[90px] px-8 pb-12 min-h-screen"
       >
         <DocumentIdHeader />
 
         <h1
-          style={{
-            fontFamily: "var(--font-condensed)",
-            fontWeight: 700,
-            fontSize: "28px",
-            color: "var(--text-primary)",
-            marginTop: "16px",
-            letterSpacing: "0.02em",
-            textTransform: "uppercase",
-          }}
+          className="font-label font-bold text-[28px] text-text-primary mt-4 tracking-[0.02em] uppercase"
         >
           Strategic Simulation Engine
         </h1>
 
         <p
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: "15px",
-            lineHeight: 1.75,
-            color: "var(--text-secondary)",
-            maxWidth: "600px",
-            marginTop: "12px",
-          }}
+          className="font-serif text-lg leading-[1.75] text-text-secondary max-w-[600px] mt-3"
         >
           AI-powered modeling of competitive dynamics between nations,
           organizations, and factions. Explore branching &ldquo;what
@@ -74,90 +53,48 @@ export default function Home() {
 
         <SectionDivider title="Global Indicators" subtitle="Turn 04" />
 
-        <div className="grid grid-cols-4 gap-3 mt-2" style={{ maxWidth: "500px" }}>
-          <div
-            className="p-2"
-            style={{
-              background: "var(--bg-surface-2)",
-              borderRadius: "5px",
-            }}
-          >
+        <div className="grid grid-cols-4 gap-3 mt-2 max-w-[500px]">
+          <div className="p-2 bg-bg-surface-low">
             <ScoreDisplay value={142} label="Oil $/bbl" size="md" />
           </div>
-          <div
-            className="p-2"
-            style={{
-              background: "var(--bg-surface-2)",
-              borderRadius: "5px",
-            }}
-          >
+          <div className="p-2 bg-bg-surface-low">
             <ScoreDisplay value={31} label="US Support" size="md" />
           </div>
-          <div
-            className="p-2"
-            style={{
-              background: "var(--bg-surface-2)",
-              borderRadius: "5px",
-            }}
-          >
+          <div className="p-2 bg-bg-surface-low">
             <ScoreDisplay value={42} label="Air Defense" size="md" />
           </div>
-          <div
-            className="p-2"
-            style={{
-              background: "var(--bg-surface-2)",
-              borderRadius: "5px",
-            }}
-          >
+          <div className="p-2 bg-bg-surface-low">
             <ScoreDisplay value={68} label="Iran Stability" size="md" />
           </div>
         </div>
 
         <SectionDivider title="Sample Progress" />
 
-        <div style={{ maxWidth: "300px" }} className="mt-2 space-y-3">
+        <div className="max-w-[300px] mt-2 space-y-3">
           <div>
             <div
-              className="flex justify-between mb-1"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "10px",
-                color: "var(--text-tertiary)",
-                textTransform: "uppercase",
-              }}
+              className="flex justify-between mb-1 font-mono text-xs text-text-tertiary uppercase"
             >
               <span>Regime Change</span>
-              <span style={{ color: "var(--status-critical)" }}>15%</span>
+              <span className="text-status-critical">15%</span>
             </div>
             <ProgressBar value={15} color="var(--status-critical)" />
           </div>
           <div>
             <div
-              className="flex justify-between mb-1"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "10px",
-                color: "var(--text-tertiary)",
-                textTransform: "uppercase",
-              }}
+              className="flex justify-between mb-1 font-mono text-xs text-text-tertiary uppercase"
             >
               <span>Neutralize Nuclear</span>
-              <span style={{ color: "var(--gold)" }}>35%</span>
+              <span className="text-gold">35%</span>
             </div>
             <ProgressBar value={35} color="var(--gold)" />
           </div>
           <div>
             <div
-              className="flex justify-between mb-1"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "10px",
-                color: "var(--text-tertiary)",
-                textTransform: "uppercase",
-              }}
+              className="flex justify-between mb-1 font-mono text-xs text-text-tertiary uppercase"
             >
               <span>Iran Regime Stability</span>
-              <span style={{ color: "var(--status-stable)" }}>68%</span>
+              <span className="text-status-stable">68%</span>
             </div>
             <ProgressBar value={68} color="var(--status-stable)" />
           </div>
@@ -165,9 +102,13 @@ export default function Home() {
 
         <SectionDivider title="Actions" />
 
-        <div className="flex gap-3 mt-2">
-          <Button variant="primary">Launch Simulation</Button>
-          <Button variant="ghost">Browse Scenarios</Button>
+        <div className="flex gap-3 mt-2 items-center">
+          <Link href="/scenarios/iran-2026">
+            <Button variant="primary">Launch Simulation</Button>
+          </Link>
+          <Link href="/scenarios">
+            <Button variant="ghost">Browse Scenarios</Button>
+          </Link>
         </div>
 
         {/* Chronicle sample */}
@@ -177,34 +118,15 @@ export default function Home() {
         />
 
         <div
-          className="mt-2"
-          style={{
-            borderLeft: "2px solid var(--gold)",
-            paddingLeft: "12px",
-            maxWidth: "600px",
-          }}
+          className="mt-2 border-l-2 border-l-gold pl-3 max-w-[600px]"
         >
           <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "9px",
-              color: "var(--text-tertiary)",
-              letterSpacing: "0.04em",
-              marginBottom: "6px",
-            }}
+            className="font-mono text-2xs text-text-tertiary tracking-[0.04em] mb-1.5"
           >
             15 MAR 2026 // 14:32 UTC
           </div>
           <div
-            style={{
-              fontFamily: "var(--font-condensed)",
-              fontWeight: 700,
-              fontSize: "15px",
-              color: "var(--text-primary)",
-              marginBottom: "8px",
-              textTransform: "uppercase",
-              letterSpacing: "0.02em",
-            }}
+            className="font-label font-bold text-lg text-text-primary mb-2 uppercase tracking-[0.02em]"
           >
             The Oil War Escalates
           </div>

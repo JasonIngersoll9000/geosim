@@ -13,16 +13,10 @@ export function DocumentIdHeader({
 }: DocumentIdHeaderProps) {
   return (
     <div
-      style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: "9px",
-        letterSpacing: "0.04em",
-        color: "var(--text-tertiary)",
-        textTransform: "uppercase",
-      }}
+      className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em] py-3"
     >
-      {scenarioCode} // BRANCH: {branchName} // TURN{" "}
-      <span style={{ fontWeight: 500 }}>
+      {scenarioCode}{' // BRANCH: '}{branchName}{' // TURN '}
+      <span className="font-medium">
         {String(turnNumber).padStart(2, "0")}
       </span>{" "}
       / {String(totalTurns).padStart(2, "0")}

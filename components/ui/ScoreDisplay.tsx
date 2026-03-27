@@ -5,45 +5,36 @@ interface ScoreDisplayProps {
 }
 
 function getScoreColor(value: number): string {
-  if (value >= 70) return "var(--status-stable)";
-  if (value >= 50) return "var(--gold)";
-  if (value >= 30) return "var(--status-warning)";
-  return "var(--status-critical)";
+  if (value >= 70) return "text-status-stable";
+  if (value >= 40) return "text-status-warning";
+  return "text-status-critical";
 }
 
-export function ScoreDisplay({ value, label, size = "md" }: ScoreDisplayProps) {
-  const color = getScoreColor(value);
+const valueSizeClass = {
+  sm: "text-md",   // 13px
+  md: "text-lg",   // 15px
+  lg: "text-[18px]",
+};
 
-  const sizes = {
-    sm: { value: "13px", label: "9px" },
-    md: { value: "15px", label: "9px" },
-    lg: { value: "18px", label: "10px" },
-  };
+const labelSizeClass = {
+  sm: "text-2xs",  // 9px
+  md: "text-2xs",  // 9px
+  lg: "text-xs",   // 10px
+};
+
+export function ScoreDisplay({ value, label, size = "md" }: ScoreDisplayProps) {
+  const colorClass = getScoreColor(value);
 
   return (
     <div>
       {label && (
         <div
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: sizes[size].label,
-            color: "var(--text-tertiary)",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            marginBottom: "3px",
-          }}
+          className={`font-mono ${labelSizeClass[size]} text-text-tertiary uppercase tracking-[0.08em] mb-[3px]`}
         >
           {label}
         </div>
       )}
-      <div
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: sizes[size].value,
-          fontWeight: 500,
-          color,
-        }}
-      >
+      <div className={`font-mono font-medium ${valueSizeClass[size]} ${colorClass}`}>
         {value}
       </div>
     </div>

@@ -1,8 +1,8 @@
 # GeoSim Progress Log
 Updated by Claude Code at the end of each session.
 
-## Current sprint: Sprint 1 — Foundation
-## Last session: 2026-03-22
+## Current sprint: Sprint 2 — Core Features
+## Last session: 2026-03-24
 
 ### Completed
 - Next.js 14 scaffolding with App Router, TypeScript, Tailwind
@@ -51,6 +51,16 @@ Updated by Claude Code at the end of each session.
   - Updated .claude/skills/seed-iran-scenario.md to describe CLI approach
   - GitHub Issue #18 created for Iran research incorporation
   - 97 tests passing, lint clean, build clean, typecheck clean (1 pre-existing error only)
+- Frontend design brainstorming + planning session (2026-03-24):
+  - Stitch mockups uploaded and adopted as new visual direction
+  - New design language: Space Grotesk + Newsreader + IBM Plex Mono, gold #ffba20,
+    6-level bg scale, opaque border tokens
+  - docs/superpowers/specs/2026-03-24-frontend-stitch-design.md — Stitch design spec
+  - docs/superpowers/plans/2026-03-24-frontend-stitch-design.md — 14-task implementation plan
+  - Deconfliction with Spec 1 (2026-03-22): carry-forwards appended to plan
+    (next/font/google variable option, RSC→GameProvider boundary, dev bypass, TagList/CostMagnitude)
+  - scrum-issues.md updated: new issues #46–#51 added for Stitch-specific tasks
+  - features.json updated: F031–F035 updated + F036–F042 added for new components/patterns
 
 ### Open PRs (need review/merge before branching further)
 - PR #13: issue-3-vitest-mock-scenario → main (F004 ✅) — merged
@@ -62,12 +72,24 @@ Updated by Claude Code at the end of each session.
 - PR #19: issue-9-iran-research-incorporation → main — OPEN (awaiting review/merge)
 
 ### In progress
-- None
+- Task 6: ActorCard + Scenario Hub page (test file exists at tests/components/game/ActorCard.test.tsx — component not yet built)
 
-### Next up
-- Issue #13: Actor agent implementation with prompt caching (Sprint 2)
-- Issue #17: Game loop controller — full turn orchestration (Sprint 2)
-- Issue #19: Branch forking & rewind operations (Sprint 2)
+### Next up (Sprint 2 — execute Stitch plan, 14 tasks in order)
+- ✅ Task 1 → Issue #46: Design token migration (Stitch palette + Space Grotesk/Newsreader/IBM Plex Mono)
+- ✅ Task 2 → Issue #47: UI primitives Stitch visual update (10 components)
+- ✅ Task 3 → Issue #48: IntelligenceReportBlock + ConstraintCascadeAlert
+- ✅ Task 4 → Issue #49: EscalationLadder, ActorAvatar, EscalationBadge, DimensionTag, ConfidenceBadge, TurnPhaseIndicator
+- ✅ Task 5 → Issue #20: Game layout shell (collapsible 60/40 split, MapSide, PanelSide)
+- Task 6 → Issue #50: ActorCard + Scenario Hub page  ← NEXT
+- Task 7 → Issue #27: Scenario browser page
+- Task 8 → Issue #25: War chronicle (GlobalTicker, TurnEntry, ChronicleTimeline)
+- Task 9 → Issue #51: Map components + FloatingMetricChip
+- Task 10 → Issues #21+#22: Actor panels (ActorList, ActorDetailPanel, GlobalIndicators)
+- Task 11 → Issues #23+#24: Decision catalog + DecisionDetailPanel + TurnPlanBuilder
+- Task 12 → Issue #29: DispatchTerminal turn resolution animation
+- Task 13 → Issues #26+#31: EventsTab + ObserverOverlay (+ dev bypass from Spec 1 carry-forward)
+- Task 14 → Issue #32: Realtime wiring (useRealtime hook, connect all panels to live APIs)
+- Backend (parallel): Issue #13 (actor agent), Issue #17 (game loop), Issue #19 (branch fork/rewind)
 
 ### Known bugs
 - None

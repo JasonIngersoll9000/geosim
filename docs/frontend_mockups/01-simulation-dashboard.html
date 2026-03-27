@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GEOSIM | Strategic Command</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ffba20",
+                        "on-primary": "#271900",
+                        "secondary": "#a4c9ff",
+                        "tertiary": "#ffb4ac",
+                        "surface": "#131313",
+                        "surface-container": "#201f1f",
+                        "surface-container-low": "#1c1b1b",
+                        "surface-container-highest": "#353534",
+                        "outline-variant": "#414751",
+                        "on-surface-variant": "#c1c7d3",
+                        "background": "#0D1117",
+                    },
+                    fontFamily: {
+                        "headline": ["Newsreader", "serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { background-color: #0D1117; color: #e5e2e1; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+        .pulse::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+
+        .map-grid {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="font-body selection:bg-primary selection:text-on-primary overflow-hidden h-screen flex flex-col">
+<!-- Classification Banner -->
+<div class="h-6 bg-black border-b border-primary/20 flex items-center justify-center text-[9px] font-label tracking-[0.2em] text-primary/60 uppercase z-[100]">
+    ◆ TOP SECRET // NOFORN // IRAN-CONFLICT // GEOSIM ANALYTICAL FRAMEWORK ◆
+</div>
+<!-- TopAppBar Component -->
+<header class="bg-neutral-900 border-b border-neutral-800 flex justify-between items-center px-6 h-12 z-50">
+<div class="flex items-center gap-6">
+<h1 class="text-lg font-bold tracking-tighter text-primary uppercase font-label">GEOSIM</h1>
+<div class="h-4 w-[1px] bg-neutral-700"></div>
+<span class="text-[10px] font-label text-neutral-500 tracking-widest uppercase">US-ISRAEL-IRAN CONFLICT 2025-2026</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-[10px] font-label text-neutral-500 uppercase tracking-widest">
+<span>Player Mode</span>
+<span class="text-primary font-bold">Turn 04 / 12</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-1.5 text-neutral-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="account_tree">account_tree</span>
+</button>
+<button class="p-1.5 text-neutral-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="history">history</span>
+</button>
+<button class="p-1.5 text-neutral-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="settings">settings</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden">
+<!-- SideNav (Minimized/Slim) -->
+<aside class="w-16 bg-neutral-950 border-r border-neutral-800 flex flex-col items-center py-6 gap-6">
+<a class="p-2 text-primary border border-primary/30 bg-primary/10 flex items-center justify-center" href="{{DATA:SCREEN:SCREEN_17}}"><span class="material-symbols-outlined" data-icon="strategy">strategy</span></a>
+<a class="p-2 text-neutral-600 hover:text-neutral-400 transition-colors flex items-center justify-center" href="{{DATA:SCREEN:SCREEN_10}}"><span class="material-symbols-outlined" data-icon="groups">groups</span></a>
+<a class="p-2 text-neutral-600 hover:text-neutral-400 transition-colors flex items-center justify-center" href="{{DATA:SCREEN:SCREEN_17}}"><span class="material-symbols-outlined" data-icon="notification_important">notification_important</span></a>
+<a class="p-2 text-neutral-600 hover:text-neutral-400 transition-colors flex items-center justify-center" href="{{DATA:SCREEN:SCREEN_12}}"><span class="material-symbols-outlined" data-icon="menu_book">menu_book</span></a>
+</aside>
+<!-- Main Content Container (60/40 Split) -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Tactical Map (60%) -->
+<section class="w-3/5 relative bg-[#0A0F18] overflow-hidden map-grid border-r border-neutral-800">
+<!-- Actual Map Placeholder -->
+<img alt="Tactical Map" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-luminosity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkzdaPM1ITctbWdQKdhCmiO5TpPTUwes9EeASM94B-toRKZgCNk9pFn6vb1Yp_k3Etc5CzKNs5xltB4SiFWX-LXJhqV4Qf5-sSLXeOhpGBmK0LPdipSwrX_q5VwnxnD1t1fpYcWMqQk77ZM2mG-XMC27qLtK2kcZPMvOpw90ZmmzZ0y2dpxcduWqJTc1LCU745YkAkCGXC9X-OJ0rOUo3UiAZj1iaRbJhtYJ_oyX_0QY53DhZldoxH_AXzMdberP-OG81TKajITxE"/>
+<!-- Theater Status Info Box -->
+<div class="absolute top-6 left-6 w-72 bg-neutral-900/90 backdrop-blur-md border border-white/10 p-4 z-20">
+<h2 class="font-label text-xs font-bold text-white uppercase tracking-widest mb-3">Theater of Operations — Turn 04</h2>
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-[10px] font-label text-neutral-400 uppercase tracking-tighter">US Naval Forces (Pulsing = Active)</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+<span class="text-[10px] font-label text-neutral-400 uppercase tracking-tighter">Iranian Military Positions</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-4 border-t-2 border-dashed border-red-500"></div>
+<span class="text-[10px] font-label text-neutral-400 uppercase tracking-tighter">Blocked Chokepoint (Strait)</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-sm bg-primary/40 border border-primary"></div>
+<span class="text-[10px] font-label text-neutral-400 uppercase tracking-tighter">Oil Infrastructure Facility</span>
+</div>
+</div>
+</div>
+<!-- Floating Metric Chips -->
+<div class="absolute bottom-6 left-6 flex gap-2 z-20">
+<div class="bg-black/80 border border-red-500/30 px-3 py-1.5 flex items-center gap-2">
+<span class="material-symbols-outlined text-red-500 text-sm" data-icon="trending_up">trending_up</span>
+<span class="text-[10px] font-label text-red-500 font-bold tracking-widest uppercase">Oil: $142/bbl (+94%)</span>
+</div>
+<div class="bg-black/80 border border-white/10 px-3 py-1.5">
+<span class="text-[10px] font-label text-neutral-400 tracking-widest uppercase">Air Defense: <span class="text-white">42%</span></span>
+</div>
+</div>
+<!-- Tactical Markers -->
+<!-- Strait of Hormuz -->
+<div class="absolute top-[52%] left-[65%] pointer-events-none">
+<div class="w-24 border-t-4 border-dashed border-red-500/60 -rotate-[30deg]"></div>
+<div class="absolute top-4 left-4 bg-red-500/20 text-red-500 text-[9px] font-label font-bold px-2 py-0.5 whitespace-nowrap border border-red-500/50">STRAIT BLOCKED</div>
+</div>
+<!-- US Naval Positions (Pulsing) -->
+<div class="absolute top-[40%] left-[30%] group">
+<div class="relative w-3 h-3 bg-secondary rounded-full pulse text-secondary"></div>
+<div class="absolute left-6 top-1/2 -translate-y-1/2 bg-neutral-900/80 px-2 py-0.5 border-l-2 border-secondary whitespace-nowrap">
+<p class="text-[9px] font-label text-secondary font-bold uppercase">USS EISENHOWER CSG</p>
+</div>
+</div>
+<div class="absolute top-[55%] left-[45%] group">
+<div class="relative w-3 h-3 bg-secondary rounded-full pulse text-secondary"></div>
+<div class="absolute left-6 top-1/2 -translate-y-1/2 bg-neutral-900/80 px-2 py-0.5 border-l-2 border-secondary whitespace-nowrap">
+<p class="text-[9px] font-label text-secondary font-bold uppercase">USS LINCOLN CSG</p>
+</div>
+</div>
+<!-- Iranian Positions -->
+<div class="absolute top-[35%] left-[70%]">
+<div class="w-3 h-3 bg-tertiary rounded-full border border-white/20"></div>
+<p class="absolute left-5 top-0 text-[8px] font-label text-tertiary uppercase tracking-widest font-bold">IRGC CMD</p>
+</div>
+<!-- Oil Facilities -->
+<div class="absolute top-[38%] left-[68%]">
+<div class="w-3 h-3 bg-primary/20 border border-primary"></div>
+<div class="absolute top-full left-0 mt-2 bg-black/60 border border-white/5 p-2 w-32">
+<p class="text-[8px] font-label text-neutral-500 uppercase">Kharg Island</p>
+<p class="text-[9px] font-label text-tertiary font-bold mt-1">DAMAGED - 90% EXP</p>
+</div>
+</div>
+<div class="absolute top-[48%] left-[42%]">
+<div class="w-3 h-3 bg-primary/20 border border-primary"></div>
+<div class="absolute top-full right-0 mt-2 bg-black/60 border border-white/5 p-2 w-32 text-right">
+<p class="text-[8px] font-label text-neutral-500 uppercase">Ras Tanura (KSA)</p>
+<p class="text-[9px] font-label text-tertiary font-bold mt-1">HIT BY IRAN (-15%)</p>
+</div>
+</div>
+<!-- Coordinate Readout -->
+<div class="absolute bottom-6 right-6 font-label text-[10px] text-neutral-600 tracking-widest">
+                25.2048° N, 55.2708° E // 1400.Z DEC 04
+            </div>
+</section>
+<!-- Strategic Panel (40%) -->
+<section class="w-2/5 flex flex-col bg-[#161B24] border-l border-neutral-800 overflow-hidden">
+<!-- Header -->
+<div class="p-6 border-b border-neutral-800">
+<h2 class="text-xl font-label font-bold text-white uppercase tracking-tight">United States Command</h2>
+<p class="text-[10px] font-label text-neutral-500 uppercase tracking-widest mt-1">Turn 04 — Week of March 22 — Planning Phase</p>
+</div>
+<div class="flex-1 overflow-y-auto no-scrollbar">
+<!-- Briefing Summary -->
+<div class="p-6 bg-neutral-900/30 border-b border-neutral-800">
+<h3 class="font-label text-xs font-bold text-primary uppercase tracking-widest mb-4">What Just Happened</h3>
+<div class="font-headline italic text-lg text-neutral-300 leading-relaxed space-y-4">
+<p>The war has settled into a grim rhythm. Iran's drone waves continue to deplete your air defense reserves — now at <span class="text-white font-medium">42%</span>.</p>
+<p>The <span class="text-white font-medium">Strait of Hormuz remains blocked</span>, pushing oil to $142/bbl. Your THAAD radar systems are largely destroyed. Domestic support has dropped to <span class="text-tertiary font-medium">31%</span>.</p>
+</div>
+</div>
+<!-- Recommended Actions Section -->
+<div class="p-6">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-label text-xs font-bold text-neutral-500 uppercase tracking-[0.2em]">Advisory Recommendations</h3>
+<span class="text-[9px] font-label text-primary border border-primary/20 px-2 py-0.5">3 CRITICAL</span>
+</div>
+<div class="space-y-4">
+<!-- Action Card: Intensify Air Campaign -->
+<div class="bg-neutral-800/50 border border-primary/40 p-4 relative group cursor-pointer hover:bg-neutral-800 transition-colors">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[9px] font-label text-neutral-500 uppercase tracking-widest font-bold">Priority 1 — Critical</span>
+<span class="material-symbols-outlined text-neutral-600 text-sm cursor-help hover:text-primary" data-icon="help">help</span>
+</div>
+<h4 class="font-label text-sm font-bold text-white uppercase tracking-wide">Intensify Air Campaign</h4>
+<p class="text-xs text-neutral-400 mt-2 leading-relaxed">Target IRGC command nodes and remaining air defenses to maintain pressure without ground commitment.</p>
+<div class="flex gap-2 mt-4">
+<span class="text-[9px] font-label bg-neutral-900 text-neutral-400 px-2 py-1 border border-neutral-700 uppercase">Hold Rung</span>
+<span class="text-[9px] font-label bg-red-900/20 text-tertiary px-2 py-1 border border-tertiary/20 uppercase">Military</span>
+</div>
+</div>
+<!-- Action Card: Ceasefire -->
+<div class="bg-neutral-800/20 border border-neutral-800 p-4 hover:border-neutral-700 transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[9px] font-label text-neutral-500 uppercase tracking-widest font-bold">Priority 2 — Strategic</span>
+<span class="material-symbols-outlined text-neutral-600 text-sm cursor-help" data-icon="help">help</span>
+</div>
+<h4 class="font-label text-sm font-bold text-neutral-300 uppercase tracking-wide group-hover:text-primary transition-colors">Backchannel Ceasefire via Oman</h4>
+<p class="text-xs text-neutral-500 mt-2 leading-relaxed">A 48-hour diplomatic pause could open a path to reopening the Strait without a ground invasion.</p>
+<div class="flex gap-2 mt-4">
+<span class="text-[9px] font-label bg-neutral-900 text-neutral-400 px-2 py-1 border border-neutral-700 uppercase">De-escalation</span>
+<span class="text-[9px] font-label bg-blue-900/20 text-secondary px-2 py-1 border border-secondary/20 uppercase">Diplomatic</span>
+</div>
+</div>
+<!-- Action Card: Covert Nuclear -->
+<div class="bg-neutral-800/20 border border-neutral-800 p-4 hover:border-neutral-700 transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[9px] font-label text-neutral-500 uppercase tracking-widest font-bold">Priority 3 — Operational</span>
+<span class="material-symbols-outlined text-neutral-600 text-sm cursor-help" data-icon="help">help</span>
+</div>
+<h4 class="font-label text-sm font-bold text-neutral-300 uppercase tracking-wide group-hover:text-primary transition-colors">Covert Nuclear Search</h4>
+<p class="text-xs text-neutral-500 mt-2 leading-relaxed">Narrow down Iranian uranium dispersal sites with specialized SOF teams and satellite assets.</p>
+<div class="flex gap-2 mt-4">
+<span class="text-[9px] font-label bg-neutral-900 text-neutral-400 px-2 py-1 border border-neutral-700 uppercase">Intel Surge</span>
+<span class="text-[9px] font-label bg-primary/10 text-primary px-2 py-1 border border-primary/20 uppercase">Intelligence</span>
+</div>
+</div>
+<button class="w-full py-3 border border-dashed border-neutral-700 text-[10px] font-label text-neutral-500 uppercase tracking-widest hover:border-neutral-500 hover:text-neutral-300 transition-all">
+                            Browse All 10 Available Decisions →
+                        </button>
+</div>
+</div>
+</div>
+<!-- Confirm Plan Section (Fixed Bottom) -->
+<div class="p-6 bg-neutral-900 border-t border-neutral-800 shadow-[0_-12px_24px_rgba(0,0,0,0.5)]">
+<div class="mb-4">
+<p class="text-[10px] font-label text-neutral-500 uppercase tracking-widest mb-1">Plan Configuration</p>
+<p class="text-xs font-bold text-primary uppercase">Active: Intensify Air Campaign</p>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 bg-primary hover:bg-primary/90 text-on-primary py-3 font-label text-xs font-bold uppercase tracking-widest transition-all">
+                        Submit Action
+                    </button>
+<button class="flex-1 bg-neutral-800 hover:bg-neutral-700 text-white py-3 font-label text-xs font-bold uppercase tracking-widest border border-white/10 transition-all">
+                        + Add Support
+                    </button>
+</div>
+<button class="w-full text-center mt-4 text-[9px] font-label text-neutral-600 uppercase tracking-widest hover:text-secondary transition-colors">
+                    Advanced: Build full TurnPlan with resource allocation →
+                </button>
+</div>
+</section>
+</div>
+</main>
+<!-- Floating Global Status Bar -->
+<div class="fixed bottom-6 right-8 z-[60] flex items-center gap-4 bg-black/80 backdrop-blur-xl border border-primary/30 px-6 py-2.5">
+<div class="flex gap-1">
+<div class="w-1 h-3 bg-primary/20"></div>
+<div class="w-1 h-3 bg-primary"></div>
+<div class="w-1 h-3 bg-primary"></div>
+<div class="w-1 h-3 bg-primary/20"></div>
+</div>
+<div class="h-4 w-[1px] bg-neutral-800 mx-2"></div>
+<div>
+<p class="font-label text-[8px] text-primary font-bold uppercase tracking-[0.2em]">Active Simulation</p>
+<p class="font-body text-[10px] text-neutral-400">U.S.-Middle East / Iteration 4,209</p>
+</div>
+<div class="flex items-center gap-4 ml-6 pl-6 border-l border-neutral-800">
+<div class="text-center">
+<p class="text-[8px] font-label text-neutral-600 uppercase">Oil</p>
+<p class="text-[10px] font-label text-tertiary font-bold">$142</p>
+</div>
+<div class="text-center">
+<p class="text-[8px] font-label text-neutral-600 uppercase">Defcon</p>
+<p class="text-[10px] font-label text-primary font-bold">3</p>
+</div>
+</div>
+</div>
+</body></html>

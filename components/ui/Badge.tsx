@@ -14,77 +14,32 @@ type BadgeVariant =
   | "info"
   | "neutral";
 
-const variantStyles: Record<BadgeVariant, { bg: string; text: string; border: string }> = {
-  military: {
-    bg: "var(--status-critical-bg)",
-    text: "var(--status-critical)",
-    border: "var(--status-critical-border)",
-  },
-  escalation: {
-    bg: "var(--status-critical-bg)",
-    text: "var(--status-critical)",
-    border: "var(--status-critical-border)",
-  },
-  critical: {
-    bg: "var(--status-critical-bg)",
-    text: "var(--status-critical)",
-    border: "var(--status-critical-border)",
-  },
-  diplomatic: {
-    bg: "var(--status-info-bg)",
-    text: "var(--status-info)",
-    border: "var(--status-info-border)",
-  },
-  info: {
-    bg: "var(--status-info-bg)",
-    text: "var(--status-info)",
-    border: "var(--status-info-border)",
-  },
-  economic: {
-    bg: "rgba(40, 140, 90, 0.20)",
-    text: "#5EBD8E",
-    border: "rgba(40, 140, 90, 0.30)",
-  },
-  stable: {
-    bg: "var(--status-stable-bg)",
-    text: "var(--status-stable)",
-    border: "var(--status-stable-border)",
-  },
-  "de-escalation": {
-    bg: "var(--status-stable-bg)",
-    text: "var(--status-stable)",
-    border: "var(--status-stable-border)",
-  },
-  warning: {
-    bg: "var(--status-warning-bg)",
-    text: "var(--gold)",
-    border: "var(--gold-border)",
-  },
-  hold: {
-    bg: "var(--status-warning-bg)",
-    text: "var(--gold)",
-    border: "var(--gold-border)",
-  },
-  political: {
-    bg: "rgba(123, 104, 200, 0.15)",
-    text: "#9B8FD8",
-    border: "rgba(123, 104, 200, 0.30)",
-  },
-  intelligence: {
-    bg: "rgba(232, 228, 220, 0.06)",
-    text: "var(--text-secondary)",
-    border: "var(--border-hi)",
-  },
-  information: {
-    bg: "rgba(232, 228, 220, 0.06)",
-    text: "var(--text-secondary)",
-    border: "var(--border-hi)",
-  },
-  neutral: {
-    bg: "rgba(232, 228, 220, 0.06)",
-    text: "var(--text-secondary)",
-    border: "var(--border-hi)",
-  },
+// Variants that use Tailwind utility classes (so toHaveClass() works in tests)
+const tailwindVariants: Partial<Record<BadgeVariant, string>> = {
+  military:
+    "bg-status-critical-bg text-status-critical border border-status-critical-border",
+  critical:
+    "bg-status-critical-bg text-status-critical border border-status-critical-border",
+  escalation:
+    "bg-status-critical-bg text-status-critical border border-status-critical-border",
+  diplomatic:
+    "bg-status-info-bg text-status-info border border-status-info-border",
+  info: "bg-status-info-bg text-status-info border border-status-info-border",
+  intelligence: "bg-status-info-bg text-status-info border border-status-info-border",
+  stable:
+    "bg-status-stable-bg text-status-stable border border-status-stable-border",
+  "de-escalation":
+    "bg-status-stable-bg text-status-stable border border-status-stable-border",
+  warning: "bg-status-warning-bg text-status-warning border border-gold-border",
+  hold: "bg-status-warning-bg text-status-stable border border-gold-border",
+  economic:
+    "bg-status-stable-bg text-status-stable border border-status-stable-border",
+  political:
+    "bg-actor-russia/15 text-actor-russia border border-actor-russia/25",
+  information:
+    "bg-bg-surface-high text-text-secondary border border-border-hi",
+  neutral:
+    "bg-bg-surface-high text-text-secondary border border-border-hi",
 };
 
 interface BadgeProps {
@@ -94,24 +49,13 @@ interface BadgeProps {
 }
 
 export function Badge({ variant, children, className = "" }: BadgeProps) {
-  const style = variantStyles[variant];
+  const baseClasses =
+    "inline-flex items-center font-mono text-2xs font-normal tracking-[0.03em] py-0.5 px-[7px] rounded-none whitespace-nowrap";
+
+  const twClasses = tailwindVariants[variant] ?? tailwindVariants.neutral!;
 
   return (
-    <span
-      className={`inline-flex items-center ${className}`}
-      style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: "9px",
-        fontWeight: 400,
-        letterSpacing: "0.03em",
-        padding: "2px 7px",
-        borderRadius: "4px",
-        background: style.bg,
-        color: style.text,
-        border: `1px solid ${style.border}`,
-        whiteSpace: "nowrap",
-      }}
-    >
+    <span className={`${baseClasses} ${twClasses} ${className}`}>
       {children}
     </span>
   );

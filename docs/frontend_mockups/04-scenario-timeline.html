@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Newsreader:ital,wght@0,400;0,700;1,400;1,700&amp;family=Space+Grotesk:wght@300;400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-fixed": "#ffdad6",
+                        "surface-dim": "#131313",
+                        "on-secondary": "#00315d",
+                        "background": "#131313",
+                        "on-primary-fixed-variant": "#5e4200",
+                        "on-error-container": "#ffdad6",
+                        "outline": "#8b919d",
+                        "on-primary": "#412d00",
+                        "on-secondary-fixed": "#001c39",
+                        "secondary": "#a4c9ff",
+                        "on-tertiary-container": "#5c0005",
+                        "surface-variant": "#353534",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-container-high": "#2a2a2a",
+                        "primary-container": "#bc8700",
+                        "on-primary-fixed": "#271900",
+                        "on-error": "#690005",
+                        "surface": "#131313",
+                        "primary-fixed": "#ffdea8",
+                        "inverse-primary": "#7c5800",
+                        "tertiary": "#ffb4ac",
+                        "surface-container-highest": "#353534",
+                        "secondary-fixed-dim": "#a4c9ff",
+                        "on-surface": "#e5e2e1",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#c1c7d3",
+                        "error-container": "#93000a",
+                        "secondary-fixed": "#d4e3ff",
+                        "surface-tint": "#ffba20",
+                        "on-secondary-fixed-variant": "#004883",
+                        "surface-container-low": "#1c1b1b",
+                        "on-primary-container": "#392600",
+                        "outline-variant": "#414751",
+                        "inverse-on-surface": "#313030",
+                        "tertiary-fixed-dim": "#ffb4ac",
+                        "surface-bright": "#393939",
+                        "secondary-container": "#0164b4",
+                        "inverse-surface": "#e5e2e1",
+                        "on-tertiary-fixed": "#410002",
+                        "on-secondary-container": "#d0e1ff",
+                        "primary-fixed-dim": "#ffba20",
+                        "on-tertiary-fixed-variant": "#93000d",
+                        "on-background": "#e5e2e1",
+                        "tertiary-container": "#ff544c",
+                        "on-tertiary": "#690006",
+                        "primary": "#ffba20",
+                        "surface-container": "#201f1f"
+                    },
+                    fontFamily: {
+                        "headline": ["Newsreader", "serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Space Grotesk", "monospace"]
+                    },
+                    borderRadius: { "DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #131313; }
+        ::-webkit-scrollbar-thumb { background: #414751; }
+        
+        .trunk-line {
+            height: 4px;
+            background: #ffba20;
+            box-shadow: 0 0 15px rgba(255, 186, 32, 0.4);
+        }
+        .branch-line-dashed {
+            border-style: dashed;
+            border-color: #64748b;
+        }
+        .node-glow {
+            box-shadow: 0 0 12px rgba(255, 186, 32, 0.8);
+        }
+        .branch-node {
+            box-shadow: 0 0 8px rgba(100, 116, 139, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-surface-dim text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container overflow-hidden">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 h-16 bg-zinc-950 fixed top-0 z-50 border-b border-outline-variant/10">
+<div class="flex items-center gap-8">
+<h1 class="text-2xl font-serif italic text-amber-500 dark:text-amber-400">GEOSIM</h1>
+<nav class="hidden md:flex gap-6">
+<a class="text-amber-400 border-b-2 border-amber-500 font-serif italic pb-1 transition-opacity Active: opacity-80" href="{{DATA:SCREEN:SCREEN_3}}">Scenario</a>
+<a class="text-zinc-500 font-serif hover:text-amber-200 transition-colors duration-300" href="{{DATA:SCREEN:SCREEN_3}}">Timeline</a>
+<a class="text-zinc-500 font-serif hover:text-amber-200 transition-colors duration-300" href="{{DATA:SCREEN:SCREEN_17}}">Simulation</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-amber-500 hover:text-amber-200 transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-amber-500 hover:text-amber-200 transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 bg-zinc-800 border border-outline-variant overflow-hidden">
+<img alt="Commander" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpsVVdF2koE-HY2kGL3vldaFZXK3tjO8iL3fAKToCWSQsD2XtHNQ1J-l-Uo_1H4QbBWfUEWM6djusPSOPqeq5s9b__OJO-u3ZH9Yr1Yi4eOR2svetcJ3l5p3HT7V7xnylu9CX1JOpkI0Y9b39ucND9EmQA068ddYX-mn51HdHotzFat7EMPgwFSsx9AVWBXtajl024XAS9HV_Jxm8gnkx9IrQt8vvdtn38rSTjZLvNKr_HiF7RjxQqHcEc2h_4E7cymDp9yQKio_E"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 flex flex-col z-40 bg-zinc-900 border-r border-outline-variant/10">
+<div class="p-6 border-b border-outline-variant/10">
+<h2 class="text-amber-500 font-bold font-label tracking-widest text-sm">STRATEGIC HUB</h2>
+<p class="text-zinc-500 text-[10px] font-label uppercase tracking-tighter">Sector 7-G</p>
+</div>
+<nav class="flex-1 py-4">
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 hover:bg-zinc-800 hover:text-zinc-200 transition-all duration-150 ease-in-out font-label text-xs tracking-tighter" href="{{DATA:SCREEN:SCREEN_10}}">
+<span class="material-symbols-outlined text-lg" data-icon="groups">groups</span> Actors
+            </a>
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 hover:bg-zinc-800 hover:text-zinc-200 transition-all duration-150 ease-in-out font-label text-xs tracking-tighter" href="{{DATA:SCREEN:SCREEN_17}}">
+<span class="material-symbols-outlined text-lg" data-icon="gavel">gavel</span> Decisions
+            </a>
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 hover:bg-zinc-800 hover:text-zinc-200 transition-all duration-150 ease-in-out font-label text-xs tracking-tighter" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="event_note">event_note</span> Events
+            </a>
+<a class="bg-zinc-800 text-amber-400 border-l-4 border-amber-600 px-4 py-3 flex items-center gap-3 font-label text-xs tracking-tighter" href="{{DATA:SCREEN:SCREEN_12}}">
+<span class="material-symbols-outlined text-lg" data-icon="history_edu">history_edu</span> Chronicle
+            </a>
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 hover:bg-zinc-800 hover:text-zinc-200 transition-all duration-150 ease-in-out font-label text-xs tracking-tighter" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="public">public</span> Map Controls
+            </a>
+</nav>
+<div class="p-4">
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-label font-bold py-3 text-xs tracking-widest transition-all hover:brightness-110 active:opacity-80">
+                EXECUTE SIMULATION
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-16 h-[calc(100vh-64px)] overflow-hidden relative bg-surface">
+<!-- Header Info Overlay -->
+<div class="absolute top-8 left-8 z-10">
+<h3 class="font-headline text-4xl italic text-on-surface mb-2">Scenario Tree: Alpha Vector</h3>
+<div class="flex gap-4 items-center">
+<span class="font-label text-xs bg-surface-container-high px-2 py-1 text-primary border border-primary/20">STATUS: ACTIVE SIMULATION</span>
+<span class="font-label text-xs text-outline tracking-tighter">COORDINATES: 34.0522° N, 118.2437° W</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="absolute top-8 right-8 z-10 flex flex-col gap-2 bg-zinc-950/80 p-3 border border-outline-variant/20 backdrop-blur-sm">
+<div class="flex items-center gap-3">
+<div class="w-8 h-1 bg-primary node-glow"></div>
+<span class="font-label text-[10px] text-on-surface tracking-widest">GROUND TRUTH TRUNK</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-px border-t border-dashed border-slate-500"></div>
+<span class="font-label text-[10px] text-slate-500 tracking-widest uppercase">Simulated Branch</span>
+</div>
+</div>
+<!-- Horizontal Timeline Wrapper -->
+<div class="h-full w-full overflow-x-auto overflow-y-hidden flex items-center px-12 pb-24">
+<div class="relative flex items-center min-w-[2800px]">
+<!-- Ground Truth Trunk -->
+<div class="absolute w-full trunk-line top-1/2 -translate-y-1/2 z-0"></div>
+<div class="absolute left-0 top-[calc(50%+12px)]">
+<span class="font-label text-[8px] text-primary/60 tracking-[0.3em] font-bold uppercase">Ground Truth Trunk</span>
+</div>
+<!-- Scenario Nodes Container -->
+<div class="relative w-full flex justify-between px-32 h-full">
+<!-- Node 1: Origin -->
+<div class="relative flex flex-col items-center">
+<div class="w-5 h-5 bg-primary node-glow rotate-45 border-4 border-surface-dim z-20"></div>
+<div class="absolute top-8 text-center w-48">
+<p class="font-label text-[10px] text-primary-fixed mb-1 uppercase tracking-widest">T-Minus 0</p>
+<h4 class="font-headline text-lg text-on-surface leading-tight italic">Initial Incursion</h4>
+</div>
+</div>
+<!-- Branch A: User Decision (Up) -->
+<div class="relative flex items-center">
+<!-- Trunk Connection Point -->
+<div class="w-6 h-6 bg-surface-dim border-2 border-primary rounded-full z-20 flex items-center justify-center">
+<div class="w-2 h-2 bg-primary rounded-full"></div>
+</div>
+<!-- Branching Path -->
+<div class="absolute bottom-1/2 left-3 w-px h-48 border-l-2 border-dashed border-slate-500"></div>
+<div class="absolute bottom-[calc(50%+192px)] left-3 w-[600px] border-t-2 border-dashed border-slate-500"></div>
+<!-- Branch Label -->
+<div class="absolute bottom-[calc(50%+200px)] left-8 whitespace-nowrap">
+<span class="font-label text-[10px] text-slate-400 tracking-[0.2em] font-bold uppercase">User Branch A: Diplomatic Pivot</span>
+</div>
+<!-- Branch Card -->
+<div class="absolute bottom-64 left-16 w-72 bg-surface-container-high border-t-2 border-slate-500 p-4 shadow-2xl z-30">
+<div class="flex justify-between items-start mb-3">
+<span class="font-label text-[9px] bg-secondary-container text-on-secondary-container px-1.5 py-0.5 uppercase">Alternative</span>
+<span class="font-label text-[9px] text-outline">T+12H</span>
+</div>
+<h5 class="font-headline text-xl mb-2 text-on-surface">Sanction Protocol Delta</h5>
+<p class="font-body text-xs text-on-surface-variant leading-relaxed mb-4">Immediate freezing of offshore assets triggers domestic unrest in Tier 2 sectors.</p>
+<div class="flex items-center gap-2 border-t border-outline-variant/20 pt-3">
+<span class="material-symbols-outlined text-sm text-slate-400" data-icon="query_stats">query_stats</span>
+<span class="font-label text-[10px] text-on-surface">Simulated Variance: +12.4%</span>
+</div>
+</div>
+</div>
+<!-- Trunk Node: Strategic Pivot -->
+<div class="relative flex flex-col items-center">
+<div class="w-8 h-8 bg-primary node-glow border-4 border-surface-dim z-20 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-sm font-bold" data-icon="gavel">gavel</span>
+</div>
+<div class="absolute top-10 text-center w-56">
+<p class="font-label text-[10px] text-primary-fixed mb-1 uppercase tracking-widest">T+24H</p>
+<h4 class="font-headline text-xl text-on-surface italic font-bold">Standard Response</h4>
+</div>
+</div>
+<!-- Branch B: User Decision (Down) -->
+<div class="relative flex items-center">
+<!-- Trunk Connection Point -->
+<div class="w-6 h-6 bg-surface-dim border-2 border-primary rounded-full z-20 flex items-center justify-center">
+<div class="w-2 h-2 bg-primary rounded-full"></div>
+</div>
+<!-- Branching Path -->
+<div class="absolute top-1/2 left-3 w-px h-56 border-l-2 border-dashed border-slate-500"></div>
+<div class="absolute top-[calc(50%+224px)] left-3 w-[800px] border-t-2 border-dashed border-slate-500"></div>
+<!-- Branch Label -->
+<div class="absolute top-[calc(50%+232px)] left-8 whitespace-nowrap">
+<span class="font-label text-[10px] text-slate-400 tracking-[0.2em] font-bold uppercase">User Branch B: Tactical Divergence</span>
+</div>
+<!-- Branch Card -->
+<div class="absolute top-72 left-16 w-80 bg-surface-container-low p-5 border border-slate-500/30 z-30">
+<div class="flex justify-between items-start mb-3">
+<span class="font-label text-[9px] bg-tertiary-container text-on-tertiary-container px-1.5 py-0.5 uppercase">Critical Alpha</span>
+<span class="font-label text-[9px] text-outline">T+36H</span>
+</div>
+<h5 class="font-headline text-xl mb-2 text-on-surface">Operation Silver Lining</h5>
+<p class="font-body text-xs text-on-surface-variant leading-relaxed mb-4">Full tactical withdrawal from the DMZ. Causes immediate collapse of local governance structures.</p>
+<div class="grid grid-cols-2 gap-4 border-t border-outline-variant/10 pt-3">
+<div>
+<p class="font-label text-[8px] text-outline uppercase">Stability Impact</p>
+<p class="font-label text-xs text-tertiary">-18.4%</p>
+</div>
+<div>
+<p class="font-label text-[8px] text-outline uppercase">Projection Cost</p>
+<p class="font-label text-xs text-primary">$4.2B</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Trunk Node: Outcome -->
+<div class="relative flex flex-col items-center">
+<div class="w-5 h-5 bg-outline-variant border-2 border-surface-dim z-20"></div>
+<div class="absolute top-8 text-center w-48">
+<p class="font-label text-[10px] text-outline mb-1 uppercase tracking-widest">T+72H</p>
+<h4 class="font-headline text-lg text-outline leading-tight italic">Projected Equilibrium</h4>
+</div>
+</div>
+<!-- Node: End/Add -->
+<div class="relative flex flex-col items-center">
+<div class="w-12 h-12 flex items-center justify-center border-2 border-dashed border-primary/40 z-10 hover:border-primary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-primary/60 group-hover:text-primary text-2xl" data-icon="add">add</span>
+</div>
+<div class="absolute top-14 text-center w-48">
+<p class="font-label text-[10px] text-outline uppercase tracking-widest">Append Ground Truth</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Controls Footer -->
+<div class="absolute bottom-8 right-8 flex gap-4 z-30">
+<button class="bg-surface-container-highest border border-outline-variant/30 text-on-surface font-label text-xs py-2 px-6 hover:bg-surface-bright transition-colors">
+                EXPORT RAW TELEMETRY
+            </button>
+<button class="bg-primary text-on-primary font-label font-bold text-xs py-2 px-6 shadow-lg shadow-primary/20 hover:scale-105 transition-transform">
+                LOCK SCENARIO PATH
+            </button>
+</div>
+<!-- Zoom/Nav Controls -->
+<div class="absolute bottom-8 left-8 flex flex-col gap-2 z-30">
+<div class="bg-surface-container-high border border-outline-variant/20 p-1 flex flex-col">
+<button class="p-2 hover:bg-zinc-800 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+</button>
+<div class="h-px bg-outline-variant/20 mx-2"></div>
+<button class="p-2 hover:bg-zinc-800 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="remove">remove</span>
+</button>
+</div>
+<button class="bg-surface-container-high border border-outline-variant/20 p-2 hover:bg-zinc-800 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="filter_center_focus">filter_center_focus</span>
+</button>
+</div>
+</main>
+<!-- Bottom Backdrop Text -->
+<div class="fixed bottom-[-10vh] left-0 w-full pointer-events-none select-none opacity-[0.03] overflow-hidden whitespace-nowrap">
+<span class="font-headline text-[30rem] italic font-black leading-none uppercase">Analytical Noir</span>
+</div>
+</body></html>

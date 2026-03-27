@@ -1,6 +1,33 @@
 import type { Metadata } from "next";
+import { Inter, Newsreader, Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { ClassificationBanner } from "@/components/ui/ClassificationBanner";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-newsreader",
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  variable: "--font-ibm-plex-mono",
+  weight: ["400", "500"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "GeoSim — Strategic Simulation Engine",
@@ -14,13 +41,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html
+      lang="en"
+      className={`${inter.variable} ${newsreader.variable} ${spaceGrotesk.variable} ${ibmPlexMono.variable}`}
+    >
       <body className="antialiased">
         <ClassificationBanner />
         {children}

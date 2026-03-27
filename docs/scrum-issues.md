@@ -566,6 +566,8 @@ Use docs/ui-mockups.html as reference.
 - [ ] Tabs switch between panels
 - [ ] Layout matches mockup proportions
 - [ ] TurnControls dispatch game actions
+- [ ] Clicking actor in map or actor list dispatches SELECT_ACTOR to GameContext
+- [ ] Tab switching dispatches SET_VIEW_MODE / active tab to GameContext
 ```
 
 **Issue #21: Actors panel with global indicators**
@@ -586,14 +588,20 @@ Milestone: Sprint 2
 - [ ] Global indicators show oil, support, air defense with color coding
 - [ ] Click actor opens detail panel
 - [ ] Data pulls from GameContext (mock data OK for now)
+- [ ] Actor detail panel shows all state sections: key figures, military assets, economic, political influence channels with bars, policy disconnect box, objectives with progress bars, constraints with status
+- [ ] Escalation ladder visualization highlights current rung
+- [ ] Intelligence picture hides unknown unknowns when omniscient toggle is off; shows them when on
 ```
 
-**Issue #22: Actor detail panel**
+**Issue #22: Actor detail panel** _(SUPERSEDED — merged into #21)_
 ```
 Title: feat: Actor detail panel — full state dossier
 Labels: sprint-2, P0-critical, frontend
 Assignee: @partner-a
 Milestone: Sprint 2
+
+> **NOTE:** Acceptance criteria merged into Issue #21. This issue is superseded.
+> Do not build separately — the actor detail panel is part of the Actors tab in #21.
 
 ## Description
 Slide-over panel showing full actor state:
@@ -610,7 +618,7 @@ Slide-over panel showing full actor state:
 
 Use the US actor state mockup as reference.
 
-## Acceptance criteria
+## Acceptance criteria (moved to #21)
 - [ ] All sections render with mock data
 - [ ] Influence channels show policy influence bars
 - [ ] Escalation ladder highlights current rung
@@ -653,14 +661,21 @@ The most complex frontend component. Three parts:
 - [ ] TurnPlan builder enforces concurrency rules
 - [ ] Resource sliders sum to 100%
 - [ ] Validation shows errors/warnings/synergies in real time
+- [ ] Decision detail panel loads deep analysis via POST /api/ai/analyze-decision
+- [ ] Per-profile cost/outcome breakdown shown (not generic across all profiles)
+- [ ] Concurrency best/worst pairings shown with synergy/tension descriptions
+- [ ] Loading state shown while analysis API call is in flight
 ```
 
-**Issue #24: Decision analysis view**
+**Issue #24: Decision analysis view** _(SUPERSEDED — merged into #23)_
 ```
 Title: feat: Decision analysis view — per-profile costs, outcomes, concurrency
 Labels: sprint-2, P1-important, frontend
 Assignee: @partner-a
 Milestone: Sprint 2
+
+> **NOTE:** Acceptance criteria merged into Issue #23. This issue is superseded.
+> Do not build separately — the decision detail panel is part of the DecisionCatalog in #23.
 
 ## Description
 Deep analysis view when user inspects a decision:
@@ -677,7 +692,7 @@ Deep analysis view when user inspects a decision:
 
 Connect to POST /api/ai/analyze-decision endpoint.
 
-## Acceptance criteria
+## Acceptance criteria (moved to #23)
 - [ ] Analysis loads via API call
 - [ ] Per-profile breakdown visible (not generic)
 - [ ] Concurrency recommendations shown
@@ -751,12 +766,18 @@ Milestone: Sprint 2
 - [ ] Branch creation connects to API
 ```
 
-**Issue #28: Classification banner + document ID header + three-font design system**
+**Issue #28: Classification banner + document ID header + three-font design system** _(SUPERSEDED by #46)_
 ```
 Title: feat: Classification banner, document ID header, three-font design system
 Labels: sprint-2, P0-critical, frontend
 Assignee: @partner-a
 Milestone: Sprint 2
+
+> **NOTE:** Superseded by Issue #46 (Design token migration — Stitch palette).
+> #46 prescribes Space Grotesk / Newsreader / IBM Plex Mono and the Stitch color
+> palette. Do not implement this issue's Barlow/EB Garamond font choices.
+> Classification banner, DocumentIdHeader, and SectionDivider components are still
+> required and are covered by #46 and #47.
 
 ## Description
 Implement the core GeoSim visual identity from docs/frontend-design.md — the
@@ -776,7 +797,7 @@ other components so everything is built on the right foundation.
 - Update top bar (42px) with: GEOSIM wordmark (Barlow Condensed Bold, 16px, gold),
   scenario name (IBM Plex Mono, 10px, tertiary), turn indicator right-aligned
 
-## Acceptance criteria
+## Acceptance criteria (superseded — see #46)
 - [ ] All three fonts load and are accessible via CSS variables
 - [ ] Classification banner visible on every page (fixed, non-interactive)
 - [ ] Document ID header renders on all major views
@@ -918,6 +939,196 @@ component subscribes to these and renders each line as it arrives.
 - [ ] Observer mode receives all actor decisions and resolution in real-time
 - [ ] Subscription cleaned up on component unmount
 - [ ] Works with Supabase local development instance
+```
+
+---
+
+> **Note — Stitch migration (2026-03-24):** Issues #20–#32 describe the original frontend scope. The Stitch design plan (`docs/superpowers/plans/2026-03-24-frontend-stitch-design.md`) supersedes the visual language of those issues (new fonts, new color tokens, new component architecture). Issues #46–#51 below capture the Stitch-specific work that has no prior issue number. When picking frontend issues, use #46–#51 as the primary source; treat #20–#32 as acceptance criteria reference only.
+
+### Partner A — Stitch-Specific Frontend Work
+
+**Issue #46: Design token migration — Stitch palette + Space Grotesk/Newsreader/IBM Plex Mono**
+```
+Title: feat: Design token migration to Stitch palette and three-font system
+Labels: sprint-2, P0-critical, frontend
+Assignee: @partner-a
+Milestone: Sprint 2
+Implements: Stitch plan Task 1, F031
+
+## Description
+Replace all Strategos tokens with Stitch visual language. Must complete and merge
+before any other frontend task can proceed (it's the design foundation).
+
+- app/globals.css: replace all CSS custom properties with Stitch tokens
+  (gold #ffba20, 6-level bg scale, opaque border tokens, status colors)
+- app/layout.tsx: switch to next/font/google with `variable` option — do NOT
+  use a plain <link> tag. Fonts: Space_Grotesk, Newsreader, IBM_Plex_Mono
+- tailwind.config.ts: add Stitch color aliases (bg-bg-base, bg-bg-surface-1 etc.)
+  and fontFamily referencing CSS variables (var(--font-space-grotesk) etc.)
+- docs/strategos-design-system.md: rewrite to reference Stitch tokens
+- docs/frontend-design.md: rewrite to reference Stitch fonts and palette
+
+## Acceptance criteria
+- [ ] All three fonts load via next/font/google with variable option
+- [ ] CSS custom properties match Stitch spec (gold #ffba20, bg scale, borders)
+- [ ] Tailwind aliases work (bg-gold, text-text-primary, etc.)
+- [ ] No <link> tag for fonts anywhere — self-hosted via next/font
+- [ ] No Barlow, EB Garamond references remaining in CSS or Tailwind config
+- [ ] Vercel build passes
+```
+
+**Issue #47: UI primitives Stitch visual update**
+```
+Title: feat: Update all 10 UI primitives to Stitch visual language
+Labels: sprint-2, P0-critical, frontend
+Assignee: @partner-a
+Milestone: Sprint 2
+Depends on: #46
+Implements: Stitch plan Task 2, F036
+
+## Description
+Visual-only update to all existing UI primitive components. No interface changes —
+only className / token updates. Write tests first (TDD: red → green → refactor).
+
+Components to update (all in components/ui/):
+Button, Badge, ClassificationBanner, DocumentIdHeader, ExpandableSection,
+ProgressBar, ScoreDisplay, SectionDivider, SlideOverPanel, TopBar
+
+Create:
+- tests/components/ui/Button.test.tsx
+- tests/components/ui/Badge.test.tsx
+
+## Acceptance criteria
+- [ ] All 10 components use Stitch tokens only (no hardcoded colors, no old tokens)
+- [ ] Button.test.tsx and Badge.test.tsx passing
+- [ ] No visual regressions on non-updated tokens
+- [ ] ClassificationBanner renders gold #ffba20 accent
+```
+
+**Issue #48: IntelligenceReportBlock + ConstraintCascadeAlert**
+```
+Title: feat: New shared game components — IntelligenceReportBlock and ConstraintCascadeAlert
+Labels: sprint-2, P0-critical, frontend
+Assignee: @partner-a
+Milestone: Sprint 2
+Depends on: #46
+Implements: Stitch plan Task 3, F037
+
+## Description
+Two new Stitch-specific components with no prior equivalent:
+
+components/game/IntelligenceReportBlock.tsx
+- Renders an intel display block with monospace header in brackets: "[INTEL BRIEF]"
+- Accepts title, classification, confidence, body content, and knownUnknowns
+- In single-actor mode, unknownUnknowns are hidden/[REDACTED]
+- In omniscient/observer mode, unknownUnknowns are revealed
+
+components/game/ConstraintCascadeAlert.tsx
+- Cascade warning card shown when cascade likelihood crosses threshold
+- Displays cascade description, likelihood %, steps triggered/remaining
+- Visual severity coloring (critical/warning)
+
+## Acceptance criteria
+- [ ] IntelligenceReportBlock renders correctly in both fog-of-war and omniscient modes
+- [ ] ConstraintCascadeAlert shows correct step count and likelihood
+- [ ] Component tests passing (TDD)
+- [ ] Uses Stitch tokens only
+```
+
+**Issue #49: Game shared components — EscalationLadder, ActorAvatar, and game badges**
+```
+Title: feat: Game shared components (EscalationLadder, ActorAvatar, EscalationBadge, DimensionTag, ConfidenceBadge, TurnPhaseIndicator)
+Labels: sprint-2, P0-critical, frontend
+Assignee: @partner-a
+Milestone: Sprint 2
+Depends on: #46
+Implements: Stitch plan Task 4, F038
+
+## Description
+Build all game-specific shared components needed by actor panels, decision panels,
+and the chronicle.
+
+components/game/EscalationLadder.tsx
+- 8-rung horizontal bar visualization
+- Current rung highlighted in gold (#ffba20)
+- Higher rungs shift toward crimson
+- Labels below in IBM Plex Mono
+
+components/game/ActorAvatar.tsx — colored dot or initials circle
+components/game/EscalationBadge.tsx — "Rung N" pill with severity color
+components/game/DimensionTag.tsx — military/economic/diplomatic/intelligence/political/information
+components/game/ConfidenceBadge.tsx — confirmed/high/moderate/low/unverified/disputed
+components/game/TurnPhaseIndicator.tsx — planning/resolution/reaction/judging/complete badge
+
+## Acceptance criteria
+- [ ] EscalationLadder highlights current rung in gold, danger rungs in crimson
+- [ ] All 6 components render with Stitch tokens
+- [ ] EscalationLadder.test.tsx passing (TDD)
+- [ ] DimensionTag renders correct color per dimension
+```
+
+**Issue #50: ActorCard + Scenario Hub page**
+```
+Title: feat: ActorCard component and Scenario Hub page (app/scenarios/[id]/page.tsx)
+Labels: sprint-2, P1-important, frontend
+Assignee: @partner-a
+Milestone: Sprint 2
+Depends on: #46, #49
+Implements: Stitch plan Task 6, F039
+
+## Description
+New Stitch screen: the Scenario Hub shows all actors for a scenario before the
+user starts playing.
+
+components/game/ActorCard.tsx
+- Strategic Hub card for each actor
+- Shows: actor name, color dot, stakes level badge, win condition summary,
+  escalation rung badge, short description
+- Click → navigate to game view as that actor
+
+app/scenarios/[id]/page.tsx
+- Scenario Hub page
+- Fetch scenario + actors via GET /api/scenarios/[id]
+- Render ActorCard grid
+- "Play as [Actor]" → /scenarios/[id]/play/[branchId]
+- "Observe" → /scenarios/[id]/play/trunk (observer mode)
+
+## Acceptance criteria
+- [ ] ActorCard displays correctly for all actor types
+- [ ] Hub page renders actor grid from live API data
+- [ ] ActorCard.test.tsx passing (TDD)
+- [ ] Navigation to game view works
+```
+
+**Issue #51: Map components + FloatingMetricChip overlay**
+```
+Title: feat: Map components (GameMap, ActorLayer, ChokepointMarker, MapLegend) + FloatingMetricChip
+Labels: sprint-2, P1-important, frontend
+Assignee: @partner-a
+Milestone: Sprint 2
+Depends on: #46
+Implements: Stitch plan Task 9, F017, F040
+
+## Description
+Mapbox Tier 1 implementation with Stitch visual language, plus the new
+FloatingMetricChip overlay component.
+
+components/map/GameMap.tsx — Mapbox GL wrapper, Monochrome Dark base, actor fills
+components/map/ActorLayer.tsx — country fill layers by actor color
+components/map/ChokepointMarker.tsx — Strait of Hormuz dashed crimson line + BLOCKED label
+components/map/MapLegend.tsx — actor color legend
+
+components/map/FloatingMetricChip.tsx — NEW
+- Floating metric overlays on the map (oil price, air defense reserves, etc.)
+- Props: icon, label, value, variant (default | critical | warning)
+- Positioned absolutely over the map canvas
+
+## Acceptance criteria
+- [ ] Map renders centered on Middle East in Monochrome Dark style
+- [ ] Countries colored by actor (US=steel blue, Iran=crimson, etc.)
+- [ ] Strait of Hormuz marked as blocked when status = 'blocked'
+- [ ] FloatingMetricChip renders with correct variant colors
+- [ ] Click country dispatches SELECT_ACTOR to GameContext
 ```
 
 ---
