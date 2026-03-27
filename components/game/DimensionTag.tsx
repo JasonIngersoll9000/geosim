@@ -1,5 +1,10 @@
 type Dimension = 'military' | 'economic' | 'diplomatic' | 'intelligence' | 'political'
 
+export function toDimensionTagDimension(d: string): 'military' | 'economic' | 'diplomatic' | 'intelligence' {
+  if (d === 'information') return 'intelligence'
+  return d as 'military' | 'economic' | 'diplomatic' | 'intelligence'
+}
+
 const styles: Record<Dimension, { color: string; bg: string }> = {
   military:     { color: 'var(--status-critical)', bg: 'var(--status-critical-bg)' },
   economic:     { color: 'var(--status-stable)',   bg: 'var(--status-stable-bg)' },

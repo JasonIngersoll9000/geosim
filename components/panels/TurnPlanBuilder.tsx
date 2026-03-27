@@ -1,0 +1,65 @@
+'use client'
+import type { ActionSlot } from '@/lib/types/panels'
+
+interface Props {
+  primaryAction: ActionSlot | null
+  concurrentActions: ActionSlot[]
+  onSubmit: () => void
+}
+
+export function TurnPlanBuilder({ primaryAction, concurrentActions, onSubmit }: Props) {
+  // Resource allocation: primary = 60%, each concurrent splits remaining 40%
+  const allocation = primaryAction
+    ? concurrentActions.length > 0
+      ? `60% + ${Math.round(40 / concurrentActions.length)}% each`
+      : '100%'
+    : null
+
+  return (
+    <div className="flex flex-col gap-3 p-4 bg-bg-surface-dim border-t border-border-subtle">
+      {/* Primary slot */}
+      <div>
+        <div className="font-mono text-2xs uppercase tracking-[0.1em] text-text-tertiary mb-1">
+          Primary Action
+        </div>
+        <div className={`px-3 py-2 border ${primaryAction ? 'border-gold bg-bg-surface' : 'border-border-subtle bg-transparent'}`}>
+          {primaryAction
+            ? <span className="font-sans text-md text-text-primary">{primaryAction.title}</span>
+            : <span className="font-mono text-2xs text-text-tertiary">— empty —</span>
+          }
+        </div>
+      </div>
+
+      {/* Concurrent slots */}
+      {[0, 1, 2].map(i => (
+        <div key={i}>
+          <div className="font-mono text-2xs uppercase tracking-[0.1em] text-text-tertiary mb-1">
+            Concurrent {i + 1}
+          </div>
+          <div className="px-3 py-2 border border-border-subtle bg-transparent">
+            {concurrentActions[i]
+              ? <span className="font-sans text-md text-text-primary">{concurrentActions[i].title}</span>
+              : <span className="font-mono text-2xs text-text-tertiary">— empty —</span>
+            }
+          </div>
+        </div>
+      ))}
+
+      {/* Resource allocation */}
+      {allocation && (
+        <div className="font-mono text-2xs text-text-tertiary">
+          Resources: <span className="text-gold">{allocation}</span>
+        </div>
+      )}
+
+      {/* Submit */}
+      <button
+        onClick={onSubmit}
+        disabled={!primaryAction}
+        className="w-full py-2 font-sans text-sm font-semibold uppercase tracking-[0.08em] transition-colors bg-gold text-bg-base disabled:bg-bg-surface-high disabled:text-text-tertiary disabled:cursor-not-allowed"
+      >
+        Submit Turn
+      </button>
+    </div>
+  )
+}
