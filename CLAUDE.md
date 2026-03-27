@@ -127,6 +127,44 @@ When working on a task spanning many tool calls (research pipeline, game loop):
 - TDD: write failing tests BEFORE implementation
 - Tests in tests/ directory, organized by layer
 
+## Development Workflow Rules (REQUIRED)
+
+### Every feature = its own branch + PR
+- NEVER commit directly to `main`
+- Branch naming: `feat/short-description` or `fix/short-description`
+- Every feature branch gets a PR before merging
+- PR must reference the GitHub issue: "Closes #N"
+
+### Frontend work — Playwright + UI/UX validation required
+- Before marking any frontend task DONE, run `geosim-playwright` skill
+- After playwright check, run `geosim-uiux-validation` skill
+- User must approve all 4 validation categories before committing
+- No exceptions — every detail matters
+
+### TDD — tests before code
+- Write failing tests FIRST
+- Run to confirm they fail
+- Implement minimal code to pass
+- Never commit code without passing tests
+
+### Mock data vs real API calls
+- Mock data is acceptable while wiring structure
+- Once a real API call is implemented, it is PERMANENT
+- Never revert a real API call to mock data
+- Only change how AI output is presented, not the call itself
+
+### Skill selection guide
+| Situation | Use |
+|-----------|-----|
+| Starting any new feature | `/brainstorm` first, then `/plan` |
+| Have a plan, ready to implement | `superpowers:subagent-driven-development` |
+| Simple bug fix (< 30 min) | `/pick-issue` → direct implementation |
+| Complex bug (unexpected behavior) | `superpowers:systematic-debugging` |
+| Frontend feature complete | `geosim-uiux-validation` skill |
+| About to claim work is done | `superpowers:verification-before-completion` |
+| End of significant feature | `superpowers:requesting-code-review` |
+| Merging to main | `superpowers:finishing-a-development-branch` |
+
 ## Do NOT
 - Commit .env.local or any secrets
 - Modify database migrations that have been committed
