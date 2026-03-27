@@ -133,6 +133,16 @@ body {
   50% { opacity: 0; }
 }
 
+/* Blink cursor animation — DispatchTerminal */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
 .dispatch-line {
   font-family: var(--font-mono);
   font-size: 11px;
