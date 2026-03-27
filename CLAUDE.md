@@ -142,7 +142,7 @@ Read these files **on demand** when the task requires them. Do NOT auto-load all
 
 ### Frontend / UI (read when building components or UI)
 - `docs/frontend-design.md` — Stitch visual identity, font rules, surface treatments, "Declassified War Room" concept. Read before building any UI.
-- `docs/strategos-design-system.md` — Design tokens, color palette, component specs. Read alongside frontend-design.md.
+- `docs/frontend-mockups.md` - has frontend mockups from stitch that should be used for inspiration. these are guidelines, but should be updated for our specific goals
 - `docs/component-tree.ts` — React component hierarchy, state management, hooks, providers, file structure.
 - `docs/all-ui-mockups.html` — Interactive HTML mockups (106KB — read only relevant sections, do not load whole file).
 
