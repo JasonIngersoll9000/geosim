@@ -6,6 +6,7 @@ import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
 import { TopBar } from '@/components/ui/TopBar'
 import { DocumentIdHeader } from '@/components/ui/DocumentIdHeader'
 import { ActorCard } from '@/components/game/ActorCard'
+import { ChronicleTimeline } from '@/components/chronicle/ChronicleTimeline'
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
@@ -75,6 +76,45 @@ const MOCK_ACTORS = [
       { label: 'Oil Output', value: '−15%' },
       { label: 'US Alignment', value: 'STRAINED' },
     ],
+  },
+]
+
+// ─── Timeline mock data ───────────────────────────────────────────────────────
+
+const TIMELINE_ENTRIES = [
+  {
+    turnNumber: 1,
+    date: '4 March 2026',
+    title: 'Operation Epic Fury Launched',
+    narrative: 'Joint US-Israeli decapitation strike targeting 14 nuclear facilities. Three sites hardened beyond conventional penetration. Fordow partially intact.',
+    severity: 'critical' as const,
+    tags: ['Military', 'Nuclear'],
+    detail: 'B-2 sorties from Diego Garcia, F-35I from Nevatim. Carrier group CVN-73 launched 64 Tomahawks. Fordow bunker penetration failed — requires GBU-57 on second sortie.',
+  },
+  {
+    turnNumber: 2,
+    date: '8 March 2026',
+    title: 'Strait of Hormuz Closed',
+    narrative: 'IRGC mining operation closes Hormuz. 22 tankers rerouted. Oil spikes to $142/bbl. Gulf States emergency session convened.',
+    severity: 'critical' as const,
+    tags: ['Economic', 'Military'],
+    detail: 'MCM assets deployed. US 5th Fleet estimating 72–96 hours to clear main channel. LNG terminal at Ras Laffan operational.',
+  },
+  {
+    turnNumber: 3,
+    date: '14 March 2026',
+    title: 'Oman Diplomatic Breakthrough',
+    narrative: 'Oman announces framework for temporary ceasefire. Iran signals willingness to negotiate Hormuz reopening. US rejects preconditions.',
+    severity: 'major' as const,
+    tags: ['Diplomatic'],
+  },
+  {
+    turnNumber: 4,
+    date: '22 March 2026',
+    title: 'Hezbollah Northern Front Activated',
+    narrative: 'Hezbollah launches 340 rockets into northern Israel. Iron Dome at 87% intercept rate. Three civilians killed in Haifa.',
+    severity: 'major' as const,
+    tags: ['Military', 'Escalation'],
   },
 ]
 
@@ -186,12 +226,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
           )}
 
           {activeTab === 'timeline' && (
-            <div
-              className="py-8 text-center font-mono text-[11px]"
-              style={{ color: 'var(--text-tertiary)' }}
-            >
-              TIMELINE — COMING IN TASK 8
-            </div>
+            <ChronicleTimeline entries={TIMELINE_ENTRIES} />
           )}
         </div>
       </main>
