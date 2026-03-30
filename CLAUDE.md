@@ -108,6 +108,10 @@ NEUTRALITY_PREAMBLE injected into all agent prompts.
 - Always update claude-progress.txt and commit before ending a session
 - Use /clear between unrelated tasks
 
+## Custom skills (use with Skill tool)
+- `geosim-playwright` — Playwright CLI browser testing via accessibility tree (~26K tokens, saves to /tmp/)
+- `geosim-uiux-validation` — 4-category UI/UX sign-off checklist; user must approve CAT 1–4 before committing
+
 ## Feature tracking
 - features.json tracks all planned features with pass/fail status
 - Only mark a feature as passes:true AFTER tests pass
@@ -127,6 +131,44 @@ When working on a task spanning many tool calls (research pipeline, game loop):
 - TDD: write failing tests BEFORE implementation
 - Tests in tests/ directory, organized by layer
 
+## Development Workflow Rules (REQUIRED)
+
+### Every feature = its own branch + PR
+- NEVER commit directly to `main`
+- Branch naming: `feat/short-description` or `fix/short-description`
+- Every feature branch gets a PR before merging
+- PR must reference the GitHub issue: "Closes #N"
+
+### Frontend work — Playwright + UI/UX validation required
+- Before marking any frontend task DONE, run `geosim-playwright` skill
+- After playwright check, run `geosim-uiux-validation` skill
+- User must approve all 4 validation categories before committing
+- No exceptions — every detail matters
+
+### TDD — tests before code
+- Write failing tests FIRST
+- Run to confirm they fail
+- Implement minimal code to pass
+- Never commit code without passing tests
+
+### Mock data vs real API calls
+- Mock data is acceptable while wiring structure
+- Once a real API call is implemented, it is PERMANENT
+- Never revert a real API call to mock data
+- Only change how AI output is presented, not the call itself
+
+### Skill selection guide
+| Situation | Use |
+|-----------|-----|
+| Starting any new feature | `/brainstorm` first, then `/plan` |
+| Have a plan, ready to implement | `superpowers:subagent-driven-development` |
+| Simple bug fix (< 30 min) | `/pick-issue` → direct implementation |
+| Complex bug (unexpected behavior) | `superpowers:systematic-debugging` |
+| Frontend feature complete | `geosim-uiux-validation` skill |
+| About to claim work is done | `superpowers:verification-before-completion` |
+| End of significant feature | `superpowers:requesting-code-review` |
+| Merging to main | `superpowers:finishing-a-development-branch` |
+
 ## Do NOT
 - Commit .env.local or any secrets
 - Modify database migrations that have been committed
@@ -135,6 +177,9 @@ When working on a task spanning many tool calls (research pipeline, game loop):
 - Give any actor preferential treatment in AI prompts
 - Use localStorage in components (use React state or Supabase)
 - Dump entire actor state into context — use progressive disclosure
+- Write `// text` directly inside JSX — use `{' // text '}` (triggers `react/jsx-no-comment-textnodes` ESLint error, breaks Vercel build)
+- Leave destructured params unused — prefix with `_` (e.g., `labels: _labels`) to suppress `no-unused-vars`
+- Put `border: 'none'` after `borderBottom` in the same inline style object — shorthand overwrites the specific property
 
 ## Reference docs
 
@@ -163,7 +208,7 @@ Read these files **on demand** when the task requires them. Do NOT auto-load all
 
 ### Planning / high-level reference (read when planning, not every session)
 - `docs/prd.md` — Full product requirements. Start here for high-level questions.
-- `docs/scrum-issues.md` — Sprint issues with acceptance criteria. Source of truth for /pick-issue.
+- `docs/scrum-issues.md` — Sprint issues #27–#41 (Phase A–D roadmap to playable game). Source of truth for /pick-issue.
 - `docs/env-plan.md` — Environment variables, Supabase/Vercel setup, API cost estimates.
 - `docs/superpowers/plans/2026-03-24-frontend-stitch-design.md` — Active Stitch migration plan (14 tasks).
 
