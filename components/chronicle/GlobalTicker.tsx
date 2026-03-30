@@ -13,10 +13,6 @@ export function GlobalTicker({ items }: Props) {
     >
       <div className="flex items-center h-full">
         <div className="ticker-track flex items-center whitespace-nowrap">
-          {/*
-            Visible copy — text nodes in DOM so getByText() works in tests.
-            Separator is a real DOM node so getAllByText('|') passes.
-          */}
           {items.map((item, i) => (
             <span
               key={i}
@@ -26,12 +22,7 @@ export function GlobalTicker({ items }: Props) {
               <span className="text-text-tertiary">|</span>
             </span>
           ))}
-          {/*
-            Seamless-loop duplicate rendered via CSS content: attr() so there are
-            NO text nodes in the DOM. RTL's getByText() and getAllByText() queries
-            never find these — they only match DOM text, not pseudo-element content.
-            Browsers render them identically to the visible copy above.
-          */}
+          {/* Seamless-loop copy — content rendered via CSS, not DOM text nodes */}
           {items.map((item, i) => (
             <span
               key={`dup-${i}`}

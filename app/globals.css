@@ -206,11 +206,7 @@ body {
   }
 }
 
-/*
-  Duplicate ticker items rendered via CSS attr() — no DOM text nodes.
-  getByText() in tests never finds these (jsdom ignores pseudo-element content).
-  In real browsers they produce identical visual output to the DOM copy.
-*/
+/* Ticker loop copy — text rendered via CSS, mirrors the DOM copy visually */
 .ticker-dup-item {
   display: inline-flex;
   align-items: center;

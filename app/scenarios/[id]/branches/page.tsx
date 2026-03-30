@@ -371,10 +371,7 @@ export default function BranchesPage({ params }: { params: { id: string } }) {
         <div className="max-w-2xl mx-auto px-6 py-6">
           <div className="border-b border-border-subtle mb-6">
             <DocumentIdHeader
-              scenarioCode={MOCK_SCENARIO.code}
-              branchName="INDEX"
-              turnNumber={4}
-              totalTurns={12}
+              text="TIMELINE DIVERGENCE MAP // SCENARIO: IRAN-2026"
             />
           </div>
 
