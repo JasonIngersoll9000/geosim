@@ -351,11 +351,18 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
   }
 
   function handleReturnToPlanning() {
-    // Plan already reset in isComplete effect; just advance turn, reset hook, switch phase/tab
-    setTurnNumber(prev => prev + 1)
+    // Only advance turn on successful completion — not on error dismiss
+    if (isComplete) {
+      setTurnNumber(prev => prev + 1)
+      setActiveTab('chronicle')
+    } else {
+      // Error dismiss: stay on decisions, no turn advance, restore plan slots
+      setPrimaryAction(null)
+      setConcurrentActions([])
+      setActiveTab('decisions')
+    }
     resetHook()
     dispatch({ type: 'SET_TURN_PHASE', payload: 'planning' })
-    setActiveTab('chronicle')
   }
 
   function handleRemovePrimary() {
