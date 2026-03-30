@@ -18,7 +18,10 @@ export default function PlayPage({ params }: Props) {
         totalTurns={12}
         phase="Planning"
       />
-      <GameView branchId={params.branchId} scenarioId={params.id} />
+      {/* Push GameView below the fixed ClassificationBanner (24px) + TopBar (42px) = 66px */}
+      <main className="h-screen pt-[66px] overflow-hidden">
+        <GameView branchId={params.branchId} scenarioId={params.id} />
+      </main>
     </GameProvider>
   )
 }

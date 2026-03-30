@@ -44,19 +44,21 @@ export function TurnEntry({ entry }: { entry: EntryData }) {
         ))}
       </div>
       {entry.detail && (
-        <div className="mt-2 overflow-hidden border border-border-subtle">
+        <div className="mt-2 border border-border-subtle">
           <button
             onClick={() => setExpanded(e => !e)}
-            className="w-full flex justify-between items-center px-3 py-2 font-mono text-[11px] transition-all text-status-info"
+            className="w-full flex justify-between items-center px-3 py-2 font-mono text-[11px] transition-colors text-status-info"
+            aria-expanded={expanded}
           >
             <span>Detail</span>
             <span>{expanded ? '▲' : '▼'}</span>
           </button>
-          {expanded && (
+          {/* CSS max-height transition via .chronicle-detail / .chronicle-detail.open */}
+          <div className={`chronicle-detail${expanded ? ' open' : ''}`}>
             <div className="px-3 pb-3 font-mono text-[11px] text-text-secondary bg-bg-surface">
               {entry.detail}
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

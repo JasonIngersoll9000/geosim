@@ -5,7 +5,6 @@ import { useRealtime } from '@/hooks/useRealtime'
 import { useGame } from '@/components/providers/GameProvider'
 import { GameLayout } from '@/components/layout/GameLayout'
 import { GameMap } from '@/components/map/GameMap'
-import { GlobalIndicators } from '@/components/panels/GlobalIndicators'
 import { ActorList } from '@/components/panels/ActorList'
 import { ActorDetailPanel } from '@/components/panels/ActorDetailPanel'
 import { DecisionCatalog } from '@/components/panels/DecisionCatalog'
@@ -15,6 +14,7 @@ import { ChronicleTimeline } from '@/components/chronicle/ChronicleTimeline'
 import { EventsTab } from '@/components/panels/EventsTab'
 import { DispatchTerminal } from '@/components/game/DispatchTerminal'
 import { ObserverOverlay } from '@/components/panels/ObserverOverlay'
+import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import type { DispatchLine } from '@/components/game/DispatchTerminal'
 import type { ActorSummary, ActorDetail, DecisionOption, DecisionDetail, ActionSlot } from '@/lib/types/panels'
@@ -323,16 +323,18 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
   // ─── Panel content ───────────────────────────────────────────────────────────
 
   const panelContent = (
-    <div className="flex flex-col h-full overflow-hidden">
-      {/* Global indicators bar */}
-      <GlobalIndicators
-        indicators={[
-          { label: 'OIL',        value: '$142/bbl',                                              variant: 'critical' },
-          { label: 'TURN',       value: `${String(state.turnNumber || 4).padStart(2, '0')} / 12` },
-          { label: 'PHASE',      value: (state.turnPhase || 'planning').toUpperCase()            },
-          { label: 'ESCALATION', value: 'RUNG 6',                                                variant: 'critical' },
-        ]}
-      />
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      {/* Global indicators bar + turn phase */}
+      <div className="flex items-center gap-4 px-4 py-2 bg-bg-surface-dim border-b border-border-subtle font-mono text-2xs shrink-0">
+        <span className="text-text-tertiary">OIL: <span className="text-status-critical">$142/bbl</span></span>
+        <span className="text-text-tertiary">
+          TURN: <span className="text-text-secondary">{String(state.turnNumber || 4).padStart(2, '0')} / 12</span>
+        </span>
+        <span className="text-text-tertiary">
+          PHASE: <TurnPhaseIndicator phase={state.turnPhase || 'planning'} />
+        </span>
+        <span className="text-text-tertiary">ESCALATION: <span className="text-status-critical">RUNG 6</span></span>
+      </div>
 
       {/* Tab strip */}
       <div className="flex border-b border-border-subtle bg-bg-surface-dim shrink-0">
@@ -385,8 +387,8 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
         </div>
       )}
 
-      {/* Dispatch terminal */}
-      <div className="shrink-0" style={{ maxHeight: '140px' }}>
+      {/* Dispatch terminal — capped at 140px, overflow-y-auto within wrapper */}
+      <div className="shrink-0 overflow-hidden" style={{ height: '120px' }}>
         <DispatchTerminal lines={lines} isRunning={isRunning} />
       </div>
     </div>
