@@ -416,7 +416,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
               <Badge variant="critical">SECRET</Badge>
               <Badge variant="military">ACTIVE CONFLICT</Badge>
               <span className="font-mono text-2xs text-text-tertiary ml-auto tracking-[0.04em] uppercase">
-                TURN 03 // ACTIVE
+                TURN 03{' // '}ACTIVE
               </span>
             </div>
 
@@ -458,7 +458,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
               >
                 Observe — AI vs AI
               </Button>
-              <Button variant="ghost" className="text-[11px] py-1.5">
+              <Button variant="ghost" className="text-[11px] py-1.5 opacity-50 cursor-not-allowed" disabled title="Coming soon">
                 Browse Branches
               </Button>
             </div>
@@ -507,10 +507,9 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
                 className="font-label text-[11px] font-semibold uppercase tracking-[0.06em] px-4 py-3 -mb-px border-b-2 transition-colors"
                 style={{
                   color: activeTab === tab ? 'var(--gold)' : 'var(--text-tertiary)',
-                  borderBottomColor: activeTab === tab ? 'var(--gold)' : 'transparent',
-                  background: 'transparent',
                   border: 'none',
                   borderBottom: activeTab === tab ? '2px solid var(--gold)' : '2px solid transparent',
+                  background: 'transparent',
                 }}
               >
                 {tab === 'actors' ? 'ACTORS' : 'TIMELINE'}

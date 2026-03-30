@@ -208,7 +208,7 @@ function ScenarioCard({ scenario, onClick }: { scenario: ScenarioDisplay; onClic
             </Badge>
             {scenario.turnNumber && (
               <span className="font-mono text-2xs text-text-tertiary tracking-[0.04em]">
-                TURN {String(scenario.turnNumber).padStart(2, '0')} // {scenario.status}
+                TURN {String(scenario.turnNumber).padStart(2, '0')}{' // '}{scenario.status}
               </span>
             )}
           </div>
@@ -272,13 +272,14 @@ export default function ScenarioBrowserPage() {
   const router = useRouter()
   const [scenarios, setScenarios] = useState<ScenarioDisplay[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('ALL SCENARIOS')
 
   useEffect(() => {
     async function load() {
       try {
         const res = await fetch('/api/scenarios')
-        if (!res.ok) throw new Error('fetch failed')
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`)
         const json = (await res.json()) as { data: ScenarioSummary[]; error: unknown }
         if (json.data && json.data.length > 0) {
           const mapped: ScenarioDisplay[] = json.data.map((s) => ({
@@ -293,7 +294,9 @@ export default function ScenarioBrowserPage() {
         } else {
           setScenarios(MOCK_SCENARIOS)
         }
-      } catch {
+      } catch (err) {
+        console.error('[ScenarioBrowser] fetch failed:', err)
+        setError('Failed to load scenarios. Showing cached data.')
         setScenarios(MOCK_SCENARIOS)
       } finally {
         setLoading(false)
@@ -338,6 +341,13 @@ export default function ScenarioBrowserPage() {
           {loading && (
             <div className="py-16 text-center font-mono text-[11px] uppercase tracking-[0.08em] text-text-tertiary">
               LOADING SCENARIOS...
+            </div>
+          )}
+
+          {/* Error state */}
+          {!loading && error !== null && (
+            <div className="mb-4 px-4 py-3 border border-[#3a1a1a] bg-[rgba(185,28,28,0.06)] font-mono text-[10px] uppercase tracking-[0.08em] text-[#b91c1c]">
+              {error}
             </div>
           )}
 
