@@ -356,7 +356,7 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
       setTurnNumber(prev => prev + 1)
       setActiveTab('chronicle')
     } else {
-      // Error dismiss: stay on decisions, no turn advance, restore plan slots
+      // Error dismiss: clear plan slots and stay on decisions so user can retry
       setPrimaryAction(null)
       setConcurrentActions([])
       setActiveTab('decisions')

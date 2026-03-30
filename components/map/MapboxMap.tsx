@@ -93,16 +93,22 @@ export function MapboxMap({ hormuzClosed }: Props) {
 
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
-    mapRef.current = new mapboxgl.Map({
-      container: containerRef.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
-      center: [56, 26],
-      zoom: 5,
-      attributionControl: false,
-      logoPosition: 'bottom-right',
-    })
-
-    const map = mapRef.current
+    let map: mapboxgl.Map
+    try {
+      mapRef.current = new mapboxgl.Map({
+        container: containerRef.current,
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: [56, 26],
+        zoom: 5,
+        attributionControl: false,
+        logoPosition: 'bottom-right',
+      })
+      map = mapRef.current
+    } catch (e) {
+      console.error('[GeoSim map] Map constructor failed:', e)
+      setWebglFailed(true)
+      return
+    }
 
     map.on('error', (e) => {
       const msg = (e as any)?.error?.message ?? ''
