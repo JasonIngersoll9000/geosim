@@ -250,3 +250,19 @@ body {
   transform: scale(0.7) !important;
   transform-origin: bottom right !important;
 }
+
+/* ── Reduced motion: disable CSS micro-interactions ── */
+@media (prefers-reduced-motion: reduce) {
+  /* Button press scale */
+  button:active {
+    transform: none !important;
+  }
+  /* Disable all CSS opacity/color transitions (dimension-tag hover fades, etc.) */
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
