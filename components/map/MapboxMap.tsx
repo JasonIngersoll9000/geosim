@@ -77,8 +77,8 @@ export function MapboxMap({ hormuzClosed }: Props) {
           hormuzClosed ? 'visible' : 'none',
         )
       }
-    } catch {
-      // map not fully initialized
+    } catch (e) {
+      console.warn('[MapboxMap] hormuzClosed layer toggle failed:', e)
     }
   }, [hormuzClosed])
 
@@ -346,8 +346,8 @@ export function MapboxMap({ hormuzClosed }: Props) {
       }
       try {
         map.remove()
-      } catch {
-        // ignore cleanup errors on partially-initialized maps
+      } catch (e) {
+        console.warn('[MapboxMap] cleanup remove() failed:', e)
       }
     }
   }, [])

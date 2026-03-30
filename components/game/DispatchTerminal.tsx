@@ -43,7 +43,7 @@ export function DispatchTerminal({ lines, isRunning }: Props) {
         </div>
       ))}
       {isRunning && (
-        <div data-cursor className="text-gold text-2xs cursor-blink mt-1">▊</div>
+        <div data-cursor className="text-gold text-2xs cursor-blink mt-1">▋</div>
       )}
       <div ref={endRef} />
     </div>

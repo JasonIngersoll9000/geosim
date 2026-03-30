@@ -55,7 +55,7 @@ export function DecisionCatalog({ decisions, onSelect, selectedPrimaryId, select
                   {/* Row 1: dimension tag + title + selection badge */}
                   <div className="flex items-center gap-2">
                     <DimensionTag dimension={toDimensionTagDimension(decision.dimension)} />
-                    <span className={`font-sans text-[13px] font-semibold leading-tight flex-1 ${isSelected ? 'text-text-primary' : 'text-text-primary'}`}>
+                    <span className={`font-sans text-[13px] font-semibold leading-tight flex-1 ${isSelected ? 'text-text-primary' : 'text-text-secondary'}`}>
                       {decision.title}
                     </span>
                     {isPrimary && (
