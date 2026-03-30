@@ -293,29 +293,32 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
   useEffect(() => {
     if (!isComplete) return
     dispatch({ type: 'SET_TURN_PHASE', payload: 'complete' })
+
+    // Chronicle append — capture action titles before reset
     const nextTurn = turnNumber + 1
+    const actionTitles = [primaryAction, ...concurrentActions]
+      .filter(Boolean).map(a => a!.title)
     const newEntry: ChronicleEntry = {
       turnNumber: nextTurn,
       date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }),
       title: primaryAction
         ? `Turn ${nextTurn} — ${primaryAction.title}`
         : `Turn ${nextTurn} Complete`,
-      narrative: `Resolution complete. Actions executed: ${[primaryAction, ...concurrentActions]
-        .filter(Boolean).map(a => a!.title).join(', ')}. Judged at 86/100.`,
+      narrative: `Resolution complete. Actions executed: ${actionTitles.join(', ')}. Judged at 86/100.`,
       severity: 'major',
       tags: primaryAction ? [primaryAction.dimension.charAt(0).toUpperCase() + primaryAction.dimension.slice(1)] : [],
     }
     setChronicleEntries(prev => [...prev, newEntry])
+
+    // Reset TurnPlanBuilder immediately on completion (not deferred to button click)
+    setPrimaryAction(null)
+    setConcurrentActions([])
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isComplete])
 
   const selectedActorDetail = state.selectedActorId
     ? (MOCK_ACTOR_DETAILS[state.selectedActorId] ?? null)
     : null
-
-  // Dispatch terminal lines: hook lines when in resolution, otherwise initial lines
-  const terminalLines = showTerminal ? hookLines : INITIAL_DISPATCH
-  const isRunning = isSubmitting
 
   function handleDecisionSelect(id: string) {
     const decision = MOCK_DECISIONS.find(d => d.id === id)
@@ -348,10 +351,8 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
   }
 
   function handleReturnToPlanning() {
-    const nextTurn = turnNumber + 1
-    setTurnNumber(nextTurn)
-    setPrimaryAction(null)
-    setConcurrentActions([])
+    // Plan already reset in isComplete effect; just advance turn, reset hook, switch phase/tab
+    setTurnNumber(prev => prev + 1)
     resetHook()
     dispatch({ type: 'SET_TURN_PHASE', payload: 'planning' })
     setActiveTab('chronicle')
@@ -383,7 +384,7 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
       <div className="flex items-center gap-4 px-4 py-2 bg-bg-surface-dim border-b border-border-subtle font-mono text-2xs shrink-0">
         <span className="text-text-tertiary">OIL: <span className="text-status-critical">$142/bbl</span></span>
         <span className="text-text-tertiary">
-          TURN: <span className="text-text-secondary">{String(state.turnNumber || turnNumber).padStart(2, '0')} / 12</span>
+          TURN: <span className="text-text-secondary">{String(turnNumber).padStart(2, '0')} / 12</span>
         </span>
         <span className="text-text-tertiary">
           PHASE: <TurnPhaseIndicator phase={state.turnPhase || 'planning'} />
@@ -406,29 +407,9 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
             )}
           </div>
 
-          {/* Full-height terminal */}
-          <div className="flex-1 overflow-y-auto min-h-0 p-4 bg-bg-surface-dim font-mono">
-            {terminalLines.map((line, i) => {
-              const colorMap: Record<string, string> = {
-                default:   'text-text-secondary',
-                critical:  'text-status-critical',
-                confirmed: 'text-gold',
-                info:      'text-status-info',
-                stable:    'text-status-stable',
-              }
-              return (
-                <div
-                  key={`${line.timestamp}-${i}`}
-                  className={`flex gap-2 text-2xs mb-[2px] ${colorMap[line.type] ?? 'text-text-secondary'}`}
-                >
-                  <span className="text-text-tertiary shrink-0">[{line.timestamp}]</span>
-                  <span>{line.text}</span>
-                </div>
-              )
-            })}
-            {isRunning && (
-              <div className="text-gold text-2xs cursor-blink mt-1">▊</div>
-            )}
+          {/* Full-height terminal — reuse <DispatchTerminal /> */}
+          <div className="flex-1 overflow-hidden min-h-0">
+            <DispatchTerminal lines={hookLines} isRunning={isSubmitting} />
           </div>
 
           {/* Return to planning button when complete */}
