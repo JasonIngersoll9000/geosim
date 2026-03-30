@@ -78,14 +78,14 @@ const MOCK_ACTOR_DETAILS: Record<string, ActorDetail> = {
   },
 }
 
-const MOCK_DECISIONS: DecisionOption[] = [
-  { id: 'expand-air',       title: 'Expand Air Campaign',          dimension: 'military',     escalationDirection: 'escalate',    resourceWeight: 0.6  },
-  { id: 'special-ops',      title: 'Special Ops Insertion',        dimension: 'military',     escalationDirection: 'escalate',    resourceWeight: 0.4  },
-  { id: 'ceasefire-signal', title: 'Signal Ceasefire Willingness', dimension: 'diplomatic',   escalationDirection: 'de-escalate', resourceWeight: 0.2  },
-  { id: 'oman-backchannel', title: 'Activate Oman Back-Channel',   dimension: 'diplomatic',   escalationDirection: 'de-escalate', resourceWeight: 0.15 },
-  { id: 'iea-release',      title: 'IEA Reserve Release',          dimension: 'economic',     escalationDirection: 'neutral',     resourceWeight: 0.25 },
-  { id: 'asset-freeze',     title: 'Expand Asset Freeze',          dimension: 'economic',     escalationDirection: 'escalate',    resourceWeight: 0.3  },
-  { id: 'proxy-disrupt',    title: 'Disrupt Proxy Networks',       dimension: 'intelligence', escalationDirection: 'escalate',    resourceWeight: 0.35 },
+const MOCK_DECISIONS: Array<DecisionOption & { description: string }> = [
+  { id: 'expand-air',       title: 'Expand Air Campaign',          description: 'Second sortie targeting Fordow with GBU-57 penetrators; secondary strikes on IRGC naval facilities.',  dimension: 'military',     escalationDirection: 'escalate',    resourceWeight: 0.6  },
+  { id: 'special-ops',      title: 'Special Ops Insertion',        description: 'JSOC teams inserted to surveil and disable hardened sites beyond air campaign range.',                   dimension: 'military',     escalationDirection: 'escalate',    resourceWeight: 0.4  },
+  { id: 'ceasefire-signal', title: 'Signal Ceasefire Willingness', description: 'Back-door diplomatic message to Iranian FM via Swiss intermediary indicating conditions for pause.',      dimension: 'diplomatic',   escalationDirection: 'de-escalate', resourceWeight: 0.2  },
+  { id: 'oman-backchannel', title: 'Activate Oman Back-Channel',   description: 'Leverage Omani diplomatic channel to propose conditional sanctions relief in exchange for enrichment freeze.', dimension: 'diplomatic',   escalationDirection: 'de-escalate', resourceWeight: 0.15 },
+  { id: 'iea-release',      title: 'IEA Reserve Release',          description: 'Coordinate IEA member-state release of strategic petroleum reserves to cap oil below $130/bbl.',         dimension: 'economic',     escalationDirection: 'neutral',     resourceWeight: 0.25 },
+  { id: 'asset-freeze',     title: 'Expand Asset Freeze',          description: 'Extend secondary sanctions to IRGC-linked entities in UAE and Turkey; target currency reserves.',         dimension: 'economic',     escalationDirection: 'escalate',    resourceWeight: 0.3  },
+  { id: 'proxy-disrupt',    title: 'Disrupt Proxy Networks',       description: 'Cyber and HUMINT operations against Hezbollah and Houthi command networks to limit proxy retaliation.',  dimension: 'intelligence', escalationDirection: 'escalate',    resourceWeight: 0.35 },
 ]
 
 const MOCK_DECISION_DETAILS: Record<string, DecisionDetail> = {

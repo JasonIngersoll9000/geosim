@@ -1,13 +1,26 @@
 'use client'
+import { useState } from 'react'
 import type { ActionSlot } from '@/lib/types/panels'
 
 interface Props {
   primaryAction: ActionSlot | null
   concurrentActions: ActionSlot[]
-  onSubmit: () => void
+  onSubmit: () => Promise<void> | void
 }
 
 export function TurnPlanBuilder({ primaryAction, concurrentActions, onSubmit }: Props) {
+  const [submitting, setSubmitting] = useState(false)
+
+  async function handleSubmit() {
+    if (!primaryAction || submitting) return
+    setSubmitting(true)
+    try {
+      await onSubmit()
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   // Resource allocation: primary = 60%, each concurrent splits remaining 40%
   const allocation = primaryAction
     ? concurrentActions.length > 0
@@ -52,13 +65,13 @@ export function TurnPlanBuilder({ primaryAction, concurrentActions, onSubmit }: 
         </div>
       )}
 
-      {/* Submit */}
+      {/* Submit — idle / loading / disabled states */}
       <button
-        onClick={onSubmit}
-        disabled={!primaryAction}
+        onClick={handleSubmit}
+        disabled={!primaryAction || submitting}
         className="w-full py-2 font-sans text-sm font-semibold uppercase tracking-[0.08em] transition-colors bg-gold text-bg-base disabled:bg-bg-surface-high disabled:text-text-tertiary disabled:cursor-not-allowed"
       >
-        Submit Turn
+        {submitting ? 'Submitting…' : 'Submit Turn'}
       </button>
     </div>
   )
