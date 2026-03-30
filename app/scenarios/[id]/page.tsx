@@ -348,6 +348,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
   const [selectedActor, setSelectedActor] = useState<ActorDetail | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
   const [creatingBranch, setCreatingBranch] = useState(false)
+  const [branchError, setBranchError] = useState<string | null>(null)
   const router = useRouter()
 
   function openDossier(actorId: string) {
@@ -364,6 +365,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
 
   async function handleStartNewBranch() {
     setCreatingBranch(true)
+    setBranchError(null)
     try {
       const res = await fetch('/api/branches', {
         method: 'POST',
@@ -377,8 +379,9 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
           return
         }
       }
+      setBranchError('Branch creation is not available yet.')
     } catch {
-      // API not yet implemented — handle gracefully
+      setBranchError('Failed to create branch — please try again.')
     } finally {
       setCreatingBranch(false)
     }
@@ -476,6 +479,11 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
                 {creatingBranch ? 'CREATING...' : '+ Start New Branch'}
               </Button>
             </div>
+            {branchError && (
+              <p className="font-mono text-2xs text-status-critical uppercase tracking-[0.04em] mb-3">
+                {branchError}
+              </p>
+            )}
             <div className="flex flex-col gap-3">
               {MOCK_BRANCHES.map((branch) => (
                 <BranchCard
