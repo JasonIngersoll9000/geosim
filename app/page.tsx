@@ -4,7 +4,6 @@ import Link from "next/link";
 import { TopBar } from "@/components/ui/TopBar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { ClassificationBanner } from "@/components/ui/ClassificationBanner";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Variants } from "framer-motion";
 
@@ -49,15 +48,6 @@ export default function Home() {
 
   return (
     <>
-      {/* Classification banner — fades in as first hero element */}
-      <motion.div
-        initial={shouldSkip ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={shouldSkip ? {} : { duration: 0.4, ease: "easeOut" }}
-      >
-        <ClassificationBanner />
-      </motion.div>
-
       <TopBar scenarioName="Strategic Simulation Engine" />
 
       <main>
