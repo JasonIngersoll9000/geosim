@@ -1,8 +1,8 @@
 # GeoSim Progress Log
 Updated by Claude Code at the end of each session.
 
-## Current sprint: Sprint 2 — Core Features
-## Last session: 2026-03-24
+## Current sprint: Sprint 3 — Real Data + AI Pipeline
+## Last session: 2026-03-30
 
 ### Completed
 - Next.js 14 scaffolding with App Router, TypeScript, Tailwind
@@ -10,101 +10,78 @@ Updated by Claude Code at the end of each session.
 - TypeScript types: lib/types/database.ts, lib/types/simulation.ts (+ TurnPlan types)
 - Supabase client utilities: lib/supabase/client.ts, lib/supabase/server.ts
 - Supabase middleware: middleware.ts (session token refresh)
-- Vitest setup with tests passing (4 files, 6 tests)
-- Directory structure stubs (.gitkeep files for all key directories)
-- .env.example committed with placeholder values
-- CLAUDE.md updated with @imports to all /docs files, Sprint 1 status
-- .claude/settings.json configured with permissions, hooks, and skill triggers
-- All project skills created: start-session, end-session, add-feature, pick-issue,
-  run-turn, seed-iran-scenario, test-agent, review-pr, quality-gate, quality-fix,
-  security-audit, sprint-standup, update-ground-truth, create-sprint-issues
-- docs/frontend-design.md — full "Declassified War Room" design vision
-- docs/claude-code-guide.md — comprehensive Claude Code workflow guide for new users
-- Hook automation: skill triggers wired to hooks in settings.json
-- npm → bun migration across all skills and settings
-- Vercel deployment live (builds passing)
-- Issue #3 (PR #13): Vitest + mock scenario factory — createMockScenario(), createMockDecisions(), createMockTurnPlan()
-- Issue #4 (PR #14): TDD fog-of-war filtering — lib/game/fog-of-war.ts, 13 tests passing (F005 ✅)
-- Issue #5 (PR #15): TDD escalation ladder validation — lib/game/escalation.ts, 18 tests passing (F006 ✅)
-- Issue #6 (PR #16): TDD TurnPlan validation — lib/game/turn-plan.ts, 14 tests passing (F008b ✅)
-- Issue #7 (PR #17): TDD state update application — lib/game/state-updates.ts, 12 tests passing (F007 ✅)
-- C.L.E.A.R. reviews on all 5 open PRs; bugs identified and fixed before push
-- PR #15 bugfix: getDeescalationOptions floor initialization (reduce to Infinity not currentRung)
-- PR #16 bugfix: concurrent-vs-concurrent incompatibility check (nested loop i<j) + under-allocation warning
-- PR #17 bugfix: added clamping test (change +1000 → clamps to 100) + unknown-actorId no-op test
-- ESLint argsIgnorePattern fix: configured ^_ pattern in .eslintrc.json on all 4 branches (issue-4 through issue-7)
-- fog-of-war.ts: renamed unused `scenario` param to `_scenario` on all 4 branches
-- state-updates.ts: let → const for updatedGlobal (prefer-const ESLint rule)
-- All Vercel build failures resolved; 61/61 tests passing across all 8 test files
-- Issue #8 (PR #18): Research pipeline API routes (Stages 0–6) — Anthropic SDK, callClaude helper, 7-stage pipeline with parallel stages 3&4, web search, prompt caching; 97 tests passing
-- Issue #9 (Iran Research Incorporation, PR #19): Full implementation via subagent-driven development
-  - VerificationStatus type ('verified' | 'researched' | 'inferred') added to simulation.ts
-  - SeedEvent and BranchDivergence types; ActorAgentContext interface with branchDivergence field
-  - lib/scenarios/iran/initial-state.ts — verified actor state from research docs (US, Iran, Israel, Russia, China, Gulf States)
-  - lib/scenarios/iran/events.ts — ~20 SeedEvent objects covering Phase 2 (Oman talks) and Phase 3 (Operation Epic Fury through Day 19)
-  - lib/scenarios/iran/index.ts — barrel export
-  - scripts/seed-iran.ts — CLI seed script: creates scenario → trunk branch → chains events via applyEventImpact() → inserts turn_commits; supports --from=<event_id> for incremental appending
-  - lib/game/cache-key.ts — computeCacheKey() SHA-256 for shared commit caching (order-independent)
-  - supabase/migrations/20260322000000_trunk_caching.sql — current_divergence on branches, cache_key + reuse_count on turn_commits
-  - verifiedContext param on runPopulatePipeline() — skips stages 1–4 when provided
-  - Updated docs: prd.md, geosim-data-model.ts, agent-architecture.ts, api-routes.md, research-pipeline.md, scrum-issues.md
-  - Updated .claude/skills/seed-iran-scenario.md to describe CLI approach
-  - GitHub Issue #18 created for Iran research incorporation
-  - 97 tests passing, lint clean, build clean, typecheck clean (1 pre-existing error only)
-- Frontend design brainstorming + planning session (2026-03-24):
-  - Stitch mockups uploaded and adopted as new visual direction
-  - New design language: Space Grotesk + Newsreader + IBM Plex Mono, gold #ffba20,
-    6-level bg scale, opaque border tokens
-  - docs/superpowers/specs/2026-03-24-frontend-stitch-design.md — Stitch design spec
-  - docs/superpowers/plans/2026-03-24-frontend-stitch-design.md — 14-task implementation plan
-  - Deconfliction with Spec 1 (2026-03-22): carry-forwards appended to plan
-    (next/font/google variable option, RSC→GameProvider boundary, dev bypass, TagList/CostMagnitude)
-  - scrum-issues.md updated: new issues #46–#51 added for Stitch-specific tasks
-  - features.json updated: F031–F035 updated + F036–F042 added for new components/patterns
+- Vitest setup with tests passing
+- All game logic (fog-of-war, escalation, TurnPlan validation, state updates)
+- Research pipeline API routes (Stages 0–6)
+- Iran scenario data incorporation (seed script, verified actor state)
+- **Sprint 2 Stitch frontend migration — ALL 14 TASKS COMPLETE (PR #42, merged)**
+  - Design tokens: Space Grotesk (font-label), Newsreader (font-serif), IBM Plex Mono (font-mono), Inter (font-sans), gold #ffba20
+  - UI primitives: TopBar, ClassificationBanner, DocumentIdHeader, SectionDivider, Badge, Button, ScoreDisplay, ProgressBar, SlideOverPanel
+  - Game components: EscalationLadder, ActorAvatar, DimensionTag, IntelligenceReportBlock, ConstraintCascadeAlert
+  - War Chronicle: TurnEntry, GlobalTicker, ChronicleTimeline
+  - Map shell: GameMap, ActorLayer, ChokepointMarker, FloatingMetricChip, MapLegend
+  - Actor panels: ActorList, ActorDetailPanel, GlobalIndicators
+  - Decision panels: DecisionCatalog, TurnPlanBuilder, DecisionDetailPanel
+  - DispatchTerminal (turn resolution animation)
+  - EventsTab, ObserverOverlay
+  - Full GameView layout (two-column, all panels wired with mock data)
+  - Realtime shell (useRealtime hook, GameProvider)
+  - Scenario Hub page (/scenarios/[id]) with ActorCard, tab switching, navigation
+  - Scenario Browser page (/scenarios) with category filter
+  - All navigation wired: home → /scenarios → /scenarios/iran-2026 → /play/trunk
+- **Workflow setup:**
+  - Custom skill: geosim-playwright (~/.claude/skills/geosim-playwright/)
+  - Custom skill: geosim-uiux-validation (~/.claude/skills/geosim-uiux-validation/)
+  - CLAUDE.md: Development Workflow Rules added (branch-per-feature, playwright validation, TDD, skill selection guide)
+  - CLAUDE.md: ESLint gotchas documented (JSX comment textnodes, unused params, inline style ordering)
+  - GitHub issues #20–#26 closed (Stitch migration complete)
+  - docs/scrum-issues.md rewritten: full Phase A–D roadmap to playable game
+  - GitHub issues #27–#41 created (full remaining roadmap)
 
-### Open PRs (need review/merge before branching further)
-- PR #13: issue-3-vitest-mock-scenario → main (F004 ✅) — merged
-- PR #14: issue-4-fog-of-war → main (F005 ✅) — merged
-- PR #15: issue-5-escalation-validation → main (F006 ✅) — merged
-- PR #16: issue-6-turnplan-validation → main (F008b ✅) — merged
-- PR #17: issue-7-state-updates → main (F007 ✅) — merged
-- PR #18: issue-8-research-pipeline → main — merged
-- PR #19: issue-9-iran-research-incorporation → main — OPEN (awaiting review/merge)
+### Open PRs
+- None (PR #42 merged to main)
 
 ### In progress
-- Task 6: ActorCard + Scenario Hub page (test file exists at tests/components/game/ActorCard.test.tsx — component not yet built)
+- Nothing — clean slate on main
 
-### Next up (Sprint 2 — execute Stitch plan, 14 tasks in order)
-- ✅ Task 1 → Issue #46: Design token migration (Stitch palette + Space Grotesk/Newsreader/IBM Plex Mono)
-- ✅ Task 2 → Issue #47: UI primitives Stitch visual update (10 components)
-- ✅ Task 3 → Issue #48: IntelligenceReportBlock + ConstraintCascadeAlert
-- ✅ Task 4 → Issue #49: EscalationLadder, ActorAvatar, EscalationBadge, DimensionTag, ConfidenceBadge, TurnPhaseIndicator
-- ✅ Task 5 → Issue #20: Game layout shell (collapsible 60/40 split, MapSide, PanelSide)
-- Task 6 → Issue #50: ActorCard + Scenario Hub page  ← NEXT
-- Task 7 → Issue #27: Scenario browser page
-- Task 8 → Issue #25: War chronicle (GlobalTicker, TurnEntry, ChronicleTimeline)
-- Task 9 → Issue #51: Map components + FloatingMetricChip
-- Task 10 → Issues #21+#22: Actor panels (ActorList, ActorDetailPanel, GlobalIndicators)
-- Task 11 → Issues #23+#24: Decision catalog + DecisionDetailPanel + TurnPlanBuilder
-- Task 12 → Issue #29: DispatchTerminal turn resolution animation
-- Task 13 → Issues #26+#31: EventsTab + ObserverOverlay (+ dev bypass from Spec 1 carry-forward)
-- Task 14 → Issue #32: Realtime wiring (useRealtime hook, connect all panels to live APIs)
-- Backend (parallel): Issue #13 (actor agent), Issue #17 (game loop), Issue #19 (branch fork/rewind)
+### Next up (in priority order)
+- Issue #29: Landing page (replace component showcase with real product page)
+- Issue #30: Animations pass (entrance animations + premium motion throughout)
+- Issue #27: Iran scenario Supabase seed (gateway to entire real-data path)
+- Issue #28: Replace mock data with Supabase queries (depends on #27)
+- Issue #31–#36: AI pipeline (research → actor → resolution → judge → narrator → game loop)
+
+### GitHub issue map (current)
+- #27: Iran scenario Supabase seed
+- #28: Replace mock data with Supabase queries
+- #29: Landing page
+- #30: Animations pass
+- #31: Research pipeline
+- #32: Actor agent
+- #33: Resolution engine
+- #34: Judge evaluator
+- #35: Narrator
+- #36: Game loop controller
+- #37: Turn submission
+- #38: Branch creation
+- #39: Mapbox Tier 1
+- #40: Supabase Auth
+- #41: CI/CD pipeline
 
 ### Known bugs
 - None
 
 ### Design debt
 - getConstraintCascadeRisk (lib/game/escalation.ts) uses Iran-specific keyword matching
-  instead of reading from Scenario.constraintCascades — tracked for Issue #30 (Sprint 2)
+  instead of reading from Scenario.constraintCascades — tracked for future sprint
 
 ### Architecture decisions
-- Using bun (not npm/npx) for all package management — npm/npx are Windows binaries
-  in WSL2 and cannot execute Linux binaries
+- Using bun (not npm/npx) for all package management — npm/npx are Windows binaries in WSL2
 - Vitest configured with node environment (not jsdom) for server-side logic tests
 - docs/ excluded from TypeScript compilation (reference docs, not compiled code)
-- Skill triggers wired via PostToolUse hooks (not memory) so automation is reliable
-- features.json tracks pass/fail per feature — only mark passes:true after tests pass
-- ESLint argsIgnorePattern: ^_ must be in .eslintrc.json (Vercel build requires it for _-prefixed params)
-- prefer-const applies even when mutating object properties via bracket notation — binding must be const
+- ESLint argsIgnorePattern: ^_ must be in .eslintrc.json (Vercel build requires it)
+- prefer-const applies even when mutating object properties via bracket notation
 - Concurrent TurnPlan validation must check every concurrent pair (i<j loop), not just vs primary
+- JSX comment text: use {' // text '} not // text (react/jsx-no-comment-textnodes ESLint error)
+- Inline style objects: put border shorthand BEFORE borderBottom, not after (shorthand overwrites specific)
+- Frontend validation workflow: geosim-playwright skill → geosim-uiux-validation skill → user approves all 4 CATs → commit
