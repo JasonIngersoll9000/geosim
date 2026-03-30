@@ -91,8 +91,11 @@ export function useSubmitTurn(branchId: string): UseSubmitTurnResult {
 
   const runMockStream = useCallback(async (plan: TurnPlan) => {
     const mockLines = makeMockLines(plan)
+    let prevDelayMs = 0
     for (const item of mockLines) {
-      await new Promise(res => setTimeout(res, item.delayMs === 0 ? 0 : 40))
+      const relativeDelay = item.delayMs - prevDelayMs
+      if (relativeDelay > 0) await new Promise(res => setTimeout(res, relativeDelay))
+      prevDelayMs = item.delayMs
       appendLine({ timestamp: nowStamp(), text: item.text, type: item.type })
     }
   }, [appendLine])

@@ -286,8 +286,8 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
   const [chronicleEntries, setChronicleEntries]             = useState<ChronicleEntry[]>(BASE_CHRONICLE)
   const [turnNumber, setTurnNumber]                         = useState(4)
 
-  // Show terminal mode during resolution
-  const showTerminal = isSubmitting || isComplete
+  // Show terminal mode during resolution, completion, or on a non-fallback error
+  const showTerminal = isSubmitting || isComplete || !!error
 
   // Auto-append chronicle entry and switch to CHRONICLE tab when turn completes
   useEffect(() => {
@@ -398,7 +398,7 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
           {/* Terminal header */}
           <div className="shrink-0 px-4 py-2 bg-bg-surface-dim border-b border-border-subtle flex items-center gap-2">
             <span className="font-mono text-2xs uppercase tracking-[0.12em] text-text-tertiary">
-              {isSubmitting ? 'RESOLUTION IN PROGRESS' : 'RESOLUTION COMPLETE'}
+              {isSubmitting ? 'RESOLUTION IN PROGRESS' : error && !isComplete ? 'SUBMISSION FAILED' : 'RESOLUTION COMPLETE'}
             </span>
             {isComplete && !isSubmitting && (
               <span className="ml-auto font-mono text-[9px] uppercase tracking-[0.08em] text-status-stable">
@@ -412,17 +412,20 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
             <DispatchTerminal lines={hookLines} isRunning={isSubmitting} />
           </div>
 
-          {/* Return to planning button when complete */}
-          {isComplete && !isSubmitting && (
+          {/* Footer: completion return button or error dismiss */}
+          {!isSubmitting && (isComplete || !!error) && (
             <div className="shrink-0 p-4 border-t border-border-subtle bg-bg-surface-dim">
-              {error && (
+              {error && !isComplete && (
                 <div className="font-mono text-2xs text-status-critical mb-3">{error}</div>
               )}
               <button
                 onClick={handleReturnToPlanning}
                 className="w-full py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.1em] border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors"
               >
-                RETURN TO PLANNING // TURN {turnNumber + 1} →
+                {isComplete
+                  ? `RETURN TO PLANNING // TURN ${turnNumber + 1} →`
+                  : 'DISMISS ERROR — RETURN TO PLANNING →'
+                }
               </button>
             </div>
           )}
