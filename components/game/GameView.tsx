@@ -323,25 +323,25 @@ export function GameView({ branchId, scenarioId }: Props) {
     : null
 
   function handleDecisionSelect(id: string) {
-    const decision = MOCK_DECISIONS.find(d => d.id === id)
-    const detail   = MOCK_DECISION_DETAILS[id] ?? null
-
+    const detail = MOCK_DECISION_DETAILS[id] ?? null
     if (detail) {
       setSelectedDecisionDetail(detail)
       setDecisionPanelOpen(true)
     }
+  }
 
-    if (decision) {
-      const slot: ActionSlot = { id: decision.id, title: decision.title, dimension: decision.dimension }
-      if (!primaryAction) {
-        setPrimaryAction(slot)
-      } else if (
-        concurrentActions.length < 3 &&
-        !concurrentActions.find(a => a.id === id) &&
-        primaryAction.id !== id
-      ) {
-        setConcurrentActions(prev => [...prev, slot])
-      }
+  function handleDecisionCommit(id: string) {
+    const decision = MOCK_DECISIONS.find(d => d.id === id)
+    if (!decision) return
+    const slot: ActionSlot = { id: decision.id, title: decision.title, dimension: decision.dimension }
+    if (!primaryAction) {
+      setPrimaryAction(slot)
+    } else if (
+      concurrentActions.length < 3 &&
+      !concurrentActions.find(a => a.id === id) &&
+      primaryAction.id !== id
+    ) {
+      setConcurrentActions(prev => [...prev, slot])
     }
   }
 
@@ -534,6 +534,13 @@ export function GameView({ branchId, scenarioId }: Props) {
         open={decisionPanelOpen}
         onClose={() => setDecisionPanelOpen(false)}
         decision={selectedDecisionDetail}
+        onSelect={() => selectedDecisionDetail && handleDecisionCommit(selectedDecisionDetail.id)}
+        alreadySelected={
+          !!selectedDecisionDetail && (
+            primaryAction?.id === selectedDecisionDetail.id ||
+            concurrentActions.some(a => a.id === selectedDecisionDetail.id)
+          )
+        }
       />
 
       {/* Observer overlay */}
