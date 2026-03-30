@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
 import { TopBar } from '@/components/ui/TopBar'
+import { DocumentIdHeader } from '@/components/ui/DocumentIdHeader'
 import { Badge } from '@/components/ui/Badge'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -313,14 +314,7 @@ export default function ScenarioBrowserPage() {
 
       <main className="pt-[66px] bg-bg-base min-h-screen">
         <div className="max-w-5xl mx-auto px-5 py-8">
-          {/* Document ID header */}
-          <div className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em] py-3 border-b border-[#1a1a1a] mb-6">
-            DOC-ID: GS-SCENARIOS-INDEX&nbsp;&nbsp;//&nbsp;&nbsp;
-            <span className="font-medium">
-              {new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
-            </span>
-            &nbsp;&nbsp;//&nbsp;&nbsp;CLASSIFICATION: TOP SECRET
-          </div>
+          <DocumentIdHeader text="DOC-ID: GS-SCENARIOS-INDEX // CLASSIFICATION: TOP SECRET" />
 
           {/* Page heading */}
           <div className="mb-8">

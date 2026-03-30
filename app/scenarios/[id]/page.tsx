@@ -332,7 +332,7 @@ function BranchCard({ branch, onResume }: { branch: Branch; onResume: () => void
         className="w-full text-[11px] py-1.5"
         onClick={onResume}
       >
-        {isActive ? 'Resume' : 'Review'}
+        {isActive ? 'RESUME →' : 'REVIEW'}
       </Button>
     </div>
   )
@@ -344,6 +344,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
   const [activeTab, setActiveTab] = useState<Tab>('actors')
   const [selectedActor, setSelectedActor] = useState<ActorDetail | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
+  const [creatingBranch, setCreatingBranch] = useState(false)
   const router = useRouter()
 
   function openDossier(actorId: string) {
@@ -356,6 +357,28 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
 
   function closeDossier() {
     setPanelOpen(false)
+  }
+
+  async function handleStartNewBranch() {
+    setCreatingBranch(true)
+    try {
+      const res = await fetch('/api/branches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenarioId: params.id }),
+      })
+      if (res.ok) {
+        const json = (await res.json()) as { id?: string }
+        if (json.id) {
+          router.push(`/scenarios/${params.id}/play/${json.id}`)
+          return
+        }
+      }
+    } catch {
+      // API not yet implemented — handle gracefully
+    } finally {
+      setCreatingBranch(false)
+    }
   }
 
   return (
@@ -439,8 +462,13 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
               <h2 className="font-label font-bold text-[13px] uppercase tracking-[0.06em] text-text-primary">
                 Your Branches
               </h2>
-              <Button variant="ghost" className="text-[11px] py-1">
-                + Start New Branch
+              <Button
+                variant="ghost"
+                className="text-[11px] py-1"
+                onClick={() => void handleStartNewBranch()}
+                disabled={creatingBranch}
+              >
+                {creatingBranch ? 'CREATING...' : '+ Start New Branch'}
               </Button>
             </div>
             <div className="flex flex-col gap-3">
@@ -472,7 +500,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
                   borderBottom: activeTab === tab ? '2px solid var(--gold)' : '2px solid transparent',
                 }}
               >
-                {tab === 'actors' ? 'Actors' : 'Timeline'}
+                {tab === 'actors' ? 'ACTORS' : 'TIMELINE'}
               </button>
             ))}
           </div>
