@@ -13,7 +13,6 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -37,55 +36,13 @@ export default function SignUpPage() {
       if (authError) {
         setError(authError.message)
       } else {
-        setSuccess(true)
+        router.push('/scenarios')
       }
     } catch {
       setError('Network error — please try again.')
     } finally {
       setLoading(false)
     }
-  }
-
-  if (success) {
-    return (
-      <>
-        <ClassificationBanner classification="TOP SECRET // NOFORN // AUTHENTICATION REQUIRED" />
-        <main
-          className="min-h-screen flex flex-col items-center justify-center px-5"
-          style={{ background: 'var(--bg-base)', paddingTop: '24px' }}
-        >
-          <div className="w-full max-w-md">
-            <div className="mb-8">
-              <Link href="/" className="font-label font-bold text-gold text-2xl tracking-[0.04em] hover:opacity-80 transition-opacity">
-                GEOSIM
-              </Link>
-            </div>
-            <div
-              className="p-8"
-              style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderLeft: '3px solid var(--gold)' }}
-            >
-              <p className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.12em] mb-2">
-                Access Request Submitted
-              </p>
-              <h1 className="font-label font-bold text-lg text-text-primary uppercase tracking-[0.04em] mb-4">
-                Verify Your Email
-              </h1>
-              <p className="font-mono text-xs text-text-secondary leading-[1.7]">
-                A confirmation link has been sent to <span className="text-gold">{email}</span>. Follow the link to activate your operator account.
-              </p>
-              <div className="mt-6 pt-4 border-t border-[#1a1a1a]">
-                <Link
-                  href="/auth/sign-in"
-                  className="font-mono text-2xs text-gold uppercase tracking-[0.06em] hover:opacity-80 transition-opacity"
-                >
-                  ← Back to Sign-In
-                </Link>
-              </div>
-            </div>
-          </div>
-        </main>
-      </>
-    )
   }
 
   return (
