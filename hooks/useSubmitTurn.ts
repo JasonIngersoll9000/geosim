@@ -3,6 +3,9 @@ import { useState, useCallback } from 'react'
 import type { DispatchLine } from '@/components/game/DispatchTerminal'
 import type { ActionSlot } from '@/lib/types/panels'
 
+// Mock fallback only in development — production surfaces real API errors
+const DEV_MOCK_ENABLED = process.env.NODE_ENV === 'development'
+
 interface TurnPlan {
   primaryAction: ActionSlot
   concurrentActions: ActionSlot[]
@@ -118,8 +121,9 @@ export function useSubmitTurn(branchId: string): UseSubmitTurnResult {
       })
 
       if (!res.ok) {
-        // API not yet available — use mock simulation
-        if (res.status === 404 || res.status === 405) {
+        // In development with no backend: fall back to mock simulation
+        if (DEV_MOCK_ENABLED && (res.status === 404 || res.status === 405)) {
+          appendLine({ timestamp: nowStamp(), text: 'DEV: API not deployed — running simulation', type: 'info' })
           await runMockStream(plan)
           setIsComplete(true)
           return
@@ -130,9 +134,13 @@ export function useSubmitTurn(branchId: string): UseSubmitTurnResult {
       // Real streaming response
       const reader = res.body?.getReader()
       if (!reader) {
-        await runMockStream(plan)
-        setIsComplete(true)
-        return
+        if (DEV_MOCK_ENABLED) {
+          appendLine({ timestamp: nowStamp(), text: 'DEV: No response body — running simulation', type: 'info' })
+          await runMockStream(plan)
+          setIsComplete(true)
+          return
+        }
+        throw new Error('No response body from server')
       }
 
       const decoder = new TextDecoder()
@@ -165,8 +173,10 @@ export function useSubmitTurn(branchId: string): UseSubmitTurnResult {
       setIsComplete(true)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error'
-      // Network errors (API not deployed) → fall back to mock
-      if (msg.includes('fetch') || msg.includes('Failed') || msg.includes('network')) {
+      const isNetworkError = msg.includes('fetch') || msg.includes('Failed') || msg.includes('network')
+      if (DEV_MOCK_ENABLED && isNetworkError) {
+        // Network error in dev (API not deployed) → fall back to mock simulation
+        appendLine({ timestamp: nowStamp(), text: 'DEV: Network error — running simulation', type: 'info' })
         await runMockStream(plan)
         setIsComplete(true)
       } else {
