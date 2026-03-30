@@ -40,7 +40,7 @@ export function DispatchTerminal({ lines, isRunning }: Props) {
           className={`flex gap-2 text-2xs mb-[2px] ${lineTypeClass[line.type]}`}
           initial={shouldSkip ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0 }}
+          transition={{ duration: 0, delay: shouldSkip ? 0 : i * 0.04 }}
         >
           <span className="text-text-tertiary shrink-0">[{line.timestamp}]</span>
           <span>{line.text}</span>
