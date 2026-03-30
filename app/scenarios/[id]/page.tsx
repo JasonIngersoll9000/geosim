@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
 import { TopBar } from '@/components/ui/TopBar'
 import { DocumentIdHeader } from '@/components/ui/DocumentIdHeader'
@@ -279,12 +281,31 @@ const MOCK_BRANCHES: Branch[] = [
 
 type Tab = 'actors' | 'timeline'
 
+// ─── Animation variants ───────────────────────────────────────────────────────
+
+const branchContainerVariants: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+}
+
+const branchCardVariants: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+}
+
+const tabFadeVariants: Variants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } },
+  exit:   { opacity: 0, transition: { duration: 0.15 } },
+}
+
 // ─── Branch card ─────────────────────────────────────────────────────────────
 
 function BranchCard({ branch, onResume }: { branch: Branch; onResume: () => void }) {
   const isActive = branch.status === 'active'
   return (
-    <div
+    <motion.div
+      variants={branchCardVariants}
       className="p-4 flex flex-col gap-3"
       style={{
         background: '#0d0d0d',
@@ -337,7 +358,7 @@ function BranchCard({ branch, onResume }: { branch: Branch; onResume: () => void
       >
         RESUME →
       </Button>
-    </div>
+    </motion.div>
   )
 }
 
@@ -350,6 +371,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
   const [creatingBranch, setCreatingBranch] = useState(false)
   const [branchError, setBranchError] = useState<string | null>(null)
   const router = useRouter()
+  const shouldSkip = useReducedMotion()
 
   function openDossier(actorId: string) {
     const detail = MOCK_ACTOR_DETAILS[actorId] ?? null
@@ -484,7 +506,12 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
                 {branchError}
               </p>
             )}
-            <div className="flex flex-col gap-3">
+            <motion.div
+              className="flex flex-col gap-3"
+              variants={branchContainerVariants}
+              initial={shouldSkip ? 'visible' : 'hidden'}
+              animate="visible"
+            >
               {MOCK_BRANCHES.map((branch) => (
                 <BranchCard
                   key={branch.id}
@@ -492,7 +519,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
                   onResume={() => router.push(`/scenarios/${params.id}/play/${branch.id}`)}
                 />
               ))}
-            </div>
+            </motion.div>
           </section>
 
           {/* Section divider */}
@@ -518,23 +545,37 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
             ))}
           </div>
 
-          {/* Tab content — Actors */}
-          {activeTab === 'actors' && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {MOCK_ACTORS.map((actor) => (
-                <ActorCard
-                  key={actor.id}
-                  actor={actor}
-                  onViewDossier={() => openDossier(actor.id)}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Tab content — Timeline */}
-          {activeTab === 'timeline' && (
-            <ChronicleTimeline entries={TIMELINE_ENTRIES} />
-          )}
+          {/* Tab content — animated on switch */}
+          <AnimatePresence mode="wait">
+            {activeTab === 'actors' ? (
+              <motion.div
+                key="actors"
+                variants={tabFadeVariants}
+                initial={shouldSkip ? 'visible' : 'hidden'}
+                animate="visible"
+                exit="exit"
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              >
+                {MOCK_ACTORS.map((actor) => (
+                  <ActorCard
+                    key={actor.id}
+                    actor={actor}
+                    onViewDossier={() => openDossier(actor.id)}
+                  />
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="timeline"
+                variants={tabFadeVariants}
+                initial={shouldSkip ? 'visible' : 'hidden'}
+                animate="visible"
+                exit="exit"
+              >
+                <ChronicleTimeline entries={TIMELINE_ENTRIES} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </main>
 

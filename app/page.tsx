@@ -1,9 +1,51 @@
+'use client'
+
 import Link from "next/link";
 import { TopBar } from "@/components/ui/TopBar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { motion, useReducedMotion } from "framer-motion";
+import type { Variants } from "framer-motion";
+
+// ─── Animation variants ───────────────────────────────────────────────────────
+
+const heroContainer: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1 } },
+}
+
+const heroItem: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+}
+
+const heroItemSlow: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+}
+
+const watermark: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 0.04, transition: { duration: 0.8, ease: "easeOut", delay: 0.5 } },
+}
+
+const inViewContainer: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+}
+
+const inViewItem: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
+  const shouldSkip = useReducedMotion()
+
+  const heroInit = shouldSkip ? "visible" : "hidden"
+
   return (
     <>
       <TopBar scenarioName="Strategic Simulation Engine" />
@@ -19,13 +61,17 @@ export default function Home() {
             ].join(", "),
           }}
         >
-          <span
+          {/* GEOSIM watermark — fades in last, no translate */}
+          <motion.span
             aria-hidden="true"
             className="pointer-events-none select-none absolute inset-0 flex items-center justify-center font-label font-bold uppercase tracking-[0.08em] text-text-primary"
-            style={{ fontSize: "28vw", opacity: 0.04, zIndex: 0 }}
+            style={{ fontSize: "28vw", zIndex: 0 }}
+            variants={watermark}
+            initial={heroInit}
+            animate="visible"
           >
             GEOSIM
-          </span>
+          </motion.span>
 
           <span
             aria-hidden="true"
@@ -44,46 +90,60 @@ export default function Home() {
             TOP SECRET
           </span>
 
-          <div
+          <motion.div
             className="relative flex flex-col items-center text-center"
             style={{ zIndex: 2, paddingTop: "66px" }}
+            variants={heroContainer}
+            initial={heroInit}
+            animate="visible"
           >
-            <div className="inline-flex items-center gap-3 border border-[#1f1f1f] px-4 py-2 mb-8">
+            {/* Overline */}
+            <motion.div
+              variants={heroItem}
+              className="inline-flex items-center gap-3 border border-[#1f1f1f] px-4 py-2 mb-8"
+            >
               <span className="inline-block w-4 h-px bg-gold opacity-60" />
               <span className="font-mono text-2xs text-text-tertiary tracking-[0.14em] uppercase">
                 Classified Research Framework&nbsp;&nbsp;//&nbsp;&nbsp;GEOSIM-IRN-2026
               </span>
               <span className="inline-block w-4 h-px bg-gold opacity-60" />
-            </div>
+            </motion.div>
 
-            <h1
+            {/* H1 */}
+            <motion.h1
+              variants={heroItemSlow}
               className="font-label font-bold uppercase tracking-[0.02em] text-text-primary max-w-[900px]"
               style={{ fontSize: "clamp(52px, 8vw, 88px)", lineHeight: 1.05 }}
             >
               Model the decisions.{" "}
               <br className="hidden md:block" />
               <span style={{ color: "var(--gold)" }}>Fork the timeline.</span>
-            </h1>
+            </motion.h1>
 
-            <p className="font-sans text-lg text-text-secondary max-w-[640px] mt-6 leading-[1.7]">
+            {/* Subheading */}
+            <motion.p
+              variants={heroItem}
+              className="font-sans text-lg text-text-secondary max-w-[640px] mt-6 leading-[1.7]"
+            >
               AI-powered geopolitical simulation. Every actor plays simultaneously.
               Explore any{" "}
               <span className="font-serif italic text-text-primary">
                 alternate timeline
               </span>{" "}
               from any turning point — grounded in real-world intelligence.
-            </p>
+            </motion.p>
 
-            <div className="flex items-center gap-4 mt-10">
+            {/* CTAs */}
+            <motion.div variants={heroItem} className="flex items-center gap-4 mt-10">
               <Link href="/scenarios/iran-2026">
                 <Button variant="primary">Enter Simulation &rarr;</Button>
               </Link>
               <Link href="/scenarios">
                 <Button variant="ghost">Browse Scenarios</Button>
               </Link>
-            </div>
+            </motion.div>
 
-            <div className="mt-16 flex flex-col items-center gap-2">
+            <motion.div variants={heroItem} className="mt-16 flex flex-col items-center gap-2">
               <span className="font-mono text-2xs text-text-tertiary tracking-[0.1em] uppercase">
                 Scroll for briefing
               </span>
@@ -103,8 +163,8 @@ export default function Home() {
                   strokeLinecap="square"
                 />
               </svg>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </section>
 
         {/* How It Works */}
@@ -117,8 +177,14 @@ export default function Home() {
             <span className="inline-block h-px flex-1 bg-[#1a1a1a]" />
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="border border-[#1a1a1a] border-l-[3px] border-l-gold p-6">
+          <motion.div
+            className="grid md:grid-cols-3 gap-8"
+            variants={inViewContainer}
+            initial={shouldSkip ? "visible" : "hidden"}
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+          >
+            <motion.div variants={inViewItem} className="border border-[#1a1a1a] border-l-[3px] border-l-gold p-6">
               <div className="flex items-center gap-3 mb-4">
                 <span
                   className="font-mono font-medium text-gold bg-[#1a1300] border border-[rgba(255,186,32,0.2)] px-3 py-1.5"
@@ -146,9 +212,9 @@ export default function Home() {
                   Live escalation ladder tracking
                 </li>
               </ul>
-            </div>
+            </motion.div>
 
-            <div className="border border-[#1a1a1a] border-l-[3px] border-l-[#2a2a2a] p-6">
+            <motion.div variants={inViewItem} className="border border-[#1a1a1a] border-l-[3px] border-l-[#2a2a2a] p-6">
               <div className="flex items-center gap-3 mb-4">
                 <span
                   className="font-mono font-medium text-text-tertiary bg-bg-surface-low border border-[#2a2a2a] px-3 py-1.5"
@@ -176,9 +242,9 @@ export default function Home() {
                   Plausibility-scored outcomes
                 </li>
               </ul>
-            </div>
+            </motion.div>
 
-            <div className="border border-[#1a1a1a] border-l-[3px] border-l-[#2a2a2a] p-6">
+            <motion.div variants={inViewItem} className="border border-[#1a1a1a] border-l-[3px] border-l-[#2a2a2a] p-6">
               <div className="flex items-center gap-3 mb-4">
                 <span
                   className="font-mono font-medium text-text-tertiary bg-bg-surface-low border border-[#2a2a2a] px-3 py-1.5"
@@ -207,8 +273,8 @@ export default function Home() {
                   Full chronicle of every branch
                 </li>
               </ul>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </section>
 
         {/* Iran 2026 Scenario Card */}

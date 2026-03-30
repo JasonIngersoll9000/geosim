@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 
 type Severity = 'critical' | 'major' | 'moderate' | 'minor'
 
@@ -13,7 +14,6 @@ interface EntryData {
   detail?: string
 }
 
-// Static map — no inline styles
 const severityBorderClass: Record<Severity, string> = {
   critical: 'border-l-status-critical',
   major:    'border-l-gold',
@@ -23,20 +23,22 @@ const severityBorderClass: Record<Severity, string> = {
 
 export function TurnEntry({ entry }: { entry: EntryData }) {
   const [expanded, setExpanded] = useState(false)
+  const shouldSkip = useReducedMotion()
+
   return (
-    <div
+    <motion.div
       data-severity={entry.severity}
       className={`pl-3 mb-7 border-l-2 ${severityBorderClass[entry.severity]}`}
+      initial={shouldSkip ? false : { opacity: 0, x: -16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
     >
-      {/* IBM Plex Mono 8px header per spec */}
       <div className="font-mono text-[8px] uppercase tracking-[0.06em] mb-1 text-text-tertiary">
         <span>Turn {entry.turnNumber} — </span><span>{entry.date}</span>
       </div>
-      {/* Space Grotesk uppercase title per spec */}
       <div className="font-label font-bold text-[13px] uppercase tracking-[0.04em] mb-2 text-text-primary">
         {entry.title}
       </div>
-      {/* Newsreader 13px narrative per spec */}
       <div className="font-serif italic text-[13px] leading-[1.75] text-text-secondary">
         {entry.narrative}
       </div>
@@ -57,7 +59,6 @@ export function TurnEntry({ entry }: { entry: EntryData }) {
             <span>Detail</span>
             <span>{expanded ? '▲' : '▼'}</span>
           </button>
-          {/* CSS max-height transition via .chronicle-detail / .chronicle-detail.open */}
           <div className={`chronicle-detail${expanded ? ' open' : ''}`}>
             <div className="px-3 pb-3 font-mono text-[11px] text-text-secondary bg-bg-surface">
               {entry.detail}
@@ -65,6 +66,6 @@ export function TurnEntry({ entry }: { entry: EntryData }) {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }

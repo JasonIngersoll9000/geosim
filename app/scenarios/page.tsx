@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, useReducedMotion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
 import { TopBar } from '@/components/ui/TopBar'
 import { DocumentIdHeader } from '@/components/ui/DocumentIdHeader'
@@ -19,7 +21,6 @@ interface ScenarioSummary {
   rating: number | null
 }
 
-// Extended mock data with display fields
 interface ScenarioDisplay extends ScenarioSummary {
   displayCategory: 'ACTIVE CONFLICTS' | 'HISTORICAL' | 'HYPOTHETICAL'
   classification: 'SECRET' | 'CONFIDENTIAL'
@@ -30,8 +31,6 @@ interface ScenarioDisplay extends ScenarioSummary {
   actors?: { label: string; color: string }[]
 }
 
-// ─── Fixed category tabs ──────────────────────────────────────────────────────
-
 const TABS = ['ALL SCENARIOS', 'ACTIVE CONFLICTS', 'HISTORICAL', 'HYPOTHETICAL'] as const
 type Tab = (typeof TABS)[number]
 
@@ -40,8 +39,6 @@ const CATEGORY_MAP: Record<string, ScenarioDisplay['displayCategory']> = {
   economic: 'HYPOTHETICAL',
   diplomatic: 'HISTORICAL',
 }
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
 
 const MOCK_SCENARIOS: ScenarioDisplay[] = [
   {
@@ -144,6 +141,23 @@ const MOCK_SCENARIOS: ScenarioDisplay[] = [
   },
 ]
 
+// ─── Animation variants ───────────────────────────────────────────────────────
+
+const pageHeaderVariants: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+}
+
+const cardContainerVariants: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+}
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+}
+
 // ─── Category tab strip ───────────────────────────────────────────────────────
 
 function CategoryTabStrip({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
@@ -178,7 +192,8 @@ function ScenarioCard({ scenario, onClick }: { scenario: ScenarioDisplay; onClic
   const leftBorderColor = isActive ? '#b91c1c' : '#2a2a2a'
 
   return (
-    <button
+    <motion.button
+      variants={cardVariants}
       onClick={onClick}
       className="w-full text-left group transition-colors"
       style={{
@@ -200,7 +215,6 @@ function ScenarioCard({ scenario, onClick }: { scenario: ScenarioDisplay; onClic
       }}
     >
       <div className="p-5">
-        {/* Card header */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant={scenario.classification === 'SECRET' ? 'critical' : 'info'}>
@@ -224,17 +238,14 @@ function ScenarioCard({ scenario, onClick }: { scenario: ScenarioDisplay; onClic
           </span>
         </div>
 
-        {/* Name */}
         <h3 className="font-label font-bold text-md text-text-primary uppercase tracking-[0.03em] mb-2 leading-[1.3]">
           {scenario.name}
         </h3>
 
-        {/* Description */}
         <p className="font-serif text-base text-text-secondary leading-[1.7] mb-4">
           {scenario.description}
         </p>
 
-        {/* Actor strip (for prominent cards) */}
         {scenario.actors && (
           <div className="flex items-center gap-1.5 mb-4">
             {scenario.actors.map(({ label, color }) => (
@@ -249,7 +260,6 @@ function ScenarioCard({ scenario, onClick }: { scenario: ScenarioDisplay; onClic
           </div>
         )}
 
-        {/* Metadata row */}
         <div className="flex items-center gap-4 pt-3 border-t border-[#1a1a1a]">
           <span className="font-mono text-2xs text-text-tertiary tracking-[0.04em] uppercase">
             <span className="text-text-secondary">{scenario.actorCount}</span> ACTORS
@@ -262,7 +272,7 @@ function ScenarioCard({ scenario, onClick }: { scenario: ScenarioDisplay; onClic
           </span>
         </div>
       </div>
-    </button>
+    </motion.button>
   )
 }
 
@@ -273,6 +283,7 @@ export default function ScenarioBrowserPage() {
   const [scenarios, setScenarios] = useState<ScenarioDisplay[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<Tab>('ALL SCENARIOS')
+  const shouldSkip = useReducedMotion()
 
   useEffect(() => {
     async function load() {
@@ -318,8 +329,13 @@ export default function ScenarioBrowserPage() {
             <DocumentIdHeader text="DOC-ID: GS-SCENARIOS-INDEX // CLASSIFICATION: TOP SECRET" />
           </div>
 
-          {/* Page heading */}
-          <div className="mb-8">
+          {/* Page heading — fades in on mount */}
+          <motion.div
+            className="mb-8"
+            variants={pageHeaderVariants}
+            initial={shouldSkip ? 'visible' : 'hidden'}
+            animate="visible"
+          >
             <h1 className="font-label font-bold text-xl text-text-primary uppercase tracking-[0.04em]">
               Scenario Library
             </h1>
@@ -327,30 +343,33 @@ export default function ScenarioBrowserPage() {
               Select a scenario to observe AI vs AI play or take direct control of a strategic actor.
               All scenarios are modeled with actor-neutral rigor.
             </p>
-          </div>
+          </motion.div>
 
-          {/* Category filter */}
           {!loading && (
             <CategoryTabStrip active={activeTab} onChange={setActiveTab} />
           )}
 
-          {/* Loading state */}
           {loading && (
             <div className="py-16 text-center font-mono text-[11px] uppercase tracking-[0.08em] text-text-tertiary">
               LOADING SCENARIOS...
             </div>
           )}
 
-          {/* Empty state */}
           {!loading && visible.length === 0 && (
             <div className="py-16 text-center font-mono text-[11px] uppercase tracking-[0.08em] text-text-tertiary">
               NO SCENARIOS IN THIS CATEGORY
             </div>
           )}
 
-          {/* Scenario grid */}
+          {/* Scenario grid — staggered entrance */}
           {!loading && visible.length > 0 && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <motion.div
+              key={activeTab}
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              variants={cardContainerVariants}
+              initial={shouldSkip ? 'visible' : 'hidden'}
+              animate="visible"
+            >
               {visible.map((scenario) => (
                 <ScenarioCard
                   key={scenario.id}
@@ -358,10 +377,9 @@ export default function ScenarioBrowserPage() {
                   onClick={() => router.push(`/scenarios/${scenario.id}`)}
                 />
               ))}
-            </div>
+            </motion.div>
           )}
 
-          {/* Footer count */}
           {!loading && (
             <p className="mt-8 font-mono text-2xs uppercase tracking-[0.08em] text-text-tertiary">
               {visible.length} SCENARIO{visible.length !== 1 ? 'S' : ''}{' '}

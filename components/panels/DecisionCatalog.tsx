@@ -44,7 +44,7 @@ export function DecisionCatalog({ decisions, onSelect, selectedPrimaryId, select
                 <button
                   key={decision.id}
                   onClick={() => onSelect(decision.id)}
-                  className={`w-full flex flex-col gap-1 px-3 py-3 border text-left transition-colors ${
+                  className={`group w-full flex flex-col gap-1 px-3 py-3 border text-left transition-colors ${
                     isPrimary
                       ? 'bg-bg-surface-high border-gold border-l-[3px]'
                       : isConcurr
@@ -54,7 +54,10 @@ export function DecisionCatalog({ decisions, onSelect, selectedPrimaryId, select
                 >
                   {/* Row 1: dimension tag + title + selection badge */}
                   <div className="flex items-center gap-2">
-                    <DimensionTag dimension={toDimensionTagDimension(decision.dimension)} />
+                    {/* DimensionTag fades in on hover */}
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <DimensionTag dimension={toDimensionTagDimension(decision.dimension)} />
+                    </span>
                     <span className={`font-sans text-[13px] font-semibold leading-tight flex-1 ${isSelected ? 'text-text-primary' : 'text-text-secondary'}`}>
                       {decision.title}
                     </span>

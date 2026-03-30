@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useRealtime } from '@/hooks/useRealtime'
 import { useGame } from '@/components/providers/GameProvider'
 import { useSubmitTurn } from '@/hooks/useSubmitTurn'
@@ -276,6 +277,7 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
   useRealtime(branchId)
   const { state, dispatch } = useGame()
   const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, reset: resetHook } = useSubmitTurn(branchId)
+  const shouldSkip = useReducedMotion()
 
   const [activeTab, setActiveTab]                           = useState<PanelTab>('actors')
   const [showObserver, setShowObserver]                     = useState(true)
@@ -440,8 +442,13 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
       ) : (
         /* ── Normal planning mode: tabs + content ── */
         <>
-          {/* Tab strip */}
-          <div className="flex border-b border-border-subtle bg-bg-surface-dim shrink-0">
+          {/* Tab strip — fades in on mount */}
+          <motion.div
+            className="flex border-b border-border-subtle bg-bg-surface-dim shrink-0"
+            initial={shouldSkip ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+          >
             {PANEL_TABS.map(({ id, label }) => (
               <button
                 key={id}
@@ -455,7 +462,7 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
                 {label}
               </button>
             ))}
-          </div>
+          </motion.div>
 
           {/* Tab content */}
           <div className="flex-1 overflow-y-auto min-h-0">
