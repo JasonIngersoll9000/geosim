@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
 import { TopBar } from '@/components/ui/TopBar'
+import { DocumentIdHeader } from '@/components/ui/DocumentIdHeader'
+import { Badge } from '@/components/ui/Badge'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -17,148 +19,53 @@ interface ScenarioSummary {
   rating: number | null
 }
 
-// ─── Category filter tabs ─────────────────────────────────────────────────────
-
-const ALL_CATEGORIES = 'ALL'
-
-function CategoryTabStrip({
-  categories,
-  active,
-  onChange,
-}: {
-  categories: string[]
-  active: string
-  onChange: (cat: string) => void
-}) {
-  const tabs = [ALL_CATEGORIES, ...categories]
-  return (
-    <div
-      className="flex gap-1 flex-wrap mb-6"
-      role="tablist"
-      aria-label="Filter by category"
-    >
-      {tabs.map((cat) => {
-        const isActive = active === cat
-        return (
-          <button
-            key={cat}
-            role="tab"
-            aria-selected={isActive}
-            onClick={() => onChange(cat)}
-            className={`font-label text-[11px] font-semibold uppercase tracking-[0.06em] px-3 py-[5px] transition-all border ${
-              isActive
-                ? 'text-gold bg-gold-glow border-gold shadow-[0_0_0_1px_var(--gold)]'
-                : 'text-text-tertiary bg-transparent border-transparent'
-            }`}
-          >
-            {cat}
-          </button>
-        )
-      })}
-    </div>
-  )
+// Extended mock data with display fields
+interface ScenarioDisplay extends ScenarioSummary {
+  displayCategory: 'ACTIVE CONFLICTS' | 'HISTORICAL' | 'HYPOTHETICAL'
+  classification: 'SECRET' | 'CONFIDENTIAL'
+  status: 'ACTIVE' | 'ARCHIVED'
+  actorCount: number
+  lastActive: string
+  turnNumber?: number
+  actors?: { label: string; color: string }[]
 }
 
-// ─── Star rating display ──────────────────────────────────────────────────────
+// ─── Fixed category tabs ──────────────────────────────────────────────────────
 
-function StarRating({ rating }: { rating: number | null }) {
-  if (rating === null) {
-    return (
-      <span className="font-mono text-[10px] text-text-tertiary">
-        UNRATED
-      </span>
-    )
-  }
-  const full = Math.floor(rating)
-  const empty = 5 - full
-  return (
-    <span
-      className="font-mono text-[11px] tracking-[0.04em] text-gold"
-      aria-label={`Rating: ${rating} out of 5`}
-    >
-      {'★'.repeat(full)}
-      <span className="text-[var(--border-hi)]">{'★'.repeat(empty)}</span>
-    </span>
-  )
+const TABS = ['ALL SCENARIOS', 'ACTIVE CONFLICTS', 'HISTORICAL', 'HYPOTHETICAL'] as const
+type Tab = (typeof TABS)[number]
+
+const CATEGORY_MAP: Record<string, ScenarioDisplay['displayCategory']> = {
+  military: 'ACTIVE CONFLICTS',
+  economic: 'HYPOTHETICAL',
+  diplomatic: 'HISTORICAL',
 }
 
-// ─── Category badge ───────────────────────────────────────────────────────────
+// ─── Mock data ────────────────────────────────────────────────────────────────
 
-function CategoryBadge({ category }: { category: string }) {
-  return (
-    <span
-      className="font-mono text-[9px] px-[7px] py-[2px] uppercase tracking-[0.04em] border text-status-info bg-status-info-bg border-status-info"
-    >
-      {category}
-    </span>
-  )
-}
-
-// ─── Scenario card ────────────────────────────────────────────────────────────
-
-function ScenarioCard({
-  scenario,
-  onClick,
-}: {
-  scenario: ScenarioSummary
-  onClick: () => void
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full text-left p-5 transition-colors bg-bg-surface border border-border-subtle hover:bg-bg-surface-high"
-    >
-      {/* Top row: category badge + rating */}
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <CategoryBadge category={scenario.category} />
-        <StarRating rating={scenario.rating} />
-      </div>
-
-      {/* Name */}
-      <h3
-        className="font-label text-[14px] font-bold uppercase tracking-[0.04em] mb-2 leading-[1.3] text-text-primary"
-      >
-        {scenario.name}
-      </h3>
-
-      {/* Description */}
-      <p
-        className="font-sans text-[12px] leading-[1.6] mb-4 text-text-secondary"
-      >
-        {scenario.description}
-      </p>
-
-      {/* Footer stats */}
-      <div className="flex gap-5 pt-3 border-t border-border-subtle">
-        <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-text-tertiary">
-          <span className="text-text-secondary">
-            {scenario.branch_count}
-          </span>{' '}
-          BRANCHES
-        </span>
-        <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-text-tertiary">
-          <span className="text-text-secondary">
-            {scenario.play_count.toLocaleString()}
-          </span>{' '}
-          PLAYS
-        </span>
-      </div>
-    </button>
-  )
-}
-
-// ─── Mock data (dev bypass) ───────────────────────────────────────────────────
-
-const MOCK_SCENARIOS: ScenarioSummary[] = [
+const MOCK_SCENARIOS: ScenarioDisplay[] = [
   {
     id: 'iran-conflict-2025',
     name: 'US–Israel–Iran Conflict 2025–2026',
     description:
       'Phase 3: Operation Epic Fury — Day 19. Joint US-Israeli decapitation strike launched one day after Oman announced a diplomatic breakthrough. Strait of Hormuz closed. Oil at $142/bbl.',
     category: 'military',
+    displayCategory: 'ACTIVE CONFLICTS',
+    classification: 'SECRET',
+    status: 'ACTIVE',
     branch_count: 14,
     play_count: 3821,
     rating: 4,
+    actorCount: 5,
+    lastActive: '22 MAR 2026',
+    turnNumber: 3,
+    actors: [
+      { label: 'USA', color: '#4a90d9' },
+      { label: 'IRN', color: '#c0392b' },
+      { label: 'ISR', color: '#ffba20' },
+      { label: 'SAU', color: '#5EBD8E' },
+      { label: 'CHN', color: '#4A90B8' },
+    ],
   },
   {
     id: 'taiwan-strait-2026',
@@ -166,9 +73,14 @@ const MOCK_SCENARIOS: ScenarioSummary[] = [
     description:
       'PLA initiates quarantine operations around Taiwan following independence referendum. US carrier groups deploy. Economic decoupling accelerates across Pacific.',
     category: 'military',
+    displayCategory: 'ACTIVE CONFLICTS',
+    classification: 'SECRET',
+    status: 'ACTIVE',
     branch_count: 9,
     play_count: 2104,
     rating: 5,
+    actorCount: 4,
+    lastActive: '15 MAR 2026',
   },
   {
     id: 'nato-eastern-flank',
@@ -176,9 +88,14 @@ const MOCK_SCENARIOS: ScenarioSummary[] = [
     description:
       'Article 5 invoked following incursion into Estonian territory. Rapid reinforcement race underway. Nuclear signaling from Moscow escalating.',
     category: 'military',
+    displayCategory: 'ACTIVE CONFLICTS',
+    classification: 'CONFIDENTIAL',
+    status: 'ARCHIVED',
     branch_count: 6,
     play_count: 1587,
     rating: 4,
+    actorCount: 6,
+    lastActive: '01 FEB 2026',
   },
   {
     id: 'dollar-petrodollar-collapse',
@@ -186,9 +103,14 @@ const MOCK_SCENARIOS: ScenarioSummary[] = [
     description:
       'Saudi Arabia finalizes oil trade in yuan and rupees. Dollar reserve status deteriorating. US fiscal options narrowing. BRICS payment rails go live.',
     category: 'economic',
+    displayCategory: 'HYPOTHETICAL',
+    classification: 'CONFIDENTIAL',
+    status: 'ARCHIVED',
     branch_count: 5,
     play_count: 983,
     rating: 3,
+    actorCount: 7,
+    lastActive: '10 JAN 2026',
   },
   {
     id: 'un-reform-2027',
@@ -196,9 +118,14 @@ const MOCK_SCENARIOS: ScenarioSummary[] = [
     description:
       'G4 nations push binding resolution to add permanent seats. Russia and China veto repeatedly. Coalition threatens parallel institution.',
     category: 'diplomatic',
+    displayCategory: 'HISTORICAL',
+    classification: 'CONFIDENTIAL',
+    status: 'ARCHIVED',
     branch_count: 4,
     play_count: 612,
     rating: null,
+    actorCount: 8,
+    lastActive: '05 DEC 2025',
   },
   {
     id: 'south-china-sea-2025',
@@ -206,32 +133,170 @@ const MOCK_SCENARIOS: ScenarioSummary[] = [
     description:
       'Philippine Coast Guard vessel sunk in contested waters. ASEAN unity fracturing. US mutual defense treaty obligations triggered. QUAD emergency session convened.',
     category: 'military',
+    displayCategory: 'ACTIVE CONFLICTS',
+    classification: 'SECRET',
+    status: 'ARCHIVED',
     branch_count: 7,
     play_count: 1342,
     rating: 4,
+    actorCount: 5,
+    lastActive: '18 FEB 2026',
   },
 ]
 
-// ─── Main page ─────────────────────────────────────────────────────────────────
+// ─── Category tab strip ───────────────────────────────────────────────────────
+
+function CategoryTabStrip({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
+  return (
+    <div className="flex border-b border-[#1a1a1a] mb-8" role="tablist" aria-label="Filter by category">
+      {TABS.map((tab) => {
+        const isActive = active === tab
+        return (
+          <button
+            key={tab}
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onChange(tab)}
+            className={`font-label font-semibold text-[11px] uppercase tracking-[0.06em] px-4 py-3 -mb-px border-b-2 transition-colors whitespace-nowrap ${
+              isActive
+                ? 'text-gold border-gold'
+                : 'text-text-tertiary border-transparent hover:text-text-secondary'
+            }`}
+          >
+            {tab}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── Scenario card ────────────────────────────────────────────────────────────
+
+function ScenarioCard({ scenario, onClick }: { scenario: ScenarioDisplay; onClick: () => void }) {
+  const isActive = scenario.status === 'ACTIVE'
+  const leftBorderColor = isActive ? '#b91c1c' : '#2a2a2a'
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left group transition-colors"
+      style={{
+        background: '#0d0d0d',
+        border: '1px solid #1a1a1a',
+        borderLeft: `3px solid ${leftBorderColor}`,
+      }}
+      onMouseEnter={(e) => {
+        const el = e.currentTarget
+        el.style.background = '#111'
+        el.style.borderColor = '#3a3a3a'
+        el.style.borderLeftColor = leftBorderColor
+      }}
+      onMouseLeave={(e) => {
+        const el = e.currentTarget
+        el.style.background = '#0d0d0d'
+        el.style.borderColor = '#1a1a1a'
+        el.style.borderLeftColor = leftBorderColor
+      }}
+    >
+      <div className="p-5">
+        {/* Card header */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant={scenario.classification === 'SECRET' ? 'critical' : 'info'}>
+              {scenario.classification}
+            </Badge>
+            {scenario.turnNumber && (
+              <span className="font-mono text-2xs text-text-tertiary tracking-[0.04em]">
+                TURN {String(scenario.turnNumber).padStart(2, '0')}{' // '}{scenario.status}
+              </span>
+            )}
+          </div>
+          <span
+            className="font-mono text-2xs px-2 py-0.5 border shrink-0"
+            style={
+              isActive
+                ? { color: '#b91c1c', background: 'rgba(185,28,28,0.1)', borderColor: 'rgba(185,28,28,0.3)' }
+                : { color: 'var(--text-tertiary)', background: 'var(--bg-surface-high)', borderColor: 'var(--border-subtle)' }
+            }
+          >
+            {scenario.status}
+          </span>
+        </div>
+
+        {/* Name */}
+        <h3 className="font-label font-bold text-md text-text-primary uppercase tracking-[0.03em] mb-2 leading-[1.3]">
+          {scenario.name}
+        </h3>
+
+        {/* Description */}
+        <p className="font-serif text-base text-text-secondary leading-[1.7] mb-4">
+          {scenario.description}
+        </p>
+
+        {/* Actor strip (for prominent cards) */}
+        {scenario.actors && (
+          <div className="flex items-center gap-1.5 mb-4">
+            {scenario.actors.map(({ label, color }) => (
+              <span
+                key={label}
+                className="font-mono text-2xs px-2 py-0.5 border"
+                style={{ color, borderColor: `${color}40`, background: `${color}12` }}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Metadata row */}
+        <div className="flex items-center gap-4 pt-3 border-t border-[#1a1a1a]">
+          <span className="font-mono text-2xs text-text-tertiary tracking-[0.04em] uppercase">
+            <span className="text-text-secondary">{scenario.actorCount}</span> ACTORS
+          </span>
+          <span className="font-mono text-2xs text-text-tertiary tracking-[0.04em] uppercase">
+            <span className="text-text-secondary">{scenario.branch_count}</span> BRANCHES
+          </span>
+          <span className="font-mono text-2xs text-text-tertiary tracking-[0.04em] uppercase ml-auto">
+            {scenario.lastActive}
+          </span>
+        </div>
+      </div>
+    </button>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ScenarioBrowserPage() {
   const router = useRouter()
-  const [scenarios, setScenarios] = useState<ScenarioSummary[]>([])
+  const [scenarios, setScenarios] = useState<ScenarioDisplay[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORIES)
+  const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<Tab>('ALL SCENARIOS')
 
   useEffect(() => {
     async function load() {
       try {
         const res = await fetch('/api/scenarios')
-        if (!res.ok) throw new Error('fetch failed')
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`)
         const json = (await res.json()) as { data: ScenarioSummary[]; error: unknown }
         if (json.data && json.data.length > 0) {
-          setScenarios(json.data)
+          const mapped: ScenarioDisplay[] = json.data.map((s) => ({
+            ...s,
+            displayCategory: CATEGORY_MAP[s.category] ?? 'HYPOTHETICAL',
+            classification: 'CONFIDENTIAL' as const,
+            status: 'ARCHIVED' as const,
+            actorCount: 0,
+            lastActive: '—',
+          }))
+          setScenarios(mapped)
         } else {
           setScenarios(MOCK_SCENARIOS)
         }
-      } catch {
+      } catch (err) {
+        console.error('[ScenarioBrowser] fetch failed:', err)
+        setError('Failed to load scenarios. Showing cached data.')
         setScenarios(MOCK_SCENARIOS)
       } finally {
         setLoading(false)
@@ -240,12 +305,10 @@ export default function ScenarioBrowserPage() {
     void load()
   }, [])
 
-  const categories = Array.from(new Set(scenarios.map((s) => s.category))).sort()
-
   const visible =
-    activeCategory === ALL_CATEGORIES
+    activeTab === 'ALL SCENARIOS'
       ? scenarios
-      : scenarios.filter((s) => s.category === activeCategory)
+      : scenarios.filter((s) => s.displayCategory === activeTab)
 
   return (
     <>
@@ -254,34 +317,37 @@ export default function ScenarioBrowserPage() {
 
       <main className="pt-[66px] bg-bg-base min-h-screen">
         <div className="max-w-5xl mx-auto px-5 py-8">
-          {/* Page header */}
-          <div className="mb-8 pb-5 border-b border-border-subtle">
-            <p className="font-mono text-[10px] uppercase tracking-[0.12em] mb-2 text-text-tertiary">
-              GEOSIM // STRATEGIC SIMULATION ENGINE
-            </p>
-            <h1 className="font-label text-[26px] font-bold uppercase tracking-[0.04em] text-text-primary">
+          <div className="border-b border-[#1a1a1a] mb-6">
+            <DocumentIdHeader text="DOC-ID: GS-SCENARIOS-INDEX // CLASSIFICATION: TOP SECRET" />
+          </div>
+
+          {/* Page heading */}
+          <div className="mb-8">
+            <h1 className="font-label font-bold text-xl text-text-primary uppercase tracking-[0.04em]">
               Scenario Library
             </h1>
-            <p className="font-sans text-[13px] mt-2 max-w-2xl leading-[1.6] text-text-secondary">
-              Select a scenario to observe AI vs AI play or take direct control
-              of a strategic actor. All scenarios are modeled with actor-neutral
-              rigor.
+            <p className="font-sans text-base text-text-secondary mt-2 max-w-2xl leading-[1.6]">
+              Select a scenario to observe AI vs AI play or take direct control of a strategic actor.
+              All scenarios are modeled with actor-neutral rigor.
             </p>
           </div>
 
           {/* Category filter */}
-          {!loading && categories.length > 0 && (
-            <CategoryTabStrip
-              categories={categories}
-              active={activeCategory}
-              onChange={setActiveCategory}
-            />
+          {!loading && (
+            <CategoryTabStrip active={activeTab} onChange={setActiveTab} />
           )}
 
           {/* Loading state */}
           {loading && (
             <div className="py-16 text-center font-mono text-[11px] uppercase tracking-[0.08em] text-text-tertiary">
               LOADING SCENARIOS...
+            </div>
+          )}
+
+          {/* Error state */}
+          {!loading && error !== null && (
+            <div className="mb-4 px-4 py-3 border border-[#3a1a1a] bg-[rgba(185,28,28,0.06)] font-mono text-[10px] uppercase tracking-[0.08em] text-[#b91c1c]">
+              {error}
             </div>
           )}
 
@@ -307,9 +373,9 @@ export default function ScenarioBrowserPage() {
 
           {/* Footer count */}
           {!loading && (
-            <p className="mt-8 font-mono text-[10px] uppercase tracking-[0.08em] text-text-tertiary">
+            <p className="mt-8 font-mono text-2xs uppercase tracking-[0.08em] text-text-tertiary">
               {visible.length} SCENARIO{visible.length !== 1 ? 'S' : ''}{' '}
-              {activeCategory !== ALL_CATEGORIES ? `IN ${activeCategory.toUpperCase()}` : 'TOTAL'}
+              {activeTab !== 'ALL SCENARIOS' ? `— ${activeTab}` : '— ALL CATEGORIES'}
             </p>
           )}
         </div>
