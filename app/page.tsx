@@ -14,43 +14,63 @@ export default function Home() {
 
       <TopBar />
 
-      <main className="topo-grid pt-[90px] px-8 pb-16 min-h-screen">
+      <main className="topo-grid pt-[90px] pb-16 min-h-screen">
 
-        {/* Document ID row */}
-        <div className="font-mono text-[8px] text-text-tertiary uppercase tracking-[0.08em] py-2.5 border-b border-border-subtle flex gap-6">
-          <span>DOC-ID: <span className="text-text-secondary">GS-OVERVIEW-001</span></span>
-          <span>CLASSIFICATION: <span className="text-text-secondary">UNCLASSIFIED {' // '} PUBLIC</span></span>
-          <span>VERSION: <span className="text-text-secondary">SPRINT 3 {' // '} 30 MARCH 2026</span></span>
-        </div>
-
-        {/* Hero — gold left border */}
+        {/* Hero — full viewport, centered */}
         <section
-          className="-mx-8 px-8 py-7 mt-0 border-b border-[#1a1a1a] bg-[#0c0c0c]"
-          style={{ borderLeft: '3px solid #ffba20' }}
+          className="-mx-0 px-8 flex flex-col items-center justify-center text-center relative overflow-hidden border-b border-[#1a1a1a] bg-[#0b0b0b]"
+          style={{ minHeight: 'calc(100vh - 90px)' }}
         >
-          <div className="font-mono text-[8px] text-text-tertiary tracking-[0.12em] uppercase mb-2.5">
-            INTELLIGENCE-GROUNDED {' // '} MULTI-ACTOR {' // '} BRANCHING TIMELINES
+          {/* Ghost watermark */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+            <span
+              className="font-label font-black text-gold leading-none tracking-[-0.03em]"
+              style={{ fontSize: '22vw', opacity: 0.03 }}
+            >
+              GEOSIM
+            </span>
           </div>
 
-          <h1 className="font-label font-bold text-[28px] text-text-primary leading-[1.3] tracking-[0.01em] mb-2.5">
-            Model the decisions that shape history.<br />
+          {/* Doc ID — pinned top */}
+          <div className="absolute top-5 left-0 right-0 flex justify-center">
+            <div className="font-mono text-text-tertiary uppercase tracking-[0.1em] opacity-50" style={{ fontSize: '8px' }}>
+              DOC-ID: GS-OVERVIEW-001 {' // '} UNCLASSIFIED {' // '} 30 MARCH 2026
+            </div>
+          </div>
+
+          {/* Overline with gold rule dividers */}
+          <div className="flex items-center gap-4 mb-8 z-10">
+            <span className="block w-10 h-px" style={{ backgroundColor: '#ffba20', opacity: 0.4 }}></span>
+            <span className="font-mono text-text-tertiary tracking-[0.14em] uppercase" style={{ fontSize: '9px' }}>
+              INTELLIGENCE-GROUNDED {' // '} MULTI-ACTOR {' // '} BRANCHING TIMELINES
+            </span>
+            <span className="block w-10 h-px" style={{ backgroundColor: '#ffba20', opacity: 0.4 }}></span>
+          </div>
+
+          {/* H1 — large, centered */}
+          <h1
+            className="font-label font-bold text-text-primary leading-[1.15] tracking-[-0.01em] mb-6 z-10"
+            style={{ fontSize: 'clamp(36px, 5vw, 56px)', maxWidth: '860px' }}
+          >
+            Model the decisions that shape history.{' '}
             Explore every{' '}
             <em
               className="not-italic text-gold"
-              style={{ borderBottom: '1px solid rgba(255,186,32,0.4)', paddingBottom: '1px' }}
+              style={{ borderBottom: '1px solid rgba(255,186,32,0.35)', paddingBottom: '2px' }}
             >
               alternate timeline.
             </em>
           </h1>
 
-          <p className="font-sans text-[13px] text-text-secondary leading-[1.7] max-w-[560px] mb-5">
-            GeoSim is an AI-powered strategic simulation engine grounded in real-world
-            intelligence data. Load a real-world scenario, watch AI agents model every actor
-            simultaneously, then fork the timeline at any turning point to discover what might
-            have been.
+          {/* Sub */}
+          <p className="font-sans text-text-secondary leading-[1.7] max-w-[520px] mb-10 z-10" style={{ fontSize: '14px' }}>
+            AI-powered strategic simulation grounded in real intelligence data.
+            Every actor modeled from their own perspective.
+            Every decision a fork in history.
           </p>
 
-          <div className="flex gap-2.5 items-center">
+          {/* CTAs */}
+          <div className="flex gap-3 items-center justify-center z-10">
             <Link href="/scenarios/iran-2026">
               <Button variant="primary">&#9655; LAUNCH SIMULATION</Button>
             </Link>
@@ -58,7 +78,16 @@ export default function Home() {
               <Button variant="ghost">BROWSE SCENARIOS</Button>
             </Link>
           </div>
+
+          {/* Scroll hint */}
+          <div className="absolute bottom-6 left-0 right-0 flex justify-center">
+            <div className="font-mono text-text-tertiary tracking-[0.1em] animate-pulse" style={{ fontSize: '8px' }}>
+              &#9660; SCROLL TO BRIEF
+            </div>
+          </div>
         </section>
+
+        <div className="px-8">
 
         {/* How it works */}
         <SectionDivider title="HOW IT WORKS" subtitle="OPERATIONAL OVERVIEW" />
@@ -186,15 +215,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Closing CTA — gold left border mirrors hero */}
-        <section
-          className="-mx-8 px-8 py-5 border-t border-[#1a1a1a] bg-[#0c0c0c]"
-          style={{ borderLeft: '3px solid #ffba20' }}
-        >
-          <div className="font-mono text-[8px] text-text-tertiary tracking-[0.1em] uppercase mb-3.5">
+        </div>{/* end px-8 wrapper */}
+
+        {/* Closing CTA — centered, gold accent */}
+        <div className="px-8 py-10 border-t border-[#1a1a1a] bg-[#0b0b0b] flex flex-col items-center text-center">
+          <div className="font-mono text-text-tertiary tracking-[0.1em] uppercase mb-5" style={{ fontSize: '8px' }}>
             READY TO RUN THE SCENARIO? {' // '} CHOOSE YOUR ENTRY POINT
           </div>
-          <div className="flex gap-2.5 items-center">
+          <div className="flex gap-3 items-center justify-center">
             <Link href="/scenarios/iran-2026">
               <Button variant="primary">&#9655; LAUNCH SIMULATION &mdash; IRAN 2026</Button>
             </Link>
@@ -202,7 +230,7 @@ export default function Home() {
               <Button variant="ghost">BROWSE ALL SCENARIOS</Button>
             </Link>
           </div>
-        </section>
+        </div>
 
       </main>
     </>
