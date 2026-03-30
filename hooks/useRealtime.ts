@@ -45,7 +45,7 @@ export function useRealtime(branchId: string) {
         dispatch({ type: 'SET_COMMIT', payload: { commitId: payload.commitId, turnNumber: payload.turnNumber, snapshot: payload.snapshot } })
         dispatch({ type: 'SET_TURN_PHASE', payload: 'complete' })
       })
-      .subscribe((status, err) => {
+      .subscribe((status: string, err?: Error) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.error('[useRealtime] Channel subscription failed', { branchId, status, err })
         }
