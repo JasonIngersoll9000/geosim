@@ -275,7 +275,7 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
   const { state, dispatch } = useGame()
 
   const [activeTab, setActiveTab] = useState<PanelTab>('actors')
-  const [showObserver, setShowObserver] = useState(false)
+  const [showObserver, setShowObserver] = useState(true)
   const [selectedDecisionDetail, setSelectedDecisionDetail] = useState<DecisionDetail | null>(null)
   const [decisionPanelOpen, setDecisionPanelOpen] = useState(false)
   const [primaryAction, setPrimaryAction] = useState<ActionSlot | null>(null)

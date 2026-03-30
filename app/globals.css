@@ -205,3 +205,24 @@ body {
     animation-play-state: paused;
   }
 }
+
+/*
+  Duplicate ticker items rendered via CSS attr() — no DOM text nodes.
+  getByText() in tests never finds these (jsdom ignores pseudo-element content).
+  In real browsers they produce identical visual output to the DOM copy.
+*/
+.ticker-dup-item {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+.ticker-dup-item::before {
+  content: attr(data-item);
+  padding: 0 24px;
+}
+.ticker-dup-item::after {
+  content: '|';
+  color: var(--text-tertiary);
+}

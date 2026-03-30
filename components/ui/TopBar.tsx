@@ -7,6 +7,7 @@ interface TopBarProps {
   turnNumber?: number;
   totalTurns?: number;
   phase?: string;
+  gameMode?: string;
 }
 
 function toPhase(raw: string): Phase {
@@ -20,6 +21,7 @@ export function TopBar({
   turnNumber = 4,
   totalTurns = 12,
   phase = "Planning",
+  gameMode = "Simulation",
 }: TopBarProps) {
   return (
     <div
@@ -38,7 +40,12 @@ export function TopBar({
         {scenarioName}
       </span>
 
-      {/* Right side: turn + TurnPhaseIndicator */}
+      {/* Game mode badge */}
+      <span className="ml-3 px-2 py-0.5 font-mono text-2xs text-text-secondary bg-bg-surface-high border border-border-subtle uppercase tracking-[0.06em]">
+        {gameMode}
+      </span>
+
+      {/* Right side: turn counter + phase badge */}
       <div className="ml-auto flex items-center gap-3">
         <span className="font-mono text-xs text-text-tertiary">
           TURN {String(turnNumber).padStart(2, "0")} /{" "}
