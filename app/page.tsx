@@ -73,22 +73,24 @@ export default function Home() {
             GEOSIM
           </motion.span>
 
-          <span
+          <motion.span
             aria-hidden="true"
             className="pointer-events-none select-none absolute font-label font-bold uppercase tracking-[0.15em]"
             style={{
               fontSize: "clamp(48px, 9vw, 110px)",
               color: "#b91c1c",
-              opacity: 0.025,
               zIndex: 1,
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%) rotate(-8deg)",
               whiteSpace: "nowrap",
             }}
+            initial={shouldSkip ? { opacity: 0.025 } : { opacity: 0 }}
+            animate={{ opacity: 0.025 }}
+            transition={shouldSkip ? {} : { duration: 0.5, ease: "easeOut", delay: 0.1 }}
           >
             TOP SECRET
-          </span>
+          </motion.span>
 
           <motion.div
             className="relative flex flex-col items-center text-center"
