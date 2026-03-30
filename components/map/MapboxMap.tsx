@@ -99,7 +99,13 @@ export function MapboxMap({ hormuzClosed }: Props) {
 
     const map = mapRef.current!
 
-    map.on('error', () => { /* suppress non-critical tile errors */ })
+    map.on('error', (e) => {
+      const msg = (e as any)?.error?.message ?? ''
+      if (msg.includes('Failed to initialize WebGL') || msg.includes('token') || msg.includes('style')) {
+        console.error('[GeoSim map]', msg)
+      }
+      // suppress routine tile/source 404s silently
+    })
 
     // Small dark navigation control
     map.addControl(
@@ -291,17 +297,40 @@ export function MapboxMap({ hormuzClosed }: Props) {
         },
       })
 
-      // ── USS Nimitz carrier group marker ──
+      // ── USS Nimitz carrier group marker (labeled, coordinate-anchored) ──
       const nimitzEl = document.createElement('div')
       nimitzEl.style.cssText = `
-        width: 10px; height: 10px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        pointer-events: auto;
+      `
+      const nimitzDot = document.createElement('div')
+      nimitzDot.style.cssText = `
+        width: 8px; height: 8px; flex-shrink: 0;
         background: rgba(74,144,217,0.9);
         border: 1.5px solid rgba(74,144,217,1);
         border-radius: 50%;
-        box-shadow: 0 0 0 3px rgba(74,144,217,0.2);
-        cursor: pointer;
+        box-shadow: 0 0 0 3px rgba(74,144,217,0.15);
       `
-      new mapboxgl.Marker({ element: nimitzEl })
+      const nimitzLabel = document.createElement('div')
+      nimitzLabel.style.cssText = `
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 8px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(74,144,217,0.9);
+        background: rgba(5,10,18,0.82);
+        border: 1px solid rgba(74,144,217,0.35);
+        padding: 1px 5px;
+        white-space: nowrap;
+      `
+      nimitzLabel.textContent = 'USS NIMITZ // CSG-11'
+      nimitzEl.appendChild(nimitzDot)
+      nimitzEl.appendChild(nimitzLabel)
+
+      new mapboxgl.Marker({ element: nimitzEl, anchor: 'left' })
         .setLngLat([57.5, 24.5])
         .addTo(map)
     })

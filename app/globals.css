@@ -222,3 +222,31 @@ body {
   content: '|';
   color: var(--text-tertiary);
 }
+
+/* ── Mapbox GL dark control overrides ── */
+.mapboxgl-ctrl-group {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+.mapboxgl-ctrl-group button {
+  width: 24px !important;
+  height: 24px !important;
+  background-color: transparent !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+.mapboxgl-ctrl-group button:last-child {
+  border-bottom: none !important;
+}
+.mapboxgl-ctrl-icon {
+  filter: invert(1) brightness(0.55) !important;
+}
+.mapboxgl-ctrl-attrib {
+  display: none !important;
+}
+.mapboxgl-ctrl-logo {
+  opacity: 0.25 !important;
+  transform: scale(0.7) !important;
+  transform-origin: bottom right !important;
+}

@@ -43,6 +43,8 @@ export function GameMap({ globalState }: Props) {
 
       {/* ── Map layer ── */}
       {TOKEN ? (
+        /* Real Mapbox map — geospatial markers (Hormuz label, Nimitz chip)
+           are coordinate-anchored inside MapboxMap itself */
         <MapboxMap hormuzClosed={hormuzClosed} />
       ) : (
         /* Placeholder when token not configured */
@@ -82,6 +84,23 @@ export function GameMap({ globalState }: Props) {
               </div>
             </div>
           </div>
+          {/* Placeholder chokepoint overlays (not coordinate-anchored — approximate positions only) */}
+          <ChokepointMarker
+            label={`STRAIT OF HORMUZ // ${hormuzClosed ? 'CLOSED' : 'CONTESTED'}`}
+            status={hormuzStatus}
+            style={{ bottom: '34%', right: '20%' }}
+          />
+          <ChokepointMarker
+            label="BAB-EL-MANDEB"
+            status="contested"
+            style={{ bottom: '12%', left: '8%' }}
+          />
+          <FloatingMetricChip
+            label="USS NIMITZ"
+            value="CSG-11"
+            variant="default"
+            style={{ bottom: '30%', right: '16%' }}
+          />
         </>
       )}
 
@@ -103,7 +122,7 @@ export function GameMap({ globalState }: Props) {
         <rect width="100%" height="100%" fill="url(#geo-grid-major)" />
       </svg>
 
-      {/* ── Floating metric chips (top bar) ── */}
+      {/* ── Floating metric chips (always visible, non-geospatial) ── */}
       <FloatingMetricChip
         label="OIL"
         value={`$${oilPrice}/bbl`}
@@ -115,26 +134,6 @@ export function GameMap({ globalState }: Props) {
         value="RUNG 6"
         variant="critical"
         style={{ top: 10, right: 44 }}
-      />
-
-      {/* ── Chokepoint markers: Hormuz & Bab-el-Mandeb ── */}
-      <ChokepointMarker
-        label={`STRAIT OF HORMUZ // ${hormuzClosed ? 'CLOSED' : 'CONTESTED'}`}
-        status={hormuzStatus}
-        style={{ bottom: '34%', right: '20%' }}
-      />
-      <ChokepointMarker
-        label="BAB-EL-MANDEB"
-        status="contested"
-        style={{ bottom: '12%', left: '8%' }}
-      />
-
-      {/* ── USS Nimitz carrier group chip ── */}
-      <FloatingMetricChip
-        label="USS NIMITZ"
-        value="CSG-11"
-        variant="default"
-        style={{ bottom: '30%', right: '16%' }}
       />
 
       {/* ── Map legend ── */}
