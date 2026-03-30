@@ -1,10 +1,11 @@
 import { TurnEntry } from './TurnEntry'
 
-type Severity = 'critical' | 'major' | 'minor'
+type Severity = 'critical' | 'major' | 'moderate' | 'minor'
 
 const dotBorderClass: Record<Severity, string> = {
   critical: 'border-status-critical',
   major:    'border-gold',
+  moderate: 'border-status-stable',
   minor:    'border-border-hi',
 }
 

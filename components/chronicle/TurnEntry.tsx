@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 
-type Severity = 'critical' | 'major' | 'minor'
+type Severity = 'critical' | 'major' | 'moderate' | 'minor'
 
 interface EntryData {
   turnNumber: number
@@ -13,27 +14,32 @@ interface EntryData {
   detail?: string
 }
 
-// Static map — no inline styles
 const severityBorderClass: Record<Severity, string> = {
   critical: 'border-l-status-critical',
   major:    'border-l-gold',
+  moderate: 'border-l-status-stable',
   minor:    'border-l-border-hi',
 }
 
 export function TurnEntry({ entry }: { entry: EntryData }) {
   const [expanded, setExpanded] = useState(false)
+  const shouldSkip = useReducedMotion()
+
   return (
-    <div
+    <motion.div
       data-severity={entry.severity}
       className={`pl-3 mb-7 border-l-2 ${severityBorderClass[entry.severity]}`}
+      initial={shouldSkip ? false : { opacity: 0, x: -16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
     >
-      <div className="font-mono text-[9px] uppercase tracking-[0.04em] mb-1 text-text-tertiary">
+      <div className="font-mono text-[8px] uppercase tracking-[0.06em] mb-1 text-text-tertiary">
         <span>Turn {entry.turnNumber} — </span><span>{entry.date}</span>
       </div>
-      <div className="font-sans font-bold text-[15px] uppercase tracking-[0.02em] mb-2 text-text-primary">
+      <div className="font-label font-bold text-[13px] uppercase tracking-[0.04em] mb-2 text-text-primary">
         {entry.title}
       </div>
-      <div className="font-serif italic text-[15px] leading-[1.75] text-text-secondary">
+      <div className="font-serif italic text-[13px] leading-[1.75] text-text-secondary">
         {entry.narrative}
       </div>
       <div className="flex flex-wrap gap-1 mt-2">
@@ -44,21 +50,22 @@ export function TurnEntry({ entry }: { entry: EntryData }) {
         ))}
       </div>
       {entry.detail && (
-        <div className="mt-2 overflow-hidden border border-border-subtle">
+        <div className="mt-2 border border-border-subtle">
           <button
             onClick={() => setExpanded(e => !e)}
-            className="w-full flex justify-between items-center px-3 py-2 font-mono text-[11px] transition-all text-status-info"
+            className="w-full flex justify-between items-center px-3 py-2 font-mono text-[11px] transition-colors text-status-info"
+            aria-expanded={expanded}
           >
             <span>Detail</span>
             <span>{expanded ? '▲' : '▼'}</span>
           </button>
-          {expanded && (
+          <div className={`chronicle-detail${expanded ? ' open' : ''}`}>
             <div className="px-3 pb-3 font-mono text-[11px] text-text-secondary bg-bg-surface">
               {entry.detail}
             </div>
-          )}
+          </div>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }

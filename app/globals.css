@@ -191,3 +191,78 @@ body {
     animation: strait-dash 4s linear infinite;
   }
 }
+/* ── Global ticker continuous scroll ── */
+@keyframes scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ticker-track {
+    animation: scroll 32s linear infinite;
+  }
+  .ticker-track:hover {
+    animation-play-state: paused;
+  }
+}
+
+/* Ticker loop copy — text rendered via CSS, mirrors the DOM copy visually */
+.ticker-dup-item {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+.ticker-dup-item::before {
+  content: attr(data-item);
+  padding: 0 24px;
+}
+.ticker-dup-item::after {
+  content: '|';
+  color: var(--text-tertiary);
+}
+
+/* ── Mapbox GL dark control overrides ── */
+.mapboxgl-ctrl-group {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+.mapboxgl-ctrl-group button {
+  width: 24px !important;
+  height: 24px !important;
+  background-color: transparent !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+.mapboxgl-ctrl-group button:last-child {
+  border-bottom: none !important;
+}
+.mapboxgl-ctrl-icon {
+  filter: invert(1) brightness(0.55) !important;
+}
+.mapboxgl-ctrl-attrib {
+  display: none !important;
+}
+.mapboxgl-ctrl-logo {
+  opacity: 0.25 !important;
+  transform: scale(0.7) !important;
+  transform-origin: bottom right !important;
+}
+
+/* ── Reduced motion: disable CSS micro-interactions ── */
+@media (prefers-reduced-motion: reduce) {
+  /* Button press scale */
+  button:active {
+    transform: none !important;
+  }
+  /* Disable all CSS opacity/color transitions (dimension-tag hover fades, etc.) */
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

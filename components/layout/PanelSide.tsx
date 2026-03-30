@@ -7,7 +7,7 @@ interface Props {
 export function PanelSide({ mapCollapsed, onExpandMap, children }: Props) {
   return (
     <div
-      className={`flex flex-col overflow-y-auto transition-all duration-200 ${mapCollapsed ? 'flex-1' : 'w-[380px]'}`}
+      className={`flex flex-col overflow-hidden transition-all duration-200 ${mapCollapsed ? 'flex-1' : 'w-[380px]'}`}
       style={{ background: 'var(--bg-surface-low)', borderLeft: '1px solid var(--border-subtle)' }}
     >
       {mapCollapsed && (

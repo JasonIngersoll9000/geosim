@@ -8,6 +8,8 @@ interface Props {
   open: boolean
   onClose: () => void
   decision: DecisionDetail | null
+  onSelect?: () => void
+  alreadySelected?: boolean
 }
 
 const escalationLabel: Record<EscalationDirection, string> = {
@@ -22,7 +24,7 @@ const escalationColor: Record<EscalationDirection, string> = {
   neutral: 'text-text-tertiary',
 }
 
-export function DecisionDetailPanel({ open, onClose, decision }: Props) {
+export function DecisionDetailPanel({ open, onClose, decision, onSelect, alreadySelected }: Props) {
   return (
     <SlideOverPanel
       open={open}
@@ -76,6 +78,38 @@ export function DecisionDetailPanel({ open, onClose, decision }: Props) {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Select decision CTA */}
+          {onSelect && (
+            <div className="pt-2 border-t border-border-subtle">
+              {alreadySelected ? (
+                <div
+                  className="w-full px-4 py-3 font-mono text-[11px] uppercase tracking-[0.08em] text-center"
+                  style={{
+                    background: 'rgba(90,79,50,0.2)',
+                    border: '1px solid rgba(90,79,50,0.5)',
+                    color: '#8a7a50',
+                  }}
+                >
+                  ✓ ADDED TO PLAN
+                </div>
+              ) : (
+                <button
+                  onClick={() => { onSelect(); onClose() }}
+                  className="w-full px-4 py-3 font-mono text-[11px] uppercase tracking-[0.08em] transition-colors"
+                  style={{
+                    background: 'rgba(255,186,32,0.08)',
+                    border: '1px solid rgba(255,186,32,0.35)',
+                    color: '#ffba20',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,186,32,0.16)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,186,32,0.08)' }}
+                >
+                  SELECT DECISION →
+                </button>
+              )}
             </div>
           )}
         </div>
