@@ -48,3 +48,10 @@ Set these as secrets in Replit:
 - Dev and start scripts are configured with `-p 5000 -H 0.0.0.0` for Replit compatibility
 - Package manager: bun (detected from bun.lock)
 - Workflow: "Start application" runs `bun run dev`
+
+## GitHub Workflow Rules
+
+- **Never push directly to `main`** — always push to a named feature branch.
+- Naming convention: `feat/<short-description>` (e.g. `feat/scenario-browser-polish`)
+- Each task or logical batch of work gets its own branch; open a PR on GitHub for review before merging.
+- Git remote is authenticated via the `GITHUB_TOKEN` secret.
