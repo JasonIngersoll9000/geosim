@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 
-type Severity = 'critical' | 'major' | 'minor'
+type Severity = 'critical' | 'major' | 'moderate' | 'minor'
 
 interface EntryData {
   turnNumber: number
@@ -17,6 +17,7 @@ interface EntryData {
 const severityBorderClass: Record<Severity, string> = {
   critical: 'border-l-status-critical',
   major:    'border-l-gold',
+  moderate: 'border-l-status-stable',
   minor:    'border-l-border-hi',
 }
 
@@ -27,13 +28,16 @@ export function TurnEntry({ entry }: { entry: EntryData }) {
       data-severity={entry.severity}
       className={`pl-3 mb-7 border-l-2 ${severityBorderClass[entry.severity]}`}
     >
-      <div className="font-mono text-[9px] uppercase tracking-[0.04em] mb-1 text-text-tertiary">
+      {/* IBM Plex Mono 8px header per spec */}
+      <div className="font-mono text-[8px] uppercase tracking-[0.06em] mb-1 text-text-tertiary">
         <span>Turn {entry.turnNumber} — </span><span>{entry.date}</span>
       </div>
-      <div className="font-sans font-bold text-[15px] uppercase tracking-[0.02em] mb-2 text-text-primary">
+      {/* Space Grotesk uppercase title per spec */}
+      <div className="font-label font-bold text-[13px] uppercase tracking-[0.04em] mb-2 text-text-primary">
         {entry.title}
       </div>
-      <div className="font-serif italic text-[15px] leading-[1.75] text-text-secondary">
+      {/* Newsreader 13px narrative per spec */}
+      <div className="font-serif italic text-[13px] leading-[1.75] text-text-secondary">
         {entry.narrative}
       </div>
       <div className="flex flex-wrap gap-1 mt-2">

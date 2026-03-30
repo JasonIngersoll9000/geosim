@@ -1,8 +1,18 @@
+import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
+
+type Phase = 'planning' | 'resolution' | 'reaction' | 'judging' | 'complete'
+
 interface TopBarProps {
   scenarioName?: string;
   turnNumber?: number;
   totalTurns?: number;
   phase?: string;
+}
+
+function toPhase(raw: string): Phase {
+  const lower = raw.toLowerCase() as Phase
+  const valid: Phase[] = ['planning', 'resolution', 'reaction', 'judging', 'complete']
+  return valid.includes(lower) ? lower : 'planning'
 }
 
 export function TopBar({
@@ -28,14 +38,14 @@ export function TopBar({
         {scenarioName}
       </span>
 
-      {/* Right side: turn indicator */}
+      {/* Right side: turn + TurnPhaseIndicator */}
       <div className="ml-auto flex items-center gap-3">
         <span className="font-mono text-xs text-text-tertiary">
           TURN {String(turnNumber).padStart(2, "0")} /{" "}
           {String(totalTurns).padStart(2, "0")}
         </span>
-        <span className="px-2 py-0.5 font-mono text-2xs text-gold bg-gold-dim rounded-none border border-gold-border tracking-[0.03em] uppercase">
-          {phase}
+        <span className="px-2 py-0.5 font-mono text-2xs bg-gold-dim rounded-none border border-gold-border tracking-[0.03em] uppercase">
+          <TurnPhaseIndicator phase={toPhase(phase)} />
         </span>
       </div>
     </div>
