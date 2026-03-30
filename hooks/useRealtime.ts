@@ -18,13 +18,18 @@ interface TurnCompletedPayload {
   snapshot: Scenario
 }
 
-// createClient() returns a module-level singleton — stable reference, safe outside useEffect
-const supabase = createClient()
-
 export function useRealtime(branchId: string) {
   const { dispatch } = useGame()
 
   useEffect(() => {
+    // Lazily create the client so missing env vars don't crash the module on import
+    let supabase: ReturnType<typeof createClient> | null = null
+    try {
+      supabase = createClient()
+    } catch {
+      return
+    }
+
     const channel = supabase
       .channel(`branch:${branchId}`)
       .on('broadcast', { event: 'turn_started' }, ({ payload }: { payload: TurnStartedPayload }) => {
@@ -41,6 +46,6 @@ export function useRealtime(branchId: string) {
       })
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    return () => { supabase?.removeChannel(channel) }
   }, [branchId, dispatch])
 }
