@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRealtime } from '@/hooks/useRealtime'
 import { useGame } from '@/components/providers/GameProvider'
+import { useSubmitTurn } from '@/hooks/useSubmitTurn'
 import { GameLayout } from '@/components/layout/GameLayout'
 import { GameMap } from '@/components/map/GameMap'
-import { ActorList } from '@/components/panels/ActorList'
 import { ActorDetailPanel } from '@/components/panels/ActorDetailPanel'
 import { DecisionCatalog } from '@/components/panels/DecisionCatalog'
 import { DecisionDetailPanel } from '@/components/panels/DecisionDetailPanel'
@@ -79,13 +79,13 @@ const MOCK_ACTOR_DETAILS: Record<string, ActorDetail> = {
 }
 
 const MOCK_DECISIONS: Array<DecisionOption & { description: string }> = [
-  { id: 'expand-air',       title: 'Expand Air Campaign',          description: 'Second sortie targeting Fordow with GBU-57 penetrators; secondary strikes on IRGC naval facilities.',  dimension: 'military',     escalationDirection: 'escalate',    resourceWeight: 0.6  },
-  { id: 'special-ops',      title: 'Special Ops Insertion',        description: 'JSOC teams inserted to surveil and disable hardened sites beyond air campaign range.',                   dimension: 'military',     escalationDirection: 'escalate',    resourceWeight: 0.4  },
-  { id: 'ceasefire-signal', title: 'Signal Ceasefire Willingness', description: 'Back-door diplomatic message to Iranian FM via Swiss intermediary indicating conditions for pause.',      dimension: 'diplomatic',   escalationDirection: 'de-escalate', resourceWeight: 0.2  },
+  { id: 'expand-air',       title: 'Expand Air Campaign',          description: 'Second sortie targeting Fordow with GBU-57 penetrators; secondary strikes on IRGC naval facilities.',      dimension: 'military',     escalationDirection: 'escalate',    resourceWeight: 0.6  },
+  { id: 'special-ops',      title: 'Special Ops Insertion',        description: 'JSOC teams inserted to surveil and disable hardened sites beyond air campaign range.',                       dimension: 'military',     escalationDirection: 'escalate',    resourceWeight: 0.4  },
+  { id: 'ceasefire-signal', title: 'Signal Ceasefire Willingness', description: 'Back-door diplomatic message to Iranian FM via Swiss intermediary indicating conditions for pause.',           dimension: 'diplomatic',   escalationDirection: 'de-escalate', resourceWeight: 0.2  },
   { id: 'oman-backchannel', title: 'Activate Oman Back-Channel',   description: 'Leverage Omani diplomatic channel to propose conditional sanctions relief in exchange for enrichment freeze.', dimension: 'diplomatic',   escalationDirection: 'de-escalate', resourceWeight: 0.15 },
-  { id: 'iea-release',      title: 'IEA Reserve Release',          description: 'Coordinate IEA member-state release of strategic petroleum reserves to cap oil below $130/bbl.',         dimension: 'economic',     escalationDirection: 'neutral',     resourceWeight: 0.25 },
-  { id: 'asset-freeze',     title: 'Expand Asset Freeze',          description: 'Extend secondary sanctions to IRGC-linked entities in UAE and Turkey; target currency reserves.',         dimension: 'economic',     escalationDirection: 'escalate',    resourceWeight: 0.3  },
-  { id: 'proxy-disrupt',    title: 'Disrupt Proxy Networks',       description: 'Cyber and HUMINT operations against Hezbollah and Houthi command networks to limit proxy retaliation.',  dimension: 'intelligence', escalationDirection: 'escalate',    resourceWeight: 0.35 },
+  { id: 'iea-release',      title: 'IEA Reserve Release',          description: 'Coordinate IEA member-state release of strategic petroleum reserves to cap oil below $130/bbl.',              dimension: 'economic',     escalationDirection: 'neutral',     resourceWeight: 0.25 },
+  { id: 'asset-freeze',     title: 'Expand Asset Freeze',          description: 'Extend secondary sanctions to IRGC-linked entities in UAE and Turkey; target currency reserves.',              dimension: 'economic',     escalationDirection: 'escalate',    resourceWeight: 0.3  },
+  { id: 'proxy-disrupt',    title: 'Disrupt Proxy Networks',       description: 'Cyber and HUMINT operations against Hezbollah and Houthi command networks to limit proxy retaliation.',       dimension: 'intelligence', escalationDirection: 'escalate',    resourceWeight: 0.35 },
 ]
 
 const MOCK_DECISION_DETAILS: Record<string, DecisionDetail> = {
@@ -128,7 +128,7 @@ const MOCK_DECISION_DETAILS: Record<string, DecisionDetail> = {
   },
   'iea-release': {
     id: 'iea-release', title: 'IEA Reserve Release', dimension: 'economic', escalationDirection: 'neutral', resourceWeight: 0.25,
-    strategicRationale: 'Coordinated IEA strategic reserve release of 120 million barrels over 30 days. Designed to cap oil at $120/bbl and reduce Iran\'s economic leverage from Hormuz closure.',
+    strategicRationale: "Coordinated IEA strategic reserve release of 120 million barrels over 30 days. Designed to cap oil at $120/bbl and reduce Iran's economic leverage from Hormuz closure.",
     expectedOutcomes: 'Oil price correction to $115–125/bbl within 5 days. Allied political cohesion improves. Iran loses $4.2B monthly revenue leverage.',
     concurrencyRules: [
       { decisionId: 'asset-freeze', decisionTitle: 'Expand Asset Freeze', compatible: true },
@@ -155,28 +155,30 @@ const MOCK_DECISION_DETAILS: Record<string, DecisionDetail> = {
   },
 }
 
-const MOCK_CHRONICLE_ENTRIES = [
+type ChronicleEntry = React.ComponentProps<typeof ChronicleTimeline>['entries'][number]
+
+const BASE_CHRONICLE: ChronicleEntry[] = [
   {
     turnNumber: 1, date: '4 March 2026', title: 'Operation Epic Fury Launched',
     narrative: 'Joint US-Israeli decapitation strike targeting 14 nuclear facilities. Three sites hardened beyond conventional penetration. Fordow partially intact.',
-    severity: 'critical' as const, tags: ['Military', 'Nuclear'],
+    severity: 'critical', tags: ['Military', 'Nuclear'],
     detail: 'B-2 sorties from Diego Garcia, F-35I from Nevatim. Carrier group CVN-73 launched 64 Tomahawks. Fordow bunker penetration failed.',
   },
   {
     turnNumber: 2, date: '8 March 2026', title: 'Strait of Hormuz Closed',
     narrative: 'IRGC mining operation closes Hormuz. 22 tankers rerouted. Oil spikes to $142/bbl. Gulf States emergency session convened.',
-    severity: 'critical' as const, tags: ['Economic', 'Military'],
+    severity: 'critical', tags: ['Economic', 'Military'],
     detail: 'MCM assets deployed. US 5th Fleet estimating 72–96 hours to clear main channel.',
   },
   {
     turnNumber: 3, date: '14 March 2026', title: 'Oman Diplomatic Breakthrough',
     narrative: 'Oman announces framework for temporary ceasefire. Iran signals willingness to negotiate Hormuz reopening. US rejects preconditions.',
-    severity: 'major' as const, tags: ['Diplomatic'],
+    severity: 'major', tags: ['Diplomatic'],
   },
   {
     turnNumber: 4, date: '22 March 2026', title: 'Hezbollah Northern Front Activated',
     narrative: 'Hezbollah launches 340 rockets into northern Israel. Iron Dome at 87% intercept rate. Three civilians killed in Haifa.',
-    severity: 'major' as const, tags: ['Military', 'Escalation'],
+    severity: 'major', tags: ['Military', 'Escalation'],
   },
 ]
 
@@ -190,11 +192,11 @@ const MOCK_RESOLUTION = {
   judgeScores: { plausibility: 87, consistency: 82, proportionality: 74, rationality: 91, cascadeLogic: 85, overallScore: 84 },
 }
 
-const MOCK_DISPATCH_LINES: DispatchLine[] = [
+const INITIAL_DISPATCH: DispatchLine[] = [
   { timestamp: '08:14:02', text: 'BRANCH: trunk // TURN 04 // PHASE: planning', type: 'info' },
-  { timestamp: '08:14:03', text: 'Loading actor state snapshot...', type: 'default' },
+  { timestamp: '08:14:03', text: 'Loading actor state snapshot…',                type: 'default' },
   { timestamp: '08:14:04', text: 'Scenario snapshot loaded — 6 actors, 7 decisions available', type: 'confirmed' },
-  { timestamp: '08:14:05', text: 'Awaiting turn plan submission', type: 'default' },
+  { timestamp: '08:14:05', text: 'Awaiting turn plan submission',                type: 'default' },
 ]
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -273,47 +275,100 @@ function ActorsPanel({
 export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
   useRealtime(branchId)
   const { state, dispatch } = useGame()
+  const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, reset: resetHook } = useSubmitTurn(branchId)
 
-  const [activeTab, setActiveTab] = useState<PanelTab>('actors')
-  const [showObserver, setShowObserver] = useState(true)
+  const [activeTab, setActiveTab]                           = useState<PanelTab>('actors')
+  const [showObserver, setShowObserver]                     = useState(true)
   const [selectedDecisionDetail, setSelectedDecisionDetail] = useState<DecisionDetail | null>(null)
-  const [decisionPanelOpen, setDecisionPanelOpen] = useState(false)
-  const [primaryAction, setPrimaryAction] = useState<ActionSlot | null>(null)
-  const [concurrentActions, setConcurrentActions] = useState<ActionSlot[]>([])
+  const [decisionPanelOpen, setDecisionPanelOpen]           = useState(false)
+  const [primaryAction, setPrimaryAction]                   = useState<ActionSlot | null>(null)
+  const [concurrentActions, setConcurrentActions]           = useState<ActionSlot[]>([])
+  const [chronicleEntries, setChronicleEntries]             = useState<ChronicleEntry[]>(BASE_CHRONICLE)
+  const [turnNumber, setTurnNumber]                         = useState(4)
+
+  // Show terminal mode during resolution
+  const showTerminal = isSubmitting || isComplete
+
+  // Auto-append chronicle entry and switch to CHRONICLE tab when turn completes
+  useEffect(() => {
+    if (!isComplete) return
+    dispatch({ type: 'SET_TURN_PHASE', payload: 'complete' })
+    const nextTurn = turnNumber + 1
+    const newEntry: ChronicleEntry = {
+      turnNumber: nextTurn,
+      date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }),
+      title: primaryAction
+        ? `Turn ${nextTurn} — ${primaryAction.title}`
+        : `Turn ${nextTurn} Complete`,
+      narrative: `Resolution complete. Actions executed: ${[primaryAction, ...concurrentActions]
+        .filter(Boolean).map(a => a!.title).join(', ')}. Judged at 86/100.`,
+      severity: 'major',
+      tags: primaryAction ? [primaryAction.dimension.charAt(0).toUpperCase() + primaryAction.dimension.slice(1)] : [],
+    }
+    setChronicleEntries(prev => [...prev, newEntry])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isComplete])
 
   const selectedActorDetail = state.selectedActorId
     ? (MOCK_ACTOR_DETAILS[state.selectedActorId] ?? null)
     : null
 
-  const lines: DispatchLine[] = state.resolutionProgress
-    ? [{ timestamp: new Date().toISOString().slice(11, 19), text: state.resolutionProgress, type: 'default' as const }]
-    : MOCK_DISPATCH_LINES
-
-  const isRunning = state.turnPhase === 'resolution' || state.turnPhase === 'judging'
+  // Dispatch terminal lines: hook lines when in resolution, otherwise initial lines
+  const terminalLines = showTerminal ? hookLines : INITIAL_DISPATCH
+  const isRunning = isSubmitting
 
   function handleDecisionSelect(id: string) {
     const decision = MOCK_DECISIONS.find(d => d.id === id)
-    const detail = MOCK_DECISION_DETAILS[id] ?? null
+    const detail   = MOCK_DECISION_DETAILS[id] ?? null
 
-    // Open detail panel
     if (detail) {
       setSelectedDecisionDetail(detail)
       setDecisionPanelOpen(true)
     }
 
-    // Add to turn plan builder
     if (decision) {
       const slot: ActionSlot = { id: decision.id, title: decision.title, dimension: decision.dimension }
       if (!primaryAction) {
         setPrimaryAction(slot)
-      } else if (concurrentActions.length < 3 && !concurrentActions.find(a => a.id === id) && primaryAction.id !== id) {
+      } else if (
+        concurrentActions.length < 3 &&
+        !concurrentActions.find(a => a.id === id) &&
+        primaryAction.id !== id
+      ) {
         setConcurrentActions(prev => [...prev, slot])
       }
     }
   }
 
-  function handleTurnSubmit() {
+  async function handleTurnSubmit() {
+    if (!primaryAction) return
     dispatch({ type: 'SET_TURN_PHASE', payload: 'resolution' })
+    setActiveTab('decisions') // stay on decisions tab header (terminal covers it)
+    await submitTurn({ primaryAction, concurrentActions })
+  }
+
+  function handleReturnToPlanning() {
+    const nextTurn = turnNumber + 1
+    setTurnNumber(nextTurn)
+    setPrimaryAction(null)
+    setConcurrentActions([])
+    resetHook()
+    dispatch({ type: 'SET_TURN_PHASE', payload: 'planning' })
+    setActiveTab('chronicle')
+  }
+
+  function handleRemovePrimary() {
+    // Promote first concurrent to primary if available
+    if (concurrentActions.length > 0) {
+      setPrimaryAction(concurrentActions[0])
+      setConcurrentActions(prev => prev.slice(1))
+    } else {
+      setPrimaryAction(null)
+    }
+  }
+
+  function handleRemoveConcurrent(id: string) {
+    setConcurrentActions(prev => prev.filter(a => a.id !== id))
   }
 
   // ─── Map content ────────────────────────────────────────────────────────────
@@ -324,11 +379,11 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
 
   const panelContent = (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-      {/* Global indicators bar + turn phase */}
+      {/* Global indicators bar */}
       <div className="flex items-center gap-4 px-4 py-2 bg-bg-surface-dim border-b border-border-subtle font-mono text-2xs shrink-0">
         <span className="text-text-tertiary">OIL: <span className="text-status-critical">$142/bbl</span></span>
         <span className="text-text-tertiary">
-          TURN: <span className="text-text-secondary">{String(state.turnNumber || 4).padStart(2, '0')} / 12</span>
+          TURN: <span className="text-text-secondary">{String(state.turnNumber || turnNumber).padStart(2, '0')} / 12</span>
         </span>
         <span className="text-text-tertiary">
           PHASE: <TurnPhaseIndicator phase={state.turnPhase || 'planning'} />
@@ -336,61 +391,126 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
         <span className="text-text-tertiary">ESCALATION: <span className="text-status-critical">RUNG 6</span></span>
       </div>
 
-      {/* Tab strip */}
-      <div className="flex border-b border-border-subtle bg-bg-surface-dim shrink-0">
-        {PANEL_TABS.map(({ id, label }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={`font-label text-[10px] font-semibold uppercase tracking-[0.06em] px-3 py-2 -mb-px border-b-2 transition-colors ${
-              activeTab === id
-                ? 'text-gold border-gold'
-                : 'text-text-tertiary border-transparent hover:text-text-secondary'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {/* ── Terminal mode: full panel DispatchTerminal during resolution ── */}
+      {showTerminal ? (
+        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Terminal header */}
+          <div className="shrink-0 px-4 py-2 bg-bg-surface-dim border-b border-border-subtle flex items-center gap-2">
+            <span className="font-mono text-2xs uppercase tracking-[0.12em] text-text-tertiary">
+              {isSubmitting ? 'RESOLUTION IN PROGRESS' : 'RESOLUTION COMPLETE'}
+            </span>
+            {isComplete && !isSubmitting && (
+              <span className="ml-auto font-mono text-[9px] uppercase tracking-[0.08em] text-status-stable">
+                ● TURN {turnNumber} RESOLVED
+              </span>
+            )}
+          </div>
 
-      {/* Tab content */}
-      <div className="flex-1 overflow-y-auto min-h-0">
-        {activeTab === 'actors' && (
-          <ActorsPanel
-            actors={MOCK_ACTORS}
-            selectedActorId={state.selectedActorId}
-            onSelect={(id) => dispatch({ type: 'SELECT_ACTOR', payload: id })}
-          />
-        )}
-        {activeTab === 'decisions' && (
-          <DecisionCatalog
-            decisions={MOCK_DECISIONS}
-            onSelect={handleDecisionSelect}
-          />
-        )}
-        {activeTab === 'events' && (
-          <EventsTab resolution={MOCK_RESOLUTION} />
-        )}
-        {activeTab === 'chronicle' && (
-          <ChronicleTimeline entries={MOCK_CHRONICLE_ENTRIES} />
-        )}
-      </div>
+          {/* Full-height terminal */}
+          <div className="flex-1 overflow-y-auto min-h-0 p-4 bg-bg-surface-dim font-mono">
+            {terminalLines.map((line, i) => {
+              const colorMap: Record<string, string> = {
+                default:   'text-text-secondary',
+                critical:  'text-status-critical',
+                confirmed: 'text-gold',
+                info:      'text-status-info',
+                stable:    'text-status-stable',
+              }
+              return (
+                <div
+                  key={`${line.timestamp}-${i}`}
+                  className={`flex gap-2 text-2xs mb-[2px] ${colorMap[line.type] ?? 'text-text-secondary'}`}
+                >
+                  <span className="text-text-tertiary shrink-0">[{line.timestamp}]</span>
+                  <span>{line.text}</span>
+                </div>
+              )
+            })}
+            {isRunning && (
+              <div className="text-gold text-2xs cursor-blink mt-1">▊</div>
+            )}
+          </div>
 
-      {/* Turn plan builder — fixed at bottom when on decisions tab */}
-      {activeTab === 'decisions' && (
-        <div className="shrink-0">
-          <TurnPlanBuilder
-            primaryAction={primaryAction}
-            concurrentActions={concurrentActions}
-            onSubmit={handleTurnSubmit}
-          />
+          {/* Return to planning button when complete */}
+          {isComplete && !isSubmitting && (
+            <div className="shrink-0 p-4 border-t border-border-subtle bg-bg-surface-dim">
+              {error && (
+                <div className="font-mono text-2xs text-status-critical mb-3">{error}</div>
+              )}
+              <button
+                onClick={handleReturnToPlanning}
+                className="w-full py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.1em] border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors"
+              >
+                RETURN TO PLANNING // TURN {turnNumber + 1} →
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      ) : (
+        /* ── Normal planning mode: tabs + content ── */
+        <>
+          {/* Tab strip */}
+          <div className="flex border-b border-border-subtle bg-bg-surface-dim shrink-0">
+            {PANEL_TABS.map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`font-label text-[10px] font-semibold uppercase tracking-[0.06em] px-3 py-2 -mb-px border-b-2 transition-colors ${
+                  activeTab === id
+                    ? 'text-gold border-gold'
+                    : 'text-text-tertiary border-transparent hover:text-text-secondary'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
-      {/* Dispatch terminal — capped at 140px, overflow-y-auto within wrapper */}
-      <div className="shrink-0 overflow-hidden" style={{ height: '120px' }}>
-        <DispatchTerminal lines={lines} isRunning={isRunning} />
-      </div>
+          {/* Tab content */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            {activeTab === 'actors' && (
+              <ActorsPanel
+                actors={MOCK_ACTORS}
+                selectedActorId={state.selectedActorId}
+                onSelect={(id) => dispatch({ type: 'SELECT_ACTOR', payload: id })}
+              />
+            )}
+            {activeTab === 'decisions' && (
+              <DecisionCatalog
+                decisions={MOCK_DECISIONS}
+                onSelect={handleDecisionSelect}
+                selectedPrimaryId={primaryAction?.id ?? null}
+                selectedConcurrentIds={concurrentActions.map(a => a.id)}
+              />
+            )}
+            {activeTab === 'events' && (
+              <EventsTab resolution={MOCK_RESOLUTION} />
+            )}
+            {activeTab === 'chronicle' && (
+              <ChronicleTimeline entries={chronicleEntries} />
+            )}
+          </div>
+
+          {/* Turn plan builder — fixed at bottom when on decisions tab */}
+          {activeTab === 'decisions' && (
+            <div className="shrink-0">
+              <TurnPlanBuilder
+                primaryAction={primaryAction}
+                concurrentActions={concurrentActions}
+                onSubmit={handleTurnSubmit}
+                onRemovePrimary={handleRemovePrimary}
+                onRemoveConcurrent={handleRemoveConcurrent}
+                isSubmitting={isSubmitting}
+              />
+            </div>
+          )}
+
+          {/* Dispatch terminal footer — initial state lines */}
+          <div className="shrink-0 overflow-hidden" style={{ height: '120px' }}>
+            <DispatchTerminal lines={INITIAL_DISPATCH} isRunning={false} />
+          </div>
+        </>
+      )}
     </div>
   )
 

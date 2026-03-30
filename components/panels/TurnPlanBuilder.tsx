@@ -1,25 +1,24 @@
 'use client'
-import { useState } from 'react'
 import type { ActionSlot } from '@/lib/types/panels'
 
 interface Props {
   primaryAction: ActionSlot | null
   concurrentActions: ActionSlot[]
   onSubmit: () => Promise<void> | void
+  onRemovePrimary?: () => void
+  onRemoveConcurrent?: (id: string) => void
+  isSubmitting?: boolean
 }
 
-export function TurnPlanBuilder({ primaryAction, concurrentActions, onSubmit }: Props) {
-  const [submitting, setSubmitting] = useState(false)
-
-  async function handleSubmit() {
-    if (!primaryAction || submitting) return
-    setSubmitting(true)
-    try {
-      await onSubmit()
-    } finally {
-      setSubmitting(false)
-    }
-  }
+export function TurnPlanBuilder({
+  primaryAction,
+  concurrentActions,
+  onSubmit,
+  onRemovePrimary,
+  onRemoveConcurrent,
+  isSubmitting = false,
+}: Props) {
+  const canSubmit = !!primaryAction && !isSubmitting
 
   // Resource allocation: primary = 60%, each concurrent splits remaining 40%
   const allocation = primaryAction
@@ -35,11 +34,27 @@ export function TurnPlanBuilder({ primaryAction, concurrentActions, onSubmit }: 
         <div className="font-mono text-2xs uppercase tracking-[0.1em] text-text-tertiary mb-1">
           Primary Action
         </div>
-        <div className={`px-3 py-2 border ${primaryAction ? 'border-gold bg-bg-surface' : 'border-border-subtle bg-transparent'}`}>
-          {primaryAction
-            ? <span className="font-sans text-md text-text-primary">{primaryAction.title}</span>
-            : <span className="font-mono text-2xs text-text-tertiary">— empty —</span>
-          }
+        <div
+          className={`flex items-center justify-between px-3 py-2 border ${
+            primaryAction ? 'border-gold bg-bg-surface' : 'border-border-subtle bg-transparent'
+          }`}
+        >
+          {primaryAction ? (
+            <>
+              <span className="font-sans text-sm text-text-primary">{primaryAction.title}</span>
+              {onRemovePrimary && (
+                <button
+                  onClick={onRemovePrimary}
+                  className="ml-2 font-mono text-[10px] text-text-tertiary hover:text-status-critical transition-colors shrink-0"
+                  aria-label="Remove primary action"
+                >
+                  ✕
+                </button>
+              )}
+            </>
+          ) : (
+            <span className="font-mono text-2xs text-text-tertiary">— empty —</span>
+          )}
         </div>
       </div>
 
@@ -49,11 +64,23 @@ export function TurnPlanBuilder({ primaryAction, concurrentActions, onSubmit }: 
           <div className="font-mono text-2xs uppercase tracking-[0.1em] text-text-tertiary mb-1">
             Concurrent {i + 1}
           </div>
-          <div className="px-3 py-2 border border-border-subtle bg-transparent">
-            {concurrentActions[i]
-              ? <span className="font-sans text-md text-text-primary">{concurrentActions[i].title}</span>
-              : <span className="font-mono text-2xs text-text-tertiary">— empty —</span>
-            }
+          <div className="flex items-center justify-between px-3 py-2 border border-border-subtle bg-transparent">
+            {concurrentActions[i] ? (
+              <>
+                <span className="font-sans text-sm text-text-primary">{concurrentActions[i].title}</span>
+                {onRemoveConcurrent && (
+                  <button
+                    onClick={() => onRemoveConcurrent(concurrentActions[i].id)}
+                    className="ml-2 font-mono text-[10px] text-text-tertiary hover:text-status-critical transition-colors shrink-0"
+                    aria-label={`Remove ${concurrentActions[i].title}`}
+                  >
+                    ✕
+                  </button>
+                )}
+              </>
+            ) : (
+              <span className="font-mono text-2xs text-text-tertiary">— empty —</span>
+            )}
           </div>
         </div>
       ))}
@@ -65,13 +92,13 @@ export function TurnPlanBuilder({ primaryAction, concurrentActions, onSubmit }: 
         </div>
       )}
 
-      {/* Submit — idle / loading / disabled states */}
+      {/* Submit */}
       <button
-        onClick={handleSubmit}
-        disabled={!primaryAction || submitting}
-        className="w-full py-2 font-sans text-sm font-semibold uppercase tracking-[0.08em] transition-colors bg-gold text-bg-base disabled:bg-bg-surface-high disabled:text-text-tertiary disabled:cursor-not-allowed"
+        onClick={() => { if (canSubmit) onSubmit() }}
+        disabled={!canSubmit}
+        className="w-full py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors bg-gold text-bg-base disabled:bg-bg-surface-high disabled:text-text-tertiary disabled:cursor-not-allowed"
       >
-        {submitting ? 'Submitting…' : 'Submit Turn'}
+        {isSubmitting ? 'PROCESSING…' : 'SUBMIT TURN PLAN →'}
       </button>
     </div>
   )

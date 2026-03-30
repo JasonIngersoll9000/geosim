@@ -66,42 +66,47 @@ export function MapboxMap({ hormuzClosed }: Props) {
 
   useEffect(() => {
     hormuzRef.current = hormuzClosed
-    if (mapRef.current?.getLayer('hormuz-line')) {
-      mapRef.current.setLayoutProperty(
-        'hormuz-line', 'visibility',
-        hormuzClosed ? 'visible' : 'none',
-      )
-      mapRef.current.setLayoutProperty(
-        'hormuz-label', 'visibility',
-        hormuzClosed ? 'visible' : 'none',
-      )
+    try {
+      if (mapRef.current?.getLayer('hormuz-line')) {
+        mapRef.current.setLayoutProperty(
+          'hormuz-line', 'visibility',
+          hormuzClosed ? 'visible' : 'none',
+        )
+        mapRef.current.setLayoutProperty(
+          'hormuz-label', 'visibility',
+          hormuzClosed ? 'visible' : 'none',
+        )
+      }
+    } catch {
+      // map not fully initialized
     }
   }, [hormuzClosed])
 
   useEffect(() => {
     if (!containerRef.current) return
 
-    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
-
-    try {
-      mapRef.current = new mapboxgl.Map({
-        container: containerRef.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
-        center: [56, 26],
-        zoom: 5,
-        attributionControl: false,
-        logoPosition: 'bottom-right',
-      })
-    } catch {
+    // Fail fast when WebGL is not available (headless / old hardware)
+    if (!mapboxgl.supported()) {
       setWebglFailed(true)
       return
     }
 
-    const map = mapRef.current!
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
+
+    mapRef.current = new mapboxgl.Map({
+      container: containerRef.current,
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: [56, 26],
+      zoom: 5,
+      attributionControl: false,
+      logoPosition: 'bottom-right',
+    })
+
+    const map = mapRef.current
 
     map.on('error', (e) => {
       const msg = (e as any)?.error?.message ?? ''
-      if (msg.includes('Failed to initialize WebGL') || msg.includes('token') || msg.includes('style')) {
+      if (msg.includes('token') || msg.includes('style')) {
         console.error('[GeoSim map]', msg)
       }
       // suppress routine tile/source 404s silently
@@ -339,7 +344,11 @@ export function MapboxMap({ hormuzClosed }: Props) {
       if (animFrameRef.current !== null) {
         cancelAnimationFrame(animFrameRef.current)
       }
-      map.remove()
+      try {
+        map.remove()
+      } catch {
+        // ignore cleanup errors on partially-initialized maps
+      }
     }
   }, [])
 
