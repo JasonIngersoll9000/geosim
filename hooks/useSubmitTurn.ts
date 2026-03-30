@@ -20,9 +20,6 @@ interface UseSubmitTurnResult {
 // ─── Mock streaming lines for fallback ───────────────────────────────────────
 
 function makeMockLines(plan: TurnPlan): Array<{ text: string; type: DispatchLine['type']; delayMs: number }> {
-  const t = (h: number, m: number, s: number) =>
-    `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
-
   return [
     { text: `TURN PLAN RECEIVED — PRIMARY: ${plan.primaryAction.title.toUpperCase()}`,         type: 'confirmed', delayMs: 0   },
     { text: `Concurrent actions queued: ${plan.concurrentActions.length}`,                      type: 'default',   delayMs: 320 },
