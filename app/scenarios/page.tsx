@@ -314,7 +314,9 @@ export default function ScenarioBrowserPage() {
 
       <main className="pt-[66px] bg-bg-base min-h-screen">
         <div className="max-w-5xl mx-auto px-5 py-8">
-          <DocumentIdHeader text="DOC-ID: GS-SCENARIOS-INDEX // CLASSIFICATION: TOP SECRET" />
+          <div className="border-b border-[#1a1a1a] mb-6">
+            <DocumentIdHeader text="DOC-ID: GS-SCENARIOS-INDEX // CLASSIFICATION: TOP SECRET" />
+          </div>
 
           {/* Page heading */}
           <div className="mb-8">

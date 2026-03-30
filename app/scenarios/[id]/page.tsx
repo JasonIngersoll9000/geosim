@@ -310,7 +310,7 @@ function BranchCard({ branch, onResume }: { branch: Branch; onResume: () => void
       </div>
 
       {/* Metadata */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         <span className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em]">
           TURN&nbsp;
           <span className="text-text-secondary font-medium">{String(branch.currentTurn).padStart(2, '0')}</span>
@@ -321,18 +321,21 @@ function BranchCard({ branch, onResume }: { branch: Branch; onResume: () => void
             PLAYING:&nbsp;<span className="text-text-secondary">{branch.controlledActor}</span>
           </span>
         )}
+        <span className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em]">
+          CREATED:&nbsp;<span className="text-text-secondary">{branch.createdAt}</span>
+        </span>
         <span className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em] ml-auto">
           {branch.lastPlayedAt}
         </span>
       </div>
 
-      {/* Resume button */}
+      {/* Resume button — all branches navigate to play view */}
       <Button
         variant={isActive ? 'primary' : 'ghost'}
         className="w-full text-[11px] py-1.5"
         onClick={onResume}
       >
-        {isActive ? 'RESUME →' : 'REVIEW'}
+        RESUME →
       </Button>
     </div>
   )
@@ -389,10 +392,12 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
       <main className="pt-[66px] bg-bg-base min-h-screen">
         <div className="max-w-5xl mx-auto px-5 py-4">
 
-          <DocumentIdHeader
-            scenarioCode={`GEOSIM-${params.id.toUpperCase().slice(0, 12)}`}
-            branchName="SELECT BRANCH"
-          />
+          <div className="border-b border-[#1a1a1a] mb-4">
+            <DocumentIdHeader
+              scenarioCode={`GEOSIM-${params.id.toUpperCase().slice(0, 12)}`}
+              branchName="SELECT BRANCH"
+            />
+          </div>
 
           {/* Scenario overview card */}
           <div

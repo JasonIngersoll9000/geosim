@@ -15,7 +15,7 @@ export function DocumentIdHeader({
 }: DocumentIdHeaderProps) {
   return (
     <div
-      className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em] py-3 border-b border-[#1a1a1a] mb-6"
+      className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em] py-3"
     >
       {text ?? (
         <>
