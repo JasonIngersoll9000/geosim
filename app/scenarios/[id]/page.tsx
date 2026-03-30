@@ -296,7 +296,13 @@ const branchCardVariants: Variants = {
 const tabFadeVariants: Variants = {
   hidden: { opacity: 0, y: 8 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } },
-  exit:   { opacity: 0, y: -4, transition: { duration: 0.3, ease: 'easeOut' } },
+  exit:   { opacity: 0,       transition: { duration: 0.3, ease: 'easeOut' } },
+}
+
+const tabFadeVariantsSkip: Variants = {
+  hidden:  { opacity: 1, y: 0 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0 } },
+  exit:    { opacity: 1,       transition: { duration: 0 } },
 }
 
 // ─── Branch card ─────────────────────────────────────────────────────────────
@@ -550,8 +556,8 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
             {activeTab === 'actors' ? (
               <motion.div
                 key="actors"
-                variants={tabFadeVariants}
-                initial={shouldSkip ? 'visible' : 'hidden'}
+                variants={shouldSkip ? tabFadeVariantsSkip : tabFadeVariants}
+                initial="hidden"
                 animate="visible"
                 exit="exit"
                 className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
@@ -567,8 +573,8 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
             ) : (
               <motion.div
                 key="timeline"
-                variants={tabFadeVariants}
-                initial={shouldSkip ? 'visible' : 'hidden'}
+                variants={shouldSkip ? tabFadeVariantsSkip : tabFadeVariants}
+                initial="hidden"
                 animate="visible"
                 exit="exit"
               >
