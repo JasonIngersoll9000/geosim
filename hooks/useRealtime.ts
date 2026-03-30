@@ -26,7 +26,8 @@ export function useRealtime(branchId: string) {
     let supabase: ReturnType<typeof createClient> | null = null
     try {
       supabase = createClient()
-    } catch {
+    } catch (err) {
+      console.error('[useRealtime] Supabase client init failed — realtime disabled', { branchId, err })
       return
     }
 
@@ -44,7 +45,11 @@ export function useRealtime(branchId: string) {
         dispatch({ type: 'SET_COMMIT', payload: { commitId: payload.commitId, turnNumber: payload.turnNumber, snapshot: payload.snapshot } })
         dispatch({ type: 'SET_TURN_PHASE', payload: 'complete' })
       })
-      .subscribe()
+      .subscribe((status: string, err?: Error) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('[useRealtime] Channel subscription failed', { branchId, status, err })
+        }
+      })
 
     return () => { supabase?.removeChannel(channel) }
   }, [branchId, dispatch])

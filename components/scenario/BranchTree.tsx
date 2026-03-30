@@ -201,7 +201,7 @@ function MetaRow({ label, value, valueColor }: { label: string; value: string; v
   )
 }
 
-function ActorChip({ id, label, selected, onSelect }: { id: string; label: string; selected: boolean; onSelect: () => void }) {
+function ActorChip({ id: _id, label, selected, onSelect }: { id: string; label: string; selected: boolean; onSelect: () => void }) {
   return (
     <button
       onClick={onSelect}
@@ -237,7 +237,7 @@ export function BranchTree({ root, scenarioId, actors }: Props) {
    * Uses clientX/clientY + container bounding rect to stay scroll-aware.
    */
   const handleNodeClick = useCallback(
-    (e: React.MouseEvent, node: BranchNode, row: number) => {
+    (e: React.MouseEvent, node: BranchNode, _row: number) => {
       e.stopPropagation()
       if (panel?.node.id === node.id) { setPanel(null); return }
       const container = containerRef.current

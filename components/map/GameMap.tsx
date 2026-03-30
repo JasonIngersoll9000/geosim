@@ -49,7 +49,7 @@ export function GameMap({ globalState }: Props) {
     ? hormuzAsset.currentStatus.toLowerCase().includes('clos')
     : true
 
-  const hormuzStatus: 'open' | 'contested' | 'blocked' = hormuzClosed ? 'blocked' : 'contested'
+  const _hormuzStatus: 'open' | 'contested' | 'blocked' = hormuzClosed ? 'blocked' : 'contested'
 
   function toggleLayer(key: keyof LayerState) {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }))
