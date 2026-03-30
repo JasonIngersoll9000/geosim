@@ -14,6 +14,7 @@ export default function PlayPage({ params }: Props) {
       <ClassificationBanner classification="TOP SECRET // NOFORN // IRAN-CONFLICT" />
       <TopBar
         scenarioName="US-ISRAEL-IRAN CONFLICT 2025-2026"
+        scenarioHref={`/scenarios/${params.id}`}
         turnNumber={4}
         totalTurns={12}
         phase="Planning"

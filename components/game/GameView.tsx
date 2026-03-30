@@ -273,7 +273,7 @@ function ActorsPanel({
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
+export function GameView({ branchId, scenarioId }: Props) {
   useRealtime(branchId)
   const { state, dispatch } = useGame()
   const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, reset: resetHook } = useSubmitTurn(branchId)
@@ -514,7 +514,11 @@ export function GameView({ branchId, scenarioId: _scenarioId }: Props) {
 
   return (
     <>
-      <GameLayout mapContent={mapContent} panelContent={panelContent} />
+      <GameLayout
+        mapContent={mapContent}
+        panelContent={panelContent}
+        exitHref={`/scenarios/${scenarioId}`}
+      />
 
       {/* Actor dossier slide-over */}
       {selectedActorDetail && (

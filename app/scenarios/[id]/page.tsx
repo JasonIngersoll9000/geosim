@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
@@ -430,9 +431,19 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
             />
           </div>
 
+          {/* Back link */}
+          <div className="mt-4 mb-3">
+            <Link
+              href="/scenarios"
+              className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.08em] hover:text-text-secondary transition-colors"
+            >
+              ← Scenario Library
+            </Link>
+          </div>
+
           {/* Scenario overview card */}
           <div
-            className="mt-4 mb-6 p-5"
+            className="mb-6 p-5"
             style={{
               background: '#0d0d0d',
               border: '1px solid #1a1a1a',

@@ -1,9 +1,11 @@
+import Link from 'next/link'
 import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
 
 type Phase = 'planning' | 'resolution' | 'reaction' | 'judging' | 'complete'
 
 interface TopBarProps {
   scenarioName?: string;
+  scenarioHref?: string;
   turnNumber?: number;
   totalTurns?: number;
   phase?: string;
@@ -18,6 +20,7 @@ function toPhase(raw: string): Phase {
 
 export function TopBar({
   scenarioName = "Iran Conflict Scenario",
+  scenarioHref,
   turnNumber = 4,
   totalTurns = 12,
   phase = "Planning",
@@ -27,18 +30,30 @@ export function TopBar({
     <div
       className="fixed left-0 right-0 top-banner z-40 flex items-center px-4 bg-bg-surface-low border-b border-border-subtle h-topbar"
     >
-      {/* Wordmark */}
-      <span className="font-label font-bold text-gold text-[16px] tracking-[0.04em]">
+      {/* Wordmark — always links home */}
+      <Link
+        href="/"
+        className="font-label font-bold text-gold text-[16px] tracking-[0.04em] hover:opacity-80 transition-opacity"
+      >
         GEOSIM
-      </span>
+      </Link>
 
       {/* Separator */}
       <span className="mx-3 inline-block w-px h-[18px] bg-border-subtle" />
 
-      {/* Scenario name */}
-      <span className="font-mono text-xs text-text-tertiary tracking-[0.02em]">
-        {scenarioName}
-      </span>
+      {/* Scenario name — links to hub when scenarioHref provided */}
+      {scenarioHref ? (
+        <Link
+          href={scenarioHref}
+          className="font-mono text-xs text-text-tertiary tracking-[0.02em] hover:text-text-secondary transition-colors"
+        >
+          {scenarioName}
+        </Link>
+      ) : (
+        <span className="font-mono text-xs text-text-tertiary tracking-[0.02em]">
+          {scenarioName}
+        </span>
+      )}
 
       {/* Game mode badge */}
       <span className="ml-3 px-2 py-0.5 font-mono text-2xs text-text-secondary bg-bg-surface-high border border-border-subtle uppercase tracking-[0.06em]">
