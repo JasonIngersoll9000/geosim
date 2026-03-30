@@ -1,6 +1,7 @@
 'use client'
 import dynamic from 'next/dynamic'
 import { FloatingMetricChip } from './FloatingMetricChip'
+import { ChokepointMarker } from './ChokepointMarker'
 import { MapLegend } from './MapLegend'
 import type { GlobalState } from '@/lib/types/simulation'
 
@@ -27,12 +28,15 @@ interface Props {
 export function GameMap({ globalState }: Props) {
   const oilPrice = globalState?.oilPricePerBarrel ?? 142
   const oilCritical = oilPrice > 120
+
   const hormuzAsset = globalState?.criticalAssets?.find(a =>
     a.name.toLowerCase().includes('hormuz')
   )
   const hormuzClosed = hormuzAsset
     ? hormuzAsset.currentStatus.toLowerCase().includes('clos')
     : true
+
+  const hormuzStatus: 'open' | 'contested' | 'blocked' = hormuzClosed ? 'blocked' : 'contested'
 
   return (
     <div className="relative w-full h-full" style={{ background: '#050A12' }}>
@@ -99,7 +103,7 @@ export function GameMap({ globalState }: Props) {
         <rect width="100%" height="100%" fill="url(#geo-grid-major)" />
       </svg>
 
-      {/* ── Floating metric chips ── */}
+      {/* ── Floating metric chips (top bar) ── */}
       <FloatingMetricChip
         label="OIL"
         value={`$${oilPrice}/bbl`}
@@ -107,16 +111,30 @@ export function GameMap({ globalState }: Props) {
         style={{ top: 10, left: 10 }}
       />
       <FloatingMetricChip
-        label="HORMUZ"
-        value="CLOSED"
-        variant="critical"
-        style={{ top: 10, left: 140 }}
-      />
-      <FloatingMetricChip
         label="ESCALATION"
         value="RUNG 6"
         variant="critical"
         style={{ top: 10, right: 44 }}
+      />
+
+      {/* ── Chokepoint markers: Hormuz & Bab-el-Mandeb ── */}
+      <ChokepointMarker
+        label={`STRAIT OF HORMUZ // ${hormuzClosed ? 'CLOSED' : 'CONTESTED'}`}
+        status={hormuzStatus}
+        style={{ bottom: '34%', right: '20%' }}
+      />
+      <ChokepointMarker
+        label="BAB-EL-MANDEB"
+        status="contested"
+        style={{ bottom: '12%', left: '8%' }}
+      />
+
+      {/* ── USS Nimitz carrier group chip ── */}
+      <FloatingMetricChip
+        label="USS NIMITZ"
+        value="CSG-11"
+        variant="default"
+        style={{ bottom: '30%', right: '16%' }}
       />
 
       {/* ── Map legend ── */}

@@ -122,6 +122,7 @@ export function MapboxMap({ hormuzClosed }: Props) {
       map.addSource('iran', {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [IRAN_POLYGON] },
+        generateId: true,
       })
       map.addLayer({
         id: 'iran-fill',
@@ -143,6 +144,7 @@ export function MapboxMap({ hormuzClosed }: Props) {
       map.addSource('us-navy', {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [US_NAVY_POLYGON] },
+        generateId: true,
       })
       map.addLayer({
         id: 'us-navy-fill',
