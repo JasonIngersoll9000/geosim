@@ -352,6 +352,12 @@ export function MapboxMap({ hormuzClosed, layerState }: Props) {
     for (const id of baseLayers) {
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', ls.militaryBases ? 'visible' : 'none')
     }
+
+    // Toggle Nimitz marker (DOM marker — use display style)
+    if (nimitzMarkerRef.current) {
+      const el = nimitzMarkerRef.current.getElement()
+      el.style.display = ls.militaryAssets ? '' : 'none'
+    }
   }, [])
 
   // ── Initial map setup ────────────────────────────────────────────────────
@@ -412,8 +418,10 @@ export function MapboxMap({ hormuzClosed, layerState }: Props) {
         nimitzMarkerRef.current.remove()
         nimitzMarkerRef.current = null
       }
+      const nimitzEl = buildNimitzElement()
+      nimitzEl.style.display = ls.militaryAssets ? '' : 'none'
       nimitzMarkerRef.current = new mapboxgl.Marker({
-        element: buildNimitzElement(),
+        element: nimitzEl,
         anchor: 'left',
       })
         .setLngLat([56.5, 24.0])
@@ -489,8 +497,10 @@ export function MapboxMap({ hormuzClosed, layerState }: Props) {
           nimitzMarkerRef.current.remove()
           nimitzMarkerRef.current = null
         }
+        const reloadNimitzEl = buildNimitzElement()
+        reloadNimitzEl.style.display = ls.militaryAssets ? '' : 'none'
         nimitzMarkerRef.current = new mapboxgl.Marker({
-          element: buildNimitzElement(),
+          element: reloadNimitzEl,
           anchor: 'left',
         })
           .setLngLat([56.5, 24.0])
