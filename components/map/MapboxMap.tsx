@@ -1,295 +1,200 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import type { LayerState } from './MapLayerControls'
 
-// ─── GeoJSON data ────────────────────────────────────────────────────────────
+// ─── Key cities GeoJSON ───────────────────────────────────────────────────────
 
-const IRAN_POLYGON: GeoJSON.Feature<GeoJSON.Polygon> = {
-  type: 'Feature',
-  properties: { name: 'Iran' },
-  geometry: {
-    type: 'Polygon',
-    coordinates: [[
-      [44.0, 37.5], [46.0, 38.5], [48.5, 39.5], [51.0, 41.0],
-      [53.5, 41.5], [56.0, 41.5], [59.0, 41.0], [62.5, 38.0],
-      [63.5, 37.0], [63.5, 33.5], [60.5, 29.5], [58.0, 25.5],
-      [56.5, 27.0], [54.5, 26.5], [52.5, 29.0], [50.0, 30.0],
-      [48.5, 31.0], [47.5, 30.5], [46.0, 32.5], [44.5, 36.0],
-      [44.0, 37.5],
-    ]],
-  },
+const KEY_CITIES_DATA: GeoJSON.FeatureCollection<GeoJSON.Point> = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', properties: { name: 'TEHRAN',      type: 'capital'  }, geometry: { type: 'Point', coordinates: [51.389, 35.689] } },
+    { type: 'Feature', properties: { name: 'BANDAR ABBAS', type: 'port'    }, geometry: { type: 'Point', coordinates: [56.267, 27.183] } },
+    { type: 'Feature', properties: { name: 'NATANZ',       type: 'nuclear' }, geometry: { type: 'Point', coordinates: [51.727, 33.724] } },
+    { type: 'Feature', properties: { name: 'FORDOW',       type: 'nuclear' }, geometry: { type: 'Point', coordinates: [49.599, 34.885] } },
+    { type: 'Feature', properties: { name: 'BUSHEHR',      type: 'nuclear' }, geometry: { type: 'Point', coordinates: [50.846, 28.968] } },
+    { type: 'Feature', properties: { name: 'BAGHDAD',      type: 'capital' }, geometry: { type: 'Point', coordinates: [44.366, 33.315] } },
+    { type: 'Feature', properties: { name: 'DUBAI',        type: 'city'    }, geometry: { type: 'Point', coordinates: [55.271, 25.205] } },
+    { type: 'Feature', properties: { name: 'MUSCAT',       type: 'city'    }, geometry: { type: 'Point', coordinates: [58.593, 23.588] } },
+    { type: 'Feature', properties: { name: 'DOHA',         type: 'city'    }, geometry: { type: 'Point', coordinates: [51.531, 25.286] } },
+  ],
 }
 
-const US_NAVY_POLYGON: GeoJSON.Feature<GeoJSON.Polygon> = {
-  type: 'Feature',
-  properties: { name: 'US Navy Presence' },
-  geometry: {
-    type: 'Polygon',
-    coordinates: [[
-      [48.0, 23.0], [56.0, 22.5], [59.5, 23.5], [60.5, 24.5],
-      [58.5, 25.5], [56.5, 26.5], [55.5, 26.5], [55.0, 24.5],
-      [53.0, 24.0], [50.0, 24.5], [48.0, 24.0], [48.0, 23.0],
-    ]],
-  },
+// ─── Military bases GeoJSON ───────────────────────────────────────────────────
+
+const MILITARY_BASES_DATA: GeoJSON.FeatureCollection<GeoJSON.Point> = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', properties: { name: 'AL UDEID AB',      nation: 'US',   type: 'airbase' }, geometry: { type: 'Point', coordinates: [51.315, 25.117] } },
+    { type: 'Feature', properties: { name: 'PRINCE SULTAN AB', nation: 'US',   type: 'airbase' }, geometry: { type: 'Point', coordinates: [47.578, 24.063] } },
+    { type: 'Feature', properties: { name: 'ALI AL SALEM AB',  nation: 'US',   type: 'airbase' }, geometry: { type: 'Point', coordinates: [47.668, 29.451] } },
+    { type: 'Feature', properties: { name: 'CAMP LEMONNIER',   nation: 'US',   type: 'base'    }, geometry: { type: 'Point', coordinates: [43.150, 11.547] } },
+    { type: 'Feature', properties: { name: 'OVDA AB',          nation: 'US/IL', type: 'airbase' }, geometry: { type: 'Point', coordinates: [34.938, 29.940] } },
+    { type: 'Feature', properties: { name: 'NEVATIM AB',       nation: 'IL',   type: 'airbase' }, geometry: { type: 'Point', coordinates: [34.822, 31.206] } },
+    { type: 'Feature', properties: { name: 'IRGC BANDAR IMAM', nation: 'IR',   type: 'naval'   }, geometry: { type: 'Point', coordinates: [49.073, 30.437] } },
+  ],
 }
 
-const HORMUZ_LINE: GeoJSON.Feature<GeoJSON.LineString> = {
+// ─── Hormuz label point ───────────────────────────────────────────────────────
+
+const HORMUZ_POINT_DATA = (closed: boolean): GeoJSON.Feature<GeoJSON.Point> => ({
   type: 'Feature',
-  properties: {},
-  geometry: {
-    type: 'LineString',
-    coordinates: [
-      [55.8, 26.7], [56.3, 26.5], [56.7, 26.4], [57.1, 26.3],
-    ],
-  },
+  properties: { label: closed ? 'HORMUZ // CLOSED' : 'HORMUZ // CONTESTED' },
+  geometry: { type: 'Point', coordinates: [56.45, 26.55] },
+})
+
+// ─── Bab-el-Mandeb label point ────────────────────────────────────────────────
+
+const BABELMANDEB_POINT_DATA: GeoJSON.Feature<GeoJSON.Point> = {
+  type: 'Feature',
+  properties: { label: 'BAB-EL-MANDEB' },
+  geometry: { type: 'Point', coordinates: [43.45, 12.6] },
 }
 
-// ─── Dash animation sequences ─────────────────────────────────────────────────
-const DASH_SEQUENCES = [
-  [0, 4, 3], [0.5, 4, 2.5], [1, 4, 2], [1.5, 4, 1.5],
-  [2, 4, 1], [2.5, 4, 0.5], [3, 4, 0], [0, 3, 3],
+// ─── Layer IDs managed by this component ────────────────────────────────────
+
+const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11'
+const TERRAIN_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12'
+
+const BORDER_LAYERS = ['admin-0-boundary', 'admin-0-boundary-bg', 'admin-0-boundary-disputed']
+const NAME_LAYERS = ['country-label']
+
+const CUSTOM_LAYER_IDS = [
+  'iran-border',
+  'hormuz-point',
+  'hormuz-label',
+  'babelmandeb-label',
+  'cities-dot',
+  'cities-label',
+  'bases-dot',
+  'bases-label',
 ]
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface Props {
   hormuzClosed: boolean
+  layerState: LayerState
 }
 
-export function MapboxMap({ hormuzClosed }: Props) {
+export function MapboxMap({ hormuzClosed, layerState }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
-  const animFrameRef = useRef<number | null>(null)
-  const hormuzRef = useRef(hormuzClosed)
+  const nimitzMarkerRef = useRef<mapboxgl.Marker | null>(null)
+  const hormuzClosedRef = useRef(hormuzClosed)
+  const layerStateRef = useRef(layerState)
   const [webglFailed, setWebglFailed] = useState(false)
+  const isTerrainRef = useRef(false)
 
-  useEffect(() => {
-    hormuzRef.current = hormuzClosed
-    try {
-      if (mapRef.current?.getLayer('hormuz-line')) {
-        mapRef.current.setLayoutProperty(
-          'hormuz-line', 'visibility',
-          hormuzClosed ? 'visible' : 'none',
-        )
-        mapRef.current.setLayoutProperty(
-          'hormuz-label', 'visibility',
-          hormuzClosed ? 'visible' : 'none',
-        )
-      }
-    } catch (e) {
-      console.warn('[MapboxMap] hormuzClosed layer toggle failed:', e)
-    }
-  }, [hormuzClosed])
+  // ── Helper: build the Nimitz DOM marker element ──────────────────────────
+  const buildNimitzElement = useCallback(() => {
+    const el = document.createElement('div')
+    el.style.cssText = 'display:flex;align-items:center;gap:5px;cursor:pointer;pointer-events:auto;'
+    const dot = document.createElement('div')
+    dot.style.cssText = [
+      'width:8px;height:8px;flex-shrink:0;',
+      'background:rgba(74,144,217,0.9);',
+      'border:1.5px solid rgba(74,144,217,1);',
+      'border-radius:50%;',
+      'box-shadow:0 0 0 3px rgba(74,144,217,0.15);',
+    ].join('')
+    const label = document.createElement('div')
+    label.style.cssText = [
+      "font-family:'IBM Plex Mono',monospace;",
+      'font-size:8px;letter-spacing:0.08em;text-transform:uppercase;',
+      'color:rgba(74,144,217,0.9);',
+      'background:rgba(5,10,18,0.85);',
+      'border:1px solid rgba(74,144,217,0.35);',
+      'padding:1px 5px;white-space:nowrap;',
+    ].join('')
+    label.textContent = 'USS NIMITZ // CSG-11'
+    el.appendChild(dot)
+    el.appendChild(label)
+    return el
+  }, [])
 
-  useEffect(() => {
-    if (!containerRef.current) return
-
-    // Fail fast when WebGL is not available (headless / old hardware)
-    if (!mapboxgl.supported()) {
-      setWebglFailed(true)
-      return
-    }
-
-    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
-
-    let map: mapboxgl.Map
-    try {
-      mapRef.current = new mapboxgl.Map({
-        container: containerRef.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
-        center: [56, 26],
-        zoom: 5,
-        attributionControl: false,
-        logoPosition: 'bottom-right',
+  // ── Helper: add all custom sources + layers to the current map ───────────
+  const setupCustomLayers = useCallback((map: mapboxgl.Map, closed: boolean, ls: LayerState) => {
+    // ── Iran border highlight ──
+    if (!map.getSource('iran-boundaries')) {
+      map.addSource('iran-boundaries', {
+        type: 'vector',
+        url: 'mapbox://mapbox.country-boundaries-v1',
       })
-      map = mapRef.current
-    } catch (e) {
-      console.error('[GeoSim map] Map constructor failed:', e)
-      setWebglFailed(true)
-      return
     }
-
-    map.on('error', (e) => {
-      const msg = (e as any)?.error?.message ?? ''
-      if (msg.includes('token') || msg.includes('style')) {
-        console.error('[GeoSim map]', msg)
-      }
-      // suppress routine tile/source 404s silently
-    })
-
-    // Small dark navigation control
-    map.addControl(
-      new mapboxgl.NavigationControl({ showCompass: false }),
-      'top-right',
-    )
-
-    map.on('load', () => {
-      // ── Remove all text/symbol labels for classified look ──
-      const style = map.getStyle()
-      if (style?.layers) {
-        for (const layer of style.layers) {
-          if (layer.type === 'symbol') {
-            map.setLayoutProperty(layer.id, 'visibility', 'none')
-          }
-        }
-      }
-
-      // ── Iran fill ──
-      map.addSource('iran', {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [IRAN_POLYGON] },
-        generateId: true,
-      })
+    if (!map.getLayer('iran-border')) {
       map.addLayer({
-        id: 'iran-fill',
-        type: 'fill',
-        source: 'iran',
+        id: 'iran-border',
+        type: 'line',
+        source: 'iran-boundaries',
+        'source-layer': 'country_boundaries',
+        filter: ['==', ['get', 'iso_3166_1'], 'IRN'],
         paint: {
-          'fill-color': 'rgba(192,57,43,0.1)',
-          'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.22, 0.1],
+          'line-color': 'rgba(192,57,43,0.65)',
+          'line-width': 1.5,
+          'line-opacity': 0.85,
         },
-      })
-      map.addLayer({
-        id: 'iran-outline',
-        type: 'line',
-        source: 'iran',
-        paint: { 'line-color': 'rgba(192,57,43,0.35)', 'line-width': 0.75 },
-      })
-
-      // ── US Navy presence fill ──
-      map.addSource('us-navy', {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [US_NAVY_POLYGON] },
-        generateId: true,
-      })
-      map.addLayer({
-        id: 'us-navy-fill',
-        type: 'fill',
-        source: 'us-navy',
-        paint: {
-          'fill-color': 'rgba(74,144,217,0.08)',
-          'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.18, 0.08],
-        },
-      })
-      map.addLayer({
-        id: 'us-navy-outline',
-        type: 'line',
-        source: 'us-navy',
-        paint: { 'line-color': 'rgba(74,144,217,0.25)', 'line-width': 0.75 },
-      })
-
-      // ── Hover interactivity ──
-      let hoveredIranId: string | number | null = null
-      map.on('mousemove', 'iran-fill', (e) => {
-        if (e.features?.[0]) {
-          if (hoveredIranId !== null) {
-            map.setFeatureState({ source: 'iran', id: hoveredIranId }, { hover: false })
-          }
-          hoveredIranId = e.features[0].id ?? null
-          if (hoveredIranId !== null) {
-            map.setFeatureState({ source: 'iran', id: hoveredIranId }, { hover: true })
-          }
-          map.getCanvas().style.cursor = 'crosshair'
-        }
-      })
-      map.on('mouseleave', 'iran-fill', () => {
-        if (hoveredIranId !== null) {
-          map.setFeatureState({ source: 'iran', id: hoveredIranId }, { hover: false })
-        }
-        hoveredIranId = null
-        map.getCanvas().style.cursor = ''
-      })
-
-      let hoveredNavyId: string | number | null = null
-      map.on('mousemove', 'us-navy-fill', (e) => {
-        if (e.features?.[0]) {
-          if (hoveredNavyId !== null) {
-            map.setFeatureState({ source: 'us-navy', id: hoveredNavyId }, { hover: false })
-          }
-          hoveredNavyId = e.features[0].id ?? null
-          if (hoveredNavyId !== null) {
-            map.setFeatureState({ source: 'us-navy', id: hoveredNavyId }, { hover: true })
-          }
-        }
-      })
-      map.on('mouseleave', 'us-navy-fill', () => {
-        if (hoveredNavyId !== null) {
-          map.setFeatureState({ source: 'us-navy', id: hoveredNavyId }, { hover: false })
-        }
-        hoveredNavyId = null
-      })
-
-      // ── Hormuz chokepoint dashed line ──
-      map.addSource('hormuz-line', {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [HORMUZ_LINE] },
-      })
-      map.addLayer({
-        id: 'hormuz-line',
-        type: 'line',
-        source: 'hormuz-line',
         layout: {
-          'line-cap': 'round',
-          'line-join': 'round',
-          visibility: hormuzRef.current ? 'visible' : 'none',
-        },
-        paint: {
-          'line-color': 'rgba(192,57,43,0.9)',
-          'line-width': 2.5,
-          'line-dasharray': [2, 4],
+          visibility: ls.countryBorders ? 'visible' : 'none',
         },
       })
+    }
 
-      // Animate the dash offset
-      let step = 0
-      function animateDash() {
-        step = (step + 1) % DASH_SEQUENCES.length
-        if (map.getLayer('hormuz-line') && hormuzRef.current) {
-          map.setPaintProperty('hormuz-line', 'line-dasharray', DASH_SEQUENCES[step])
-        }
-        animFrameRef.current = requestAnimationFrame(animateDash)
-      }
-      animFrameRef.current = requestAnimationFrame(animateDash)
-
-      // ── Hormuz text label (symbol layer via GeoJSON point) ──
-      map.addSource('hormuz-label-src', {
+    // ── Hormuz point label ──
+    if (!map.getSource('hormuz-point-src')) {
+      map.addSource('hormuz-point-src', {
         type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: { label: 'HORMUZ // CLOSED' },
-          geometry: { type: 'Point', coordinates: [56.45, 26.55] },
-        },
+        data: HORMUZ_POINT_DATA(closed),
       })
+    } else {
+      (map.getSource('hormuz-point-src') as mapboxgl.GeoJSONSource)
+        .setData(HORMUZ_POINT_DATA(closed))
+    }
+    if (!map.getLayer('hormuz-point')) {
+      map.addLayer({
+        id: 'hormuz-point',
+        type: 'circle',
+        source: 'hormuz-point-src',
+        paint: {
+          'circle-radius': 4,
+          'circle-color': closed ? 'rgba(192,57,43,0.85)' : 'rgba(255,186,32,0.8)',
+          'circle-stroke-width': 1,
+          'circle-stroke-color': closed ? 'rgba(192,57,43,0.5)' : 'rgba(255,186,32,0.4)',
+        },
+        layout: { visibility: ls.militaryAssets ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('hormuz-label')) {
       map.addLayer({
         id: 'hormuz-label',
         type: 'symbol',
-        source: 'hormuz-label-src',
+        source: 'hormuz-point-src',
         layout: {
           'text-field': ['get', 'label'],
           'text-font': ['DIN Pro Mono Medium', 'Arial Unicode MS Regular'],
           'text-size': 9,
           'text-letter-spacing': 0.08,
           'text-anchor': 'bottom',
-          'text-offset': [0, -0.5],
-          visibility: hormuzRef.current ? 'visible' : 'none',
+          'text-offset': [0, -0.7],
+          visibility: ls.militaryAssets ? 'visible' : 'none',
         },
         paint: {
-          'text-color': 'rgba(192,57,43,0.95)',
-          'text-halo-color': 'rgba(5,10,18,0.8)',
+          'text-color': closed ? 'rgba(192,57,43,0.95)' : 'rgba(255,186,32,0.9)',
+          'text-halo-color': 'rgba(5,10,18,0.85)',
           'text-halo-width': 1.5,
         },
       })
+    }
 
-      // ── Bab-el-Mandeb chokepoint label ──
+    // ── Bab-el-Mandeb point ──
+    if (!map.getSource('babelmandeb-src')) {
       map.addSource('babelmandeb-src', {
         type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: { label: 'BAB-EL-MANDEB' },
-          geometry: { type: 'Point', coordinates: [43.45, 12.6] },
-        },
+        data: BABELMANDEB_POINT_DATA,
       })
+    }
+    if (!map.getLayer('babelmandeb-label')) {
       map.addLayer({
         id: 'babelmandeb-label',
         type: 'symbol',
@@ -300,63 +205,306 @@ export function MapboxMap({ hormuzClosed }: Props) {
           'text-size': 9,
           'text-letter-spacing': 0.08,
           'text-anchor': 'bottom',
+          visibility: ls.militaryAssets ? 'visible' : 'none',
         },
         paint: {
-          'text-color': 'rgba(255,186,32,0.8)',
-          'text-halo-color': 'rgba(5,10,18,0.8)',
+          'text-color': 'rgba(255,186,32,0.75)',
+          'text-halo-color': 'rgba(5,10,18,0.85)',
           'text-halo-width': 1.5,
         },
       })
+    }
 
-      // ── USS Nimitz carrier group marker (labeled, coordinate-anchored) ──
-      const nimitzEl = document.createElement('div')
-      nimitzEl.style.cssText = `
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        cursor: pointer;
-        pointer-events: auto;
-      `
-      const nimitzDot = document.createElement('div')
-      nimitzDot.style.cssText = `
-        width: 8px; height: 8px; flex-shrink: 0;
-        background: rgba(74,144,217,0.9);
-        border: 1.5px solid rgba(74,144,217,1);
-        border-radius: 50%;
-        box-shadow: 0 0 0 3px rgba(74,144,217,0.15);
-      `
-      const nimitzLabel = document.createElement('div')
-      nimitzLabel.style.cssText = `
-        font-family: 'IBM Plex Mono', monospace;
-        font-size: 8px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: rgba(74,144,217,0.9);
-        background: rgba(5,10,18,0.82);
-        border: 1px solid rgba(74,144,217,0.35);
-        padding: 1px 5px;
-        white-space: nowrap;
-      `
-      nimitzLabel.textContent = 'USS NIMITZ // CSG-11'
-      nimitzEl.appendChild(nimitzDot)
-      nimitzEl.appendChild(nimitzLabel)
+    // ── Key cities ──
+    if (!map.getSource('key-cities-src')) {
+      map.addSource('key-cities-src', {
+        type: 'geojson',
+        data: KEY_CITIES_DATA,
+      })
+    }
+    if (!map.getLayer('cities-dot')) {
+      map.addLayer({
+        id: 'cities-dot',
+        type: 'circle',
+        source: 'key-cities-src',
+        paint: {
+          'circle-radius': ['case', ['==', ['get', 'type'], 'nuclear'], 3.5, 2.5],
+          'circle-color': [
+            'match', ['get', 'type'],
+            'nuclear', 'rgba(255,186,32,0.8)',
+            'capital', 'rgba(229,226,225,0.55)',
+            'port',    'rgba(74,144,217,0.7)',
+            'rgba(229,226,225,0.4)',
+          ],
+          'circle-stroke-width': ['case', ['==', ['get', 'type'], 'nuclear'], 1, 0],
+          'circle-stroke-color': 'rgba(255,186,32,0.5)',
+        },
+        layout: { visibility: ls.keyCities ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('cities-label')) {
+      map.addLayer({
+        id: 'cities-label',
+        type: 'symbol',
+        source: 'key-cities-src',
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['DIN Pro Mono Medium', 'Arial Unicode MS Regular'],
+          'text-size': 8,
+          'text-letter-spacing': 0.08,
+          'text-anchor': 'bottom',
+          'text-offset': [0, -0.6],
+          visibility: ls.keyCities ? 'visible' : 'none',
+        },
+        paint: {
+          'text-color': [
+            'match', ['get', 'type'],
+            'nuclear', 'rgba(255,186,32,0.9)',
+            'capital', 'rgba(229,226,225,0.7)',
+            'rgba(229,226,225,0.5)',
+          ],
+          'text-halo-color': 'rgba(5,10,18,0.9)',
+          'text-halo-width': 1.5,
+        },
+      })
+    }
 
-      new mapboxgl.Marker({ element: nimitzEl, anchor: 'left' })
-        .setLngLat([57.5, 24.5])
-        .addTo(map)
-    })
-
-    return () => {
-      if (animFrameRef.current !== null) {
-        cancelAnimationFrame(animFrameRef.current)
-      }
-      try {
-        map.remove()
-      } catch (e) {
-        console.warn('[MapboxMap] cleanup remove() failed:', e)
-      }
+    // ── Military bases ──
+    if (!map.getSource('mil-bases-src')) {
+      map.addSource('mil-bases-src', {
+        type: 'geojson',
+        data: MILITARY_BASES_DATA,
+      })
+    }
+    if (!map.getLayer('bases-dot')) {
+      map.addLayer({
+        id: 'bases-dot',
+        type: 'circle',
+        source: 'mil-bases-src',
+        paint: {
+          'circle-radius': 3,
+          'circle-color': [
+            'match', ['get', 'nation'],
+            'US',   'rgba(74,144,217,0.75)',
+            'IL',   'rgba(255,186,32,0.75)',
+            'US/IL','rgba(74,184,217,0.75)',
+            'IR',   'rgba(192,57,43,0.75)',
+            'rgba(229,226,225,0.4)',
+          ],
+          'circle-stroke-width': 1,
+          'circle-stroke-color': 'rgba(255,255,255,0.2)',
+        },
+        layout: { visibility: ls.militaryBases ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('bases-label')) {
+      map.addLayer({
+        id: 'bases-label',
+        type: 'symbol',
+        source: 'mil-bases-src',
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['DIN Pro Mono Medium', 'Arial Unicode MS Regular'],
+          'text-size': 7.5,
+          'text-letter-spacing': 0.06,
+          'text-anchor': 'top',
+          'text-offset': [0, 0.5],
+          visibility: ls.militaryBases ? 'visible' : 'none',
+        },
+        paint: {
+          'text-color': 'rgba(229,226,225,0.55)',
+          'text-halo-color': 'rgba(5,10,18,0.9)',
+          'text-halo-width': 1.5,
+        },
+      })
     }
   }, [])
+
+  // ── Helper: apply built-in layer visibility toggles ──────────────────────
+  const applyBuiltinLayerVisibility = useCallback((map: mapboxgl.Map, ls: LayerState) => {
+    for (const id of BORDER_LAYERS) {
+      if (map.getLayer(id)) {
+        map.setLayoutProperty(id, 'visibility', ls.countryBorders ? 'visible' : 'none')
+      }
+    }
+    for (const id of NAME_LAYERS) {
+      if (map.getLayer(id)) {
+        map.setLayoutProperty(id, 'visibility', ls.countryNames ? 'visible' : 'none')
+      }
+    }
+    if (map.getLayer('iran-border')) {
+      map.setLayoutProperty('iran-border', 'visibility', ls.countryBorders ? 'visible' : 'none')
+    }
+  }, [])
+
+  // ── Helper: apply custom layer visibility toggles ─────────────────────────
+  const applyCustomLayerVisibility = useCallback((map: mapboxgl.Map, ls: LayerState) => {
+    const militaryLayers  = ['hormuz-point', 'hormuz-label', 'babelmandeb-label']
+    const cityLayers      = ['cities-dot', 'cities-label']
+    const baseLayers      = ['bases-dot', 'bases-label']
+
+    for (const id of militaryLayers) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', ls.militaryAssets ? 'visible' : 'none')
+    }
+    for (const id of cityLayers) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', ls.keyCities ? 'visible' : 'none')
+    }
+    for (const id of baseLayers) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', ls.militaryBases ? 'visible' : 'none')
+    }
+  }, [])
+
+  // ── Initial map setup ────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!containerRef.current) return
+    if (!mapboxgl.supported()) { setWebglFailed(true); return }
+
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
+
+    let map: mapboxgl.Map
+    try {
+      mapRef.current = new mapboxgl.Map({
+        container: containerRef.current,
+        style: DARK_STYLE,
+        center: [56, 28],
+        zoom: 4.8,
+        attributionControl: false,
+        logoPosition: 'bottom-right',
+      })
+      map = mapRef.current
+    } catch (e) {
+      console.error('[GeoSim map] constructor failed:', e)
+      setWebglFailed(true)
+      return
+    }
+
+    map.on('error', (e) => {
+      const msg = (e as any)?.error?.message ?? ''
+      if (msg.includes('token') || msg.includes('style')) {
+        console.error('[GeoSim map]', msg)
+      }
+    })
+
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+
+    function onStyleLoad() {
+      const ls   = layerStateRef.current
+      const closed = hormuzClosedRef.current
+
+      // Hide all symbol layers by default (classified aesthetic)
+      const style = map.getStyle()
+      if (style?.layers) {
+        for (const layer of style.layers) {
+          if (layer.type === 'symbol') {
+            try { map.setLayoutProperty(layer.id, 'visibility', 'none') } catch (_) { /* ignore */ }
+          }
+        }
+      }
+
+      // Re-apply built-in border/name visibility per current toggle state
+      applyBuiltinLayerVisibility(map, ls)
+
+      // Add all custom layers
+      setupCustomLayers(map, closed, ls)
+
+      // USS Nimitz marker at Strait of Hormuz approach lane (open water)
+      if (nimitzMarkerRef.current) {
+        nimitzMarkerRef.current.remove()
+        nimitzMarkerRef.current = null
+      }
+      nimitzMarkerRef.current = new mapboxgl.Marker({
+        element: buildNimitzElement(),
+        anchor: 'left',
+      })
+        .setLngLat([56.5, 24.0])
+        .addTo(map)
+    }
+
+    map.on('load', onStyleLoad)
+
+    return () => {
+      if (nimitzMarkerRef.current) {
+        nimitzMarkerRef.current.remove()
+        nimitzMarkerRef.current = null
+      }
+      try { map.remove() } catch (e) { console.warn('[MapboxMap] cleanup failed:', e) }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ── Sync hormuzClosed prop ────────────────────────────────────────────────
+  useEffect(() => {
+    hormuzClosedRef.current = hormuzClosed
+    const map = mapRef.current
+    if (!map?.isStyleLoaded()) return
+    try {
+      // Update Hormuz point source data
+      if (map.getSource('hormuz-point-src')) {
+        (map.getSource('hormuz-point-src') as mapboxgl.GeoJSONSource)
+          .setData(HORMUZ_POINT_DATA(hormuzClosed))
+      }
+      // Update circle and label colours
+      if (map.getLayer('hormuz-point')) {
+        map.setPaintProperty('hormuz-point', 'circle-color',
+          hormuzClosed ? 'rgba(192,57,43,0.85)' : 'rgba(255,186,32,0.8)')
+      }
+      if (map.getLayer('hormuz-label')) {
+        map.setPaintProperty('hormuz-label', 'text-color',
+          hormuzClosed ? 'rgba(192,57,43,0.95)' : 'rgba(255,186,32,0.9)')
+      }
+    } catch (e) {
+      console.warn('[MapboxMap] hormuzClosed update failed:', e)
+    }
+  }, [hormuzClosed])
+
+  // ── Sync layerState prop ──────────────────────────────────────────────────
+  useEffect(() => {
+    layerStateRef.current = layerState
+    const map = mapRef.current
+    if (!map?.isStyleLoaded()) return
+
+    // Terrain style switch
+    const newTerrain = layerState.terrain
+    if (newTerrain !== isTerrainRef.current) {
+      isTerrainRef.current = newTerrain
+      const nextStyle = newTerrain ? TERRAIN_STYLE : DARK_STYLE
+      map.setStyle(nextStyle)
+      map.once('style.load', () => {
+        const ls     = layerStateRef.current
+        const closed = hormuzClosedRef.current
+        // After style load: hide all default symbol layers
+        const style = map.getStyle()
+        if (style?.layers) {
+          for (const layer of style.layers) {
+            if (layer.type === 'symbol') {
+              try { map.setLayoutProperty(layer.id, 'visibility', 'none') } catch (_) { /* ignore */ }
+            }
+          }
+        }
+        applyBuiltinLayerVisibility(map, ls)
+        setupCustomLayers(map, closed, ls)
+
+        // Re-add Nimitz marker after style reset
+        if (nimitzMarkerRef.current) {
+          nimitzMarkerRef.current.remove()
+          nimitzMarkerRef.current = null
+        }
+        nimitzMarkerRef.current = new mapboxgl.Marker({
+          element: buildNimitzElement(),
+          anchor: 'left',
+        })
+          .setLngLat([56.5, 24.0])
+          .addTo(map)
+      })
+      return
+    }
+
+    // Non-terrain toggles
+    applyBuiltinLayerVisibility(map, layerState)
+    applyCustomLayerVisibility(map, layerState)
+  }, [layerState, applyBuiltinLayerVisibility, applyCustomLayerVisibility, setupCustomLayers, buildNimitzElement])
+
+  // ─── Render ──────────────────────────────────────────────────────────────
 
   if (webglFailed) {
     return (
@@ -378,10 +526,6 @@ export function MapboxMap({ hormuzClosed }: Props) {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full h-full"
-      style={{ background: '#0A0F18' }}
-    />
+    <div ref={containerRef} className="w-full h-full" style={{ background: '#0A0F18' }} />
   )
 }

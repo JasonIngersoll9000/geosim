@@ -1,8 +1,10 @@
 'use client'
+import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { FloatingMetricChip } from './FloatingMetricChip'
-import { ChokepointMarker } from './ChokepointMarker'
 import { MapLegend } from './MapLegend'
+import { MapLayerControls } from './MapLayerControls'
+import type { LayerState } from './MapLayerControls'
 import type { GlobalState } from '@/lib/types/simulation'
 
 const MapboxMap = dynamic(
@@ -21,12 +23,23 @@ const MapboxMap = dynamic(
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
+const DEFAULT_LAYERS: LayerState = {
+  countryNames:   false,
+  countryBorders: true,
+  terrain:        false,
+  militaryAssets: true,
+  militaryBases:  false,
+  keyCities:      false,
+}
+
 interface Props {
   globalState?: GlobalState
 }
 
 export function GameMap({ globalState }: Props) {
-  const oilPrice = globalState?.oilPricePerBarrel ?? 142
+  const [layers, setLayers] = useState<LayerState>(DEFAULT_LAYERS)
+
+  const oilPrice   = globalState?.oilPricePerBarrel ?? 142
   const oilCritical = oilPrice > 120
 
   const hormuzAsset = globalState?.criticalAssets?.find(a =>
@@ -38,16 +51,17 @@ export function GameMap({ globalState }: Props) {
 
   const hormuzStatus: 'open' | 'contested' | 'blocked' = hormuzClosed ? 'blocked' : 'contested'
 
+  function toggleLayer(key: keyof LayerState) {
+    setLayers(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
   return (
     <div className="relative w-full h-full" style={{ background: '#050A12' }}>
 
       {/* ── Map layer ── */}
       {TOKEN ? (
-        /* Real Mapbox map — geospatial markers (Hormuz label, Nimitz chip)
-           are coordinate-anchored inside MapboxMap itself */
-        <MapboxMap hormuzClosed={hormuzClosed} />
+        <MapboxMap hormuzClosed={hormuzClosed} layerState={layers} />
       ) : (
-        /* Placeholder when token not configured */
         <>
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none"
@@ -84,17 +98,29 @@ export function GameMap({ globalState }: Props) {
               </div>
             </div>
           </div>
-          {/* Placeholder chokepoint overlays (not coordinate-anchored — approximate positions only) */}
-          <ChokepointMarker
-            label={`STRAIT OF HORMUZ // ${hormuzClosed ? 'CLOSED' : 'CONTESTED'}`}
-            status={hormuzStatus}
-            style={{ bottom: '34%', right: '20%' }}
-          />
-          <ChokepointMarker
-            label="BAB-EL-MANDEB"
-            status="contested"
-            style={{ bottom: '12%', left: '8%' }}
-          />
+          {/* Placeholder chokepoint overlays */}
+          <div
+            className="absolute font-mono text-[9px] px-2 py-[2px] border"
+            style={{
+              bottom: '34%', right: '20%',
+              color: hormuzClosed ? 'var(--status-critical)' : 'var(--status-warning)',
+              borderColor: hormuzClosed ? 'var(--status-critical)' : 'var(--status-warning)',
+              background: 'var(--bg-surface)',
+            }}
+          >
+            STRAIT OF HORMUZ // {hormuzClosed ? 'CLOSED' : 'CONTESTED'}
+          </div>
+          <div
+            className="absolute font-mono text-[9px] px-2 py-[2px] border"
+            style={{
+              bottom: '12%', left: '8%',
+              color: 'var(--status-warning)',
+              borderColor: 'var(--status-warning)',
+              background: 'var(--bg-surface)',
+            }}
+          >
+            BAB-EL-MANDEB
+          </div>
           <FloatingMetricChip
             label="USS NIMITZ"
             value="CSG-11"
@@ -104,7 +130,7 @@ export function GameMap({ globalState }: Props) {
         </>
       )}
 
-      {/* ── CSS coordinate grid overlay on top of map ── */}
+      {/* ── CSS coordinate grid overlay ── */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none"
         style={{ opacity: 0.35 }}
@@ -122,7 +148,7 @@ export function GameMap({ globalState }: Props) {
         <rect width="100%" height="100%" fill="url(#geo-grid-major)" />
       </svg>
 
-      {/* ── Floating metric chips (always visible, non-geospatial) ── */}
+      {/* ── Floating metric chips ── */}
       <FloatingMetricChip
         label="OIL"
         value={`$${oilPrice}/bbl`}
@@ -135,6 +161,11 @@ export function GameMap({ globalState }: Props) {
         variant="critical"
         style={{ top: 10, right: 44 }}
       />
+
+      {/* ── Map layer controls ── */}
+      {TOKEN && (
+        <MapLayerControls layers={layers} onToggle={toggleLayer} />
+      )}
 
       {/* ── Map legend ── */}
       <MapLegend />
