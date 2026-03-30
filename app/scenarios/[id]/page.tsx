@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/Button'
 import { ActorCard } from '@/components/game/ActorCard'
 import { ChronicleTimeline } from '@/components/chronicle/ChronicleTimeline'
 import { ActorDetailPanel } from '@/components/panels/ActorDetailPanel'
+import { BranchTree } from '@/components/scenario/BranchTree'
+import type { BranchNode, ActorOption } from '@/components/scenario/BranchTree'
 import type { ActorDetail } from '@/lib/types/panels'
 
 // ─── Actor mock data ──────────────────────────────────────────────────────────
@@ -232,50 +234,78 @@ const TIMELINE_ENTRIES = [
   },
 ]
 
-// ─── Branch mock data ─────────────────────────────────────────────────────────
+// ─── Branch tree mock data ────────────────────────────────────────────────────
 
-interface Branch {
-  id: string
-  name: string
-  status: 'active' | 'archived'
-  currentTurn: number
-  totalTurns: number
-  createdAt: string
-  lastPlayedAt: string
-  controlledActor: string | null
+const BRANCH_TREE_ROOT: BranchNode = {
+  id: 'trunk',
+  name: 'TRUNK // GROUND TRUTH',
+  isTrunk: true,
+  status: 'active',
+  forkTurn: 0,
+  headTurn: 4,
+  totalTurns: 12,
+  lastPlayedAt: '22 MAR 2026',
+  controlledActor: null,
+  children: [
+    {
+      id: 'branch-01',
+      name: 'BR-01 // PLAY AS USA',
+      isTrunk: false,
+      status: 'active',
+      forkTurn: 2,
+      headTurn: 3,
+      totalTurns: 12,
+      lastPlayedAt: '18 MAR 2026',
+      controlledActor: 'United States',
+      children: [
+        {
+          id: 'branch-03',
+          name: 'BR-03 // IRAN PLAYS BACK',
+          isTrunk: false,
+          status: 'active',
+          forkTurn: 3,
+          headTurn: 4,
+          totalTurns: 12,
+          lastPlayedAt: '20 MAR 2026',
+          controlledActor: 'Iran',
+          children: [],
+        },
+      ],
+    },
+    {
+      id: 'branch-02',
+      name: 'BR-02 // PLAY AS IRAN',
+      isTrunk: false,
+      status: 'archived',
+      forkTurn: 2,
+      headTurn: 2,
+      totalTurns: 12,
+      lastPlayedAt: '12 MAR 2026',
+      controlledActor: 'Iran',
+      children: [],
+    },
+    {
+      id: 'branch-04',
+      name: 'BR-04 // NEGOTIATE CEASEFIRE',
+      isTrunk: false,
+      status: 'active',
+      forkTurn: 3,
+      headTurn: 3,
+      totalTurns: 12,
+      lastPlayedAt: '24 MAR 2026',
+      controlledActor: null,
+      children: [],
+    },
+  ],
 }
 
-const MOCK_BRANCHES: Branch[] = [
-  {
-    id: 'trunk',
-    name: 'TRUNK — AI Observer Mode',
-    status: 'active',
-    currentTurn: 4,
-    totalTurns: 12,
-    createdAt: '04 MAR 2026',
-    lastPlayedAt: '22 MAR 2026',
-    controlledActor: null,
-  },
-  {
-    id: 'branch-usa-play',
-    name: 'BRANCH-01 — Play as USA',
-    status: 'active',
-    currentTurn: 3,
-    totalTurns: 12,
-    createdAt: '09 MAR 2026',
-    lastPlayedAt: '18 MAR 2026',
-    controlledActor: 'United States',
-  },
-  {
-    id: 'branch-iran-play',
-    name: 'BRANCH-02 — Play as Iran',
-    status: 'archived',
-    currentTurn: 2,
-    totalTurns: 12,
-    createdAt: '11 MAR 2026',
-    lastPlayedAt: '12 MAR 2026',
-    controlledActor: 'Iran',
-  },
+const ACTOR_OPTIONS: ActorOption[] = [
+  { id: 'united_states', name: 'United States', flag: 'USA' },
+  { id: 'iran',          name: 'Iran',          flag: 'IRN' },
+  { id: 'israel',        name: 'Israel',        flag: 'ISR' },
+  { id: 'russia',        name: 'Russia',        flag: 'RUS' },
+  { id: 'china',         name: 'China',         flag: 'CHN' },
+  { id: 'gulf_states',   name: 'Gulf States',   flag: 'SAU' },
 ]
 
 // ─── Tab type ─────────────────────────────────────────────────────────────────
@@ -283,16 +313,6 @@ const MOCK_BRANCHES: Branch[] = [
 type Tab = 'actors' | 'timeline'
 
 // ─── Animation variants ───────────────────────────────────────────────────────
-
-const branchContainerVariants: Variants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-}
-
-const branchCardVariants: Variants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
-}
 
 const tabFadeVariants: Variants = {
   hidden: { opacity: 0, y: 8 },
@@ -304,69 +324,6 @@ const tabFadeVariantsSkip: Variants = {
   hidden:  { opacity: 1, y: 0 },
   visible: { opacity: 1, y: 0, transition: { duration: 0 } },
   exit:    { opacity: 1,       transition: { duration: 0 } },
-}
-
-// ─── Branch card ─────────────────────────────────────────────────────────────
-
-function BranchCard({ branch, onResume }: { branch: Branch; onResume: () => void }) {
-  const isActive = branch.status === 'active'
-  return (
-    <motion.div
-      variants={branchCardVariants}
-      className="p-4 flex flex-col gap-3"
-      style={{
-        background: '#0d0d0d',
-        border: '1px solid #1a1a1a',
-        borderLeft: isActive ? '3px solid var(--gold)' : '3px solid #2a2a2a',
-      }}
-    >
-      {/* Branch name + status */}
-      <div className="flex items-center justify-between gap-2">
-        <span className="font-label text-[12px] font-semibold uppercase tracking-[0.04em] text-text-primary">
-          {branch.name}
-        </span>
-        <span
-          className="font-mono text-2xs px-2 py-0.5 border"
-          style={
-            isActive
-              ? { color: 'var(--gold)', background: 'rgba(255,186,32,0.08)', borderColor: 'rgba(255,186,32,0.3)' }
-              : { color: 'var(--text-tertiary)', background: 'var(--bg-surface-high)', borderColor: 'var(--border-subtle)' }
-          }
-        >
-          {branch.status.toUpperCase()}
-        </span>
-      </div>
-
-      {/* Metadata */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <span className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em]">
-          TURN&nbsp;
-          <span className="text-text-secondary font-medium">{String(branch.currentTurn).padStart(2, '0')}</span>
-          &nbsp;/&nbsp;{String(branch.totalTurns).padStart(2, '0')}
-        </span>
-        {branch.controlledActor && (
-          <span className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em]">
-            PLAYING:&nbsp;<span className="text-text-secondary">{branch.controlledActor}</span>
-          </span>
-        )}
-        <span className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em]">
-          CREATED:&nbsp;<span className="text-text-secondary">{branch.createdAt}</span>
-        </span>
-        <span className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em] ml-auto">
-          {branch.lastPlayedAt}
-        </span>
-      </div>
-
-      {/* Resume button — all branches navigate to play view */}
-      <Button
-        variant={isActive ? 'primary' : 'ghost'}
-        className="w-full text-[11px] py-1.5"
-        onClick={onResume}
-      >
-        RESUME →
-      </Button>
-    </motion.div>
-  )
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -503,11 +460,12 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
             </div>
           </div>
 
-          {/* Branch selector */}
+          {/* Branch tree */}
           <section className="mb-8">
+            {/* Header: title + new branch CTA */}
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-label font-bold text-[13px] uppercase tracking-[0.06em] text-text-primary">
-                Your Branches
+                Branch Timeline
               </h2>
               <Button
                 variant="ghost"
@@ -518,25 +476,53 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
                 {creatingBranch ? 'CREATING...' : '+ Start New Branch'}
               </Button>
             </div>
+
             {branchError && (
               <p className="font-mono text-2xs text-status-critical uppercase tracking-[0.04em] mb-3">
                 {branchError}
               </p>
             )}
-            <motion.div
-              className="flex flex-col gap-3"
-              variants={branchContainerVariants}
-              initial={shouldSkip ? 'visible' : 'hidden'}
-              animate="visible"
-            >
-              {MOCK_BRANCHES.map((branch) => (
-                <BranchCard
-                  key={branch.id}
-                  branch={branch}
-                  onResume={() => router.push(`/scenarios/${params.id}/play/${branch.id}`)}
+
+            {/* Legend */}
+            <div className="flex items-center gap-5 mb-3">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="inline-block w-6 h-0.5"
+                  style={{ background: '#ffba20' }}
                 />
-              ))}
-            </motion.div>
+                <span className="font-mono text-[9px] uppercase tracking-[0.06em] text-text-tertiary">
+                  Ground Truth
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="inline-block w-6 h-0.5"
+                  style={{ background: '#5a4f32', borderTop: '1px dashed #5a4f32' }}
+                />
+                <span className="font-mono text-[9px] uppercase tracking-[0.06em] text-text-tertiary">
+                  Player Branch
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="inline-block w-6 h-0.5"
+                  style={{ background: '#2e2e2e' }}
+                />
+                <span className="font-mono text-[9px] uppercase tracking-[0.06em] text-text-tertiary">
+                  Archived
+                </span>
+              </div>
+              <span className="font-mono text-[9px] uppercase tracking-[0.06em] text-text-tertiary ml-auto">
+                CLICK NODE TO SELECT
+              </span>
+            </div>
+
+            {/* Tree */}
+            <BranchTree
+              root={BRANCH_TREE_ROOT}
+              scenarioId={params.id}
+              actors={ACTOR_OPTIONS}
+            />
           </section>
 
           {/* Section divider */}
