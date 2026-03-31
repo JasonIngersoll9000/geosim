@@ -34,6 +34,115 @@ export type Confidence = "confirmed" | "high" | "moderate" | "low" | "unverified
  */
 export type VerificationStatus = 'verified' | 'researched' | 'inferred'
 
+export type AssetCategory =
+  | 'naval'
+  | 'air'
+  | 'ground'
+  | 'missile'
+  | 'nuclear'
+  | 'infrastructure'
+  | 'cyber'
+  | 'air_defense'
+
+export type AssetStatus =
+  | 'available'     // ready, in home position
+  | 'mobilizing'    // orders issued, preparing to move
+  | 'transiting'    // en route to theater
+  | 'staged'        // in theater, not yet engaged
+  | 'engaged'       // actively executing an operation
+  | 'degraded'      // damaged, reduced capability
+  | 'destroyed'     // eliminated
+  | 'withdrawn'     // pulled back from theater
+
+export interface AssetCapability {
+  name: string
+  current: number
+  max: number
+  unit: string
+}
+
+export interface PositionedAsset {
+  id: string
+  scenarioId: string
+  actorId: string
+  name: string
+  shortName: string
+  category: AssetCategory
+  assetType: string
+  description: string
+  position: { lat: number; lng: number }
+  zone: string
+  status: AssetStatus
+  capabilities: AssetCapability[]
+  strikeRangeNm?: number
+  threatRangeNm?: number
+  provenance: VerificationStatus
+  effectiveFrom: string
+  discoveredAt: string
+  researchedAt?: string
+  sourceUrl?: string
+  sourceDate?: string
+  notes: string
+}
+
+export interface AssetStateDelta {
+  assetId: string
+  field: 'status' | 'capabilities' | 'position' | 'zone'
+  previousValue: unknown
+  newValue: unknown
+  cause: string
+  turnDate: string
+}
+
+export interface CityImpact {
+  category: 'displacement' | 'infrastructure' | 'casualties' | 'economic' | 'political'
+  severity: 'minor' | 'moderate' | 'severe' | 'catastrophic'
+  description: string
+  estimatedValue?: number
+  unit?: string
+  sourceUrl?: string
+  sourceDate?: string
+}
+
+export interface City {
+  id: string
+  scenarioId: string
+  name: string
+  country: string
+  population: number
+  economicRole: string
+  position: { lat: number; lng: number }
+  zone: string
+  infrastructureNodes: string[]
+  warImpacts: CityImpact[]
+  provenance: VerificationStatus
+  sourceUrl?: string
+  sourceDate?: string
+  researchedAt?: string
+}
+
+export interface ActorStatusSnapshot {
+  actorId: string
+  turnDate: string
+  politicalStability: number
+  economicHealth: number
+  militaryReadiness: number
+  publicSupport: number
+  internationalIsolation: number
+  sourceUrl?: string
+  notes?: string
+}
+
+export interface CityStateDelta {
+  cityId: string
+  field: 'war_impacts' | 'population' | 'infrastructure_nodes'
+  addedImpact?: CityImpact
+  previousValue?: unknown
+  newValue?: unknown
+  cause: string
+  turnDate: string
+}
+
 export type RelationshipType =
   | "ally"
   | "adversary"
