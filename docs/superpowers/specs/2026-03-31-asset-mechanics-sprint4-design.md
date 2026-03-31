@@ -210,6 +210,34 @@ export interface CachedResponse {
 }
 ```
 
+### 3.4 City and Actor Impact Deltas in Turn Commits
+
+The resolution engine writes two additional delta arrays into each turn commit JSON alongside `asset_state_deltas`:
+
+**`city_state_deltas`** — Changes to cities caused by this turn's actions:
+
+```typescript
+export interface CityStateDelta {
+  cityId: string;
+  field: 'war_impacts' | 'population' | 'infrastructure_nodes';
+  addedImpact?: CityImpact;       // for field: 'war_impacts'
+  previousValue?: unknown;
+  newValue?: unknown;
+  cause: string;                  // e.g. "US strike on Fordow affected Isfahan"
+  turnDate: string;
+}
+```
+
+**`actor_snapshots`** — Per-actor status after this turn resolves:
+
+```typescript
+// ActorStatusSnapshot is defined in Sprint 3 spec (lib/types/simulation.ts)
+// turn_commits gains: actor_snapshots JSONB (array of ActorStatusSnapshot)
+```
+
+Both arrays are written by the resolution engine at commit time. The UI reads `city_state_deltas` to update war impact badges on `CityMarker` components without a full re-fetch. `actor_snapshots` provides the data the `ActorStatusPanel` uses for trend arrows (compare this turn's snapshot to the prior turn's).
+```
+
 The ground truth response (the one that actually happened) is committed normally. The alternates are attached to the response node for branch creation.
 
 ---

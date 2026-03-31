@@ -374,23 +374,221 @@ The resolution engine must model cross-ally friction: Israel taking actions agai
 
 ---
 
-## 9. Implementation Tasks (for writing-plans)
+## 9. City Layer
 
-1. Add `PositionedAsset`, `AssetCapability`, `AssetStatus`, `AssetCategory`, `AssetStateDelta` types to `lib/types/simulation.ts`
-2. Add `asset_registry` and `asset_research_log` tables to Supabase migration
-3. Add database types to `lib/types/database.ts`
-4. Add `turn_date` column to `turn_commits` migration
+### 9.1 New Types
+
+Add to `lib/types/simulation.ts`:
+
+```typescript
+export interface CityImpact {
+  category: 'displacement' | 'infrastructure' | 'casualties' | 'economic' | 'political'
+  severity: 'minor' | 'moderate' | 'severe' | 'catastrophic'
+  description: string
+  estimatedValue?: number   // e.g., 50000 displaced, 2000000000 USD damage
+  unit?: string             // e.g., "people", "USD"
+  sourceUrl?: string
+  sourceDate?: string
+}
+
+export interface City {
+  id: string
+  scenarioId: string
+  name: string
+  country: string
+  population: number
+  economicRole: string        // e.g., "oil refining hub", "political capital", "strait gateway"
+  position: { lat: number; lng: number }
+  zone: string
+  infrastructureNodes: string[] // e.g., ["oil_terminal", "air_base", "port", "nuclear_facility"]
+  warImpacts: CityImpact[]
+  provenance: ProvenanceLevel
+  sourceUrl?: string
+  sourceDate?: string
+  researchedAt?: string
+}
+```
+
+### 9.2 Database Table: `city_registry`
+
+Add to the Sprint 3 migration:
+
+```sql
+CREATE TABLE city_registry (
+  id            text NOT NULL,
+  scenario_id   uuid NOT NULL REFERENCES scenarios(id) ON DELETE CASCADE,
+  name          text NOT NULL,
+  country       text NOT NULL,
+  population    integer,
+  economic_role text,
+  lat           double precision NOT NULL,
+  lng           double precision NOT NULL,
+  zone          text NOT NULL,
+  infrastructure_nodes jsonb NOT NULL DEFAULT '[]',
+  war_impacts   jsonb NOT NULL DEFAULT '[]',
+  provenance    text NOT NULL DEFAULT 'inferred',
+  source_url    text,
+  source_date   date,
+  researched_at timestamptz,
+  PRIMARY KEY (id, scenario_id)
+);
+ALTER TABLE city_registry ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "city_registry_select" ON city_registry FOR SELECT USING (true);
+```
+
+### 9.3 Iran Scenario City Seed
+
+| id | name | country | population | economicRole | zone |
+|----|------|---------|-----------|-------------|------|
+| tehran | Tehran | Iran | 9400000 | Political capital, industrial hub | central_iran |
+| isfahan | Isfahan | Iran | 2200000 | Industrial, nuclear adjacency | central_iran |
+| bandar-abbas-city | Bandar Abbas | Iran | 600000 | Strait gateway, port | strait_of_hormuz |
+| baghdad | Baghdad | Iraq | 8100000 | Political capital, oil pipeline hub | iraq |
+| basra | Basra | Iraq | 1800000 | Oil export terminal, southern Iraq | southern_iraq |
+| erbil | Erbil | Iraq | 1500000 | Kurdish capital, US base proximity | northern_iraq |
+| riyadh | Riyadh | Saudi Arabia | 7700000 | Political capital, oil hub | saudi_arabia |
+| tel-aviv | Tel Aviv | Israel | 4300000 | Economic center, main population zone | israel |
+| jerusalem | Jerusalem | Israel | 950000 | Political capital, symbolic | israel |
+| kuwait-city | Kuwait City | Kuwait | 3000000 | Political capital, US staging area | kuwait |
+| dubai | Dubai | UAE | 3500000 | Financial hub, regional logistics | uae |
+| doha | Doha | Qatar | 2400000 | Political capital, US air base host | qatar |
+
+### 9.4 Components
+
+**`components/map/CityMarker.tsx`**
+- Small circular marker (8px), white fill with grey border
+- On hover: expands to show city name label
+- Click → triggers `CityPopup`
+- Distinct from asset markers: no category icon, no actor color
+
+**`components/map/CityPopup.tsx`**
+- Compact (200px): name, country, population formatted, economic role
+- If `warImpacts.length > 0`: shows impact count badge in red ("3 impacts")
+- "View Details →" button → opens `CityDetailPanel`
+
+**`components/map/CityDetailPanel.tsx`**
+- Slide-over (same pattern as `AssetDetailPanel`)
+- Sections: identity (name, country, pop, economic role, zone), infrastructure nodes list, war impacts list grouped by category + severity (with `[source]` links), provenance
+
+### 9.5 Layer Control Addition
+
+Add toggle to `MapLayerControls`: **Cities** (on by default) and **City War Impacts** (on by default, colors impact severity on marker).
+
+---
+
+## 10. Actor Status Dashboard
+
+### 10.1 Actor State Extension
+
+The existing `actors` table already has `political_stability`, `economic_health`, `military_readiness` (0–100 integers). Add `source_url` to the actors table via migration. Extend the simulation type:
+
+```typescript
+export interface ActorStatusSnapshot {
+  actorId: string
+  turnDate: string              // ISO date when this was current
+  politicalStability: number    // 0–100
+  economicHealth: number        // 0–100
+  militaryReadiness: number     // 0–100
+  publicSupport: number         // 0–100 (domestic support for current policy)
+  internationalIsolation: number // 0–100 (higher = more isolated)
+  sourceUrl?: string
+  notes?: string
+}
+```
+
+The resolution engine writes an `ActorStatusSnapshot` into `turn_commits` JSON for each actor affected by that turn's events. The research pipeline updates the actor row in Supabase directly (same approval flow as assets).
+
+### 10.2 Component: `ActorStatusPanel`
+
+**`components/game/ActorStatusPanel.tsx`**
+- Compact card per actor: 5 metric gauges with trend arrow (↑ ↓ → vs previous turn snapshot)
+- Metric colors: ≥ 70 green, 40–69 amber, < 40 red
+- Trend arrows derived by comparing current snapshot to prior turn's snapshot
+- Clicking a metric row shows a tooltip with the `notes` field and `[source]` link
+- Panel scrollable if > 3 actors
+
+Display placement: collapsible sidebar section in the game view, labeled "ACTOR STATUS". Available for all actors simultaneously — user can see all actors' health in one panel.
+
+### 10.3 Update Frequency
+
+- Research pipeline: updates actor row in `actors` table after approval
+- Resolution engine: writes per-actor snapshot to `turn_commits.actor_snapshots JSONB` on every turn commit
+- UI reads from the latest turn commit's snapshots for trend comparison
+
+---
+
+## 11. Provenance & Source URLs
+
+### 11.1 Field Additions
+
+Every researched entity gains:
+
+```typescript
+sourceUrl?: string    // direct URL to source (news article, OSINT, official release)
+sourceDate?: string   // ISO date of source publication
+```
+
+Fields added to: `PositionedAsset`, `City`, `CityImpact`, `ActorStatusSnapshot`. For `TurnCommit`, add `sourceUrls: string[]` (a turn may cite multiple sources).
+
+These fields are already included in the `City` and `CityImpact` type definitions above. Add them to `PositionedAsset` in Task 1.
+
+### 11.2 Display Rules
+
+In all detail panels (`AssetDetailPanel`, `CityDetailPanel`), the provenance section renders:
+
+```tsx
+{entity.sourceUrl && (
+  <a
+    href={isGroundTruth ? entity.sourceUrl : undefined}
+    target="_blank"
+    rel="noopener noreferrer"
+    title={!isGroundTruth ? `Source applies to ground truth branch. This branch diverges at ${branchDivergenceDate}.` : undefined}
+    style={{
+      color: isGroundTruth ? '#5dade2' : '#555',
+      fontSize: 9,
+      textDecoration: 'underline',
+      cursor: isGroundTruth ? 'pointer' : 'help',
+    }}
+  >
+    [source{entity.sourceDate ? ` · ${entity.sourceDate}` : ''}]
+  </a>
+)}
+```
+
+`isGroundTruth` is `true` when the current branch is the trunk branch. Pass as a prop from `GameMap`.
+
+### 11.3 Research Pipeline: Source Extraction
+
+The research AI prompt must explicitly request sources:
+> "For every claim, return a `sourceUrl` pointing to an open-source reference (news article, government release, OSINT report, satellite imagery report). If no direct URL is available, omit the field rather than fabricating one."
+
+The `ProposedAssetChange` type gains `sourceUrl?: string` and `sourceDate?: string`.
+
+---
+
+## 12. Implementation Tasks (for writing-plans)
+
+1. Add `PositionedAsset` (+ `sourceUrl`, `sourceDate`), `AssetCapability`, `AssetStatus`, `AssetCategory`, `AssetStateDelta` types to `lib/types/simulation.ts`
+2. Add `City`, `CityImpact`, `ActorStatusSnapshot` types to `lib/types/simulation.ts`
+3. Add `asset_registry`, `asset_research_log`, `city_registry` tables to Supabase migration; add `source_url` to `actors`; add `turn_date` + `actor_snapshots` to `turn_commits`
+4. Add database types to `lib/types/database.ts`
 5. Write Iran scenario asset seed data (extend issue #27 seed script)
-6. API routes: `GET/POST /api/scenarios/[id]/assets`, `PATCH /api/scenarios/[id]/assets/[assetId]`
-7. API routes: research trigger, log fetch, approve, reject
-8. `AssetMarker.tsx` component
-9. `AssetPopup.tsx` component
-10. `AssetDetailPanel.tsx` component (slide-over)
-11. Range ring layers in `MapboxMap.tsx`
-12. `GameMap.tsx` — wire assets prop, layer toggles, selected state
-13. `MapLayerControls.tsx` — add asset + ring toggles
-14. Research Update UI panel
-15. Update actor seed data: Israel and US win/lose conditions and decision factors
+6. Write Iran scenario city seed data (12 cities)
+7. API routes: `GET/POST /api/scenarios/[id]/assets`, `PATCH /api/scenarios/[id]/assets/[assetId]`
+8. API routes: `GET/POST /api/scenarios/[id]/cities`, `PATCH /api/scenarios/[id]/cities/[cityId]`
+9. API routes: research trigger, log fetch, approve, reject
+10. `AssetMarker.tsx` component
+11. `AssetPopup.tsx` component
+12. `AssetDetailPanel.tsx` component (with `[source]` link)
+13. `CityMarker.tsx` component
+14. `CityPopup.tsx` component
+15. `CityDetailPanel.tsx` component (with war impacts + `[source]` links)
+16. Range ring layers in `MapboxMap.tsx`
+17. `GameMap.tsx` — wire assets + cities prop, layer toggles, selected state, `isGroundTruth` prop
+18. `MapLayerControls.tsx` — add asset, ring, cities, city impact toggles
+19. `ActorStatusPanel.tsx` — 5-metric gauges with trend arrows + source links
+20. Research Update UI panel
+21. Update actor seed data: Israel and US win/lose conditions and decision factors
 
 ---
 
