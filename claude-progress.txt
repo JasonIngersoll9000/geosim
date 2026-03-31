@@ -37,26 +37,40 @@ Updated by Claude Code at the end of each session.
   - GitHub issues #20–#26 closed (Stitch migration complete)
   - docs/scrum-issues.md rewritten: full Phase A–D roadmap to playable game
   - GitHub issues #27–#41 created (full remaining roadmap)
+- **Replit Sprint 3 frontend tasks (PRs #43, #44, #45 — all merged 2026-03-30):**
+  - PR #43: Landing page — real product page (closes #29); .replit setup; framer-motion animations
+  - PR #44: Play view, chronicle, branches (Tasks 2–6 incl. turn submission #37, animations #30)
+  - PR #45: Branch tree + decision detail fix (Task 9; map layer controls Task 8; auth pages Task 7)
+  - MapboxMap.tsx integration (Mapbox Tier 1 groundwork, issue #39 partially addressed)
+  - BranchTree.tsx component (branch creation UI shell, contributes to #38)
+  - DecisionDetailPanel select flow fix
+  - All ESLint/TypeScript errors fixed for Vercel CI across all 3 PRs
 
 ### Open PRs
-- None (PR #42 merged to main)
+- None
 
 ### In progress
-- Nothing — clean slate on main
+- feat/tasks-2-9-and-decision-fix (remote branch — may need cleanup or is already merged)
+- fix/decision-detail-select-flow (remote branch — may need cleanup or is already merged)
 
 ### Next up (in priority order)
-- Issue #29: Landing page (replace component showcase with real product page)
-- Issue #30: Animations pass (entrance animations + premium motion throughout)
 - Issue #27: Iran scenario Supabase seed (gateway to entire real-data path)
 - Issue #28: Replace mock data with Supabase queries (depends on #27)
-- Issue #31–#36: AI pipeline (research → actor → resolution → judge → narrator → game loop)
+- Issue #31: Iran scenario research pipeline (all 7 stages)
+- Issue #32: Actor agent — turn plan generation with prompt caching
+- Issue #33: Resolution engine — process all actor TurnPlans into outcomes
+- Issue #34: Judge agent — evaluate resolution quality with retry
+- Issue #35: Narrator agent — generate chronicle entries from resolution
+- Issue #36: Game loop controller — orchestrate full turn end-to-end
+- Issue #37: Player turn submission (partially wired in Replit work — needs real API)
+- Issue #38: Branch creation (UI shell exists — needs backend)
+- Issue #40: Supabase Auth — replace dev bypass with real auth
+- Issue #41: CI/CD pipeline — GitHub Actions
 
-### GitHub issue map (current)
+### GitHub issue map (current open)
 - #27: Iran scenario Supabase seed
 - #28: Replace mock data with Supabase queries
-- #29: Landing page
-- #30: Animations pass
-- #31: Research pipeline
+- #31: Research pipeline (7 stages)
 - #32: Actor agent
 - #33: Resolution engine
 - #34: Judge evaluator
@@ -64,9 +78,13 @@ Updated by Claude Code at the end of each session.
 - #36: Game loop controller
 - #37: Turn submission
 - #38: Branch creation
-- #39: Mapbox Tier 1
 - #40: Supabase Auth
 - #41: CI/CD pipeline
+
+### Closed issues (this sprint)
+- #29: Landing page (PR #43)
+- #30: Animations pass (PR #44)
+- #39: Mapbox Tier 1 (partially — groundwork in PR #45, MapboxMap.tsx wired)
 
 ### Known bugs
 - None
@@ -74,6 +92,9 @@ Updated by Claude Code at the end of each session.
 ### Design debt
 - getConstraintCascadeRisk (lib/game/escalation.ts) uses Iran-specific keyword matching
   instead of reading from Scenario.constraintCascades — tracked for future sprint
+- Replit consistently reverts package.json dev script to port 5000 on new branches;
+  fix on every branch: restore "dev": "next dev", add "dev:replit": "next dev -p 5000 -H 0.0.0.0",
+  update .replit to use dev:replit
 
 ### Architecture decisions
 - Using bun (not npm/npx) for all package management — npm/npx are Windows binaries in WSL2
@@ -85,3 +106,4 @@ Updated by Claude Code at the end of each session.
 - JSX comment text: use {' // text '} not // text (react/jsx-no-comment-textnodes ESLint error)
 - Inline style objects: put border shorthand BEFORE borderBottom, not after (shorthand overwrites specific)
 - Frontend validation workflow: geosim-playwright skill → geosim-uiux-validation skill → user approves all 4 CATs → commit
+- Supabase Realtime .subscribe() callback must be typed as (status: string, err?: Error) — implicit any breaks Vercel build
