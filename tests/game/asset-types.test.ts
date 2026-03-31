@@ -6,6 +6,10 @@ import type {
   AssetCapability,
   PositionedAsset,
   AssetStateDelta,
+  CityImpact,
+  City,
+  ActorStatusSnapshot,
+  CityStateDelta,
 } from '@/lib/types/simulation'
 
 describe('PositionedAsset type shape', () => {
@@ -57,7 +61,7 @@ describe('PositionedAsset type shape', () => {
 
   it('accepts City, CityImpact, ActorStatusSnapshot, CityStateDelta types', () => {
     // Verify types compile correctly
-    const impact: import('@/lib/types/simulation').CityImpact = {
+    const impact: CityImpact = {
       category: 'displacement',
       severity: 'severe',
       description: '500,000 residents evacuated',
@@ -66,7 +70,7 @@ describe('PositionedAsset type shape', () => {
       sourceUrl: 'https://example.com',
       sourceDate: '2025-10-15',
     }
-    const city: import('@/lib/types/simulation').City = {
+    const city: City = {
       id: 'tehran',
       scenarioId: 'iran-2026',
       name: 'Tehran',
@@ -81,7 +85,7 @@ describe('PositionedAsset type shape', () => {
       sourceUrl: 'https://example.com/tehran',
       sourceDate: '2025-01-01',
     }
-    const snap: import('@/lib/types/simulation').ActorStatusSnapshot = {
+    const snap: ActorStatusSnapshot = {
       actorId: 'iran',
       turnDate: '2025-10-15',
       politicalStability: 45,
@@ -90,7 +94,7 @@ describe('PositionedAsset type shape', () => {
       publicSupport: 60,
       internationalIsolation: 80,
     }
-    const delta: import('@/lib/types/simulation').CityStateDelta = {
+    const delta: CityStateDelta = {
       cityId: 'isfahan',
       field: 'war_impacts',
       addedImpact: impact,

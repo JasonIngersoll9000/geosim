@@ -87,6 +87,8 @@ export interface PositionedAsset {
 
 export interface AssetStateDelta {
   assetId: string
+  // Only the 4 fields the state machine tracks are audited here.
+  // Other field changes (notes, provenance, rangeNm) are made directly to the registry.
   field: 'status' | 'capabilities' | 'position' | 'zone'
   previousValue: unknown
   newValue: unknown
@@ -133,15 +135,22 @@ export interface ActorStatusSnapshot {
   notes?: string
 }
 
-export interface CityStateDelta {
-  cityId: string
-  field: 'war_impacts' | 'population' | 'infrastructure_nodes'
-  addedImpact?: CityImpact
-  previousValue?: unknown
-  newValue?: unknown
-  cause: string
-  turnDate: string
-}
+export type CityStateDelta =
+  | {
+      cityId: string
+      field: 'war_impacts'
+      addedImpact: CityImpact
+      cause: string
+      turnDate: string
+    }
+  | {
+      cityId: string
+      field: 'population' | 'infrastructure_nodes'
+      previousValue: unknown
+      newValue: unknown
+      cause: string
+      turnDate: string
+    }
 
 export type RelationshipType =
   | "ally"
