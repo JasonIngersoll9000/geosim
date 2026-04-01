@@ -237,6 +237,10 @@ export interface KeyFigure {
   description: string;
   // how their removal or addition changes the actor's behavior
   successionImpact?: string;        // e.g. "son is more hardline, likely to escalate"
+  // provenance: how this entry was established
+  provenance?: 'verified' | 'researched' | 'inferred';
+  sourceNote?: string;              // citation — file, section, or URL
+  sourceDate?: string;              // ISO date of the source (relative to ground truth)
 }
 
 // ------------------------------------------------------------
