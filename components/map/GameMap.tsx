@@ -8,6 +8,7 @@ import { AssetDetailPanel } from './AssetDetailPanel'
 import { AssetPopup } from './AssetPopup'
 import { CityPopup } from './CityPopup'
 import { CityDetailPanel } from './CityDetailPanel'
+import { ActorStatusPanel } from '@/components/game/ActorStatusPanel'
 import type { LayerState } from './MapLayerControls'
 import type { GlobalState, PositionedAsset, City } from '@/lib/types/simulation'
 
@@ -252,6 +253,11 @@ export function GameMap({ globalState }: Props) {
         isOpen={detailOpen}
         onClose={() => { setDetailOpen(false); setSelectedAsset(null) }}
       />
+
+      {/* ── Actor status panel ── */}
+      <div style={{ position: 'absolute', bottom: 28, left: 10, zIndex: 40 }}>
+        <ActorStatusPanel isGroundTruth={true} />
+      </div>
 
       {/* ── Map legend ── */}
       <MapLegend />
