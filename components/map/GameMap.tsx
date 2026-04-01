@@ -30,6 +30,12 @@ const DEFAULT_LAYERS: LayerState = {
   militaryAssets: true,
   militaryBases:  false,
   keyCities:      false,
+  usAssets:       true,
+  iranAssets:     true,
+  israelAssets:   true,
+  infrastructure: true,
+  strikeRings:    false,
+  threatRings:    false,
 }
 
 interface Props {
