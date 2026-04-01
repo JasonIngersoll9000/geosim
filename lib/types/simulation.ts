@@ -764,23 +764,17 @@ export interface BranchWorthiness {
 export interface Decision {
   id: string;
   actorId?: string;
-  title?: string;
-  /** Display name — alias for title used by asset-layer decisions */
   name?: string;
   description: string;
   dimension: Dimension;
 
   // where does this decision sit on the escalation ladder?
-  escalationRung?: number;          // what rung does taking this action put you on (full game loop)
-  /** Alias for escalationRung used by asset-layer decisions */
-  escalationLevel?: number;
+  escalationLevel?: number;         // what rung does taking this action put you on (full game loop)
   isEscalation?: boolean;           // does this move you UP the ladder
   isDeescalation?: boolean;         // does this move you DOWN
 
   prerequisites?: string[];
   costs?: DecisionCost[];
-  projectedOutcomes?: ProjectedOutcome[];
-  /** Alias for projectedOutcomes used by asset-layer decisions */
   expectedOutcomes?: ProjectedOutcome[];
   advancesObjectives?: string[];
   risksObjectives?: string[];
