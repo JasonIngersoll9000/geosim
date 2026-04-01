@@ -1,11 +1,13 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { FloatingMetricChip } from './FloatingMetricChip'
 import { MapLegend } from './MapLegend'
 import { MapLayerControls } from './MapLayerControls'
+import { AssetDetailPanel } from './AssetDetailPanel'
+import { AssetPopup } from './AssetPopup'
 import type { LayerState } from './MapLayerControls'
-import type { GlobalState } from '@/lib/types/simulation'
+import type { GlobalState, PositionedAsset } from '@/lib/types/simulation'
 
 const MapboxMap = dynamic(
   () => import('./MapboxMap').then(m => ({ default: m.MapboxMap })),
@@ -44,6 +46,28 @@ interface Props {
 
 export function GameMap({ globalState }: Props) {
   const [layers, setLayers] = useState<LayerState>(DEFAULT_LAYERS)
+  const [assets, setAssets] = useState<PositionedAsset[]>([])
+  const [selectedAsset, setSelectedAsset] = useState<PositionedAsset | null>(null)
+  const [popupAsset, setPopupAsset] = useState<PositionedAsset | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/scenarios/iran-2026/assets')
+      .then(r => r.json())
+      .then(({ data }: { data: PositionedAsset[] | null }) => { if (data) setAssets(data) })
+      .catch(() => {})
+  }, [])
+
+  function handleAssetClick(asset: PositionedAsset) {
+    setPopupAsset(asset)
+    setSelectedAsset(asset)
+  }
+
+  function handleExpand(asset: PositionedAsset) {
+    setPopupAsset(null)
+    setSelectedAsset(asset)
+    setDetailOpen(true)
+  }
 
   const oilPrice   = globalState?.oilPricePerBarrel ?? 142
   const oilCritical = oilPrice > 120
@@ -66,7 +90,18 @@ export function GameMap({ globalState }: Props) {
 
       {/* ── Map layer ── */}
       {TOKEN ? (
-        <MapboxMap hormuzClosed={hormuzClosed} layerState={layers} />
+        <MapboxMap
+          hormuzClosed={hormuzClosed}
+          layerState={layers}
+          assets={assets}
+          selectedAssetId={selectedAsset?.id ?? null}
+          onAssetClick={handleAssetClick}
+        />
+        {popupAsset && (
+          <div style={{ position: 'absolute', top: '30%', left: '30%', zIndex: 50 }}>
+            <AssetPopup asset={popupAsset} onExpand={handleExpand} onClose={() => setPopupAsset(null)} />
+          </div>
+        )}
       ) : (
         <>
           <svg
@@ -172,6 +207,13 @@ export function GameMap({ globalState }: Props) {
       {TOKEN && (
         <MapLayerControls layers={layers} onToggle={toggleLayer} />
       )}
+
+      {/* ── Asset detail panel ── */}
+      <AssetDetailPanel
+        asset={selectedAsset}
+        isOpen={detailOpen}
+        onClose={() => { setDetailOpen(false); setSelectedAsset(null) }}
+      />
 
       {/* ── Map legend ── */}
       <MapLegend />

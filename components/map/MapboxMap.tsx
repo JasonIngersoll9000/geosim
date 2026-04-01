@@ -3,6 +3,8 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { LayerState } from './MapLayerControls'
+import type { PositionedAsset } from '@/lib/types/simulation'
+import { createAssetMarkerElement } from './AssetMarker'
 
 // ─── Key cities GeoJSON ───────────────────────────────────────────────────────
 
@@ -76,9 +78,12 @@ const _CUSTOM_LAYER_IDS = [
 interface Props {
   hormuzClosed: boolean
   layerState: LayerState
+  assets?: PositionedAsset[]
+  selectedAssetId?: string | null
+  onAssetClick?: (asset: PositionedAsset) => void
 }
 
-export function MapboxMap({ hormuzClosed, layerState }: Props) {
+export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, onAssetClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const nimitzMarkerRef = useRef<mapboxgl.Marker | null>(null)
@@ -86,6 +91,7 @@ export function MapboxMap({ hormuzClosed, layerState }: Props) {
   const layerStateRef = useRef(layerState)
   const [webglFailed, setWebglFailed] = useState(false)
   const isTerrainRef = useRef(false)
+  const assetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
 
   // ── Helper: build the Nimitz DOM marker element ──────────────────────────
   const buildNimitzElement = useCallback(() => {
@@ -513,6 +519,88 @@ export function MapboxMap({ hormuzClosed, layerState }: Props) {
     applyBuiltinLayerVisibility(map, layerState)
     applyCustomLayerVisibility(map, layerState)
   }, [layerState, applyBuiltinLayerVisibility, applyCustomLayerVisibility, setupCustomLayers, buildNimitzElement])
+
+  // ── Asset markers ────────────────────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !assets) return
+
+    assetMarkersRef.current.forEach(marker => marker.remove())
+    assetMarkersRef.current.clear()
+
+    assets.forEach(asset => {
+      const isUs = asset.actorId === 'us' || asset.actorId === 'united_states'
+      const actorVisible =
+        (isUs && layerState.usAssets) ||
+        (asset.actorId === 'iran' && layerState.iranAssets) ||
+        (asset.actorId === 'israel' && layerState.israelAssets) ||
+        (asset.category === 'infrastructure' && layerState.infrastructure)
+
+      if (!actorVisible) return
+
+      const el = createAssetMarkerElement({
+        actorId: asset.actorId,
+        category: asset.category,
+        shortName: asset.shortName,
+        status: asset.status,
+        onClick: () => onAssetClick?.(asset),
+      })
+
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([asset.position.lng, asset.position.lat])
+        .addTo(map)
+
+      assetMarkersRef.current.set(asset.id, marker)
+    })
+  }, [assets, layerState.usAssets, layerState.iranAssets, layerState.israelAssets, layerState.infrastructure, onAssetClick])
+
+  // ── Range rings ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    const nmToM = (nm: number) => nm * 1852
+
+    ;['strike-ring-fill', 'threat-ring-fill'].forEach(id => {
+      if (map.getLayer(id)) map.removeLayer(id)
+    })
+    ;['selected-asset-strike-ring', 'selected-asset-threat-ring'].forEach(id => {
+      if (map.getSource(id)) map.removeSource(id)
+    })
+
+    const selected = assets?.find(a => a.id === selectedAssetId)
+    if (!selected) return
+
+    if (layerState.strikeRings && selected.strikeRangeNm) {
+      map.addSource('selected-asset-strike-ring', {
+        type: 'geojson',
+        data: { type: 'Feature', geometry: { type: 'Point', coordinates: [selected.position.lng, selected.position.lat] }, properties: {} },
+      })
+      map.addLayer({
+        id: 'strike-ring-fill', type: 'circle', source: 'selected-asset-strike-ring',
+        paint: {
+          'circle-radius': { stops: [[0, 0], [20, nmToM(selected.strikeRangeNm) / 0.075]], base: 2 },
+          'circle-color': 'transparent', 'circle-stroke-width': 1.5,
+          'circle-stroke-color': '#2980b9', 'circle-opacity': 0, 'circle-stroke-opacity': 0.5,
+        },
+      })
+    }
+
+    if (layerState.threatRings && selected.threatRangeNm) {
+      map.addSource('selected-asset-threat-ring', {
+        type: 'geojson',
+        data: { type: 'Feature', geometry: { type: 'Point', coordinates: [selected.position.lng, selected.position.lat] }, properties: {} },
+      })
+      map.addLayer({
+        id: 'threat-ring-fill', type: 'circle', source: 'selected-asset-threat-ring',
+        paint: {
+          'circle-radius': { stops: [[0, 0], [20, nmToM(selected.threatRangeNm) / 0.075]], base: 2 },
+          'circle-color': 'transparent', 'circle-stroke-width': 1.5,
+          'circle-stroke-color': '#c0392b', 'circle-opacity': 0, 'circle-stroke-opacity': 0.4,
+        },
+      })
+    }
+  }, [selectedAssetId, assets, layerState.strikeRings, layerState.threatRings])
 
   // ─── Render ──────────────────────────────────────────────────────────────
 
