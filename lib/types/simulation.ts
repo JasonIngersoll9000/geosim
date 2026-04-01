@@ -721,37 +721,88 @@ export interface GlobalAsset {
 // Now integrated with escalation logic
 // ------------------------------------------------------------
 
+export interface AssetRequirement {
+  assetId?: string
+  category?: AssetCategory
+  assetType?: string
+  requiredStatus: AssetStatus[]
+  requiredZone?: string
+  minCapability?: {
+    name: string
+    minCurrent: number
+  }
+}
+
+export interface AssetTransitionEffect {
+  assetId?: string
+  category?: AssetCategory
+  fromStatus: AssetStatus
+  toStatus: AssetStatus
+  turnsRequired: number
+  positionUpdate?: {
+    targetLat: number
+    targetLng: number
+    targetZone: string
+  }
+}
+
+export interface CachedResponse {
+  actorId: string
+  decision: Decision
+  rationale: string
+  escalationDirection: 'up' | 'down' | 'lateral' | 'none'
+  cachedAt: string
+}
+
+export interface BranchWorthiness {
+  score: number
+  reason: string
+  suggestedBranchLabel: string
+  alternateResponses?: CachedResponse[]
+}
+
 export interface Decision {
   id: string;
-  actorId: string;
-  title: string;
+  actorId?: string;
+  title?: string;
+  /** Display name — alias for title used by asset-layer decisions */
+  name?: string;
   description: string;
   dimension: Dimension;
 
   // where does this decision sit on the escalation ladder?
-  escalationRung: number;           // what rung does taking this action put you on
-  isEscalation: boolean;            // does this move you UP the ladder
-  isDeescalation: boolean;          // does this move you DOWN
+  escalationRung?: number;          // what rung does taking this action put you on (full game loop)
+  /** Alias for escalationRung used by asset-layer decisions */
+  escalationLevel?: number;
+  isEscalation?: boolean;           // does this move you UP the ladder
+  isDeescalation?: boolean;         // does this move you DOWN
 
-  prerequisites: string[];
-  costs: DecisionCost[];
-  projectedOutcomes: ProjectedOutcome[];
-  advancesObjectives: string[];
-  risksObjectives: string[];
-  violatesConstraints: string[];
+  prerequisites?: string[];
+  costs?: DecisionCost[];
+  projectedOutcomes?: ProjectedOutcome[];
+  /** Alias for projectedOutcomes used by asset-layer decisions */
+  expectedOutcomes?: ProjectedOutcome[];
+  advancesObjectives?: string[];
+  risksObjectives?: string[];
+  violatesConstraints?: string[];
 
   // NEW: strategic framing — why would a rational actor choose this?
-  strategicRationale: string;       // e.g. "attritional drone campaign exploits cost asymmetry"
+  strategicRationale?: string;      // e.g. "attritional drone campaign exploits cost asymmetry"
   // NEW: what information does the actor need to make this decision well?
-  intelRequirements: string[];      // e.g. "need to know air defense munition levels"
+  intelRequirements?: string[];     // e.g. "need to know air defense munition levels"
   // NEW: what does the actor THINK will happen vs what might actually happen
-  actorAssessment: string;          // what the deciding actor believes the outcome will be
+  actorAssessment?: string;         // what the deciding actor believes the outcome will be
 
   // concurrency rules for TurnPlan building
   resourceWeight?: ResourceWeight;
   compatibleWith?: string[];        // decision ids/categories that can run concurrently
   incompatibleWith?: string[];      // decision ids/categories that cannot
   synergiesWith?: { decisionCategory: string; bonus: string }[];
+
+  // asset-layer extensions
+  requiredAssets?: AssetRequirement[];
+  assetTransitions?: AssetTransitionEffect[];
+  leadsToAvailable?: string[];
 }
 
 export interface DecisionCost {
