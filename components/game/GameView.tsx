@@ -14,6 +14,7 @@ import { TurnPlanBuilder } from '@/components/panels/TurnPlanBuilder'
 import { ChronicleTimeline } from '@/components/chronicle/ChronicleTimeline'
 import { EventsTab } from '@/components/panels/EventsTab'
 import { DispatchTerminal } from '@/components/game/DispatchTerminal'
+import { ResearchUpdatePanel } from '@/components/game/ResearchUpdatePanel'
 import { ObserverOverlay } from '@/components/panels/ObserverOverlay'
 import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
 import { ProgressBar } from '@/components/ui/ProgressBar'
@@ -506,6 +507,11 @@ export function GameView({ branchId, scenarioId }: Props) {
           {/* Dispatch terminal footer — initial state lines */}
           <div className="shrink-0 overflow-hidden" style={{ height: '120px' }}>
             <DispatchTerminal lines={INITIAL_DISPATCH} isRunning={false} />
+          </div>
+
+          {/* Ground truth research panel */}
+          <div className="shrink-0 p-3 border-t border-border-subtle">
+            <ResearchUpdatePanel scenarioId={scenarioId} />
           </div>
         </>
       )}
