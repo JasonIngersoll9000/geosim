@@ -139,25 +139,17 @@ export function AssetDetailPanel({ asset, isOpen, onClose }: Props) {
           <div style={{ color: '#8a8880', marginBottom: 4 }}>
             {PROVENANCE_LABEL[asset.provenance] ?? asset.provenance.toUpperCase()}
           </div>
+          {asset.sourceUrl && (
+            <a href={asset.sourceUrl} target="_blank" rel="noopener noreferrer"
+              style={{ color: '#5dade2', textDecoration: 'underline', display: 'block', marginBottom: 2 }}>
+              source
+            </a>
+          )}
           {asset.sourceDate && (
-            <div style={{ color: '#8a8880', marginBottom: 2 }}>
-              SOURCE DATE: {asset.sourceDate}
-            </div>
+            <div style={{ color: '#555' }}>as of {asset.sourceDate}</div>
           )}
           {asset.researchedAt && (
-            <div style={{ color: '#8a8880', marginBottom: 2 }}>
-              RESEARCHED: {new Date(asset.researchedAt).toLocaleDateString()}
-            </div>
-          )}
-          {asset.sourceUrl && (
-            <a
-              href={asset.sourceUrl}
-              target="_blank"
-              rel="noreferrer"
-              style={{ color: '#5dade2', textDecoration: 'none' }}
-            >
-              view source →
-            </a>
+            <div style={{ color: '#555' }}>updated {new Date(asset.researchedAt).toLocaleDateString()}</div>
           )}
         </div>
       </div>
