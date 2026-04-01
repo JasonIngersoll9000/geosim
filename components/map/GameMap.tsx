@@ -90,18 +90,20 @@ export function GameMap({ globalState }: Props) {
 
       {/* ── Map layer ── */}
       {TOKEN ? (
-        <MapboxMap
-          hormuzClosed={hormuzClosed}
-          layerState={layers}
-          assets={assets}
-          selectedAssetId={selectedAsset?.id ?? null}
-          onAssetClick={handleAssetClick}
-        />
-        {popupAsset && (
-          <div style={{ position: 'absolute', top: '30%', left: '30%', zIndex: 50 }}>
-            <AssetPopup asset={popupAsset} onExpand={handleExpand} onClose={() => setPopupAsset(null)} />
-          </div>
-        )}
+        <>
+          <MapboxMap
+            hormuzClosed={hormuzClosed}
+            layerState={layers}
+            assets={assets}
+            selectedAssetId={selectedAsset?.id ?? null}
+            onAssetClick={handleAssetClick}
+          />
+          {popupAsset && (
+            <div style={{ position: 'absolute', top: '30%', left: '30%', zIndex: 50 }}>
+              <AssetPopup asset={popupAsset} onExpand={handleExpand} onClose={() => setPopupAsset(null)} />
+            </div>
+          )}
+        </>
       ) : (
         <>
           <svg
