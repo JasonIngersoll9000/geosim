@@ -6,8 +6,10 @@ import { MapLegend } from './MapLegend'
 import { MapLayerControls } from './MapLayerControls'
 import { AssetDetailPanel } from './AssetDetailPanel'
 import { AssetPopup } from './AssetPopup'
+import { CityPopup } from './CityPopup'
+import { CityDetailPanel } from './CityDetailPanel'
 import type { LayerState } from './MapLayerControls'
-import type { GlobalState, PositionedAsset } from '@/lib/types/simulation'
+import type { GlobalState, PositionedAsset, City } from '@/lib/types/simulation'
 
 const MapboxMap = dynamic(
   () => import('./MapboxMap').then(m => ({ default: m.MapboxMap })),
@@ -50,11 +52,22 @@ export function GameMap({ globalState }: Props) {
   const [selectedAsset, setSelectedAsset] = useState<PositionedAsset | null>(null)
   const [popupAsset, setPopupAsset] = useState<PositionedAsset | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
+  const [cities, setCities] = useState<City[]>([])
+  const [selectedCity, setSelectedCity] = useState<City | null>(null)
+  const [cityPopup, setCityPopup] = useState<City | null>(null)
+  const [cityDetailOpen, setCityDetailOpen] = useState(false)
 
   useEffect(() => {
     fetch('/api/scenarios/iran-2026/assets')
       .then(r => r.json())
       .then(({ data }: { data: PositionedAsset[] | null }) => { if (data) setAssets(data) })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/scenarios/iran-2026/cities')
+      .then(r => r.json())
+      .then(({ data }: { data: City[] | null }) => { if (data) setCities(data) })
       .catch(() => {})
   }, [])
 
@@ -67,6 +80,17 @@ export function GameMap({ globalState }: Props) {
     setPopupAsset(null)
     setSelectedAsset(asset)
     setDetailOpen(true)
+  }
+
+  function handleCityClick(city: City) {
+    setCityPopup(city)
+    setSelectedCity(city)
+  }
+
+  function handleCityExpand(city: City) {
+    setCityPopup(null)
+    setSelectedCity(city)
+    setCityDetailOpen(true)
   }
 
   const oilPrice   = globalState?.oilPricePerBarrel ?? 142
@@ -97,12 +121,24 @@ export function GameMap({ globalState }: Props) {
             assets={assets}
             selectedAssetId={selectedAsset?.id ?? null}
             onAssetClick={handleAssetClick}
+            cities={cities}
+            onCityClick={handleCityClick}
           />
           {popupAsset && (
             <div style={{ position: 'absolute', top: '30%', left: '30%', zIndex: 50 }}>
               <AssetPopup asset={popupAsset} onExpand={handleExpand} onClose={() => setPopupAsset(null)} />
             </div>
           )}
+          {cityPopup && (
+            <div style={{ position: 'absolute', top: '35%', left: '32%', zIndex: 50 }}>
+              <CityPopup city={cityPopup} onExpand={handleCityExpand} onClose={() => setCityPopup(null)} />
+            </div>
+          )}
+          <CityDetailPanel
+            city={selectedCity}
+            isOpen={cityDetailOpen}
+            onClose={() => { setCityDetailOpen(false); setSelectedCity(null) }}
+          />
         </>
       ) : (
         <>

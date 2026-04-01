@@ -3,8 +3,9 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { LayerState } from './MapLayerControls'
-import type { PositionedAsset } from '@/lib/types/simulation'
+import type { PositionedAsset, City } from '@/lib/types/simulation'
 import { createAssetMarkerElement } from './AssetMarker'
+import { createCityMarkerElement } from './CityMarker'
 
 // ─── Key cities GeoJSON ───────────────────────────────────────────────────────
 
@@ -81,9 +82,11 @@ interface Props {
   assets?: PositionedAsset[]
   selectedAssetId?: string | null
   onAssetClick?: (asset: PositionedAsset) => void
+  cities?: City[]
+  onCityClick?: (city: City) => void
 }
 
-export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, onAssetClick }: Props) {
+export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, onAssetClick, cities, onCityClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const nimitzMarkerRef = useRef<mapboxgl.Marker | null>(null)
@@ -92,6 +95,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
   const [webglFailed, setWebglFailed] = useState(false)
   const isTerrainRef = useRef(false)
   const assetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
+  const cityMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
 
   // ── Helper: build the Nimitz DOM marker element ──────────────────────────
   const buildNimitzElement = useCallback(() => {
@@ -441,6 +445,8 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         nimitzMarkerRef.current.remove()
         nimitzMarkerRef.current = null
       }
+      cityMarkersRef.current.forEach(marker => marker.remove())
+      cityMarkersRef.current.clear()
       try { map.remove() } catch (e) { console.warn('[MapboxMap] cleanup failed:', e) }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -553,6 +559,25 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
       assetMarkersRef.current.set(asset.id, marker)
     })
   }, [assets, layerState.usAssets, layerState.iranAssets, layerState.israelAssets, layerState.infrastructure, onAssetClick])
+
+  // ── City markers ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current
+    cityMarkersRef.current.forEach(marker => marker.remove())
+    cityMarkersRef.current.clear()
+    if (!map || !cities || !layerState.keyCities) return
+
+    cities.forEach(city => {
+      const el = createCityMarkerElement({
+        city,
+        onClick: () => onCityClick?.(city),
+      })
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        .setLngLat([city.position.lng, city.position.lat])
+        .addTo(map)
+      cityMarkersRef.current.set(city.id, marker)
+    })
+  }, [cities, layerState.keyCities, onCityClick])
 
   // ── Range rings ───────────────────────────────────────────────────────────
   useEffect(() => {
