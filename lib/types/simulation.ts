@@ -220,6 +220,11 @@ export interface Actor {
 
   // what this actor BELIEVES about other actors (fog of war)
   intelligencePicture: IntelligencePicture[];
+
+  // motivation seed: divergent win/lose conditions and stakes
+  winCondition?: string;
+  loseCondition?: string;
+  stakesLevel?: ObjectivePriority;
 }
 
 export interface KeyFigure {
