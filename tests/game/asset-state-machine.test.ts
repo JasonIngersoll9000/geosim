@@ -5,6 +5,7 @@ import {
   getLeadTurns,
   interpolatePosition,
   applyTransition,
+  getTransitingAssets,
 } from '@/lib/game/asset-state-machine'
 import type { PositionedAsset } from '@/lib/types/simulation'
 
@@ -87,5 +88,28 @@ describe('applyTransition', () => {
   })
   it('throws if transition is not allowed', () => {
     expect(() => applyTransition(BASE_ASSET, 'engaged', 1)).toThrow()
+  })
+})
+
+describe('getTransitingAssets', () => {
+  it('filters to only transiting assets', () => {
+    const assets: PositionedAsset[] = [
+      { ...BASE_ASSET, id: 'asset-1', status: 'transiting' },
+      { ...BASE_ASSET, id: 'asset-2', status: 'staged' },
+      { ...BASE_ASSET, id: 'asset-3', status: 'transiting' },
+      { ...BASE_ASSET, id: 'asset-4', status: 'engaged' },
+    ]
+    const result = getTransitingAssets(assets)
+    expect(result).toHaveLength(2)
+    expect(result[0].id).toBe('asset-1')
+    expect(result[1].id).toBe('asset-3')
+  })
+  it('returns empty array if no assets are transiting', () => {
+    const assets: PositionedAsset[] = [
+      { ...BASE_ASSET, id: 'asset-1', status: 'staged' },
+      { ...BASE_ASSET, id: 'asset-2', status: 'engaged' },
+    ]
+    const result = getTransitingAssets(assets)
+    expect(result).toHaveLength(0)
   })
 })
