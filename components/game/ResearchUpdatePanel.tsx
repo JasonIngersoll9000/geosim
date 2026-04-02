@@ -7,10 +7,19 @@ interface Props {
   onApproved?: () => void
 }
 
+interface CatchUpCommit {
+  turnDate: string
+  summary: string
+  changes: ProposedAssetChange[]
+  approved: boolean | null
+}
+
 export function ResearchUpdatePanel({ scenarioId, onApproved }: Props) {
-  const [status, setStatus] = useState<'idle' | 'running' | 'reviewing' | 'done' | 'error'>('idle')
+  const [status, setStatus] = useState<'idle' | 'running' | 'reviewing' | 'catch_up' | 'done' | 'error'>('idle')
   const [logEntry, setLogEntry] = useState<AssetResearchLogRow | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [catchUpCommits, setCatchUpCommits] = useState<CatchUpCommit[]>([])
+  const [catchUpIndex, setCatchUpIndex] = useState(0)
 
   async function triggerResearch() {
     setStatus('running')
@@ -24,7 +33,19 @@ export function ResearchUpdatePanel({ scenarioId, onApproved }: Props) {
       const { data, error } = await res.json() as { data: AssetResearchLogRow | null; error: string | null }
       if (error) { setErrorMsg(error); setStatus('error'); return }
       setLogEntry(data)
-      setStatus('reviewing')
+      const proposed = (data?.proposed_changes ?? []) as Array<ProposedAssetChange & { turnDate?: string }>
+      if (proposed.length > 0 && proposed[0]?.turnDate) {
+        setCatchUpCommits(proposed.map((pc) => ({
+          turnDate: pc.turnDate ?? '',
+          summary: pc.rationale ?? '',
+          changes: [pc],
+          approved: null,
+        })))
+        setCatchUpIndex(0)
+        setStatus('catch_up')
+      } else {
+        setStatus('reviewing')
+      }
     } catch (e) {
       setErrorMsg(String(e))
       setStatus('error')
@@ -85,6 +106,67 @@ export function ResearchUpdatePanel({ scenarioId, onApproved }: Props) {
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={approve} style={{ flex: 1, padding: '6px 0', background: 'rgba(39,174,96,0.15)', border: '1px solid rgba(39,174,96,0.4)', borderRadius: 3, color: '#2ecc71', cursor: 'pointer', fontFamily: "'IBM Plex Mono', monospace", fontSize: 10 }}>APPROVE</button>
             <button onClick={reject} style={{ flex: 1, padding: '6px 0', background: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.3)', borderRadius: 3, color: '#e74c3c', cursor: 'pointer', fontFamily: "'IBM Plex Mono', monospace", fontSize: 10 }}>REJECT</button>
+          </div>
+        </div>
+      )}
+
+      {status === 'catch_up' && catchUpCommits.length > 0 && (
+        <div>
+          <div style={{ fontSize: 9, color: '#8a8880', marginBottom: 8 }}>
+            {'CATCH-UP: '}{catchUpIndex + 1}{' of '}{catchUpCommits.length}{' PROPOSED TURNS'}
+          </div>
+          <div style={{ fontSize: 11, color: '#ffba20', marginBottom: 6 }}>
+            {catchUpCommits[catchUpIndex].turnDate
+              ? new Date(catchUpCommits[catchUpIndex].turnDate).toLocaleDateString()
+              : 'Unknown date'
+            }
+          </div>
+          <div style={{ fontSize: 10, color: '#c8c6c0', marginBottom: 12, lineHeight: 1.5 }}>
+            {catchUpCommits[catchUpIndex].summary}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => {
+                const updated = [...catchUpCommits]
+                updated[catchUpIndex] = { ...updated[catchUpIndex], approved: true }
+                setCatchUpCommits(updated)
+                if (catchUpIndex < catchUpCommits.length - 1) {
+                  setCatchUpIndex(catchUpIndex + 1)
+                } else {
+                  setStatus('done')
+                  onApproved?.()
+                }
+              }}
+              style={{
+                flex: 1, padding: '6px 0',
+                background: 'rgba(39,174,96,0.15)', border: '1px solid rgba(39,174,96,0.4)',
+                borderRadius: 3, color: '#2ecc71', cursor: 'pointer',
+                fontFamily: "'IBM Plex Mono', monospace", fontSize: 10,
+              }}
+            >
+              {'APPROVE'}
+            </button>
+            <button
+              onClick={() => {
+                const updated = [...catchUpCommits]
+                updated[catchUpIndex] = { ...updated[catchUpIndex], approved: false }
+                setCatchUpCommits(updated)
+                if (catchUpIndex < catchUpCommits.length - 1) {
+                  setCatchUpIndex(catchUpIndex + 1)
+                } else {
+                  setStatus('done')
+                  onApproved?.()
+                }
+              }}
+              style={{
+                flex: 1, padding: '6px 0',
+                background: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.3)',
+                borderRadius: 3, color: '#e74c3c', cursor: 'pointer',
+                fontFamily: "'IBM Plex Mono', monospace", fontSize: 10,
+              }}
+            >
+              {'SKIP'}
+            </button>
           </div>
         </div>
       )}
