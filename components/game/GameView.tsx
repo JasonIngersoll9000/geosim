@@ -13,6 +13,7 @@ import { DecisionDetailPanel } from '@/components/panels/DecisionDetailPanel'
 import { TurnPlanBuilder } from '@/components/panels/TurnPlanBuilder'
 import { ChronicleTimeline } from '@/components/chronicle/ChronicleTimeline'
 import { EventsTab } from '@/components/panels/EventsTab'
+import { ActorControlSelector } from '@/components/game/ActorControlSelector'
 import { DispatchTerminal } from '@/components/game/DispatchTerminal'
 import { ResearchUpdatePanel } from '@/components/game/ResearchUpdatePanel'
 import { ObserverOverlay } from '@/components/panels/ObserverOverlay'
@@ -280,6 +281,7 @@ export function GameView({ branchId, scenarioId }: Props) {
   const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, reset: resetHook } = useSubmitTurn(branchId)
   const shouldSkip = useReducedMotion()
 
+  const [controlledActors, setControlledActors]             = useState<string[] | null>(null)
   const [activeTab, setActiveTab]                           = useState<PanelTab>('actors')
   const [showObserver, setShowObserver]                     = useState(true)
   const [selectedDecisionDetail, setSelectedDecisionDetail] = useState<DecisionDetail | null>(null)
@@ -517,6 +519,15 @@ export function GameView({ branchId, scenarioId }: Props) {
       )}
     </div>
   )
+
+  if (controlledActors === null) {
+    return (
+      <ActorControlSelector
+        actors={MOCK_ACTORS}
+        onConfirm={setControlledActors}
+      />
+    )
+  }
 
   return (
     <>
