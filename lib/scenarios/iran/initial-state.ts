@@ -54,20 +54,31 @@ const US_KEY_FIGURES: KeyFigure[] = [
     description:
       'Authorized Operation Epic Fury Feb 28. Public framing: regime change. ' +
       'Claimed US "totally obliterated every military target" on Kharg Island (March 13). ' +
-      'Faces declining approval amid low public support for war.',
+      'Faces declining approval amid low public support for war (40–44%).',
     successionImpact: 'Vance is less hawkish on Middle East entanglement; would likely seek exit ramp.',
+    provenance: 'verified',
+    sourceNote: 'docs/Iran Research/research-political.md §"Operation Epic Fury"; research-military.md §10',
+    sourceDate: '2026-03-19',
+    // successionImpact (Vance) is inferred — not directly sourced in research docs
   },
   {
     id: 'rubio',
     name: 'Marco Rubio',
     role: 'Secretary of State',
     status: 'active',
-    disposition: 'hawk-wavering',
+    disposition: 'hawk',
     influence: 55,
     description:
-      'Initially hawkish. By Day 18 press conference used phrase "Israel\'s security objectives" ' +
-      'three times without saying "America\'s" — noted by Washington reporters as signal of doubt.',
-    successionImpact: 'Would likely seek negotiated off-ramp if given cover.',
+      'Committed hawk. Secretary of State since January 2025. Received $1M+ in AIPAC contributions since 2010. ' +
+      'March 2 Capitol Hill press conference: accidentally confirmed US knew of Israeli plans before acting — ' +
+      '"We knew that there was going to be an Israeli action. We knew that that would precipitate an attack ' +
+      'against American forces." Walked it back next day: "The president determined we were not going to get ' +
+      'hit first. It\'s that simple, guys." Statement was widely read as confirming Israel initiated the conflict, ' +
+      'not as a signal of personal doubt.',
+    successionImpact: 'Deeply tied to AIPAC donor network; unlikely to seek off-ramp independently.',
+    provenance: 'verified',
+    sourceNote: 'docs/Iran Research/research-political.md §"Marco Rubio\'s critical admission"',
+    sourceDate: '2026-03-02',
   },
   {
     id: 'kent',
@@ -77,9 +88,15 @@ const US_KEY_FIGURES: KeyFigure[] = [
     disposition: 'dove',
     influence: 0,
     description:
-      'Resigned publicly stating war serves Israel\'s interests, not America\'s. ' +
-      'First senior official to break ranks. Created political cover for further dissent.',
-    successionImpact: 'Resignation signals fracture in MAGA foreign policy coalition.',
+      'Resigned March 17, 2026 — highest-ranking Trump official to resign over the Iran war. ' +
+      'Letter posted on X: "Iran posed no imminent threat to our nation, and it is clear that we started ' +
+      'this war due to pressure from Israel and its powerful American lobby." ' +
+      'Referenced wife Shannon Kent\'s death in Syria in 2019. ' +
+      'First senior official to break ranks publicly.',
+    successionImpact: 'Resignation signals fracture in MAGA foreign policy coalition. Administration bracing for Tucker Carlson interview.',
+    provenance: 'verified',
+    sourceNote: 'docs/Iran Research/research-political.md §"Joe Kent\'s resignation"',
+    sourceDate: '2026-03-17',
   },
 ]
 
@@ -92,12 +109,18 @@ const IRAN_KEY_FIGURES: KeyFigure[] = [
     disposition: 'hardliner',
     influence: 0,
     description:
-      'Killed Day 1 (Feb 28, 2026) in joint US-Israel decapitation strike on his bunker. ' +
-      'Death one day after Oman announced diplomatic breakthrough. ' +
-      'Had issued fatwa against nuclear weapons — death removed this constraint.',
+      'Killed Day 1 (Feb 28, 2026) in joint US-Israel decapitation strike on compound in central Tehran. ' +
+      'Iranian state media confirmed death March 1 after initially denying it. ' +
+      'Death came one day after Oman announced diplomatic breakthrough. Age 86 at time of death.',
     successionImpact:
-      'Son Mojtaba is more hardline. Nuclear fatwa no longer binding. ' +
-      'IRGC consolidated power. Martyrdom narrative strengthens regime domestically.',
+      'Son Mojtaba elected Supreme Leader March 8 — assessed as more hardline. ' +
+      'IRGC consolidated power. Martyrdom narrative invoked by regime. ' +
+      'Celebrations broke out in Isfahan, Karaj, Kermanshah, and other cities. ' +
+      'NOTE: "Nuclear fatwa" constraint is inferred from Mojtaba being assessed as more open to nuclear weapons; ' +
+      'no explicit research doc citation for the fatwa itself.',
+    provenance: 'verified',
+    sourceNote: 'docs/Iran Research/research-political.md §"Supreme Leader succession"; research-military.md §8',
+    sourceDate: '2026-03-01',
   },
   {
     id: 'mojtaba_khamenei',
@@ -107,10 +130,18 @@ const IRAN_KEY_FIGURES: KeyFigure[] = [
     disposition: 'hardliner',
     influence: 75,
     description:
-      'Elected Supreme Leader March 8, 2026. More hardline than his father. ' +
-      'Praised Houthi attacks. Possibly incapacitated or in Moscow per US intelligence. ' +
-      'IRGC effectively governing in his name.',
+      'Elected third Supreme Leader March 8–9, 2026 by Assembly of Experts (two-thirds majority). ' +
+      'Age 56. Mid-level clerical rank of Hojjatoleslam — significant legitimacy deficit under Velayat-e Faqih. ' +
+      'Described by Carnegie\'s Karim Sadjadpour as "more radical" than his father. ' +
+      'Assessed by Washington Institute as more favorable to nuclear weapons development. ' +
+      'Reportedly transported to Moscow on Russian military plane (reported March 16). ' +
+      'Hegseth: "wounded and likely disfigured." No video/audio released since appointment. ' +
+      'White House assesses IRGC "effectively running Iran." ' +
+      'NOTE: "Praised Houthi attacks" claim not directly sourced — remove or verify independently.',
     successionImpact: 'No successor identified. IRGC assumes full control if incapacitated.',
+    provenance: 'verified',
+    sourceNote: 'docs/Iran Research/research-political.md §"Supreme Leader succession"; research-military.md §"Mojtaba Khamenei as successor"',
+    sourceDate: '2026-03-19',
   },
   {
     id: 'araghchi',
@@ -120,9 +151,14 @@ const IRAN_KEY_FIGURES: KeyFigure[] = [
     disposition: 'pragmatist',
     influence: 35,
     description:
-      'Admitted March 1: "Our military units are now, in fact, independent and somewhat isolated, ' +
-      'and they are acting based on general instructions given to them in advance." ' +
-      'Potential back-channel conduit if negotiations resume.',
+      'March 1 statement confirmed Mosaic Defense operational: "Our military units are now, in fact, ' +
+      'independent and somewhat isolated, and they are acting based on general instructions given to them in advance." ' +
+      'Claimed Mojtaba is in "perfect health" (contradicting US assessments). ' +
+      'Potential back-channel conduit if negotiations resume. ' +
+      'NOTE: "pragmatist" disposition label is inferred from back-channel role; not explicitly sourced.',
+    provenance: 'researched',
+    sourceNote: 'docs/Iran Research/research-political.md §"Command structure resilience" (exact quote verified)',
+    sourceDate: '2026-03-01',
   },
   {
     id: 'vahidi',
@@ -133,9 +169,12 @@ const IRAN_KEY_FIGURES: KeyFigure[] = [
     influence: 80,
     description:
       'Appointed IRGC deputy in December 2025 specifically to prepare for possible US attack. ' +
-      'Promoted to commander-in-chief after original commander killed Day 1. ' +
-      'Overseeing Mosaic Defense — 31 autonomous provincial commands.',
+      'Promoted to commander-in-chief after Mohammad Pakpour (original IRGC C-in-C) killed Day 1. ' +
+      'Overseeing Mosaic Defense — 31 semi-autonomous provincial commands with pre-delegated strike authority.',
     successionImpact: 'Deeply embedded in IRGC power structure; removal would not break decentralized command.',
+    provenance: 'researched',
+    sourceNote: 'docs/Iran Research/research-political.md §"Command structure resilience"; research-military.md §8 (Pakpour killed Day 1)',
+    sourceDate: '2026-03-19',
   },
 ]
 
@@ -148,10 +187,15 @@ const ISRAEL_KEY_FIGURES: KeyFigure[] = [
     disposition: 'hawk',
     influence: 80,
     description:
-      'Called Trump Feb 23 to share Khamenei\'s location. Initiated strike one day after ' +
+      'Called Trump Feb 23 to provide Khamenei\'s location. Initiated Operation Epic Fury one day after ' +
       'Oman announced diplomatic breakthrough. Faces existential political deadline: ' +
-      'March 31 budget must pass or Knesset dissolves. 74% of Jewish Israelis trust him to manage operation.',
-    successionImpact: 'Bennett polling 18-21 seats as main rival. Election would produce less hawkish coalition.',
+      'March 31 budget must pass second and third Knesset readings or Knesset auto-dissolves (elections ~90 days later). ' +
+      '74% of Jewish Israelis trust him to manage the operation (IDI Mar 2–3 poll). ' +
+      'First reading passed 53–45. Shas/UTJ stabilized after Haredi draft law set aside March 10.',
+    successionImpact: 'Bennett polling 18–21 seats (Channel 12, March 13) as main rival. Election would produce less hawkish coalition.',
+    provenance: 'verified',
+    sourceNote: 'docs/Iran Research/research-political.md §"Netanyahu\'s coalition"; §"Israeli public opinion"',
+    sourceDate: '2026-03-13',
   },
 ]
 
@@ -1296,7 +1340,21 @@ export const IRAN_INITIAL_STATE: IranInitialState = {
       constraints: US_CONSTRAINTS,
       objectives: [],
       capabilities: { strengths: [], limitations: [] },
-      decisionFactors: [],
+      winCondition: 'Iranian nuclear program eliminated. Regional oil flows and Strait of Hormuz protected. No wider regional war involving China or Russia. Domestic political sustainability — no quagmire narrative. Demonstrable deterrence re-established.',
+      loseCondition: 'Regional quagmire with no exit. Oil price shock above $200/bbl. Conflict expansion drawing in China (Taiwan) or Russia. Significant American casualties without clear strategic gain. Loss of Gulf state partnerships.',
+      stakesLevel: 'critical',
+      decisionFactors: [
+        {
+          name: 'Alliance Friction Tolerance',
+          description: 'US and Israel have different win conditions. The US may prefer negotiated off-ramps that Israel would actively sabotage. The US must weigh the cost of restraining Israel against the cost of being drawn into an expanding conflict.',
+          impactOnDecisions: 'Creates pressure to publicly align with Israel while privately seeking de-escalation windows; US may accept Israeli escalatory actions rather than rupture the alliance.',
+        },
+        {
+          name: 'Escalation Ceiling',
+          description: 'The US is sensitive to actions that could draw in China or Russia, or that could destabilize Gulf state partners. Nuclear escalation is categorically unacceptable. The US has a lower escalation ceiling than Israel.',
+          impactOnDecisions: 'Constrains offensive options; US will resist Israeli pressure to strike Iranian leadership if it risks broader conflict or nuclear response.',
+        },
+      ],
       escalation: { currentRung: 5, rungs: [], escalationTriggers: [], deescalationConditions: [] },
       intelligencePicture: [],
     },
@@ -1331,7 +1389,27 @@ export const IRAN_INITIAL_STATE: IranInitialState = {
       constraints: ISRAEL_CONSTRAINTS,
       objectives: [],
       capabilities: { strengths: [], limitations: [] },
-      decisionFactors: [],
+      winCondition: 'Iran permanently unable to reconstitute as a regional power. US military presence in the Middle East sustained long-term. Iranian nuclear program eliminated. Proxy network (Hezbollah, Hamas, Houthis) degraded to non-threatening levels.',
+      loseCondition: 'US-Iran diplomatic deal that leaves the Iranian state intact and functional. US regional military withdrawal. Iran achieves nuclear deterrent capability — even threshold status changes the strategic equation irreversibly.',
+      stakesLevel: 'existential',
+      decisionFactors: [
+        {
+          name: 'Regional Hegemony Drive',
+          description: 'Israel seeks to be the dominant regional power in the Middle East. A weakened, fragmented Iran is the primary path to this. Actions that keep the US engaged and Iran unable to rebuild are strategically rational — even if they conflict with stated US preferences.',
+          impactOnDecisions: 'Biases Israel toward escalation and against ceasefire; Israel will take unilateral action to prevent diplomatic exits that leave Iran functional.',
+        },
+        {
+          name: 'US Commitment Preservation',
+          description: 'Maintaining US military involvement is a core strategic interest. Israel may take actions that constrain US options for de-escalation or diplomacy if those options risk US withdrawal from the conflict.',
+          impactOnDecisions: 'Israel may provoke Iranian responses that force US re-engagement; sabotaging off-ramps is rational if it keeps the US committed.',
+        },
+        {
+          name: 'Moderate Elimination',
+          description: 'Iranian political figures who might negotiate or seek de-escalation represent a threat to the conflict continuing. Targeting them (directly or indirectly) is consistent with Israel\'s strategic logic.',
+          impactOnDecisions: 'Israel will prioritize strikes on Iranian moderates, diplomatic infrastructure, and back-channel negotiators over purely military targets.',
+          escalationEffect: 'Killing Iranian moderates may unify hardliners and remove the possibility of a negotiated exit, permanently raising the conflict floor.',
+        },
+      ],
       escalation: { currentRung: 6, rungs: [], escalationTriggers: [], deescalationConditions: [] },
       intelligencePicture: [],
     },
