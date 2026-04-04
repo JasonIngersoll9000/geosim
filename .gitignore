@@ -1,6 +1,9 @@
 # git worktrees
 .worktrees/
 
+# Iran seed pipeline — intermediate JSON artifacts (pushed to Supabase, not committed)
+/data/
+
 # dependencies
 /node_modules
 /.pnp
