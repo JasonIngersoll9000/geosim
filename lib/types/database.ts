@@ -114,7 +114,7 @@ export interface TurnCommitRow {
   decision_alternatives: Record<string, unknown> | null;
   escalation_rung_before: number | null;
   escalation_rung_after: number | null;
-  escalation_direction: 'up' | 'down' | 'lateral' | 'none' | null;
+  escalation_direction: "up" | "down" | "lateral" | "none" | null;
 }
 
 export interface ActorRow {
@@ -184,7 +184,7 @@ export interface ScenarioRatingRow {
 // Comprehensive seed tables
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface ActorTableRow {
+export interface ScenarioActorRow {
   id: string;
   scenario_id: string;
   name: string;
@@ -199,6 +199,9 @@ export interface ActorTableRow {
   created_at: string;
   updated_at: string;
 }
+
+/** @deprecated use ScenarioActorRow */
+export type ActorTableRow = ScenarioActorRow;
 
 export interface KeyFigureRow {
   id: string;
@@ -223,12 +226,12 @@ export interface ActorCapabilityRow {
   id: string;
   scenario_id: string;
   actor_id: string;
-  category: 'military' | 'diplomatic' | 'economic' | 'intelligence';
+  category: "military" | "diplomatic" | "economic" | "intelligence";
   name: string;
   description: string;
   quantity: number | null;
   unit: string | null;
-  deployment_status: 'available' | 'partially_deployed' | 'degraded';
+  deployment_status: "available" | "partially_deployed" | "degraded";
   lead_time_days: number | null;
   political_cost: string | null;
   temporal_anchor: string;
@@ -253,8 +256,46 @@ export type ScenarioInsert = Omit<
 export type BranchInsert = Omit<BranchRow, "id" | "current_divergence" | "created_at" | "updated_at"> &
   Partial<Pick<BranchRow, "id" | "current_divergence" | "created_at" | "updated_at">>;
 
-export type TurnCommitInsert = Omit<TurnCommitRow, "id" | "cache_key" | "reuse_count" | "computed_at"> &
-  Partial<Pick<TurnCommitRow, "id" | "cache_key" | "reuse_count" | "computed_at">>;
+export type TurnCommitInsert = Omit<
+  TurnCommitRow,
+  | "id"
+  | "cache_key"
+  | "reuse_count"
+  | "computed_at"
+  | "full_briefing"
+  | "chronicle_headline"
+  | "chronicle_entry"
+  | "chronicle_date_label"
+  | "context_summary"
+  | "is_decision_point"
+  | "deciding_actor_id"
+  | "decision_summary"
+  | "decision_alternatives"
+  | "escalation_rung_before"
+  | "escalation_rung_after"
+  | "escalation_direction"
+> &
+  Partial<
+    Pick<
+      TurnCommitRow,
+      | "id"
+      | "cache_key"
+      | "reuse_count"
+      | "computed_at"
+      | "full_briefing"
+      | "chronicle_headline"
+      | "chronicle_entry"
+      | "chronicle_date_label"
+      | "context_summary"
+      | "is_decision_point"
+      | "deciding_actor_id"
+      | "decision_summary"
+      | "decision_alternatives"
+      | "escalation_rung_before"
+      | "escalation_rung_after"
+      | "escalation_direction"
+    >
+  >;
 
 export type ActorInsert = Omit<ActorRow, "id" | "created_at"> &
   Partial<Pick<ActorRow, "id" | "created_at">>;
@@ -271,14 +312,17 @@ export type EvalMetricInsert = Omit<EvalMetricRow, "id" | "created_at"> &
 export type ScenarioRatingInsert = Omit<ScenarioRatingRow, "id" | "created_at"> &
   Partial<Pick<ScenarioRatingRow, "id" | "created_at">>;
 
-export type ActorTableInsert = Omit<ActorTableRow, 'created_at' | 'updated_at'> &
-  Partial<Pick<ActorTableRow, 'created_at' | 'updated_at'>>;
+export type ScenarioActorInsert = Omit<ScenarioActorRow, "created_at" | "updated_at"> &
+  Partial<Pick<ScenarioActorRow, "created_at" | "updated_at">>;
 
-export type KeyFigureInsert = Omit<KeyFigureRow, 'created_at' | 'updated_at'> &
-  Partial<Pick<KeyFigureRow, 'created_at' | 'updated_at'>>;
+/** @deprecated use ScenarioActorInsert */
+export type ActorTableInsert = ScenarioActorInsert;
 
-export type ActorCapabilityInsert = Omit<ActorCapabilityRow, 'id' | 'created_at' | 'updated_at'> &
-  Partial<Pick<ActorCapabilityRow, 'id' | 'created_at' | 'updated_at'>>;
+export type KeyFigureInsert = Omit<KeyFigureRow, "created_at" | "updated_at"> &
+  Partial<Pick<KeyFigureRow, "created_at" | "updated_at">>;
+
+export type ActorCapabilityInsert = Omit<ActorCapabilityRow, "id" | "created_at" | "updated_at"> &
+  Partial<Pick<ActorCapabilityRow, "id" | "created_at" | "updated_at">>;
 
 // ------------------------------------------------------------
 // UPDATE TYPES (all fields optional except id)
@@ -288,9 +332,13 @@ export type ScenarioUpdate = Partial<Omit<ScenarioRow, "id">> & { id: string };
 export type BranchUpdate = Partial<Omit<BranchRow, "id">> & { id: string };
 export type ActorUpdate = Partial<Omit<ActorRow, "id">> & { id: string };
 
-export type ActorTableUpdate = Partial<Omit<ActorTableRow, 'id' | 'scenario_id'>> & { id: string; scenario_id: string };
-export type KeyFigureUpdate = Partial<Omit<KeyFigureRow, 'id' | 'scenario_id'>> & { id: string; scenario_id: string };
-export type ActorCapabilityUpdate = Partial<Omit<ActorCapabilityRow, 'id'>> & { id: string };
+export type ScenarioActorUpdate = Partial<Omit<ScenarioActorRow, "id" | "scenario_id">> & { id: string; scenario_id: string };
+
+/** @deprecated use ScenarioActorUpdate */
+export type ActorTableUpdate = ScenarioActorUpdate;
+
+export type KeyFigureUpdate = Partial<Omit<KeyFigureRow, "id" | "scenario_id">> & { id: string; scenario_id: string };
+export type ActorCapabilityUpdate = Partial<Omit<ActorCapabilityRow, "id">> & { id: string };
 
 // ------------------------------------------------------------
 // SUPABASE DATABASE TYPE (for typed client)
@@ -343,6 +391,21 @@ export interface Database {
         Row: ScenarioRatingRow;
         Insert: ScenarioRatingInsert;
         Update: Partial<ScenarioRatingRow>;
+      };
+      scenario_actors: {
+        Row: ScenarioActorRow;
+        Insert: ScenarioActorInsert;
+        Update: ScenarioActorUpdate;
+      };
+      key_figures: {
+        Row: KeyFigureRow;
+        Insert: KeyFigureInsert;
+        Update: KeyFigureUpdate;
+      };
+      actor_capabilities: {
+        Row: ActorCapabilityRow;
+        Insert: ActorCapabilityInsert;
+        Update: ActorCapabilityUpdate;
       };
     };
     Enums: {

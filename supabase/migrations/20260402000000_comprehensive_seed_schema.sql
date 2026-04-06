@@ -3,9 +3,11 @@
 -- NEVER modify previously committed migrations — only additive changes here.
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- New table: actors
+-- New table: scenario_actors
+-- (named scenario_actors to avoid collision with the existing actors table
+--  which has a different schema and a uuid primary key)
 -- ─────────────────────────────────────────────────────────────────────────────
-create table if not exists actors (
+create table if not exists scenario_actors (
   id                    text        not null,
   scenario_id           uuid        not null references scenarios(id) on delete cascade,
   name                  text        not null,
@@ -42,7 +44,8 @@ create table if not exists key_figures (
   source_date      text,
   created_at       timestamptz not null default now(),
   updated_at       timestamptz not null default now(),
-  primary key (id, scenario_id)
+  primary key (id, scenario_id),
+  foreign key (actor_id, scenario_id) references scenario_actors(id, scenario_id)
 );
 
 -- ─────────────────────────────────────────────────────────────────────────────
