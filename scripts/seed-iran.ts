@@ -356,7 +356,7 @@ export async function seedIranScenario(options: SeedOptions = {}): Promise<{
 }
 
 // CLI entry point
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (Bun.main === decodeURIComponent(new URL(import.meta.url).pathname)) {
   const args = process.argv.slice(2)
   const fromEventId = args.find(a => a.startsWith('--from='))?.split('=')[1]
   const dryRun = args.includes('--dry-run')

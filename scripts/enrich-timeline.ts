@@ -124,7 +124,10 @@ Output ONLY the JSON object. No prose outside the JSON.`
 export function parseEnrichedResponse(raw: string, eventId: string): ParsedEnrichment {
   let parsed: unknown
   try {
-    parsed = JSON.parse(raw.trim())
+    const start = raw.indexOf('{')
+    const end = raw.lastIndexOf('}')
+    const content = (start !== -1 && end > start) ? raw.slice(start, end + 1) : raw.trim()
+    parsed = JSON.parse(content)
   } catch {
     throw new Error(`Failed to parse enrichment response for ${eventId}: not valid JSON`)
   }
@@ -149,7 +152,7 @@ export function parseEnrichedResponse(raw: string, eventId: string): ParsedEnric
 async function callClaude(client: Anthropic, prompt: string): Promise<string> {
   const response = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 4096,
+    max_tokens: 16000,
     messages: [{ role: "user", content: prompt }],
   })
   return response.content
@@ -247,7 +250,7 @@ async function main(): Promise<void> {
   console.log("Next: Run scripts/seed-iran.ts to push to Supabase")
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (Bun.main === decodeURIComponent(new URL(import.meta.url).pathname)) {
   main().catch(err => {
     console.error(err)
     process.exit(1)

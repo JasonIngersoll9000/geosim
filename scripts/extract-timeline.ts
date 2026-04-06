@@ -62,7 +62,11 @@ ${content}`
 export function parseExtractionResponse(rawResponse: string, docName: string): TimelineEvent[] {
   let parsed: unknown
   try {
-    parsed = JSON.parse(rawResponse.trim())
+    // Extract JSON array — slice from first '[' to last ']' to skip any fence/prose wrapping
+    const start = rawResponse.indexOf('[')
+    const end = rawResponse.lastIndexOf(']')
+    const content = (start !== -1 && end > start) ? rawResponse.slice(start, end + 1) : rawResponse.trim()
+    parsed = JSON.parse(content)
   } catch {
     throw new Error(
       `Failed to parse extraction response from ${docName}: not valid JSON`
@@ -91,16 +95,13 @@ async function extractFromDoc(
   const content = await readFile(join(process.cwd(), docPath), "utf-8")
   const prompt = buildExtractionPrompt(docName, content)
 
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 8192,
-    messages: [{ role: "user", content: prompt }],
-  })
-
-  const text = response.content
-    .filter(block => block.type === "text")
-    .map(block => (block as { type: "text"; text: string }).text)
-    .join("")
+  const text = await client.messages
+    .stream({
+      model: "claude-sonnet-4-6",
+      max_tokens: 32000,
+      messages: [{ role: "user", content: prompt }],
+    })
+    .finalText()
 
   const events = parseExtractionResponse(text, docName)
   console.log(`  → ${events.length} events extracted from ${docName}`)
@@ -144,7 +145,7 @@ async function main(): Promise<void> {
   console.log("Next: Review the file, then run scripts/generate-profiles.ts")
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (Bun.main === decodeURIComponent(new URL(import.meta.url).pathname)) {
   main().catch(err => {
     console.error(err)
     process.exit(1)
