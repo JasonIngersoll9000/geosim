@@ -225,7 +225,10 @@ export async function seedIranScenario(options: SeedOptions = {}): Promise<{
 
     if (!scenario) throw new Error('Cannot append: scenario not found. Run full seed first.')
     scenarioId = scenario.id
-    branchId = scenario.trunk_branch_id as string
+    if (!scenario.trunk_branch_id) {
+      throw new Error('Cannot append: scenario has no trunk branch. Run full seed first.')
+    }
+    branchId = scenario.trunk_branch_id
 
     const { data: headCommit } = await supabase
       .from('turn_commits')
@@ -248,10 +251,18 @@ export async function seedIranScenario(options: SeedOptions = {}): Promise<{
 
     for (const s of existing ?? []) {
       // NOTE: table is scenario_actors (not actors) to avoid collision with the game actors table
-      await supabase.from('scenario_actors').delete().eq('scenario_id', s.id)
-      await supabase.from('key_figures').delete().eq('scenario_id', s.id)
-      await supabase.from('actor_capabilities').delete().eq('scenario_id', s.id)
-      await supabase.from('scenarios').delete().eq('id', s.id)
+      const { error: actorsErr } = await supabase.from('scenario_actors').delete().eq('scenario_id', s.id)
+      if (actorsErr) throw new Error(`Failed to delete scenario_actors for ${s.id}: ${actorsErr.message}`)
+
+      const { error: figuresErr } = await supabase.from('key_figures').delete().eq('scenario_id', s.id)
+      if (figuresErr) throw new Error(`Failed to delete key_figures for ${s.id}: ${figuresErr.message}`)
+
+      const { error: capsErr } = await supabase.from('actor_capabilities').delete().eq('scenario_id', s.id)
+      if (capsErr) throw new Error(`Failed to delete actor_capabilities for ${s.id}: ${capsErr.message}`)
+
+      const { error: scenarioErr } = await supabase.from('scenarios').delete().eq('id', s.id)
+      if (scenarioErr) throw new Error(`Failed to delete scenario ${s.id}: ${scenarioErr.message}`)
+
       console.log(`  ✓ Deleted scenario ${s.id}`)
     }
 
