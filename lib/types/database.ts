@@ -59,6 +59,9 @@ export interface ScenarioRow {
   rating: number | null;
   created_at: string;
   updated_at: string;
+  background_context_enriched: string | null;
+  scenario_start_date: string | null;
+  ground_truth_through_date: string | null;
 }
 
 export interface BranchRow {
@@ -99,6 +102,19 @@ export interface TurnCommitRow {
   cache_key: string | null;
   reuse_count: number;
   computed_at: string;
+  // Enriched content fields (populated by enrich-timeline.ts pipeline)
+  full_briefing: string | null;
+  chronicle_headline: string | null;
+  chronicle_entry: string | null;
+  chronicle_date_label: string | null;
+  context_summary: string | null;
+  is_decision_point: boolean;
+  deciding_actor_id: string | null;
+  decision_summary: string | null;
+  decision_alternatives: Record<string, unknown> | null;
+  escalation_rung_before: number | null;
+  escalation_rung_after: number | null;
+  escalation_direction: 'up' | 'down' | 'lateral' | 'none' | null;
 }
 
 export interface ActorRow {
@@ -164,6 +180,64 @@ export interface ScenarioRatingRow {
   created_at: string;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Comprehensive seed tables
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ActorTableRow {
+  id: string;
+  scenario_id: string;
+  name: string;
+  short_name: string;
+  biographical_summary: string;
+  leadership_profile: string;
+  win_condition: string;
+  strategic_doctrine: string;
+  historical_precedents: string;
+  initial_scores: Record<string, unknown>;
+  intelligence_profile: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface KeyFigureRow {
+  id: string;
+  scenario_id: string;
+  actor_id: string;
+  name: string;
+  title: string;
+  role: string;
+  biography: string;
+  motivations: string;
+  decision_style: string;
+  current_context: string;
+  relationships: Record<string, unknown> | null;
+  provenance: string;
+  source_note: string | null;
+  source_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActorCapabilityRow {
+  id: string;
+  scenario_id: string;
+  actor_id: string;
+  category: 'military' | 'diplomatic' | 'economic' | 'intelligence';
+  name: string;
+  description: string;
+  quantity: number | null;
+  unit: string | null;
+  deployment_status: 'available' | 'partially_deployed' | 'degraded';
+  lead_time_days: number | null;
+  political_cost: string | null;
+  temporal_anchor: string;
+  source_url: string | null;
+  source_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ------------------------------------------------------------
 // INSERT TYPES (omit auto-generated fields)
 // ------------------------------------------------------------
@@ -197,6 +271,15 @@ export type EvalMetricInsert = Omit<EvalMetricRow, "id" | "created_at"> &
 export type ScenarioRatingInsert = Omit<ScenarioRatingRow, "id" | "created_at"> &
   Partial<Pick<ScenarioRatingRow, "id" | "created_at">>;
 
+export type ActorTableInsert = Omit<ActorTableRow, 'created_at' | 'updated_at'> &
+  Partial<Pick<ActorTableRow, 'created_at' | 'updated_at'>>;
+
+export type KeyFigureInsert = Omit<KeyFigureRow, 'created_at' | 'updated_at'> &
+  Partial<Pick<KeyFigureRow, 'created_at' | 'updated_at'>>;
+
+export type ActorCapabilityInsert = Omit<ActorCapabilityRow, 'id' | 'created_at' | 'updated_at'> &
+  Partial<Pick<ActorCapabilityRow, 'id' | 'created_at' | 'updated_at'>>;
+
 // ------------------------------------------------------------
 // UPDATE TYPES (all fields optional except id)
 // ------------------------------------------------------------
@@ -204,6 +287,10 @@ export type ScenarioRatingInsert = Omit<ScenarioRatingRow, "id" | "created_at"> 
 export type ScenarioUpdate = Partial<Omit<ScenarioRow, "id">> & { id: string };
 export type BranchUpdate = Partial<Omit<BranchRow, "id">> & { id: string };
 export type ActorUpdate = Partial<Omit<ActorRow, "id">> & { id: string };
+
+export type ActorTableUpdate = Partial<Omit<ActorTableRow, 'id' | 'scenario_id'>> & { id: string; scenario_id: string };
+export type KeyFigureUpdate = Partial<Omit<KeyFigureRow, 'id' | 'scenario_id'>> & { id: string; scenario_id: string };
+export type ActorCapabilityUpdate = Partial<Omit<ActorCapabilityRow, 'id'>> & { id: string };
 
 // ------------------------------------------------------------
 // SUPABASE DATABASE TYPE (for typed client)
