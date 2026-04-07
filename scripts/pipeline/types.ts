@@ -310,6 +310,28 @@ export interface ActorStateSnapshot {
   asset_inventory: Record<string, number>  // asset_type → current count
 }
 
+export interface RadarInstallation {
+  id: string
+  name: string
+  actor_id: string                    // who operates it: "united_states", "israel", "iran"
+  lat: number
+  lon: number
+  range_km: number
+  sectors_covered: string[]           // e.g. ["jordan_israel_corridor", "theater_early_warning"]
+  supported_interceptors: string[]    // e.g. ["thaad", "patriot_pac3", "sm3"]
+  effectiveness_contribution: number  // 0.0–1.0, fraction of actor's total coverage this provides
+  baseline_status: "operational" | "degraded" | "destroyed"  // pre-conflict status
+  current_status: "operational" | "degraded" | "destroyed"
+  status_effective_date?: string | null  // ISO date when status changed (from research)
+  leaker_rate_increase_pct: number    // % increase in leakers if this radar is lost (midpoint of research range)
+  coverage_category: "critical" | "major" | "moderate" | "minor"
+}
+
+export interface RadarNetworkFile {
+  _meta: { temporal_anchor: string; source: string }
+  installations: RadarInstallation[]
+}
+
 export interface TurnStateSnapshot {
   event_id: string
   timestamp: string
@@ -321,6 +343,10 @@ export interface TurnStateSnapshot {
   }
   facility_statuses: FacilityStatus[]
   active_depletion_rates: Record<string, ActorDepletionRates>
+  interceptor_effectiveness: Record<string, Record<string, number>>
+  // keyed by actor_id → sector → effectiveness multiplier (0.0–1.0)
+  // 1.0 = full effectiveness, 0.6 = 40% degraded
+  // Example: { "united_states": { "jordan_israel_corridor": 0.55, "southern_gulf": 0.70 } }
 }
 
 export interface StateSnapshotsFile {

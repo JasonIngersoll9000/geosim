@@ -20,11 +20,15 @@ import type {
   StateEffectsFile,
   ActorStateDelta,
   ActorAssetInventory,
+  RadarInstallation,
+  RadarNetworkFile,
 } from "./pipeline/types"
+import { computeInterceptorEffectiveness } from "./compute-state-snapshots"
 
 const ENRICHED_PATH = "data/iran-enriched.json"
 const GAP_FILL_PATH = "data/iran-gap-fill.json"
 const OUTPUT_PATH = "data/iran-state-effects.json"
+const RADAR_NETWORK_PATH = "data/radar-network.json"
 
 interface EnrichedFile {
   _meta: Record<string, unknown>
@@ -33,10 +37,73 @@ interface EnrichedFile {
 
 // ─── Exported functions (unit-testable surface) ───────────────────────────────
 
+/**
+ * Builds a concise text summary of current radar coverage status for use in
+ * the state-effects scoring prompt. Helps the AI understand which interceptors
+ * are operating at degraded effectiveness due to sensor losses.
+ */
+export function buildRadarContext(radars: RadarInstallation[], asOfDate: string): string {
+  const effectiveness = computeInterceptorEffectiveness(radars, asOfDate)
+
+  // Group radars by actor for narrative building
+  const byActor: Record<string, RadarInstallation[]> = {}
+  for (const radar of radars) {
+    if (!byActor[radar.actor_id]) byActor[radar.actor_id] = []
+    byActor[radar.actor_id].push(radar)
+  }
+
+  const lines: string[] = [`RADAR COVERAGE STATUS (as of ${asOfDate}):`]
+
+  const actorLabels: Record<string, string> = {
+    united_states: "US/Coalition",
+    israel: "Israel",
+    iran: "Iran IADS",
+  }
+
+  for (const [actorId, actorRadars] of Object.entries(byActor)) {
+    const label = actorLabels[actorId] ?? actorId
+    lines.push(`${label}:`)
+
+    // Collect sector effectiveness for this actor
+    const actorEffectiveness = effectiveness[actorId] ?? {}
+
+    // List each sector once with its effectiveness
+    const reportedSectors = new Set<string>()
+    for (const radar of actorRadars) {
+      for (const sector of radar.sectors_covered) {
+        if (reportedSectors.has(sector)) continue
+        reportedSectors.add(sector)
+
+        const pct = Math.round((actorEffectiveness[sector] ?? 1.0) * 100)
+        // Find non-operational radars affecting this sector (for annotation)
+        const degradedRadars = actorRadars.filter(r =>
+          r.sectors_covered.includes(sector) &&
+          r.current_status !== "operational" &&
+          r.status_effective_date &&
+          r.status_effective_date <= asOfDate
+        )
+        const annotation = degradedRadars.length > 0
+          ? ` (${degradedRadars.map(r => `${r.name.split("—")[0].trim()} ${r.current_status} ${r.status_effective_date ?? ""}`).join("; ")})`
+          : ""
+        lines.push(`  - ${sector.replace(/_/g, " ")}: ${pct}% effective${annotation}`)
+      }
+    }
+  }
+
+  lines.push("")
+  lines.push(
+    "NOTE: When scoring interceptor usage for this event, account for degraded radar coverage. " +
+    "Lower radar coverage = more interceptors needed per missile OR higher leaker rate."
+  )
+
+  return lines.join("\n")
+}
+
 export function buildStateEffectsPrompt(
   event: EnrichedEvent,
   gapFill: GapFillData,
-  priorSnapshot: string
+  priorSnapshot: string,
+  radars?: RadarInstallation[]
 ): string {
   // Only include asset inventory for actors involved in this event
   const relevantActors = event.actors_involved ?? []
@@ -76,6 +143,10 @@ export function buildStateEffectsPrompt(
     .filter(Boolean)
     .join("\n\n")
 
+  const radarSection = radars && radars.length > 0
+    ? `\n${buildRadarContext(radars, event.timestamp)}\n`
+    : ""
+
   return `You are scoring the actor state effects for a single geopolitical simulation event.
 Your job is to estimate how this event changed each actor's state variables and asset inventories.
 
@@ -92,7 +163,7 @@ Decision taken:
 ${event.decision_analysis.decision_summary ?? "Not a decision point"}
 
 CUMULATIVE STATE PRIOR TO THIS EVENT:
-${priorSnapshot}
+${priorSnapshot}${radarSection}
 
 RELEVANT ASSET INVENTORY (actors involved in this event):
 ${inventoryText || "No inventory data available for these actors."}
@@ -255,6 +326,15 @@ async function main(): Promise<void> {
 
   const gapFill = await readJsonFile<GapFillData>(GAP_FILL_PATH)
 
+  let radarInstallations: RadarInstallation[] = []
+  try {
+    const radarFile = await readJsonFile<RadarNetworkFile>(RADAR_NETWORK_PATH)
+    radarInstallations = radarFile.installations
+    console.log(`Loaded ${radarInstallations.length} radar installations`)
+  } catch {
+    console.warn("Warning: could not load data/radar-network.json — radar context will be omitted from prompts")
+  }
+
   // Load existing output file to support resuming
   let existingEffects: EventStateEffects[] = []
   try {
@@ -295,7 +375,7 @@ async function main(): Promise<void> {
     const priorEffects = outputEvents.filter(e => (eventIdToIndex.get(e.event_id) ?? -1) < currentIdx)
     const priorSnapshot = buildPriorSnapshotSummary(priorEffects)
 
-    const prompt = buildStateEffectsPrompt(event, gapFill, priorSnapshot)
+    const prompt = buildStateEffectsPrompt(event, gapFill, priorSnapshot, radarInstallations)
     const raw = await callClaude(client, prompt)
     const effects = parseStateEffectsResponse(raw, event.id)
 

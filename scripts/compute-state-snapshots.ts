@@ -25,12 +25,15 @@ import type {
   ActorDepletionRates,
   StateEffectsFile,
   ActorProfile,
+  RadarInstallation,
+  RadarNetworkFile,
 } from "./pipeline/types"
 
 const ENRICHED_PATH = "data/iran-enriched.json"
 const STATE_EFFECTS_PATH = "data/iran-state-effects.json"
 const GAP_FILL_PATH = "data/iran-gap-fill.json"
 const OUTPUT_PATH = "data/iran-state-snapshots.json"
+const RADAR_NETWORK_PATH = "data/radar-network.json"
 
 const ALL_ACTORS = ["united_states", "iran", "israel", "russia", "china"]
 
@@ -147,6 +150,65 @@ export function buildInitialFacilityStatuses(gapFill: GapFillData): FacilityStat
 }
 
 /**
+ * Computes interceptor effectiveness for each actor/sector given radar status
+ * as of a specific date. Degraded radars apply 50% of their leaker penalty;
+ * destroyed radars apply 100%. Values are clamped to 0.01–1.0.
+ *
+ * This function is the canonical implementation — buildInitialInterceptorEffectiveness
+ * delegates to it.
+ */
+export function computeInterceptorEffectiveness(
+  radars: RadarInstallation[],
+  asOfDate: string
+): Record<string, Record<string, number>> {
+  // Collect all sectors per actor and initialize at 1.0
+  const effectiveness: Record<string, Record<string, number>> = {}
+
+  // First pass: discover all actor/sector combinations
+  for (const radar of radars) {
+    if (!effectiveness[radar.actor_id]) {
+      effectiveness[radar.actor_id] = {}
+    }
+    for (const sector of radar.sectors_covered) {
+      if (effectiveness[radar.actor_id][sector] === undefined) {
+        effectiveness[radar.actor_id][sector] = 1.0
+      }
+    }
+  }
+
+  // Second pass: apply degradations for non-operational radars active as of asOfDate
+  for (const radar of radars) {
+    if (radar.current_status === "operational") continue
+
+    // Only apply if status_effective_date is on or before asOfDate
+    if (radar.status_effective_date && radar.status_effective_date > asOfDate) continue
+
+    // Fraction of penalty to apply: 50% for degraded, 100% for destroyed
+    const penaltyFraction = radar.current_status === "degraded" ? 0.5 : 1.0
+    const reduction =
+      (radar.leaker_rate_increase_pct / 100) * radar.effectiveness_contribution * penaltyFraction
+
+    for (const sector of radar.sectors_covered) {
+      const current = effectiveness[radar.actor_id][sector] ?? 1.0
+      effectiveness[radar.actor_id][sector] = Math.min(1.0, Math.max(0.01, current - reduction))
+    }
+  }
+
+  return effectiveness
+}
+
+/**
+ * Alias of computeInterceptorEffectiveness — used to build the initial
+ * effectiveness baseline at the start of the event loop.
+ */
+export function buildInitialInterceptorEffectiveness(
+  radars: RadarInstallation[],
+  eventTimestamp: string
+): Record<string, Record<string, number>> {
+  return computeInterceptorEffectiveness(radars, eventTimestamp)
+}
+
+/**
  * Main computation: replays events applying state effects and daily depletion.
  * Returns one TurnStateSnapshot per event.
  */
@@ -154,7 +216,8 @@ export function computeSnapshots(
   events: EnrichedEvent[],
   effects: EventStateEffects[],
   gapFill: GapFillData,
-  actorProfiles?: ActorProfile[]
+  actorProfiles?: ActorProfile[],
+  radars?: RadarInstallation[]
 ): TurnStateSnapshot[] {
   // Build effects lookup by event_id
   const effectsById = new Map<string, EventStateEffects>()
@@ -331,7 +394,12 @@ export function computeSnapshots(
       }
     }
 
-    // Step 9: Produce snapshot
+    // Step 9: Compute interceptor effectiveness for this event's timestamp
+    const interceptorEffectiveness = radars
+      ? buildInitialInterceptorEffectiveness(radars, event.timestamp)
+      : {}
+
+    // Step 10: Produce snapshot
     snapshots.push({
       event_id: event.id,
       timestamp: event.timestamp,
@@ -339,6 +407,7 @@ export function computeSnapshots(
       global_state: { ...globalState },
       facility_statuses: facilityStatuses.map(f => ({ ...f })),
       active_depletion_rates: activeDepletionRatesSnapshot,
+      interceptor_effectiveness: interceptorEffectiveness,
     })
 
     previousTimestamp = event.timestamp
@@ -372,8 +441,17 @@ async function main() {
     console.warn("Warning: could not load data/actor-profiles.json — using default initial scores (50)")
   }
 
+  let radarInstallations: RadarInstallation[] = []
+  try {
+    const radarFile = await readJsonFile<RadarNetworkFile>(RADAR_NETWORK_PATH)
+    radarInstallations = radarFile.installations
+    console.log(`Loaded ${radarInstallations.length} radar installations`)
+  } catch {
+    console.warn("Warning: could not load data/radar-network.json — interceptor_effectiveness will be empty")
+  }
+
   console.log(`Computing snapshots for ${events.length} events...`)
-  const snapshots = computeSnapshots(events, effects, gapFill, actorProfiles)
+  const snapshots = computeSnapshots(events, effects, gapFill, actorProfiles, radarInstallations)
 
   // Build initial_state from actor profiles (or fall back to 50)
   const profileMap = new Map(actorProfiles.map(p => [p.id, p]))

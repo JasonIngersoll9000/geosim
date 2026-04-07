@@ -4,8 +4,9 @@ import {
   buildStateEffectsPrompt,
   parseStateEffectsResponse,
   buildPriorSnapshotSummary,
+  buildRadarContext,
 } from "../../scripts/score-state-effects"
-import type { EnrichedEvent, EventStateEffects, GapFillData } from "../../scripts/pipeline/types"
+import type { EnrichedEvent, EventStateEffects, GapFillData, RadarInstallation } from "../../scripts/pipeline/types"
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -371,5 +372,113 @@ describe("buildPriorSnapshotSummary", () => {
     expect(result).toMatch(/eco(nomic)?/i)
     expect(result).toMatch(/sup(port)?/i)
     expect(result).toMatch(/int(ernational)?/i)
+  })
+})
+
+// ─── buildRadarContext ────────────────────────────────────────────────────────
+
+function makeRadarInstallation(overrides: Partial<RadarInstallation> = {}): RadarInstallation {
+  return {
+    id: "test_radar",
+    name: "Test Radar — Test Location",
+    actor_id: "united_states",
+    lat: 30.0,
+    lon: 40.0,
+    range_km: 1000,
+    sectors_covered: ["test_sector"],
+    supported_interceptors: ["thaad"],
+    effectiveness_contribution: 0.35,
+    baseline_status: "operational",
+    current_status: "operational",
+    status_effective_date: null,
+    leaker_rate_increase_pct: 20.0,
+    coverage_category: "critical",
+    ...overrides,
+  }
+}
+
+describe("buildRadarContext", () => {
+  it("returns a non-empty string when radars are provided", () => {
+    const radars = [makeRadarInstallation()]
+    const result = buildRadarContext(radars, "2026-04-07")
+    expect(result.length).toBeGreaterThan(0)
+  })
+
+  it("contains the actor label for US radars", () => {
+    const radars = [makeRadarInstallation({ actor_id: "united_states" })]
+    const result = buildRadarContext(radars, "2026-04-07")
+    expect(result).toMatch(/US\/Coalition|united_states/i)
+  })
+
+  it("contains the actor label for Iran radars", () => {
+    const radars = [makeRadarInstallation({ actor_id: "iran" })]
+    const result = buildRadarContext(radars, "2026-04-07")
+    expect(result).toMatch(/Iran/i)
+  })
+
+  it("contains sector names in the output", () => {
+    const radars = [
+      makeRadarInstallation({ sectors_covered: ["jordan_israel_corridor"] }),
+    ]
+    const result = buildRadarContext(radars, "2026-04-07")
+    expect(result).toContain("jordan israel corridor")
+  })
+
+  it("shows 100% effectiveness for fully operational radar", () => {
+    const radars = [makeRadarInstallation({ current_status: "operational" })]
+    const result = buildRadarContext(radars, "2026-04-07")
+    expect(result).toContain("100%")
+  })
+
+  it("shows degraded effectiveness for a destroyed radar", () => {
+    const radars = [
+      makeRadarInstallation({
+        current_status: "destroyed",
+        status_effective_date: "2026-03-01",
+        leaker_rate_increase_pct: 25.0,
+        effectiveness_contribution: 0.40,
+      }),
+    ]
+    const result = buildRadarContext(radars, "2026-04-07")
+    // 1.0 - (0.25 * 0.40 * 1.0) = 0.90 → 90%
+    expect(result).toContain("90%")
+  })
+
+  it("includes the NOTE about interceptor guidance", () => {
+    const radars = [makeRadarInstallation()]
+    const result = buildRadarContext(radars, "2026-04-07")
+    expect(result).toContain("NOTE:")
+    expect(result).toMatch(/intercept(or)?/i)
+  })
+
+  it("includes the as-of date in the header", () => {
+    const radars = [makeRadarInstallation()]
+    const result = buildRadarContext(radars, "2026-03-15")
+    expect(result).toContain("2026-03-15")
+  })
+
+  it("buildStateEffectsPrompt includes radar context when radars are provided", () => {
+    const event = makeEnrichedEvent()
+    const gapFill = makeGapFill()
+    const priorSnapshot = "No prior events."
+    const radars = [
+      makeRadarInstallation({
+        actor_id: "united_states",
+        sectors_covered: ["jordan_israel_corridor"],
+        current_status: "destroyed",
+        status_effective_date: "2026-02-01",
+      }),
+    ]
+    const prompt = buildStateEffectsPrompt(event, gapFill, priorSnapshot, radars)
+    expect(prompt).toContain("RADAR COVERAGE STATUS")
+    expect(prompt).toContain("jordan israel corridor")
+  })
+
+  it("buildStateEffectsPrompt omits radar context when no radars provided", () => {
+    const event = makeEnrichedEvent()
+    const gapFill = makeGapFill()
+    const priorSnapshot = "No prior events."
+    const prompt = buildStateEffectsPrompt(event, gapFill, priorSnapshot)
+    expect(prompt).not.toContain("RADAR COVERAGE STATUS")
   })
 })

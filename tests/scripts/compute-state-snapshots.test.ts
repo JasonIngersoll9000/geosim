@@ -7,6 +7,7 @@ import {
   buildInitialInventory,
   buildInitialFacilityStatuses,
   computeSnapshots,
+  computeInterceptorEffectiveness,
   type ActorDeltaWithId,
 } from "../../scripts/compute-state-snapshots"
 import type {
@@ -16,6 +17,7 @@ import type {
   EnrichedEvent,
   EventStateEffects,
   ActorProfile,
+  RadarInstallation,
 } from "../../scripts/pipeline/types"
 
 // ─── daysBetween ─────────────────────────────────────────────────────────────
@@ -490,5 +492,175 @@ describe("computeSnapshots", () => {
     ]
     const result = computeSnapshots(events, effects, gapFill)
     expect(result[0].actor_states.iran.asset_inventory.missiles).toBe(150)
+  })
+})
+
+// ─── computeInterceptorEffectiveness ─────────────────────────────────────────
+
+function makeRadar(overrides: Partial<RadarInstallation> = {}): RadarInstallation {
+  return {
+    id: "test_radar",
+    name: "Test Radar",
+    actor_id: "united_states",
+    lat: 30.0,
+    lon: 40.0,
+    range_km: 1000,
+    sectors_covered: ["test_sector"],
+    supported_interceptors: ["thaad"],
+    effectiveness_contribution: 0.40,
+    baseline_status: "operational",
+    current_status: "operational",
+    status_effective_date: null,
+    leaker_rate_increase_pct: 25.0,
+    coverage_category: "critical",
+    ...overrides,
+  }
+}
+
+describe("computeInterceptorEffectiveness", () => {
+  it("all radars operational → all sectors at 1.0", () => {
+    const radars = [
+      makeRadar({ id: "r1", sectors_covered: ["sector_a", "sector_b"], current_status: "operational" }),
+      makeRadar({ id: "r2", sectors_covered: ["sector_c"], current_status: "operational" }),
+    ]
+    const result = computeInterceptorEffectiveness(radars, "2026-04-07")
+    expect(result.united_states.sector_a).toBe(1.0)
+    expect(result.united_states.sector_b).toBe(1.0)
+    expect(result.united_states.sector_c).toBe(1.0)
+  })
+
+  it("one destroyed radar → affected sectors below 1.0", () => {
+    const radars = [
+      makeRadar({
+        id: "r1",
+        sectors_covered: ["sector_a"],
+        current_status: "destroyed",
+        status_effective_date: "2026-03-01",
+        leaker_rate_increase_pct: 25.0,
+        effectiveness_contribution: 0.40,
+      }),
+    ]
+    const result = computeInterceptorEffectiveness(radars, "2026-04-07")
+    // reduction = (25/100) * 0.40 * 1.0 (destroyed = 100%) = 0.10
+    expect(result.united_states.sector_a).toBeCloseTo(0.90, 5)
+  })
+
+  it("degraded radar applies 50% of penalty", () => {
+    const radars = [
+      makeRadar({
+        id: "r1",
+        sectors_covered: ["sector_a"],
+        current_status: "degraded",
+        status_effective_date: "2026-03-01",
+        leaker_rate_increase_pct: 25.0,
+        effectiveness_contribution: 0.40,
+      }),
+    ]
+    const result = computeInterceptorEffectiveness(radars, "2026-04-07")
+    // reduction = (25/100) * 0.40 * 0.5 (degraded = 50%) = 0.05
+    expect(result.united_states.sector_a).toBeCloseTo(0.95, 5)
+  })
+
+  it("date before status_effective_date → radar still counts as operational", () => {
+    const radars = [
+      makeRadar({
+        id: "r1",
+        sectors_covered: ["sector_a"],
+        current_status: "destroyed",
+        status_effective_date: "2026-03-15",
+        leaker_rate_increase_pct: 25.0,
+        effectiveness_contribution: 0.40,
+      }),
+    ]
+    // Query date is BEFORE the effective date — should still be 1.0
+    const result = computeInterceptorEffectiveness(radars, "2026-03-01")
+    expect(result.united_states.sector_a).toBe(1.0)
+  })
+
+  it("date equal to status_effective_date → degradation applied", () => {
+    const radars = [
+      makeRadar({
+        id: "r1",
+        sectors_covered: ["sector_a"],
+        current_status: "destroyed",
+        status_effective_date: "2026-03-15",
+        leaker_rate_increase_pct: 25.0,
+        effectiveness_contribution: 0.40,
+      }),
+    ]
+    // On the exact effective date, degradation should be applied
+    const result = computeInterceptorEffectiveness(radars, "2026-03-15")
+    expect(result.united_states.sector_a).toBeCloseTo(0.90, 5)
+  })
+
+  it("effectiveness is clamped at 0.01 minimum when multiple losses stack", () => {
+    // Create many destroyed radars covering the same sector with large penalties
+    const radars = Array.from({ length: 20 }, (_, i) =>
+      makeRadar({
+        id: `r${i}`,
+        sectors_covered: ["critical_sector"],
+        current_status: "destroyed",
+        status_effective_date: "2026-03-01",
+        leaker_rate_increase_pct: 50.0,
+        effectiveness_contribution: 0.50,
+      })
+    )
+    const result = computeInterceptorEffectiveness(radars, "2026-04-07")
+    expect(result.united_states.critical_sector).toBeGreaterThanOrEqual(0.01)
+  })
+
+  it("different actors are tracked independently", () => {
+    const radars = [
+      makeRadar({
+        id: "us_r1",
+        actor_id: "united_states",
+        sectors_covered: ["shared_sector"],
+        current_status: "destroyed",
+        status_effective_date: "2026-03-01",
+        leaker_rate_increase_pct: 25.0,
+        effectiveness_contribution: 0.40,
+      }),
+      makeRadar({
+        id: "iran_r1",
+        actor_id: "iran",
+        sectors_covered: ["shared_sector"],
+        current_status: "operational",
+        status_effective_date: null,
+        leaker_rate_increase_pct: 20.0,
+        effectiveness_contribution: 0.30,
+      }),
+    ]
+    const result = computeInterceptorEffectiveness(radars, "2026-04-07")
+    // US sector should be degraded
+    expect(result.united_states.shared_sector).toBeLessThan(1.0)
+    // Iran sector should be at full effectiveness
+    expect(result.iran.shared_sector).toBe(1.0)
+  })
+
+  it("snapshot includes interceptor_effectiveness when radars provided", () => {
+    const radars = [
+      makeRadar({
+        id: "r1",
+        actor_id: "united_states",
+        sectors_covered: ["test_sector"],
+        current_status: "destroyed",
+        status_effective_date: "2026-01-01",
+        leaker_rate_increase_pct: 20.0,
+        effectiveness_contribution: 0.30,
+      }),
+    ]
+    const events = [makeMinimalEvent()]
+    const effects = [makeMinimalEffects("evt_001")]
+    const result = computeSnapshots(events, effects, minimalGapFill, undefined, radars)
+    expect(result[0].interceptor_effectiveness).toBeDefined()
+    expect(result[0].interceptor_effectiveness.united_states).toBeDefined()
+    expect(result[0].interceptor_effectiveness.united_states.test_sector).toBeLessThan(1.0)
+  })
+
+  it("interceptor_effectiveness is empty object when no radars provided", () => {
+    const events = [makeMinimalEvent()]
+    const effects = [makeMinimalEffects("evt_001")]
+    const result = computeSnapshots(events, effects, minimalGapFill)
+    expect(result[0].interceptor_effectiveness).toEqual({})
   })
 })
