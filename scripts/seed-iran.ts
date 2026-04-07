@@ -21,6 +21,12 @@ import type {
   KeyFigureProfile,
   EnrichedEvent,
   RawCapability,
+  EventStateEffects,
+  StateEffectsFile,
+  TurnStateSnapshot,
+  StateSnapshotsFile,
+  GapFillData,
+  DepletionPeriod,
 } from './pipeline/types'
 import type {
   ScenarioActorInsert,
@@ -113,8 +119,11 @@ export function buildTurnCommitInsert(
   event: EnrichedEvent,
   branchId: string,
   parentCommitId: string | null,
-  turnNumber: number
+  turnNumber: number,
+  prevEscalationCeiling: number,
+  stateEffects: EventStateEffects | null
 ) {
+  const dn = stateEffects?.decision_nodes?.[0] ?? null
   return {
     branch_id: branchId,
     parent_commit_id: parentCommitId,
@@ -137,9 +146,15 @@ export function buildTurnCommitInsert(
     decision_alternatives: event.decision_analysis.alternatives
       ? (event.decision_analysis.alternatives as unknown as Record<string, unknown>[])
       : null,
-    escalation_rung_before: event.escalation.rung_before,
-    escalation_rung_after: event.escalation.rung_after,
+    // Change 1: use global_ceiling from escalation object
+    escalation_rung_before: prevEscalationCeiling,
+    escalation_rung_after: event.escalation.global_ceiling ?? 0,
     escalation_direction: event.escalation.direction,
+    // Change 2: state_effects columns
+    state_effects: stateEffects ?? null,
+    is_major_decision_node: (stateEffects?.decision_nodes?.length ?? 0) > 0,
+    decision_node_label: dn?.label ?? null,
+    decision_node_significance: dn?.significance ?? null,
   }
 }
 
@@ -163,6 +178,38 @@ export async function seedIranScenario(options: SeedOptions = {}): Promise<{
   const enrichedFile = await readJsonFile<{ events: EnrichedEvent[] }>('data/iran-enriched.json')
   const actorProfiles = await readJsonFile<ActorProfile[]>('data/actor-profiles.json')
   const keyFigures = await readJsonFile<KeyFigureProfile[]>('data/key-figures.json')
+
+  // Load state-effects data (optional — missing files are warnings, not errors)
+  let stateEffectsMap = new Map<string, EventStateEffects>()
+  try {
+    const stateEffectsFile = await readJsonFile<StateEffectsFile>('data/iran-state-effects.json')
+    for (const effect of stateEffectsFile.events) {
+      stateEffectsMap.set(effect.event_id, effect)
+    }
+    console.log(`✓ Loaded ${stateEffectsMap.size} state effects`)
+  } catch {
+    console.warn('  ⚠ data/iran-state-effects.json not found (state_effects columns will be null)')
+    stateEffectsMap = new Map()
+  }
+
+  // Load state snapshots (optional)
+  let stateSnapshots: TurnStateSnapshot[] = []
+  try {
+    const snapshotsFile = await readJsonFile<StateSnapshotsFile>('data/iran-state-snapshots.json')
+    stateSnapshots = snapshotsFile.snapshots
+    console.log(`✓ Loaded ${stateSnapshots.length} state snapshots`)
+  } catch {
+    console.warn('  ⚠ data/iran-state-snapshots.json not found (actor_state_snapshots will be skipped)')
+  }
+
+  // Load gap-fill data (optional)
+  let gapFillData: GapFillData | null = null
+  try {
+    gapFillData = await readJsonFile<GapFillData>('data/iran-gap-fill.json')
+    console.log('✓ Loaded gap-fill data')
+  } catch {
+    console.warn('  ⚠ data/iran-gap-fill.json not found (daily_depletion_rates will be skipped)')
+  }
 
   // Load capabilities (best-effort — missing files are warnings, not errors)
   const capabilityFiles: Record<string, string> = {
@@ -329,8 +376,15 @@ export async function seedIranScenario(options: SeedOptions = {}): Promise<{
 
   // Seed turn commits
   console.log(`\nSeeding ${eventsToSeed.length} enriched events as turn commits...`)
+  const turnCommitIdMap = new Map<string, string>() // event_id → DB uuid
+  let prevEscalationCeiling = 0
+
   for (const event of eventsToSeed) {
-    const insert = buildTurnCommitInsert(event, branchId, parentCommitId, turnNumber)
+    const stateEffects = stateEffectsMap.get(event.id) ?? null
+    const insert = buildTurnCommitInsert(
+      event, branchId, parentCommitId, turnNumber,
+      prevEscalationCeiling, stateEffects
+    )
     const { data: commit, error } = await supabase
       .from('turn_commits')
       .insert(insert)
@@ -341,6 +395,8 @@ export async function seedIranScenario(options: SeedOptions = {}): Promise<{
       throw new Error(`Failed to create commit for ${event.id}: ${error?.message}`)
     }
 
+    turnCommitIdMap.set(event.id, commit.id)
+    prevEscalationCeiling = event.escalation.global_ceiling ?? 0
     parentCommitId = commit.id
     turnNumber++
     console.log(`  ✓ [${turnNumber - 1}] ${event.id}`)
@@ -350,6 +406,77 @@ export async function seedIranScenario(options: SeedOptions = {}): Promise<{
   const lastEvent = eventsToSeed[eventsToSeed.length - 1]
   await supabase.from('branches').update({ head_commit_id: parentCommitId }).eq('id', branchId)
   await supabase.from('scenarios').update({ ground_truth_through_date: lastEvent.timestamp }).eq('id', scenarioId)
+
+  // Change 3: Seed actor_state_snapshots
+  if (stateSnapshots.length > 0) {
+    console.log(`\nSeeding ${stateSnapshots.length} state snapshots...`)
+    for (const snapshot of stateSnapshots) {
+      const turnCommitId = turnCommitIdMap.get(snapshot.event_id)
+      if (!turnCommitId) {
+        console.warn(`  ⚠ No turn_commit_id found for snapshot event ${snapshot.event_id} (skipping)`)
+        continue
+      }
+      for (const [actorId, actorState] of Object.entries(snapshot.actor_states)) {
+        const row = {
+          scenario_id: scenarioId,
+          branch_id: branchId,
+          turn_commit_id: turnCommitId,
+          actor_id: actorId,
+          military_strength: actorState.military_strength,
+          political_stability: actorState.political_stability,
+          economic_health: actorState.economic_health,
+          public_support: actorState.public_support,
+          international_standing: actorState.international_standing,
+          asset_inventory: actorState.asset_inventory as unknown as Record<string, unknown>,
+          global_state: snapshot.global_state as unknown as Record<string, unknown>,
+          facility_statuses: snapshot.facility_statuses as unknown as Record<string, unknown>[],
+        }
+        const { error } = await supabase
+          .from('actor_state_snapshots')
+          .upsert(row, { onConflict: 'scenario_id,branch_id,turn_commit_id,actor_id', ignoreDuplicates: false })
+        if (error) console.warn(`  ⚠ actor_state_snapshots upsert failed (${actorId}/${snapshot.event_id}): ${error.message}`)
+      }
+      console.log(`  ✓ Snapshot: ${snapshot.event_id}`)
+    }
+  } else {
+    console.log('\nNo state snapshots to seed (data/iran-state-snapshots.json missing or empty)')
+  }
+
+  // Change 4: Seed daily_depletion_rates
+  if (gapFillData) {
+    console.log('\nSeeding daily depletion rates...')
+    let depletionCount = 0
+    for (const [actorId, actorRates] of Object.entries(gapFillData.depletion_rates)) {
+      for (const [assetType, periods] of Object.entries(actorRates)) {
+        for (const period of periods as DepletionPeriod[]) {
+          const row = {
+            scenario_id: scenarioId,
+            branch_id: branchId,
+            actor_id: actorId,
+            asset_type: assetType,
+            rate_per_day: period.rate_per_day,
+            effective_from_date: period.effective_from,
+            effective_to_date: period.effective_to ?? null,
+            trigger_turn_commit_id: null,
+            notes: period.notes,
+          }
+          const { error } = await supabase
+            .from('daily_depletion_rates')
+            .upsert(row, {
+              onConflict: 'scenario_id,branch_id,actor_id,asset_type,effective_from_date',
+              ignoreDuplicates: false,
+            })
+          if (error) console.warn(`  ⚠ daily_depletion_rates upsert failed (${actorId}/${assetType}): ${error.message}`)
+          else depletionCount++
+        }
+      }
+    }
+    console.log(`✓ Seeded ${depletionCount} depletion rate periods`)
+  } else {
+    console.log('\nNo depletion rates to seed (data/iran-gap-fill.json missing)')
+  }
+
+  // Change 5: threshold_triggers is populated at runtime by the live state engine, not during seed
 
   console.log(`\n✓ Seed complete: ${eventsToSeed.length} events on trunk branch ${branchId}`)
   return { scenarioId, branchId, commitCount: eventsToSeed.length }

@@ -13,7 +13,7 @@ function makeActorProfile(): ActorProfile {
     win_condition: 'Iran win condition paragraph.',
     strategic_doctrine: 'Iran doctrine paragraph.',
     historical_precedents: 'Iran precedents paragraph.',
-    initial_scores: { militaryStrength: 60, politicalStability: 40, economicHealth: 30, publicSupport: 55, internationalStanding: 35, escalationRung: 8 },
+    initial_scores: { militaryStrength: 60, politicalStability: 40, economicHealth: 30, publicSupport: 55, internationalStanding: 35, escalationRung: 8, escalationLevel: 2, escalationLevelName: 'Conventional War' },
     intelligence_profile: { signalCapability: 50, humanCapability: 65, cyberCapability: 55, blindSpots: [], intelSharingPartners: [] },
   }
 }
@@ -48,7 +48,7 @@ function makeEnrichedEvent(overrides: Partial<EnrichedEvent> = {}): EnrichedEven
       decision_summary: 'Trump authorized Operation Epic Fury.',
       alternatives: [],
     },
-    escalation: { rung_before: 5, rung_after: 12, direction: 'up' },
+    escalation: { global_ceiling: 12, direction: 'up', by_actor: {}, perceived: {}, dyads: {} },
     ...overrides,
   }
 }
@@ -76,7 +76,7 @@ describe('buildActorInsert', () => {
 describe('buildTurnCommitInsert', () => {
   it('maps EnrichedEvent fields to TurnCommitInsert shape', () => {
     const event = makeEnrichedEvent()
-    const insert = buildTurnCommitInsert(event, 'branch-uuid', null, 1)
+    const insert = buildTurnCommitInsert(event, 'branch-uuid', null, 1, 5, null)
     expect(insert.simulated_date).toBe('2026-02-28')
     expect(insert.full_briefing).toBe(JSON.stringify(event.full_briefing))
     expect(insert.chronicle_headline).toBe('US Launches Strikes on Iran')
@@ -87,11 +87,13 @@ describe('buildTurnCommitInsert', () => {
     expect(insert.escalation_rung_after).toBe(12)
     expect(insert.escalation_direction).toBe('up')
     expect(insert.is_ground_truth).toBe(true)
+    expect(insert.state_effects).toBeNull()
+    expect(insert.is_major_decision_node).toBe(false)
   })
 
   it('sets parent_commit_id correctly', () => {
     const event = makeEnrichedEvent()
-    const insert = buildTurnCommitInsert(event, 'branch-uuid', 'parent-commit-id', 5)
+    const insert = buildTurnCommitInsert(event, 'branch-uuid', 'parent-commit-id', 5, 0, null)
     expect(insert.parent_commit_id).toBe('parent-commit-id')
     expect(insert.turn_number).toBe(5)
   })
