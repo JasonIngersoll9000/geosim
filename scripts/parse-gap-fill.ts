@@ -119,6 +119,7 @@ Output ONLY the JSON. No prose outside the JSON.`
 }
 
 export function parseGapFillResponse(raw: string): GapFillData {
+  if (!raw) throw new Error("Claude returned no text content for gap-fill extraction")
   let parsed: unknown
   try {
     const start = raw.indexOf("{")
@@ -148,6 +149,35 @@ export function parseGapFillResponse(raw: string): GapFillData {
   return res as unknown as GapFillData
 }
 
+async function callClaude(client: Anthropic, prompt: string): Promise<string> {
+  const MAX_RETRIES = 6
+  let delay = 15000
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await client.messages
+        .stream({
+          model: "claude-sonnet-4-6",
+          max_tokens: 8192,
+          messages: [{ role: "user", content: prompt }],
+        })
+        .finalText()
+    } catch (err: unknown) {
+      const msg = String(err)
+      const isOverloaded = msg.includes("overloaded") || msg.includes("529")
+      const isRateLimit = msg.includes("rate_limit") || msg.includes("429")
+      if ((isOverloaded || isRateLimit) && attempt < MAX_RETRIES) {
+        console.log(`  [retry ${attempt}/${MAX_RETRIES - 1}] ${isOverloaded ? "Overloaded" : "Rate limit"} — waiting ${delay / 1000}s...`)
+        await new Promise(r => setTimeout(r, delay))
+        delay = Math.min(delay * 2, 120000)
+        continue
+      }
+      throw err
+    }
+  }
+  throw new Error("Max retries exceeded")
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2)
   const dryRun = args.includes("--dry-run")
@@ -170,7 +200,7 @@ async function main(): Promise<void> {
       const caps = await readJsonFile<RawCapability[]>(filePath)
       const filtered =
         actorId === "russia" || actorId === "china"
-          ? caps.filter(c => (c as RawCapability & { actor?: string }).actor === actorId)
+          ? caps.filter(c => c.actor === actorId)
           : caps
       capsByActor[actorId] = filtered
     } catch {
@@ -183,12 +213,7 @@ async function main(): Promise<void> {
 
   console.log("Calling Claude to parse gap-fill research...")
   const client = new Anthropic()
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 8192,
-    messages: [{ role: "user", content: prompt }],
-  })
-  const raw = response.content[0].type === "text" ? response.content[0].text : ""
+  const raw = await callClaude(client, prompt)
 
   const gapFill = parseGapFillResponse(raw)
 
