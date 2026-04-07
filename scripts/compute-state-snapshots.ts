@@ -68,7 +68,7 @@ export function applyDailyDepletion(
   return result
 }
 
-interface ActorDeltaWithId extends ActorStateDelta {
+export interface ActorDeltaWithId extends ActorStateDelta {
   actor_id: string
 }
 
@@ -241,7 +241,10 @@ export function computeSnapshots(
 
     // Step 4: Apply asset_changes
     if (eventEffects && eventEffects.asset_changes.length > 0) {
-      const newActorStates: Record<string, ActorStateSnapshot> = { ...actorStates }
+      const newActorStates: Record<string, ActorStateSnapshot> = {}
+      for (const [id, snap] of Object.entries(actorStates)) {
+        newActorStates[id] = { ...snap, asset_inventory: { ...snap.asset_inventory } }
+      }
       for (const change of eventEffects.asset_changes) {
         const { actor_id, asset_type, quantity_delta, new_status, new_capacity_pct, facility_id: _facility_id, notes: _notes } = change
         // Ensure actor exists
@@ -266,16 +269,6 @@ export function computeSnapshots(
           },
         }
 
-        // Apply facility status/capacity if provided
-        if (new_status !== undefined || new_capacity_pct !== undefined) {
-          facilityStatuses = facilityStatuses.map(f => {
-            if (f.actor_id === actor_id && f.facility_type === "oil_gas") {
-              // Rough match by actor + asset hint — facility_id match preferred
-              return f
-            }
-            return f
-          })
-        }
       }
       actorStates = newActorStates
     }

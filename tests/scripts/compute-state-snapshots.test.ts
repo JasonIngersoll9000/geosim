@@ -7,6 +7,7 @@ import {
   buildInitialInventory,
   buildInitialFacilityStatuses,
   computeSnapshots,
+  type ActorDeltaWithId,
 } from "../../scripts/compute-state-snapshots"
 import type {
   ActorStateDelta,
@@ -104,10 +105,9 @@ describe("applyActorDeltas", () => {
 
   it("applies deltas correctly", () => {
     const snapshots = { united_states: makeSnapshot() }
-    const deltas: ActorStateDelta[] = [{ ...makeDelta({ military_strength: -5, public_support: 3 }), }]
     const result = applyActorDeltas(
       snapshots,
-      [{ actor_id: "united_states", ...makeDelta({ military_strength: -5, public_support: 3 }) }] as any,
+      [{ actor_id: "united_states", ...makeDelta({ military_strength: -5, public_support: 3 }) }] as ActorDeltaWithId[],
       "evt_1"
     )
     expect(result.united_states.military_strength).toBe(75)
@@ -118,7 +118,7 @@ describe("applyActorDeltas", () => {
     const snapshots = { iran: makeSnapshot({ actor_id: "iran", military_strength: 95 }) }
     const result = applyActorDeltas(
       snapshots,
-      [{ actor_id: "iran", ...makeDelta({ military_strength: 10 }) }] as any,
+      [{ actor_id: "iran", ...makeDelta({ military_strength: 10 }) }] as ActorDeltaWithId[],
       "evt_2"
     )
     expect(result.iran.military_strength).toBe(100)
@@ -128,7 +128,7 @@ describe("applyActorDeltas", () => {
     const snapshots = { iran: makeSnapshot({ actor_id: "iran", military_strength: 3 }) }
     const result = applyActorDeltas(
       snapshots,
-      [{ actor_id: "iran", ...makeDelta({ military_strength: -10 }) }] as any,
+      [{ actor_id: "iran", ...makeDelta({ military_strength: -10 }) }] as ActorDeltaWithId[],
       "evt_3"
     )
     expect(result.iran.military_strength).toBe(0)
@@ -137,7 +137,7 @@ describe("applyActorDeltas", () => {
   it("initializes new actors at 50 before applying delta", () => {
     const result = applyActorDeltas(
       {},
-      [{ actor_id: "china", ...makeDelta({ economic_health: 5 }) }] as any,
+      [{ actor_id: "china", ...makeDelta({ economic_health: 5 }) }] as ActorDeltaWithId[],
       "evt_4"
     )
     expect(result.china.military_strength).toBe(50)
@@ -149,7 +149,7 @@ describe("applyActorDeltas", () => {
     const original = snapshots.united_states.military_strength
     applyActorDeltas(
       snapshots,
-      [{ actor_id: "united_states", ...makeDelta({ military_strength: -20 }) }] as any,
+      [{ actor_id: "united_states", ...makeDelta({ military_strength: -20 }) }] as ActorDeltaWithId[],
       "evt_5"
     )
     expect(snapshots.united_states.military_strength).toBe(original)
