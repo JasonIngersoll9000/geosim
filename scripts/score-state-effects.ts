@@ -279,6 +279,7 @@ async function main(): Promise<void> {
   const dryRunLimit = 3
   let processed = 0
   const outputEvents = [...existingEffects]
+  const eventIdToIndex = new Map(events.map((e, i) => [e.id, i]))
 
   for (let i = 0; i < toProcess.length; i++) {
     const event = toProcess[i]
@@ -290,11 +291,8 @@ async function main(): Promise<void> {
     }
 
     // Build prior snapshot from all effects scored so far (in chronological order)
-    const priorEffects = outputEvents.filter(e => {
-      const eventIdx = events.findIndex(ev => ev.id === e.event_id)
-      const currentIdx = events.findIndex(ev => ev.id === event.id)
-      return eventIdx < currentIdx
-    })
+    const currentIdx = eventIdToIndex.get(event.id) ?? -1
+    const priorEffects = outputEvents.filter(e => (eventIdToIndex.get(e.event_id) ?? -1) < currentIdx)
     const priorSnapshot = buildPriorSnapshotSummary(priorEffects)
 
     const prompt = buildStateEffectsPrompt(event, gapFill, priorSnapshot)
