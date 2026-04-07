@@ -28,7 +28,7 @@ CREATE TABLE daily_depletion_rates (
   rate_per_day        numeric NOT NULL,
   effective_from_date date NOT NULL,
   effective_to_date   date,
-  trigger_event_id    uuid REFERENCES turn_commits(id),
+  trigger_turn_commit_id    uuid REFERENCES turn_commits(id),
   notes               text,
   created_at          timestamptz NOT NULL DEFAULT now()
 );
@@ -53,6 +53,7 @@ CREATE TABLE threshold_triggers (
 );
 
 CREATE INDEX ON threshold_triggers (branch_id, status);
+CREATE UNIQUE INDEX ON threshold_triggers (branch_id, trigger_id);
 
 -- Extend turn_commits with state tracking fields
 ALTER TABLE turn_commits
