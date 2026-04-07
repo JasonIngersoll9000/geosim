@@ -24,6 +24,7 @@ import type {
   FacilityStatus,
   ActorDepletionRates,
   StateEffectsFile,
+  ActorProfile,
 } from "./pipeline/types"
 
 const ENRICHED_PATH = "data/iran-enriched.json"
@@ -152,7 +153,8 @@ export function buildInitialFacilityStatuses(gapFill: GapFillData): FacilityStat
 export function computeSnapshots(
   events: EnrichedEvent[],
   effects: EventStateEffects[],
-  gapFill: GapFillData
+  gapFill: GapFillData,
+  actorProfiles?: ActorProfile[]
 ): TurnStateSnapshot[] {
   // Build effects lookup by event_id
   const effectsById = new Map<string, EventStateEffects>()
@@ -160,16 +162,19 @@ export function computeSnapshots(
     effectsById.set(e.event_id, e)
   }
 
-  // Initialize actor states — all 5 actors start at 50
+  // Initialize actor states from profiles if provided, else fall back to 50
+  const profileMap = new Map((actorProfiles ?? []).map(p => [p.id, p]))
+
   let actorStates: Record<string, ActorStateSnapshot> = {}
   for (const actorId of ALL_ACTORS) {
+    const s = profileMap.get(actorId)?.initial_scores
     actorStates[actorId] = {
       actor_id: actorId,
-      military_strength: 50,
-      political_stability: 50,
-      economic_health: 50,
-      public_support: 50,
-      international_standing: 50,
+      military_strength: s?.militaryStrength ?? 50,
+      political_stability: s?.politicalStability ?? 50,
+      economic_health: s?.economicHealth ?? 50,
+      public_support: s?.publicSupport ?? 50,
+      international_standing: s?.internationalStanding ?? 50,
       asset_inventory: {},
     }
   }
@@ -355,20 +360,35 @@ async function main() {
   const events = enrichedFile.events
   const effects = stateEffectsFile.events
 
-  console.log(`Computing snapshots for ${events.length} events...`)
-  const snapshots = computeSnapshots(events, effects, gapFill)
+  let actorProfiles: ActorProfile[] = []
+  try {
+    const profilesRaw = await readJsonFile<unknown>("data/actor-profiles.json")
+    // Handle both array and {actors: []} shapes
+    actorProfiles = Array.isArray(profilesRaw)
+      ? profilesRaw as ActorProfile[]
+      : (profilesRaw as { actors: ActorProfile[] }).actors ?? []
+    console.log(`Loaded ${actorProfiles.length} actor profiles`)
+  } catch {
+    console.warn("Warning: could not load data/actor-profiles.json — using default initial scores (50)")
+  }
 
-  // Build initial_state (all actors at 50 before any events)
+  console.log(`Computing snapshots for ${events.length} events...`)
+  const snapshots = computeSnapshots(events, effects, gapFill, actorProfiles)
+
+  // Build initial_state from actor profiles (or fall back to 50)
+  const profileMap = new Map(actorProfiles.map(p => [p.id, p]))
+  const initialInventory = buildInitialInventory(gapFill)
   const initialState: Record<string, ActorStateSnapshot> = {}
   for (const actorId of ALL_ACTORS) {
+    const s = profileMap.get(actorId)?.initial_scores
     initialState[actorId] = {
       actor_id: actorId,
-      military_strength: 50,
-      political_stability: 50,
-      economic_health: 50,
-      public_support: 50,
-      international_standing: 50,
-      asset_inventory: buildInitialInventory(gapFill)[actorId] ?? {},
+      military_strength: s?.militaryStrength ?? 50,
+      political_stability: s?.politicalStability ?? 50,
+      economic_health: s?.economicHealth ?? 50,
+      public_support: s?.publicSupport ?? 50,
+      international_standing: s?.internationalStanding ?? 50,
+      asset_inventory: initialInventory[actorId] ?? {},
     }
   }
 

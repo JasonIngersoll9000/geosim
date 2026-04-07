@@ -15,6 +15,7 @@ import type {
   GapFillData,
   EnrichedEvent,
   EventStateEffects,
+  ActorProfile,
 } from "../../scripts/pipeline/types"
 
 // ─── daysBetween ─────────────────────────────────────────────────────────────
@@ -324,7 +325,7 @@ describe("computeSnapshots", () => {
     expect(result[0].event_id).toBe("evt_001")
   })
 
-  it("all 5 actors are initialized at 50 in first snapshot", () => {
+  it("all 5 actors are initialized at 50 when no actor profiles provided", () => {
     const events = [makeMinimalEvent()]
     const effects = [makeMinimalEffects("evt_001")]
     const result = computeSnapshots(events, effects, minimalGapFill)
@@ -334,6 +335,75 @@ describe("computeSnapshots", () => {
       expect(actors[actorId].military_strength).toBe(50)
       expect(actors[actorId].economic_health).toBe(50)
     }
+  })
+
+  it("uses actor profile initial scores when provided", () => {
+    const events = [makeMinimalEvent()]
+    const effects = [makeMinimalEffects("evt_001")]
+    const actorProfiles: ActorProfile[] = [
+      {
+        id: "united_states",
+        name: "United States",
+        short_name: "USA",
+        biographical_summary: "",
+        leadership_profile: "",
+        win_condition: "",
+        strategic_doctrine: "",
+        historical_precedents: "",
+        initial_scores: {
+          militaryStrength: 88,
+          politicalStability: 52,
+          economicHealth: 64,
+          publicSupport: 31,
+          internationalStanding: 55,
+          escalationRung: 8,
+          escalationLevel: 3,
+          escalationLevelName: "Limited Overt Military Operations",
+        },
+        intelligence_profile: {
+          signalCapability: 97,
+          humanCapability: 82,
+          cyberCapability: 95,
+          blindSpots: [],
+          intelSharingPartners: [],
+        },
+      },
+      {
+        id: "iran",
+        name: "Iran",
+        short_name: "Iran",
+        biographical_summary: "",
+        leadership_profile: "",
+        win_condition: "",
+        strategic_doctrine: "",
+        historical_precedents: "",
+        initial_scores: {
+          militaryStrength: 52,
+          politicalStability: 28,
+          economicHealth: 18,
+          publicSupport: 22,
+          internationalStanding: 31,
+          escalationRung: 11,
+          escalationLevel: 4,
+          escalationLevelName: "Broad Overt Military Operations",
+        },
+        intelligence_profile: {
+          signalCapability: 41,
+          humanCapability: 58,
+          cyberCapability: 45,
+          blindSpots: [],
+          intelSharingPartners: [],
+        },
+      },
+    ]
+    const result = computeSnapshots(events, effects, minimalGapFill, actorProfiles)
+    expect(result[0].actor_states.united_states.military_strength).toBe(88)
+    expect(result[0].actor_states.united_states.economic_health).toBe(64)
+    expect(result[0].actor_states.iran.military_strength).toBe(52)
+    expect(result[0].actor_states.iran.political_stability).toBe(28)
+    // Actors without a profile fall back to 50
+    expect(result[0].actor_states.israel.military_strength).toBe(50)
+    expect(result[0].actor_states.russia.economic_health).toBe(50)
   })
 
   it("applies actor_deltas to snapshot", () => {
