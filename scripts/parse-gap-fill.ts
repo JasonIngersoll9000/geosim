@@ -131,6 +131,8 @@ export function parseGapFillResponse(raw: string): GapFillData {
 
   const res = parsed as Record<string, unknown>
   for (const field of [
+    "as_of_date",
+    "sources_summary",
     "asset_inventory",
     "depletion_rates",
     "infrastructure_status",

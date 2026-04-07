@@ -153,4 +153,14 @@ describe("parseGapFillResponse", () => {
     const { infrastructure_status: _omit, ...rest } = makeValidGapFill()
     expect(() => parseGapFillResponse(JSON.stringify(rest))).toThrow("missing field: infrastructure_status")
   })
+
+  it("throws when as_of_date is missing", () => {
+    const { as_of_date: _omit, ...rest } = makeValidGapFill()
+    expect(() => parseGapFillResponse(JSON.stringify(rest))).toThrow("missing field: as_of_date")
+  })
+
+  it("throws when sources_summary is missing", () => {
+    const { sources_summary: _omit, ...rest } = makeValidGapFill()
+    expect(() => parseGapFillResponse(JSON.stringify(rest))).toThrow("missing field: sources_summary")
+  })
 })
