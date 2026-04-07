@@ -16,7 +16,7 @@ CREATE TABLE actor_state_snapshots (
   created_at             timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX ON actor_state_snapshots (branch_id, turn_commit_id, actor_id);
+CREATE UNIQUE INDEX ON actor_state_snapshots (scenario_id, branch_id, turn_commit_id, actor_id);
 
 -- Daily depletion rates with effective date ranges
 CREATE TABLE daily_depletion_rates (
@@ -33,7 +33,7 @@ CREATE TABLE daily_depletion_rates (
   created_at          timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX ON daily_depletion_rates (branch_id, actor_id, asset_type, effective_from_date);
+CREATE UNIQUE INDEX ON daily_depletion_rates (scenario_id, branch_id, actor_id, asset_type, effective_from_date);
 
 -- Threshold triggers — fire forced events when state crosses a value
 CREATE TABLE threshold_triggers (

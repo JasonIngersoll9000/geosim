@@ -97,4 +97,25 @@ describe('buildTurnCommitInsert', () => {
     expect(insert.parent_commit_id).toBe('parent-commit-id')
     expect(insert.turn_number).toBe(5)
   })
+
+  it('populates decision node fields when effects have decision nodes', () => {
+    const event = makeEnrichedEvent()
+    const stateEffects = {
+      event_id: 'evt_001',
+      timestamp: '2026-03-01T00:00:00Z',
+      is_decision_revised: false,
+      actor_deltas: {},
+      asset_changes: [],
+      global_updates: [],
+      depletion_rate_changes: [],
+      decision_nodes: [
+        { event_id: 'evt_001', label: 'Escalation Decision', significance: 'high', rationale: 'Major inflection' }
+      ],
+      confidence: 'high' as const
+    }
+    const result = buildTurnCommitInsert(event, 'branch-uuid', null, 5, 0, stateEffects)
+    expect(result.is_major_decision_node).toBe(true)
+    expect(result.decision_node_label).toBe('Escalation Decision')
+    expect(result.decision_node_significance).toBe('high')
+  })
 })

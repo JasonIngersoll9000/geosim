@@ -430,6 +430,8 @@ export async function seedIranScenario(options: SeedOptions = {}): Promise<{
           asset_inventory: actorState.asset_inventory as unknown as Record<string, unknown>,
           global_state: snapshot.global_state as unknown as Record<string, unknown>,
           facility_statuses: snapshot.facility_statuses as unknown as Record<string, unknown>[],
+          timestamp: snapshot.timestamp,
+          snapshot_metadata: null,
         }
         const { error } = await supabase
           .from('actor_state_snapshots')
