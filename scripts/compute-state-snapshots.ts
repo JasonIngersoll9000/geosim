@@ -487,7 +487,7 @@ async function main() {
   console.log(`Written ${snapshots.length} snapshots to ${OUTPUT_PATH}`)
 }
 
-if (import.meta.main) {
+if (Bun.main === decodeURIComponent(new URL(import.meta.url).pathname)) {
   main().catch(err => {
     console.error(err)
     process.exit(1)
