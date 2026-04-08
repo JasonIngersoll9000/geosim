@@ -1,0 +1,84 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildGapFillPrompt > matches snapshot (change-control gate) 1`] = `
+"You are extracting structured data from research notes about the US-Iran conflict
+(February–April 2026). Pre-war baselines are provided below — focus on depletion trends
+relative to those pre-war baselines,
+current estimated status, inflection dates, and confidence levels.
+
+PRE-WAR BASELINES (from capabilities files):
+actor: US
+  tomahawk: 4000
+
+RESEARCH NOTES:
+## Section
+Some notes.
+
+Output ONLY a single JSON object with this exact shape:
+{
+  "as_of_date": "YYYY-MM-DD",
+  "sources_summary": "One sentence summarizing source quality.",
+  "asset_inventory": {
+    "actor_id": {
+      "asset_type": {
+        "estimated_remaining": [number],
+        "unit": "missiles|aircraft|batteries|etc",
+        "confidence": "high|medium|low",
+        "notes": "One sentence."
+      }
+    }
+  },
+  "depletion_rates": {
+    "actor_id": {
+      "asset_type": [
+        {
+          "rate_per_day": [negative number],
+          "effective_from": "YYYY-MM-DD",
+          "effective_to": "YYYY-MM-DD or omit if still active",
+          "notes": "One sentence."
+        }
+      ]
+    }
+  },
+  "infrastructure_status": [
+    {
+      "facility_id": "slug_id",
+      "name": "Full name",
+      "actor_id": "actor_id",
+      "facility_type": "nuclear|oil_gas|military_base|port|power_grid|civilian",
+      "status": "operational|degraded|destroyed",
+      "capacity_pct": [0-100],
+      "lat": [number],
+      "lng": [number],
+      "strike_date": "YYYY-MM-DD or omit",
+      "notes": "One sentence."
+    }
+  ],
+  "global_variable_timeline": [
+    {
+      "date": "YYYY-MM-DD",
+      "oil_price_usd": [number],
+      "hormuz_throughput_pct": [0-100],
+      "global_economic_stress": [0-100],
+      "notes": "One sentence."
+    }
+  ],
+  "casualties": {
+    "actor_id": {
+      "military_cumulative": [number],
+      "civilian_cumulative": [number],
+      "as_of_date": "YYYY-MM-DD",
+      "confidence": "high|medium|low"
+    }
+  },
+  "political_indicators": {
+    "us_approval_pct": [number],
+    "us_congressional_status": "One sentence.",
+    "iran_domestic_status": "One sentence.",
+    "nato_cohesion": "One sentence.",
+    "as_of_date": "YYYY-MM-DD"
+  }
+}
+
+Output ONLY the JSON. No prose outside the JSON."
+`;

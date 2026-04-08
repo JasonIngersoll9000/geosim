@@ -944,3 +944,36 @@ export interface SimulationTurn {
     rationale: string;
   }[];
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Actor capabilities — national inventory available for mobilization.
+// Distinct from asset_registry (theater-positioned assets).
+// ─────────────────────────────────────────────────────────────────────────────
+export interface ActorCapability {
+  id?: string
+  scenarioId: string
+  actorId: string
+  category: 'military' | 'diplomatic' | 'economic' | 'intelligence'
+  name: string
+  description: string
+  quantity?: number
+  unit?: string
+  deploymentStatus: 'available' | 'partially_deployed' | 'degraded'
+  leadTimeDays?: number
+  politicalCost?: string
+  temporalAnchor: string
+  sourceUrl?: string
+  sourceDate?: string
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DecisionAlternative — pre-seeded alternate paths at ground truth decision points.
+// Used when branching from ground truth (not generated dynamically).
+// ─────────────────────────────────────────────────────────────────────────────
+export interface DecisionAlternative {
+  label: string
+  description: string
+  escalationDirection: 'up' | 'down' | 'lateral' | 'none'
+  escalationLevel: number
+  whyNotChosen: string
+}

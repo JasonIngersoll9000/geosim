@@ -1,6 +1,11 @@
 # git worktrees
 .worktrees/
 
+# Iran seed pipeline — intermediate JSON artifacts (pushed to Supabase, not committed)
+/data/*
+# Curated reference files that ARE tracked
+!/data/radar-network.json
+
 # dependencies
 /node_modules
 /.pnp
