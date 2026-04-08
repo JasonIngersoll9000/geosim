@@ -25,7 +25,7 @@ function resolveVariablePath(
 ): number {
   if (path.startsWith('global.')) {
     const key = path.slice(7)
-    return (state.global_state as Record<string, number>)[key] ?? 0
+    return (state.global_state as unknown as Record<string, number>)[key] ?? 0
   }
   if (!actorId) return 0
   const actor = state.actor_states[actorId]
