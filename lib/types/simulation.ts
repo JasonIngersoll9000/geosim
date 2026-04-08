@@ -1070,6 +1070,8 @@ export interface EventStateEffects {
 export interface ThresholdResult {
   triggered: boolean
   trigger_id: string
+  /** Constructed from forced_event_template jsonb — structure is scenario-defined,
+   *  not known at compile time. Use unknown and narrow when consuming. */
   forced_event: Record<string, unknown> | null
 }
 
@@ -1151,6 +1153,7 @@ export interface ActorPanelResponse {
     international_standing: ScoreWithTrend
   }
   asset_categories: ActorPanelAssetGroup[]
+  /** Subset of FacilityStatus — omits lat/lng which are internal to the state engine */
   facilities: {
     name: string
     type: string
