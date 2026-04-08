@@ -339,6 +339,92 @@ export type ActorTableUpdate = ScenarioActorUpdate;
 
 export type KeyFigureUpdate = Partial<Omit<KeyFigureRow, "id" | "scenario_id">> & { id: string; scenario_id: string };
 export type ActorCapabilityUpdate = Partial<Omit<ActorCapabilityRow, "id">> & { id: string };
+// ── Asset Registry ──────────────────────────────────────────────────────────
+
+export interface AssetRegistryRow {
+  id: string;
+  scenario_id: string;
+  actor_id: string;
+  name: string;
+  short_name: string;
+  category: string;
+  asset_type: string;
+  description: string;
+  lat: number;
+  lng: number;
+  zone: string;
+  status: string;
+  capabilities: import('./simulation').AssetCapability[];
+  strike_range_nm: number | null;
+  threat_range_nm: number | null;
+  provenance: string;
+  effective_from: string;
+  discovered_at: string;
+  researched_at: string | null;
+  source_url: string | null;
+  source_date: string | null;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AssetRegistryInsert = Omit<AssetRegistryRow, 'created_at' | 'updated_at'> & {
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type AssetRegistryUpdate = Partial<Omit<AssetRegistryRow, 'id' | 'scenario_id'>>;
+
+// ── Asset Research Log ───────────────────────────────────────────────────────
+
+export type ResearchLogStatus = 'pending' | 'running' | 'awaiting_approval' | 'approved' | 'rejected';
+
+export interface ProposedAssetChange {
+  type: 'add' | 'update' | 'remove';
+  assetId: string;
+  changes?: Partial<AssetRegistryInsert>;
+  rationale: string;
+  sourceUrl?: string;
+  sourceDate?: string;
+}
+
+export interface AssetResearchLogRow {
+  id: string;
+  scenario_id: string;
+  status: ResearchLogStatus;
+  triggered_at: string;
+  completed_at: string | null;
+  last_researched_at: string | null;
+  proposed_changes: ProposedAssetChange[];
+  summary: string;
+  approved_at: string | null;
+  rejected_at: string | null;
+  created_at: string;
+}
+
+// ── City Registry ────────────────────────────────────────────────────────────
+
+export interface CityRegistryRow {
+  id: string;
+  scenario_id: string;
+  name: string;
+  country: string;
+  population: number | null;
+  economic_role: string | null;
+  lat: number;
+  lng: number;
+  zone: string;
+  infrastructure_nodes: string[];
+  war_impacts: import('./simulation').CityImpact[];
+  provenance: string;
+  source_url: string | null;
+  source_date: string | null;
+  researched_at: string | null;
+}
+
+export type CityRegistryInsert = CityRegistryRow;
+
+export type CityRegistryUpdate = Partial<Omit<CityRegistryRow, 'id' | 'scenario_id'>>;
 
 // ------------------------------------------------------------
 // SUPABASE DATABASE TYPE (for typed client)

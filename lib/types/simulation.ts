@@ -34,6 +34,124 @@ export type Confidence = "confirmed" | "high" | "moderate" | "low" | "unverified
  */
 export type VerificationStatus = 'verified' | 'researched' | 'inferred'
 
+export type AssetCategory =
+  | 'naval'
+  | 'air'
+  | 'ground'
+  | 'missile'
+  | 'nuclear'
+  | 'infrastructure'
+  | 'cyber'
+  | 'air_defense'
+
+export type AssetStatus =
+  | 'available'     // ready, in home position
+  | 'mobilizing'    // orders issued, preparing to move
+  | 'transiting'    // en route to theater
+  | 'staged'        // in theater, not yet engaged
+  | 'engaged'       // actively executing an operation
+  | 'degraded'      // damaged, reduced capability
+  | 'destroyed'     // eliminated
+  | 'withdrawn'     // pulled back from theater
+
+export interface AssetCapability {
+  name: string
+  current: number
+  max: number
+  unit: string
+}
+
+export interface PositionedAsset {
+  id: string
+  scenarioId: string
+  actorId: string
+  name: string
+  shortName: string
+  category: AssetCategory
+  assetType: string
+  description: string
+  position: { lat: number; lng: number }
+  zone: string
+  status: AssetStatus
+  capabilities: AssetCapability[]
+  strikeRangeNm?: number
+  threatRangeNm?: number
+  provenance: VerificationStatus
+  effectiveFrom: string
+  discoveredAt: string
+  researchedAt?: string
+  sourceUrl?: string
+  sourceDate?: string
+  notes: string
+}
+
+export interface AssetStateDelta {
+  assetId: string
+  // Only the 4 fields the state machine tracks are audited here.
+  // Other field changes (notes, provenance, rangeNm) are made directly to the registry.
+  field: 'status' | 'capabilities' | 'position' | 'zone'
+  previousValue: unknown
+  newValue: unknown
+  cause: string
+  turnDate: string
+}
+
+export interface CityImpact {
+  category: 'displacement' | 'infrastructure' | 'casualties' | 'economic' | 'political'
+  severity: 'minor' | 'moderate' | 'severe' | 'catastrophic'
+  description: string
+  estimatedValue?: number
+  unit?: string
+  sourceUrl?: string
+  sourceDate?: string
+}
+
+export interface City {
+  id: string
+  scenarioId: string
+  name: string
+  country: string
+  population: number
+  economicRole: string
+  position: { lat: number; lng: number }
+  zone: string
+  infrastructureNodes: string[]
+  warImpacts: CityImpact[]
+  provenance: VerificationStatus
+  sourceUrl?: string
+  sourceDate?: string
+  researchedAt?: string
+}
+
+export interface ActorStatusSnapshot {
+  actorId: string
+  turnDate: string
+  politicalStability: number
+  economicHealth: number
+  militaryReadiness: number
+  publicSupport: number
+  internationalIsolation: number
+  sourceUrl?: string
+  notes?: string
+}
+
+export type CityStateDelta =
+  | {
+      cityId: string
+      field: 'war_impacts'
+      addedImpact: CityImpact
+      cause: string
+      turnDate: string
+    }
+  | {
+      cityId: string
+      field: 'population' | 'infrastructure_nodes'
+      previousValue: unknown
+      newValue: unknown
+      cause: string
+      turnDate: string
+    }
+
 export type RelationshipType =
   | "ally"
   | "adversary"
@@ -102,6 +220,11 @@ export interface Actor {
 
   // what this actor BELIEVES about other actors (fog of war)
   intelligencePicture: IntelligencePicture[];
+
+  // motivation seed: divergent win/lose conditions and stakes
+  winCondition?: string;
+  loseCondition?: string;
+  stakesLevel?: ObjectivePriority;
 }
 
 export interface KeyFigure {
@@ -114,6 +237,10 @@ export interface KeyFigure {
   description: string;
   // how their removal or addition changes the actor's behavior
   successionImpact?: string;        // e.g. "son is more hardline, likely to escalate"
+  // provenance: how this entry was established
+  provenance?: 'verified' | 'researched' | 'inferred';
+  sourceNote?: string;              // citation — file, section, or URL
+  sourceDate?: string;              // ISO date of the source (relative to ground truth)
 }
 
 // ------------------------------------------------------------
@@ -594,37 +721,82 @@ export interface GlobalAsset {
 // Now integrated with escalation logic
 // ------------------------------------------------------------
 
+export interface AssetRequirement {
+  assetId?: string
+  category?: AssetCategory
+  assetType?: string
+  requiredStatus: AssetStatus[]
+  requiredZone?: string
+  minCapability?: {
+    name: string
+    minCurrent: number
+  }
+}
+
+export interface AssetTransitionEffect {
+  assetId?: string
+  category?: AssetCategory
+  fromStatus: AssetStatus
+  toStatus: AssetStatus
+  turnsRequired: number
+  positionUpdate?: {
+    targetLat: number
+    targetLng: number
+    targetZone: string
+  }
+}
+
+export interface CachedResponse {
+  actorId: string
+  decision: Decision
+  rationale: string
+  escalationDirection: 'up' | 'down' | 'lateral' | 'none'
+  cachedAt: string
+}
+
+export interface BranchWorthiness {
+  score: number
+  reason: string
+  suggestedBranchLabel: string
+  alternateResponses?: CachedResponse[]
+}
+
 export interface Decision {
   id: string;
-  actorId: string;
-  title: string;
+  actorId?: string;
+  name?: string;
   description: string;
   dimension: Dimension;
 
   // where does this decision sit on the escalation ladder?
-  escalationRung: number;           // what rung does taking this action put you on
-  isEscalation: boolean;            // does this move you UP the ladder
-  isDeescalation: boolean;          // does this move you DOWN
+  escalationLevel?: number;         // what rung does taking this action put you on (full game loop)
+  isEscalation?: boolean;           // does this move you UP the ladder
+  isDeescalation?: boolean;         // does this move you DOWN
 
-  prerequisites: string[];
-  costs: DecisionCost[];
-  projectedOutcomes: ProjectedOutcome[];
-  advancesObjectives: string[];
-  risksObjectives: string[];
-  violatesConstraints: string[];
+  prerequisites?: string[];
+  costs?: DecisionCost[];
+  expectedOutcomes?: ProjectedOutcome[];
+  advancesObjectives?: string[];
+  risksObjectives?: string[];
+  violatesConstraints?: string[];
 
   // NEW: strategic framing — why would a rational actor choose this?
-  strategicRationale: string;       // e.g. "attritional drone campaign exploits cost asymmetry"
+  strategicRationale?: string;      // e.g. "attritional drone campaign exploits cost asymmetry"
   // NEW: what information does the actor need to make this decision well?
-  intelRequirements: string[];      // e.g. "need to know air defense munition levels"
+  intelRequirements?: string[];     // e.g. "need to know air defense munition levels"
   // NEW: what does the actor THINK will happen vs what might actually happen
-  actorAssessment: string;          // what the deciding actor believes the outcome will be
+  actorAssessment?: string;         // what the deciding actor believes the outcome will be
 
   // concurrency rules for TurnPlan building
   resourceWeight?: ResourceWeight;
   compatibleWith?: string[];        // decision ids/categories that can run concurrently
   incompatibleWith?: string[];      // decision ids/categories that cannot
   synergiesWith?: { decisionCategory: string; bonus: string }[];
+
+  // asset-layer extensions
+  requiredAssets?: AssetRequirement[];
+  assetTransitions?: AssetTransitionEffect[];
+  leadsToAvailable?: string[];
 }
 
 export interface DecisionCost {

@@ -7,6 +7,12 @@ export interface LayerState {
   militaryAssets: boolean
   militaryBases: boolean
   keyCities: boolean
+  usAssets: boolean
+  iranAssets: boolean
+  israelAssets: boolean
+  infrastructure: boolean
+  strikeRings: boolean
+  threatRings: boolean
 }
 
 interface ToggleItemProps {
@@ -78,6 +84,26 @@ export function MapLayerControls({ layers, onToggle }: Props) {
       <ToggleItem label="Mil. Assets"     active={layers.militaryAssets}  onToggle={() => onToggle('militaryAssets')} />
       <ToggleItem label="Mil. Bases"      active={layers.militaryBases}   onToggle={() => onToggle('militaryBases')} />
       <ToggleItem label="Terrain"         active={layers.terrain}         onToggle={() => onToggle('terrain')} />
+
+      {/* ASSETS group */}
+      <div style={{ borderTop: '1px solid #1a1a1a' }}>
+        <div className="px-2 py-[3px]">
+          <span className="font-mono text-[8px] uppercase tracking-[0.14em] text-text-tertiary">Assets</span>
+        </div>
+        <ToggleItem label="US Assets"       active={layers.usAssets}       onToggle={() => onToggle('usAssets')} />
+        <ToggleItem label="Iran Assets"     active={layers.iranAssets}     onToggle={() => onToggle('iranAssets')} />
+        <ToggleItem label="Israel Assets"   active={layers.israelAssets}   onToggle={() => onToggle('israelAssets')} />
+        <ToggleItem label="Infrastructure"  active={layers.infrastructure} onToggle={() => onToggle('infrastructure')} />
+      </div>
+
+      {/* RINGS group */}
+      <div style={{ borderTop: '1px solid #1a1a1a' }}>
+        <div className="px-2 py-[3px]">
+          <span className="font-mono text-[8px] uppercase tracking-[0.14em] text-text-tertiary">Rings</span>
+        </div>
+        <ToggleItem label="Strike Rings"  active={layers.strikeRings}  onToggle={() => onToggle('strikeRings')} />
+        <ToggleItem label="Threat Rings"  active={layers.threatRings}  onToggle={() => onToggle('threatRings')} />
+      </div>
     </div>
   )
 }

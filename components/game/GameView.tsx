@@ -13,7 +13,9 @@ import { DecisionDetailPanel } from '@/components/panels/DecisionDetailPanel'
 import { TurnPlanBuilder } from '@/components/panels/TurnPlanBuilder'
 import { ChronicleTimeline } from '@/components/chronicle/ChronicleTimeline'
 import { EventsTab } from '@/components/panels/EventsTab'
+import { ActorControlSelector } from '@/components/game/ActorControlSelector'
 import { DispatchTerminal } from '@/components/game/DispatchTerminal'
+import { ResearchUpdatePanel } from '@/components/game/ResearchUpdatePanel'
 import { ObserverOverlay } from '@/components/panels/ObserverOverlay'
 import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
 import { ProgressBar } from '@/components/ui/ProgressBar'
@@ -279,6 +281,7 @@ export function GameView({ branchId, scenarioId }: Props) {
   const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, reset: resetHook } = useSubmitTurn(branchId)
   const shouldSkip = useReducedMotion()
 
+  const [controlledActors, setControlledActors]             = useState<string[] | null>(null)
   const [activeTab, setActiveTab]                           = useState<PanelTab>('actors')
   const [showObserver, setShowObserver]                     = useState(true)
   const [selectedDecisionDetail, setSelectedDecisionDetail] = useState<DecisionDetail | null>(null)
@@ -507,10 +510,24 @@ export function GameView({ branchId, scenarioId }: Props) {
           <div className="shrink-0 overflow-hidden" style={{ height: '120px' }}>
             <DispatchTerminal lines={INITIAL_DISPATCH} isRunning={false} />
           </div>
+
+          {/* Ground truth research panel */}
+          <div className="shrink-0 p-3 border-t border-border-subtle">
+            <ResearchUpdatePanel scenarioId={scenarioId} />
+          </div>
         </>
       )}
     </div>
   )
+
+  if (controlledActors === null) {
+    return (
+      <ActorControlSelector
+        actors={MOCK_ACTORS}
+        onConfirm={setControlledActors}
+      />
+    )
+  }
 
   return (
     <>
