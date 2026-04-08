@@ -297,15 +297,13 @@ async function readResearchDocs(): Promise<{ military: string; political: string
 }
 
 async function callClaude(client: Anthropic, prompt: string): Promise<string> {
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 16000,
-    messages: [{ role: "user", content: prompt }],
-  })
-  return response.content
-    .filter(b => b.type === "text")
-    .map(b => (b as { type: "text"; text: string }).text)
-    .join("")
+  return client.messages
+    .stream({
+      model: "claude-sonnet-4-6",
+      max_tokens: 32000,
+      messages: [{ role: "user", content: prompt }],
+    })
+    .finalText()
 }
 
 async function loadCapabilities(actorId: string): Promise<RawCapability[]> {

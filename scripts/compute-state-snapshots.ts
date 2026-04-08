@@ -371,7 +371,7 @@ export function computeSnapshots(
     }
 
     // Step 7: Update active depletion rates from this event's changes
-    if (eventEffects && eventEffects.depletion_rate_changes.length > 0) {
+    if (eventEffects && eventEffects.depletion_rate_changes?.length > 0) {
       for (const rateChange of eventEffects.depletion_rate_changes) {
         const { actor_id, asset_type, new_rate_per_day } = rateChange
         if (!activeRates[actor_id]) activeRates[actor_id] = {}
@@ -487,7 +487,9 @@ async function main() {
   console.log(`Written ${snapshots.length} snapshots to ${OUTPUT_PATH}`)
 }
 
-main().catch(err => {
-  console.error(err)
-  process.exit(1)
-})
+if (import.meta.main) {
+  main().catch(err => {
+    console.error(err)
+    process.exit(1)
+  })
+}

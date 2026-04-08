@@ -10,10 +10,11 @@ CREATE TABLE actor_state_snapshots (
   economic_health        numeric NOT NULL CHECK (economic_health BETWEEN 0 AND 100),
   public_support         numeric NOT NULL CHECK (public_support BETWEEN 0 AND 100),
   international_standing numeric NOT NULL CHECK (international_standing BETWEEN 0 AND 100),
-  asset_inventory        jsonb NOT NULL DEFAULT '{}',
-  global_state           jsonb NOT NULL DEFAULT '{}',
-  facility_statuses      jsonb NOT NULL DEFAULT '[]',
-  created_at             timestamptz NOT NULL DEFAULT now()
+  asset_inventory            jsonb NOT NULL DEFAULT '{}',
+  global_state               jsonb NOT NULL DEFAULT '{}',
+  facility_statuses          jsonb NOT NULL DEFAULT '[]',
+  interceptor_effectiveness  jsonb NOT NULL DEFAULT '{}',
+  created_at                 timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE UNIQUE INDEX ON actor_state_snapshots (scenario_id, branch_id, turn_commit_id, actor_id);

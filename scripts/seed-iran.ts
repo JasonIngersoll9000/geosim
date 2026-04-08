@@ -51,7 +51,7 @@ export function buildScenarioInsert(backgroundContextEnriched: string) {
     visibility: 'public' as const,
     background_context_enriched: backgroundContextEnriched,
     scenario_start_date: '2026-02-06',
-    created_by: '00000000-0000-0000-0000-000000000000',
+    created_by: null,
     scenario_frame: {} as Record<string, unknown>,
     dimensions: [] as string[],
     phases: [] as unknown[],
@@ -297,12 +297,13 @@ export async function seedIranScenario(options: SeedOptions = {}): Promise<{
       .eq('name', SCENARIO_NAME)
 
     for (const s of existing ?? []) {
+      // Delete in FK-safe order: child tables first
+      const { error: figuresErr } = await supabase.from('key_figures').delete().eq('scenario_id', s.id)
+      if (figuresErr) throw new Error(`Failed to delete key_figures for ${s.id}: ${figuresErr.message}`)
+
       // NOTE: table is scenario_actors (not actors) to avoid collision with the game actors table
       const { error: actorsErr } = await supabase.from('scenario_actors').delete().eq('scenario_id', s.id)
       if (actorsErr) throw new Error(`Failed to delete scenario_actors for ${s.id}: ${actorsErr.message}`)
-
-      const { error: figuresErr } = await supabase.from('key_figures').delete().eq('scenario_id', s.id)
-      if (figuresErr) throw new Error(`Failed to delete key_figures for ${s.id}: ${figuresErr.message}`)
 
       const { error: capsErr } = await supabase.from('actor_capabilities').delete().eq('scenario_id', s.id)
       if (capsErr) throw new Error(`Failed to delete actor_capabilities for ${s.id}: ${capsErr.message}`)
@@ -361,7 +362,7 @@ export async function seedIranScenario(options: SeedOptions = {}): Promise<{
         is_trunk: true,
         turn_timeframe: 'event-driven',
         game_mode: 'observer',
-        created_by: '00000000-0000-0000-0000-000000000000',
+        created_by: null,
         visibility: 'public' as const,
       })
       .select()
@@ -430,8 +431,7 @@ export async function seedIranScenario(options: SeedOptions = {}): Promise<{
           asset_inventory: actorState.asset_inventory as unknown as Record<string, unknown>,
           global_state: snapshot.global_state as unknown as Record<string, unknown>,
           facility_statuses: snapshot.facility_statuses as unknown as Record<string, unknown>[],
-          timestamp: snapshot.timestamp,
-          snapshot_metadata: null,
+          interceptor_effectiveness: (snapshot.interceptor_effectiveness?.[actorId] ?? {}) as Record<string, unknown>,
         }
         const { error } = await supabase
           .from('actor_state_snapshots')

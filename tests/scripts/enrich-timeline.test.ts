@@ -36,7 +36,8 @@ function makeActorProfile(id: string): ActorProfile {
     historical_precedents: `${id} precedents.`,
     initial_scores: {
       militaryStrength: 70, politicalStability: 60, economicHealth: 55,
-      publicSupport: 50, internationalStanding: 60, escalationRung: 5,
+      publicSupport: 50, internationalStanding: 60,
+      escalationRung: 5, escalationLevel: 2, escalationLevelName: "Covert / Deniable Operations",
     },
     intelligence_profile: {
       signalCapability: 70, humanCapability: 60, cyberCapability: 65,
@@ -87,10 +88,33 @@ describe("buildEnrichmentPrompt", () => {
     expect(prompt).toContain("escalation")
   })
 
+  it("includes three-layer escalation structure", () => {
+    const event = makeEvent()
+    const prompt = buildEnrichmentPrompt(event, "context", [])
+    expect(prompt).toContain("by_actor")
+    expect(prompt).toContain("perceived")
+    expect(prompt).toContain("dyads")
+    expect(prompt).toContain("global_ceiling")
+  })
+
+  it("includes the escalation framework prompt", () => {
+    const event = makeEvent()
+    const prompt = buildEnrichmentPrompt(event, "context", [])
+    expect(prompt).toContain("ESCALATION FRAMEWORK")
+    expect(prompt).toContain("lethality")
+    expect(prompt).toContain("target_sensitivity")
+  })
+
   it("instructs paragraph-depth for text fields", () => {
     const event = makeEvent()
     const prompt = buildEnrichmentPrompt(event, "context", [])
     expect(prompt).toContain("full paragraph")
+  })
+
+  it("matches snapshot (change-control gate)", () => {
+    const event = makeEvent()
+    const prompt = buildEnrichmentPrompt(event, "context chain text", [makeActorProfile("united_states")])
+    expect(prompt).toMatchSnapshot()
   })
 })
 
@@ -114,13 +138,48 @@ describe("parseEnrichedResponse", () => {
         decision_summary: "Trump authorized Operation Epic Fury.",
         alternatives: [],
       },
-      escalation: { rung_before: 5, rung_after: 12, direction: "up" },
+      escalation: {
+        by_actor: {
+          united_states: { rung: 8, level: 3, level_name: "Limited Overt Military Operations", criteria_rationale: "Acknowledged strikes on military targets." },
+          iran: { rung: 5, level: 2, level_name: "Covert / Deniable Operations", criteria_rationale: "Proxy activations." },
+          israel: { rung: 8, level: 3, level_name: "Limited Overt Military Operations", criteria_rationale: "Acknowledged strikes." },
+          russia: { rung: 2, level: 1, level_name: "Crisis Onset", criteria_rationale: "Diplomatic support." },
+          china: { rung: 1, level: 0, level_name: "Baseline Competition", criteria_rationale: "Observer posture." },
+        },
+        perceived: {
+          iran_perceives_us: { estimated_rung: 12, confidence: "moderate", rationale: "Iran overestimates scale." },
+          us_perceives_iran: { estimated_rung: 6, confidence: "high", rationale: "Strong SIGINT picture." },
+          israel_perceives_iran: { estimated_rung: 7, confidence: "moderate", rationale: "Mossad assessment." },
+          russia_perceives_us: { estimated_rung: 10, confidence: "low", rationale: "Limited visibility." },
+          china_perceives_us: { estimated_rung: 9, confidence: "low", rationale: "Observer posture." },
+        },
+        dyads: {
+          us_iran: { highest_threshold_crossed: "thresh_overt_force", thresholds_intact: ["thresh_total_war", "thresh_wmd"], escalation_asymmetry: 3, last_crossing_event_id: "evt_test" },
+          israel_iran: { highest_threshold_crossed: null, thresholds_intact: [], escalation_asymmetry: 0, last_crossing_event_id: null },
+          us_israel: { highest_threshold_crossed: null, thresholds_intact: [], escalation_asymmetry: 0, last_crossing_event_id: null },
+          us_houthis: { highest_threshold_crossed: null, thresholds_intact: [], escalation_asymmetry: 0, last_crossing_event_id: null },
+          iran_houthis: { highest_threshold_crossed: null, thresholds_intact: [], escalation_asymmetry: 0, last_crossing_event_id: null },
+          us_hezbollah: { highest_threshold_crossed: null, thresholds_intact: [], escalation_asymmetry: 0, last_crossing_event_id: null },
+          iran_hezbollah: { highest_threshold_crossed: null, thresholds_intact: [], escalation_asymmetry: 0, last_crossing_event_id: null },
+          us_iraqi_militia: { highest_threshold_crossed: null, thresholds_intact: [], escalation_asymmetry: 0, last_crossing_event_id: null },
+          iran_iraqi_militia: { highest_threshold_crossed: null, thresholds_intact: [], escalation_asymmetry: 0, last_crossing_event_id: null },
+          us_russia: { highest_threshold_crossed: null, thresholds_intact: [], escalation_asymmetry: 0, last_crossing_event_id: null },
+          us_china: { highest_threshold_crossed: null, thresholds_intact: [], escalation_asymmetry: 0, last_crossing_event_id: null },
+        },
+        global_ceiling: 8,
+        direction: "up",
+      },
     }
     const result = parseEnrichedResponse(JSON.stringify(raw), "evt_test")
     expect(result.full_briefing.situation).toBeTruthy()
     expect(result.chronicle.headline).toBeTruthy()
     expect(result.context_summary).toBeTruthy()
     expect(result.decision_analysis.is_decision_point).toBe(true)
+    // Three-layer escalation structure
+    expect(result.escalation.by_actor).toBeDefined()
+    expect(result.escalation.perceived).toBeDefined()
+    expect(result.escalation.dyads).toBeDefined()
+    expect(result.escalation.global_ceiling).toBe(8)
   })
 
   it("throws when required section is missing", () => {

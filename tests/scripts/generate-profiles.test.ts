@@ -119,3 +119,32 @@ describe("buildKeyFigurePrompt", () => {
     expect(prompt).toContain("inferred")
   })
 })
+
+describe("parseKeyFigureResponse", () => {
+  it("parses a valid key figure response", () => {
+    const raw = {
+      id: "trump",
+      actor_id: "united_states",
+      name: "Donald Trump",
+      title: "President of the United States",
+      role: "president",
+      biography: "A paragraph about Trump.",
+      motivations: "A paragraph about his motivations.",
+      decision_style: "A paragraph about his decision style.",
+      current_context: "A paragraph about January 2026.",
+      relationships: [],
+      provenance: "verified" as const,
+      source_note: "Public record",
+    }
+    const figure = parseKeyFigureResponse(JSON.stringify(raw), "trump")
+    expect(figure.id).toBe("trump")
+    expect(figure.biography).toBeTruthy()
+  })
+
+  it("throws when required field is missing", () => {
+    const raw = { id: "trump", actor_id: "united_states", name: "Trump" }
+    expect(() => parseKeyFigureResponse(JSON.stringify(raw), "trump")).toThrow(
+      "Key figure trump missing required field"
+    )
+  })
+})

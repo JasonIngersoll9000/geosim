@@ -38,8 +38,8 @@ US ASSETS:
 - US military bases: Al Udeid (Qatar), Al Dhafra (UAE),
   Ain al-Assad (Iraq), Diego Garcia — any damage, operational
   degradation, dates
-- Carrier strike groups: current position (Red Sea / Persian Gulf /
-  Arabian Sea), any damage or operational constraints
+- Carrier strike groups: current positions (Red Sea / Persian Gulf /
+  Arabian Sea), dates of major movements, and general coordinates of where and when the movements began/ended. any damage or operational constraints
 
 ISRAELI ASSETS:
 - Arrow-3 / Arrow-2 interceptors: daily intercept rate,
@@ -94,6 +94,7 @@ OIL & GLOBAL ECONOMY:
   regions facing shortage, timeline to food security crisis
 - Any global recession indicators triggered: central bank
   actions, credit downgrades, major market moves
+- implications for the global economy down the line for impact across the globe at the current trajectory
 
 IRANIAN INFRASTRUCTURE:
 - Nuclear facilities post-strike status: Fordow, Natanz,
@@ -141,6 +142,8 @@ US DOMESTIC:
 - Public opinion polling: support/oppose % trend over
   conflict duration
 - Protests or civil unrest: scale, locations, dates
+- public sentiment as it relates to israel and this war
+- public sentiment on escalation
 
 NATO & KEY ALLIES:
 - Which NATO members have provided material support vs. refused

@@ -377,7 +377,20 @@ async function main(): Promise<void> {
 
     const prompt = buildStateEffectsPrompt(event, gapFill, priorSnapshot, radarInstallations)
     const raw = await callClaude(client, prompt)
-    const effects = parseStateEffectsResponse(raw, event.id)
+    let effects: EventStateEffects
+    try {
+      effects = parseStateEffectsResponse(raw, event.id)
+    } catch (err) {
+      console.warn(`  [warn] Parse failed for ${event.id}: ${err}. Using zero-delta stub.`)
+      effects = {
+        event_id: event.id,
+        timestamp: event.date,
+        actor_deltas: {},
+        asset_changes: [],
+        global_updates: {},
+        confidence: "low",
+      } as EventStateEffects
+    }
 
     if (dryRun) {
       console.log(`  [dry-run] Effects for ${event.id}:`)

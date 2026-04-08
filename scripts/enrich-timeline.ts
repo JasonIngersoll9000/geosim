@@ -6,7 +6,7 @@
 //   bun run scripts/enrich-timeline.ts --from=evt_id   # resume from event
 //   bun run scripts/enrich-timeline.ts --no-pause      # skip quality checkpoint
 //
-// Reads:  data/iran-timeline-raw.json  (Phase 1 output, after human review)
+// Reads:  data/iran-timeline-filtered.json  (filter-timeline.ts output, after human review)
 //         data/actor-profiles.json     (Phase 3 output)
 //         data/key-figures.json        (Phase 3 output)
 //
@@ -17,6 +17,7 @@
 
 import Anthropic from "@anthropic-ai/sdk"
 import { readJsonFile, writeJsonFile, buildContextChainString } from "./pipeline/utils"
+import { ESCALATION_FRAMEWORK_PROMPT } from "./pipeline/escalation-framework"
 import type {
   TimelineEvent,
   EnrichedEvent,
@@ -71,6 +72,8 @@ export function buildEnrichmentPrompt(
 
 CRITICAL: Every text field must be a full paragraph (minimum 4-5 sentences). No one-liners.
 
+${ESCALATION_FRAMEWORK_PROMPT}
+
 Event to enrich:
 ${JSON.stringify(event, null, 2)}
 
@@ -112,8 +115,25 @@ Output a single JSON object:
     ]
   },
   "escalation": {
-    "rung_before": [0-20],
-    "rung_after": [0-20],
+    "by_actor": {
+      "united_states": { "rung": [0-20], "level": [0-7], "level_name": "...", "criteria_rationale": "[One sentence: which criteria drove this score from US perspective]" },
+      "iran":          { "rung": [0-20], "level": [0-7], "level_name": "...", "criteria_rationale": "..." },
+      "israel":        { "rung": [0-20], "level": [0-7], "level_name": "...", "criteria_rationale": "..." },
+      "russia":        { "rung": [0-20], "level": [0-7], "level_name": "...", "criteria_rationale": "..." },
+      "china":         { "rung": [0-20], "level": [0-7], "level_name": "...", "criteria_rationale": "..." }
+    },
+    "perceived": {
+      "iran_perceives_us":    { "estimated_rung": [0-20], "confidence": "high|moderate|low", "rationale": "[One sentence: what intel basis]" },
+      "us_perceives_iran":    { "estimated_rung": [0-20], "confidence": "high|moderate|low", "rationale": "..." },
+      "israel_perceives_iran":{ "estimated_rung": [0-20], "confidence": "high|moderate|low", "rationale": "..." }
+    },
+    "dyads": {
+      "us_iran":    { "highest_threshold_crossed": "thresh_id or null", "thresholds_intact": ["thresh_id", ...], "escalation_asymmetry": [number], "last_crossing_event_id": "evt_id or null" },
+      "israel_iran":{ "highest_threshold_crossed": "...", "thresholds_intact": [...], "escalation_asymmetry": [number], "last_crossing_event_id": "..." },
+      "us_houthis": { "highest_threshold_crossed": "...", "thresholds_intact": [...], "escalation_asymmetry": [number], "last_crossing_event_id": "..." },
+      "iran_houthis":{ "highest_threshold_crossed": "...", "thresholds_intact": [...], "escalation_asymmetry": [number], "last_crossing_event_id": "..." }
+    },
+    "global_ceiling": [0-20],
     "direction": "up" | "down" | "lateral" | "none"
   }
 }
@@ -150,15 +170,38 @@ export function parseEnrichedResponse(raw: string, eventId: string): ParsedEnric
 }
 
 async function callClaude(client: Anthropic, prompt: string): Promise<string> {
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 16000,
-    messages: [{ role: "user", content: prompt }],
-  })
-  return response.content
-    .filter(b => b.type === "text")
-    .map(b => (b as { type: "text"; text: string }).text)
-    .join("")
+  const MAX_RETRIES = 6
+  let delay = 15000 // 15s initial backoff for overloaded errors
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await client.messages
+        .stream(
+          {
+            model: "claude-sonnet-4-6",
+            max_tokens: 32000,
+            messages: [{ role: "user", content: prompt }],
+          },
+          { timeout: 900000 } // 15 minutes — long context chains near end of timeline
+        )
+        .finalText()
+    } catch (err: unknown) {
+      const msg = String(err)
+      const isOverloaded = msg.includes("overloaded") || msg.includes("529")
+      const isRateLimit = msg.includes("rate_limit") || msg.includes("429")
+      const isTimeout = msg.includes("timed out") || msg.includes("timeout") || msg.includes("ETIMEDOUT")
+      const isConnection = msg.includes("ECONNRESET") || msg.includes("ECONNREFUSED") || msg.includes("Connection error") || msg.includes("socket")
+
+      if ((isOverloaded || isRateLimit || isTimeout || isConnection) && attempt < MAX_RETRIES) {
+        console.log(`  [retry ${attempt}/${MAX_RETRIES - 1}] ${isOverloaded ? "Overloaded" : "Rate limit"} — waiting ${delay / 1000}s...`)
+        await new Promise(r => setTimeout(r, delay))
+        delay = Math.min(delay * 2, 120000) // cap at 2 minutes
+        continue
+      }
+      throw err
+    }
+  }
+  throw new Error("Max retries exceeded")
 }
 
 async function main(): Promise<void> {
@@ -168,7 +211,7 @@ async function main(): Promise<void> {
 
   const client = new Anthropic()
 
-  const rawFile = await readJsonFile<RawTimelineFile>("data/iran-timeline-raw.json")
+  const rawFile = await readJsonFile<RawTimelineFile>("data/iran-timeline-filtered.json")
   const profiles = await readJsonFile<ActorProfile[]>("data/actor-profiles.json")
   await readJsonFile<KeyFigureProfile[]>("data/key-figures.json")
 
