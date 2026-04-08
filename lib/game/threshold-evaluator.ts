@@ -33,7 +33,7 @@ function resolveVariablePath(
   if (path.startsWith('asset_inventory.')) {
     return actor.asset_inventory[path.slice('asset_inventory.'.length)] ?? 0
   }
-  return (actor as Record<string, unknown>)[path] as number ?? 0
+  return (actor as unknown as Record<string, unknown>)[path] as number ?? 0
 }
 
 /**
