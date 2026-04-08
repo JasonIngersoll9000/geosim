@@ -487,7 +487,8 @@ async function main() {
   console.log(`Written ${snapshots.length} snapshots to ${OUTPUT_PATH}`)
 }
 
-if (Bun.main === decodeURIComponent(new URL(import.meta.url).pathname)) {
+const _scriptPath = new URL(import.meta.url).pathname
+if (process.argv[1] === _scriptPath || process.argv[1] === decodeURIComponent(_scriptPath)) {
   main().catch(err => {
     console.error(err)
     process.exit(1)
