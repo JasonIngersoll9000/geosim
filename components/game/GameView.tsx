@@ -21,6 +21,7 @@ import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import type { DispatchLine } from '@/components/game/DispatchTerminal'
 import type { ActorSummary, ActorDetail, DecisionOption, DecisionDetail, ActionSlot } from '@/lib/types/panels'
+import type { GameInitialData } from '@/lib/types/game-init'
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
@@ -209,6 +210,7 @@ type PanelTab = 'actors' | 'decisions' | 'events' | 'chronicle'
 interface Props {
   branchId: string
   scenarioId: string
+  initialData?: GameInitialData
 }
 
 const PANEL_TABS: { id: PanelTab; label: string }[] = [
