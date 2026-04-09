@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { getStateAtTurn } from '@/lib/game/state-engine'
 import type { MapAssetsResponse, MapAsset, MapAssetType, ShippingLane } from '@/lib/types/simulation'
 
@@ -47,7 +48,7 @@ export async function GET(
   try {
     const state = await getStateAtTurn(params.branchId, turnCommitId)
 
-    const assets: MapAsset[] = state.facility_statuses
+    let assets: MapAsset[] = state.facility_statuses
       .filter(f => f.lat !== undefined && f.lng !== undefined)
       .map(f => ({
         id:                      `${f.actor_id}-${f.name.toLowerCase().replace(/\s+/g, '-')}`,
@@ -62,6 +63,47 @@ export async function GET(
         tooltip:                 `${f.name} — ${f.status} (${f.capacity_pct}% capacity). ${f.location_label}`,
         is_approximate_location: f.type === 'carrier_group' || f.type === 'troop_deployment',
       }))
+
+    // Fallback: if facility_statuses had no coordinates, query actor_capabilities directly
+    if (assets.length === 0) {
+      const supabase = await createClient()
+      const { data: caps } = await supabase
+        .from('actor_capabilities')
+        .select('id, actor_id, name, asset_type, category, lat, lng, status, description')
+        .eq('scenario_id', state.scenario_id)
+        .not('lat', 'is', null)
+        .not('lng', 'is', null)
+
+      if (caps) {
+        for (const cap of caps as Array<{
+          id: string; actor_id: string; name: string; asset_type: string | null
+          category: string | null; lat: number; lng: number; status: string | null
+          description: string | null
+        }>) {
+          const typeMap: Record<string, string> = {
+            nuclear_facility: 'nuclear_facility', oil_gas_facility: 'oil_gas_facility',
+            military_base: 'military_base', carrier: 'carrier_group',
+            carrier_group: 'carrier_group', naval_base: 'naval_asset',
+            airbase: 'military_base', headquarters: 'military_base',
+            missile_battery: 'missile_battery',
+          }
+          const rawType = cap.asset_type ?? cap.category ?? 'military_base'
+          assets.push({
+            id: cap.id,
+            actor_id: cap.actor_id,
+            asset_type: (typeMap[rawType] ?? 'military_base') as MapAssetType,
+            label: cap.name,
+            lat: cap.lat,
+            lng: cap.lng,
+            status: cap.status === 'destroyed' ? 'destroyed' : cap.status === 'degraded' ? 'degraded' : 'operational',
+            capacity_pct: 100,
+            actor_color: ACTOR_COLORS[cap.actor_id] ?? '#888888',
+            tooltip: cap.description ?? cap.name,
+            is_approximate_location: rawType === 'carrier' || rawType === 'carrier_group',
+          })
+        }
+      }
+    }
 
     const shipping_lanes: ShippingLane[] = [
       {
