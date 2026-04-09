@@ -25,6 +25,7 @@
 // Then:   calls seed-iran.ts --from=<first new event id>
 
 import Anthropic from "@anthropic-ai/sdk"
+import { spawnSync } from "child_process"
 import { readFile } from "fs/promises"
 import { join } from "path"
 import {
@@ -399,11 +400,11 @@ async function main(): Promise<void> {
   const firstNewId = deduped[0].id
   console.log(`\nStep 5: Seeding to Supabase (append from ${firstNewId})...`)
 
-  const proc = Bun.spawn(
-    ["bun", "run", "scripts/seed-iran.ts", `--from=${firstNewId}`],
-    { stdout: "inherit", stderr: "inherit", cwd: process.cwd() }
-  )
-  const exitCode = await proc.exited
+  const proc = spawnSync("bun", ["run", "scripts/seed-iran.ts", `--from=${firstNewId}`], {
+    stdio: "inherit",
+    cwd: process.cwd(),
+  })
+  const exitCode = proc.status ?? 1
 
   if (exitCode !== 0) {
     throw new Error(`seed-iran.ts exited with code ${exitCode}`)
@@ -414,7 +415,7 @@ async function main(): Promise<void> {
   console.log(`Timeline now covers through ${deduped[deduped.length - 1].timestamp}.`)
 }
 
-if (Bun.main === decodeURIComponent(new URL(import.meta.url).pathname)) {
+if (process.argv[1] === new URL(import.meta.url).pathname) {
   main().catch(err => {
     console.error(err)
     process.exit(1)

@@ -977,3 +977,198 @@ export interface DecisionAlternative {
   escalationLevel: number
   whyNotChosen: string
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LIVE STATE ENGINE TYPES (Spec 2)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** A single actor's state row from actor_state_snapshots. */
+export interface ActorStateSnapshot {
+  actor_id: string
+  military_strength: number
+  political_stability: number
+  economic_health: number
+  public_support: number
+  international_standing: number
+  /** Map of asset_type → current count */
+  asset_inventory: Record<string, number>
+  /** Raw jsonb — global state duplicated per actor row */
+  global_state: Record<string, number>
+  /** Serialised FacilityStatus[] from jsonb */
+  facility_statuses: FacilityStatus[]
+}
+
+export interface FacilityStatus {
+  actor_id: string
+  name: string
+  type: string
+  status: 'operational' | 'degraded' | 'destroyed'
+  capacity_pct: number
+  location_label: string
+  lat?: number
+  lng?: number
+}
+
+export interface AssetAvailability {
+  count: number
+  pct_of_initial: number
+  /** constrained = < 25% of initial; exhausted = 0 */
+  status: 'available' | 'constrained' | 'exhausted'
+}
+
+export interface LiveActorState extends ActorStateSnapshot {
+  asset_availability: Record<string, AssetAvailability>
+}
+
+export interface LiveGlobalState {
+  oil_price_usd: number
+  hormuz_throughput_pct: number
+  global_economic_stress: number
+}
+
+/** Full branch state at a specific turn, including derived availability. */
+export interface BranchStateAtTurn {
+  scenario_id: string
+  branch_id: string
+  turn_commit_id: string
+  as_of_date: string
+  actor_states: Record<string, LiveActorState>
+  global_state: LiveGlobalState
+  facility_statuses: FacilityStatus[]
+  /** outer key = actor_id, inner key = asset_type, value = rate_per_day */
+  active_depletion_rates: Record<string, Record<string, number>>
+  /** Initial inventory from actor_capabilities — used for availability % */
+  initial_inventories: Record<string, Record<string, number>>
+}
+
+export interface EventStateEffects {
+  /** Score deltas per actor (clamped 0–100 on apply) */
+  actor_score_deltas: Record<string, Partial<{
+    military_strength: number
+    political_stability: number
+    economic_health: number
+    public_support: number
+    international_standing: number
+  }>>
+  /** Asset count deltas per actor (clamped to 0 on apply) */
+  asset_inventory_deltas: Record<string, Record<string, number>>
+  global_state_deltas: Partial<{
+    oil_price_usd: number
+    hormuz_throughput_pct: number
+    global_economic_stress: number
+  }>
+  /** Overwrites matching facilities by actor_id+name */
+  facility_updates: FacilityStatus[]
+  new_depletion_rates: {
+    actor_id: string
+    asset_type: string
+    rate_per_day: number
+    effective_from_date: string
+  }[]
+}
+
+export interface ThresholdResult {
+  triggered: boolean
+  trigger_id: string
+  /** Constructed from forced_event_template jsonb — structure is scenario-defined,
+   *  not known at compile time. Use unknown and narrow when consuming. */
+  forced_event: Record<string, unknown> | null
+}
+
+// ── Map assets ──────────────────────────────────────────────────────────────
+
+export type MapAssetType =
+  | 'carrier_group'
+  | 'military_base'
+  | 'missile_battery'
+  | 'nuclear_facility'
+  | 'oil_gas_facility'
+  | 'troop_deployment'
+  | 'naval_asset'
+  | 'air_defense_battery'
+
+export interface MapAsset {
+  id: string
+  actor_id: string
+  asset_type: MapAssetType
+  label: string
+  lat: number
+  lng: number
+  status: 'operational' | 'degraded' | 'destroyed'
+  capacity_pct: number
+  actor_color: string
+  tooltip: string
+  is_approximate_location: boolean
+}
+
+export interface ShippingLane {
+  id: string
+  label: string
+  throughput_pct: number
+  coordinates: [number, number][]
+}
+
+export interface MapAssetsResponse {
+  turn_commit_id: string
+  as_of_date: string
+  assets: MapAsset[]
+  shipping_lanes: ShippingLane[]
+}
+
+// ── Actor panel ──────────────────────────────────────────────────────────────
+
+export interface ScoreWithTrend {
+  value: number
+  trend: 'up' | 'down' | 'stable'
+  delta_since_start: number
+}
+
+export interface AssetItem {
+  name: string
+  initial_count: number
+  current_count: number
+  daily_rate: number
+  unit: string
+  status: 'available' | 'constrained' | 'exhausted'
+  days_until_exhausted: number | null
+}
+
+/** Grouped asset display for the actor panel. Named ActorPanelAssetGroup to avoid
+ *  collision with the existing AssetCategory union type in this file. */
+export interface ActorPanelAssetGroup {
+  category: string
+  items: AssetItem[]
+}
+
+export interface ActorPanelResponse {
+  actor_id: string
+  actor_name: string
+  turn_commit_id: string
+  as_of_date: string
+  scores: {
+    military_strength: ScoreWithTrend
+    political_stability: ScoreWithTrend
+    economic_health: ScoreWithTrend
+    public_support: ScoreWithTrend
+    international_standing: ScoreWithTrend
+  }
+  asset_categories: ActorPanelAssetGroup[]
+  /** Subset of FacilityStatus — omits lat/lng which are internal to the state engine */
+  facilities: {
+    name: string
+    type: string
+    status: 'operational' | 'degraded' | 'destroyed'
+    capacity_pct: number
+    location_label: string
+  }[]
+  reserve_capacity: {
+    label: string
+    description: string
+    mobilization_timeline: string
+  }[]
+  active_depletion_rates: {
+    asset_type: string
+    rate_per_day: number
+    days_until_exhausted: number | null
+  }[]
+}
