@@ -278,7 +278,7 @@ function ActorsPanel({
 export function GameView({ branchId, scenarioId }: Props) {
   useRealtime(branchId)
   const { state, dispatch } = useGame()
-  const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, reset: resetHook } = useSubmitTurn(branchId)
+  const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, reset: resetHook } = useSubmitTurn(scenarioId, branchId)
   const shouldSkip = useReducedMotion()
 
   const [controlledActors, setControlledActors]             = useState<string[] | null>(null)
