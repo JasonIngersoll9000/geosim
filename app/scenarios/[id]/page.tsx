@@ -312,7 +312,13 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
   const shouldSkip = useReducedMotion()
 
   useEffect(() => {
-    const supabase = createClient()
+    let supabase: ReturnType<typeof createClient> | null = null
+    try {
+      supabase = createClient()
+    } catch {
+      return
+    }
+    if (!supabase) return
     void (async () => {
       const [branchRes, actorRes] = await Promise.all([
         supabase
