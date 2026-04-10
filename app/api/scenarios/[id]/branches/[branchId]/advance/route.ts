@@ -21,6 +21,10 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string; branchId: string } }
 ) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return new Response(JSON.stringify({ error: 'Database not configured' }), { status: 503 })
+  }
+
   const { id: scenarioId, branchId } = params
 
   let body: { primaryAction: string; concurrentActions: string[] }
