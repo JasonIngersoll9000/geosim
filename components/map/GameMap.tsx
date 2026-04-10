@@ -53,7 +53,7 @@ interface Props {
 
 export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', turnCommitId = null }: Props) {
   const [layers, setLayers] = useState<LayerState>(DEFAULT_LAYERS)
-  const [assets, setAssets] = useState<PositionedAsset[]>([])
+  const [assets, _setAssets] = useState<PositionedAsset[]>([])
   const [mapAssets, setMapAssets] = useState<MapAsset[]>([])
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
   const [selectedAsset, setSelectedAsset] = useState<PositionedAsset | null>(null)
