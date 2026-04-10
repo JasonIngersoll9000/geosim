@@ -40,7 +40,7 @@ export function deduplicateEvents(events: TimelineEvent[]): DeduplicationResult 
     group.push(event.id)
     byId.set(event.id, group)
   }
-  for (const [id, group] of byId.entries()) {
+  for (const [id, group] of Array.from(byId.entries())) {
     if (group.length > 1) {
       duplicates.push({ ids: [id], reason: "same_id" })
     }
@@ -54,7 +54,7 @@ export function deduplicateEvents(events: TimelineEvent[]): DeduplicationResult 
     group.push(event.id)
     byTimestampTitle.set(key, group)
   }
-  for (const group of byTimestampTitle.values()) {
+  for (const group of Array.from(byTimestampTitle.values())) {
     if (group.length > 1) {
       const alreadyFlagged = duplicates.some(
         d => d.reason === "same_id" && d.ids.some(id => group.includes(id))
