@@ -59,6 +59,9 @@ export interface ScenarioRow {
   rating: number | null;
   created_at: string;
   updated_at: string;
+  background_context_enriched: string | null;
+  scenario_start_date: string | null;
+  ground_truth_through_date: string | null;
 }
 
 export interface BranchRow {
@@ -99,6 +102,19 @@ export interface TurnCommitRow {
   cache_key: string | null;
   reuse_count: number;
   computed_at: string;
+  // Enriched content fields (populated by enrich-timeline.ts pipeline)
+  full_briefing: string | null;
+  chronicle_headline: string | null;
+  chronicle_entry: string | null;
+  chronicle_date_label: string | null;
+  context_summary: string | null;
+  is_decision_point: boolean;
+  deciding_actor_id: string | null;
+  decision_summary: string | null;
+  decision_alternatives: Record<string, unknown> | null;
+  escalation_rung_before: number | null;
+  escalation_rung_after: number | null;
+  escalation_direction: "up" | "down" | "lateral" | "none" | null;
 }
 
 export interface ActorRow {
@@ -164,6 +180,67 @@ export interface ScenarioRatingRow {
   created_at: string;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Comprehensive seed tables
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ScenarioActorRow {
+  id: string;
+  scenario_id: string;
+  name: string;
+  short_name: string;
+  biographical_summary: string;
+  leadership_profile: string;
+  win_condition: string;
+  strategic_doctrine: string;
+  historical_precedents: string;
+  initial_scores: Record<string, unknown>;
+  intelligence_profile: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+/** @deprecated use ScenarioActorRow */
+export type ActorTableRow = ScenarioActorRow;
+
+export interface KeyFigureRow {
+  id: string;
+  scenario_id: string;
+  actor_id: string;
+  name: string;
+  title: string;
+  role: string;
+  biography: string;
+  motivations: string;
+  decision_style: string;
+  current_context: string;
+  relationships: Record<string, unknown> | null;
+  provenance: string;
+  source_note: string | null;
+  source_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActorCapabilityRow {
+  id: string;
+  scenario_id: string;
+  actor_id: string;
+  category: "military" | "diplomatic" | "economic" | "intelligence";
+  name: string;
+  description: string;
+  quantity: number | null;
+  unit: string | null;
+  deployment_status: "available" | "partially_deployed" | "degraded";
+  lead_time_days: number | null;
+  political_cost: string | null;
+  temporal_anchor: string;
+  source_url: string | null;
+  source_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ------------------------------------------------------------
 // INSERT TYPES (omit auto-generated fields)
 // ------------------------------------------------------------
@@ -179,8 +256,46 @@ export type ScenarioInsert = Omit<
 export type BranchInsert = Omit<BranchRow, "id" | "current_divergence" | "created_at" | "updated_at"> &
   Partial<Pick<BranchRow, "id" | "current_divergence" | "created_at" | "updated_at">>;
 
-export type TurnCommitInsert = Omit<TurnCommitRow, "id" | "cache_key" | "reuse_count" | "computed_at"> &
-  Partial<Pick<TurnCommitRow, "id" | "cache_key" | "reuse_count" | "computed_at">>;
+export type TurnCommitInsert = Omit<
+  TurnCommitRow,
+  | "id"
+  | "cache_key"
+  | "reuse_count"
+  | "computed_at"
+  | "full_briefing"
+  | "chronicle_headline"
+  | "chronicle_entry"
+  | "chronicle_date_label"
+  | "context_summary"
+  | "is_decision_point"
+  | "deciding_actor_id"
+  | "decision_summary"
+  | "decision_alternatives"
+  | "escalation_rung_before"
+  | "escalation_rung_after"
+  | "escalation_direction"
+> &
+  Partial<
+    Pick<
+      TurnCommitRow,
+      | "id"
+      | "cache_key"
+      | "reuse_count"
+      | "computed_at"
+      | "full_briefing"
+      | "chronicle_headline"
+      | "chronicle_entry"
+      | "chronicle_date_label"
+      | "context_summary"
+      | "is_decision_point"
+      | "deciding_actor_id"
+      | "decision_summary"
+      | "decision_alternatives"
+      | "escalation_rung_before"
+      | "escalation_rung_after"
+      | "escalation_direction"
+    >
+  >;
 
 export type ActorInsert = Omit<ActorRow, "id" | "created_at"> &
   Partial<Pick<ActorRow, "id" | "created_at">>;
@@ -197,6 +312,18 @@ export type EvalMetricInsert = Omit<EvalMetricRow, "id" | "created_at"> &
 export type ScenarioRatingInsert = Omit<ScenarioRatingRow, "id" | "created_at"> &
   Partial<Pick<ScenarioRatingRow, "id" | "created_at">>;
 
+export type ScenarioActorInsert = Omit<ScenarioActorRow, "created_at" | "updated_at"> &
+  Partial<Pick<ScenarioActorRow, "created_at" | "updated_at">>;
+
+/** @deprecated use ScenarioActorInsert */
+export type ActorTableInsert = ScenarioActorInsert;
+
+export type KeyFigureInsert = Omit<KeyFigureRow, "created_at" | "updated_at"> &
+  Partial<Pick<KeyFigureRow, "created_at" | "updated_at">>;
+
+export type ActorCapabilityInsert = Omit<ActorCapabilityRow, "id" | "created_at" | "updated_at"> &
+  Partial<Pick<ActorCapabilityRow, "id" | "created_at" | "updated_at">>;
+
 // ------------------------------------------------------------
 // UPDATE TYPES (all fields optional except id)
 // ------------------------------------------------------------
@@ -204,6 +331,100 @@ export type ScenarioRatingInsert = Omit<ScenarioRatingRow, "id" | "created_at"> 
 export type ScenarioUpdate = Partial<Omit<ScenarioRow, "id">> & { id: string };
 export type BranchUpdate = Partial<Omit<BranchRow, "id">> & { id: string };
 export type ActorUpdate = Partial<Omit<ActorRow, "id">> & { id: string };
+
+export type ScenarioActorUpdate = Partial<Omit<ScenarioActorRow, "id" | "scenario_id">> & { id: string; scenario_id: string };
+
+/** @deprecated use ScenarioActorUpdate */
+export type ActorTableUpdate = ScenarioActorUpdate;
+
+export type KeyFigureUpdate = Partial<Omit<KeyFigureRow, "id" | "scenario_id">> & { id: string; scenario_id: string };
+export type ActorCapabilityUpdate = Partial<Omit<ActorCapabilityRow, "id">> & { id: string };
+// ── Asset Registry ──────────────────────────────────────────────────────────
+
+export interface AssetRegistryRow {
+  id: string;
+  scenario_id: string;
+  actor_id: string;
+  name: string;
+  short_name: string;
+  category: string;
+  asset_type: string;
+  description: string;
+  lat: number;
+  lng: number;
+  zone: string;
+  status: string;
+  capabilities: import('./simulation').AssetCapability[];
+  strike_range_nm: number | null;
+  threat_range_nm: number | null;
+  provenance: string;
+  effective_from: string;
+  discovered_at: string;
+  researched_at: string | null;
+  source_url: string | null;
+  source_date: string | null;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AssetRegistryInsert = Omit<AssetRegistryRow, 'created_at' | 'updated_at'> & {
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type AssetRegistryUpdate = Partial<Omit<AssetRegistryRow, 'id' | 'scenario_id'>>;
+
+// ── Asset Research Log ───────────────────────────────────────────────────────
+
+export type ResearchLogStatus = 'pending' | 'running' | 'awaiting_approval' | 'approved' | 'rejected';
+
+export interface ProposedAssetChange {
+  type: 'add' | 'update' | 'remove';
+  assetId: string;
+  changes?: Partial<AssetRegistryInsert>;
+  rationale: string;
+  sourceUrl?: string;
+  sourceDate?: string;
+}
+
+export interface AssetResearchLogRow {
+  id: string;
+  scenario_id: string;
+  status: ResearchLogStatus;
+  triggered_at: string;
+  completed_at: string | null;
+  last_researched_at: string | null;
+  proposed_changes: ProposedAssetChange[];
+  summary: string;
+  approved_at: string | null;
+  rejected_at: string | null;
+  created_at: string;
+}
+
+// ── City Registry ────────────────────────────────────────────────────────────
+
+export interface CityRegistryRow {
+  id: string;
+  scenario_id: string;
+  name: string;
+  country: string;
+  population: number | null;
+  economic_role: string | null;
+  lat: number;
+  lng: number;
+  zone: string;
+  infrastructure_nodes: string[];
+  war_impacts: import('./simulation').CityImpact[];
+  provenance: string;
+  source_url: string | null;
+  source_date: string | null;
+  researched_at: string | null;
+}
+
+export type CityRegistryInsert = CityRegistryRow;
+
+export type CityRegistryUpdate = Partial<Omit<CityRegistryRow, 'id' | 'scenario_id'>>;
 
 // ------------------------------------------------------------
 // SUPABASE DATABASE TYPE (for typed client)
@@ -256,6 +477,21 @@ export interface Database {
         Row: ScenarioRatingRow;
         Insert: ScenarioRatingInsert;
         Update: Partial<ScenarioRatingRow>;
+      };
+      scenario_actors: {
+        Row: ScenarioActorRow;
+        Insert: ScenarioActorInsert;
+        Update: ScenarioActorUpdate;
+      };
+      key_figures: {
+        Row: KeyFigureRow;
+        Insert: KeyFigureInsert;
+        Update: KeyFigureUpdate;
+      };
+      actor_capabilities: {
+        Row: ActorCapabilityRow;
+        Insert: ActorCapabilityInsert;
+        Update: ActorCapabilityUpdate;
       };
     };
     Enums: {

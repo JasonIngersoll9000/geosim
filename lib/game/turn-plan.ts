@@ -45,7 +45,7 @@ export function validateTurnPlan(
     if (action.resourcePercent === 0) {
       const dec = decisionMap.get(action.decisionId)
       errors.push(
-        `Action "${dec?.title ?? action.decisionId}" has 0% resource allocation — remove it or assign resources`
+        `Action "${dec?.name ?? action.decisionId}" has 0% resource allocation — remove it or assign resources`
       )
     }
   }
@@ -59,7 +59,7 @@ export function validateTurnPlan(
   // ── Concurrency rules ───────────────────────────────────
   if (primaryDecision?.resourceWeight === 'total' && plan.concurrentActions.length > 0) {
     errors.push(
-      `"${primaryDecision.title}" requires total resource commitment — no concurrent actions allowed`
+      `"${primaryDecision.name}" requires total resource commitment — no concurrent actions allowed`
     )
   }
 
@@ -74,22 +74,22 @@ export function validateTurnPlan(
       const primaryIncompatible = primaryDecision.incompatibleWith ?? []
       if (primaryIncompatible.includes(concurrent.id)) {
         errors.push(
-          `"${primaryDecision.title}" and "${concurrent.title}" are incompatible — cannot run concurrently`
+          `"${primaryDecision.name}" and "${concurrent.name}" are incompatible — cannot run concurrently`
         )
         tensions.push({
           actions: [primaryDecision.id, concurrent.id],
-          penalty: `Combining ${primaryDecision.title} with ${concurrent.title} creates strategic contradiction`,
+          penalty: `Combining ${primaryDecision.name} with ${concurrent.name} creates strategic contradiction`,
         })
       }
 
       const concurrentIncompatible = concurrent.incompatibleWith ?? []
       if (concurrentIncompatible.includes(primaryDecision.id) && !primaryIncompatible.includes(concurrent.id)) {
         errors.push(
-          `"${concurrent.title}" and "${primaryDecision.title}" are incompatible — cannot run concurrently`
+          `"${concurrent.name}" and "${primaryDecision.name}" are incompatible — cannot run concurrently`
         )
         tensions.push({
           actions: [primaryDecision.id, concurrent.id],
-          penalty: `Combining ${concurrent.title} with ${primaryDecision.title} creates strategic contradiction`,
+          penalty: `Combining ${concurrent.name} with ${primaryDecision.name} creates strategic contradiction`,
         })
       }
     }
@@ -105,11 +105,11 @@ export function validateTurnPlan(
 
       if (aIncompat.includes(decB.id) || bIncompat.includes(decA.id)) {
         errors.push(
-          `"${decA.title}" and "${decB.title}" are incompatible — cannot run concurrently`
+          `"${decA.name}" and "${decB.name}" are incompatible — cannot run concurrently`
         )
         tensions.push({
           actions: [decA.id, decB.id],
-          penalty: `Combining ${decA.title} with ${decB.title} creates strategic contradiction`,
+          penalty: `Combining ${decA.name} with ${decB.name} creates strategic contradiction`,
         })
       }
     }

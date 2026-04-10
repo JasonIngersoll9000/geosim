@@ -23,10 +23,23 @@ interface ResolutionData {
 }
 
 interface Props {
-  resolution: ResolutionData
+  resolution: ResolutionData | null
 }
 
 export function EventsTab({ resolution }: Props) {
+  if (!resolution) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <div className="font-mono text-2xs uppercase tracking-[0.1em] text-text-tertiary mb-2">
+          No Events Yet
+        </div>
+        <p className="font-serif italic text-sm text-text-tertiary">
+          Resolution events will appear here after a turn is submitted.
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-5 p-4 bg-bg-surface-dim overflow-y-auto">
       {/* Narrative */}

@@ -1,11 +1,17 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { FloatingMetricChip } from './FloatingMetricChip'
 import { MapLegend } from './MapLegend'
 import { MapLayerControls } from './MapLayerControls'
+import { AssetDetailPanel } from './AssetDetailPanel'
+import { AssetInfoPanel } from './AssetInfoPanel'
+import { AssetPopup } from './AssetPopup'
+import { CityPopup } from './CityPopup'
+import { CityDetailPanel } from './CityDetailPanel'
+import { ActorStatusPanel } from '@/components/game/ActorStatusPanel'
 import type { LayerState } from './MapLayerControls'
-import type { GlobalState } from '@/lib/types/simulation'
+import type { GlobalState, MapAsset, PositionedAsset, City } from '@/lib/types/simulation'
 
 const MapboxMap = dynamic(
   () => import('./MapboxMap').then(m => ({ default: m.MapboxMap })),
@@ -30,14 +36,74 @@ const DEFAULT_LAYERS: LayerState = {
   militaryAssets: true,
   militaryBases:  false,
   keyCities:      false,
+  usAssets:       true,
+  iranAssets:     true,
+  israelAssets:   true,
+  infrastructure: true,
+  strikeRings:    false,
+  threatRings:    false,
 }
 
 interface Props {
   globalState?: GlobalState
+  scenarioId?: string
+  branchId?: string
+  turnCommitId?: string | null
 }
 
-export function GameMap({ globalState }: Props) {
+export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', turnCommitId = null }: Props) {
   const [layers, setLayers] = useState<LayerState>(DEFAULT_LAYERS)
+  const [assets, _setAssets] = useState<PositionedAsset[]>([])
+  const [mapAssets, setMapAssets] = useState<MapAsset[]>([])
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
+  const [selectedAsset, setSelectedAsset] = useState<PositionedAsset | null>(null)
+  const [popupAsset, setPopupAsset] = useState<PositionedAsset | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [cities, setCities] = useState<City[]>([])
+  const [selectedCity, setSelectedCity] = useState<City | null>(null)
+  const [cityPopup, setCityPopup] = useState<City | null>(null)
+  const [cityDetailOpen, setCityDetailOpen] = useState(false)
+
+  const selectedMapAsset = mapAssets.find(a => a.id === selectedAssetId) ?? null
+
+  useEffect(() => {
+    if (!branchId) return
+    const url = `/api/scenarios/${scenarioId}/branches/${branchId}/map-assets${turnCommitId ? `?turnCommitId=${turnCommitId}` : ''}`
+    fetch(url)
+      .then(r => r.json())
+      .then(({ assets: data }: { assets: MapAsset[] | null }) => { if (data) setMapAssets(data) })
+      .catch(() => {})
+  }, [scenarioId, branchId, turnCommitId])
+
+  useEffect(() => {
+    fetch('/api/scenarios/iran-2026/cities')
+      .then(r => r.json())
+      .then(({ data }: { data: City[] | null }) => { if (data) setCities(data) })
+      .catch(() => {})
+  }, [])
+
+  function handleAssetClick(asset: PositionedAsset) {
+    setPopupAsset(asset)
+    setSelectedAsset(asset)
+    setSelectedAssetId(asset.id)
+  }
+
+  function handleExpand(asset: PositionedAsset) {
+    setPopupAsset(null)
+    setSelectedAsset(asset)
+    setDetailOpen(true)
+  }
+
+  function handleCityClick(city: City) {
+    setCityPopup(city)
+    setSelectedCity(city)
+  }
+
+  function handleCityExpand(city: City) {
+    setCityPopup(null)
+    setSelectedCity(city)
+    setCityDetailOpen(true)
+  }
 
   const oilPrice   = globalState?.oilPricePerBarrel ?? 142
   const oilCritical = oilPrice > 120
@@ -49,7 +115,7 @@ export function GameMap({ globalState }: Props) {
     ? hormuzAsset.currentStatus.toLowerCase().includes('clos')
     : true
 
-  const hormuzStatus: 'open' | 'contested' | 'blocked' = hormuzClosed ? 'blocked' : 'contested'
+  const _hormuzStatus: 'open' | 'contested' | 'blocked' = hormuzClosed ? 'blocked' : 'contested'
 
   function toggleLayer(key: keyof LayerState) {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }))
@@ -60,7 +126,32 @@ export function GameMap({ globalState }: Props) {
 
       {/* ── Map layer ── */}
       {TOKEN ? (
-        <MapboxMap hormuzClosed={hormuzClosed} layerState={layers} />
+        <>
+          <MapboxMap
+            hormuzClosed={hormuzClosed}
+            layerState={layers}
+            assets={assets}
+            selectedAssetId={selectedAsset?.id ?? null}
+            onAssetClick={handleAssetClick}
+            cities={cities}
+            onCityClick={handleCityClick}
+          />
+          {popupAsset && (
+            <div style={{ position: 'absolute', top: '30%', left: '30%', zIndex: 50 }}>
+              <AssetPopup asset={popupAsset} onExpand={handleExpand} onClose={() => setPopupAsset(null)} />
+            </div>
+          )}
+          {cityPopup && (
+            <div style={{ position: 'absolute', top: '35%', left: '32%', zIndex: 50 }}>
+              <CityPopup city={cityPopup} onExpand={handleCityExpand} onClose={() => setCityPopup(null)} />
+            </div>
+          )}
+          <CityDetailPanel
+            city={selectedCity}
+            isOpen={cityDetailOpen}
+            onClose={() => { setCityDetailOpen(false); setSelectedCity(null) }}
+          />
+        </>
       ) : (
         <>
           <svg
@@ -166,6 +257,26 @@ export function GameMap({ globalState }: Props) {
       {TOKEN && (
         <MapLayerControls layers={layers} onToggle={toggleLayer} />
       )}
+
+      {/* ── Asset detail panel ── */}
+      <AssetDetailPanel
+        asset={selectedAsset}
+        isOpen={detailOpen}
+        onClose={() => { setDetailOpen(false); setSelectedAsset(null) }}
+      />
+
+      {/* ── Asset info panel (map-assets click-to-inspect) ── */}
+      {selectedMapAsset && (
+        <AssetInfoPanel
+          asset={selectedMapAsset}
+          onClose={() => setSelectedAssetId(null)}
+        />
+      )}
+
+      {/* ── Actor status panel ── */}
+      <div style={{ position: 'absolute', bottom: 28, left: 10, zIndex: 40 }}>
+        <ActorStatusPanel isGroundTruth={true} />
+      </div>
 
       {/* ── Map legend ── */}
       <MapLegend />

@@ -40,107 +40,6 @@ const CATEGORY_MAP: Record<string, ScenarioDisplay['displayCategory']> = {
   diplomatic: 'HISTORICAL',
 }
 
-const MOCK_SCENARIOS: ScenarioDisplay[] = [
-  {
-    id: 'iran-conflict-2025',
-    name: 'US–Israel–Iran Conflict 2025–2026',
-    description:
-      'Phase 3: Operation Epic Fury — Day 19. Joint US-Israeli decapitation strike launched one day after Oman announced a diplomatic breakthrough. Strait of Hormuz closed. Oil at $142/bbl.',
-    category: 'military',
-    displayCategory: 'ACTIVE CONFLICTS',
-    classification: 'SECRET',
-    status: 'ACTIVE',
-    branch_count: 14,
-    play_count: 3821,
-    rating: 4,
-    actorCount: 5,
-    lastActive: '22 MAR 2026',
-    turnNumber: 3,
-    actors: [
-      { label: 'USA', color: '#4a90d9' },
-      { label: 'IRN', color: '#c0392b' },
-      { label: 'ISR', color: '#ffba20' },
-      { label: 'SAU', color: '#5EBD8E' },
-      { label: 'CHN', color: '#4A90B8' },
-    ],
-  },
-  {
-    id: 'taiwan-strait-2026',
-    name: 'Taiwan Strait Crisis 2026',
-    description:
-      'PLA initiates quarantine operations around Taiwan following independence referendum. US carrier groups deploy. Economic decoupling accelerates across Pacific.',
-    category: 'military',
-    displayCategory: 'ACTIVE CONFLICTS',
-    classification: 'SECRET',
-    status: 'ACTIVE',
-    branch_count: 9,
-    play_count: 2104,
-    rating: 5,
-    actorCount: 4,
-    lastActive: '15 MAR 2026',
-  },
-  {
-    id: 'nato-eastern-flank',
-    name: 'NATO Eastern Flank — Baltic Escalation',
-    description:
-      'Article 5 invoked following incursion into Estonian territory. Rapid reinforcement race underway. Nuclear signaling from Moscow escalating.',
-    category: 'military',
-    displayCategory: 'ACTIVE CONFLICTS',
-    classification: 'CONFIDENTIAL',
-    status: 'ARCHIVED',
-    branch_count: 6,
-    play_count: 1587,
-    rating: 4,
-    actorCount: 6,
-    lastActive: '01 FEB 2026',
-  },
-  {
-    id: 'dollar-petrodollar-collapse',
-    name: 'Petrodollar Collapse Scenario',
-    description:
-      'Saudi Arabia finalizes oil trade in yuan and rupees. Dollar reserve status deteriorating. US fiscal options narrowing. BRICS payment rails go live.',
-    category: 'economic',
-    displayCategory: 'HYPOTHETICAL',
-    classification: 'CONFIDENTIAL',
-    status: 'ARCHIVED',
-    branch_count: 5,
-    play_count: 983,
-    rating: 3,
-    actorCount: 7,
-    lastActive: '10 JAN 2026',
-  },
-  {
-    id: 'un-reform-2027',
-    name: 'UN Security Council Reform Crisis',
-    description:
-      'G4 nations push binding resolution to add permanent seats. Russia and China veto repeatedly. Coalition threatens parallel institution.',
-    category: 'diplomatic',
-    displayCategory: 'HISTORICAL',
-    classification: 'CONFIDENTIAL',
-    status: 'ARCHIVED',
-    branch_count: 4,
-    play_count: 612,
-    rating: null,
-    actorCount: 8,
-    lastActive: '05 DEC 2025',
-  },
-  {
-    id: 'south-china-sea-2025',
-    name: 'South China Sea — ASEAN Flashpoint',
-    description:
-      'Philippine Coast Guard vessel sunk in contested waters. ASEAN unity fracturing. US mutual defense treaty obligations triggered. QUAD emergency session convened.',
-    category: 'military',
-    displayCategory: 'ACTIVE CONFLICTS',
-    classification: 'SECRET',
-    status: 'ARCHIVED',
-    branch_count: 7,
-    play_count: 1342,
-    rating: 4,
-    actorCount: 5,
-    lastActive: '18 FEB 2026',
-  },
-]
-
 // ─── Animation variants ───────────────────────────────────────────────────────
 
 const pageHeaderVariants: Variants = {
@@ -222,7 +121,7 @@ function ScenarioCard({ scenario, onClick }: { scenario: ScenarioDisplay; onClic
             </Badge>
             {scenario.turnNumber && (
               <span className="font-mono text-2xs text-text-tertiary tracking-[0.04em]">
-                TURN {String(scenario.turnNumber).padStart(2, '0')} // {scenario.status}
+                TURN {String(scenario.turnNumber).padStart(2, '0')}{' // '}{scenario.status}
               </span>
             )}
           </div>
@@ -282,6 +181,7 @@ export default function ScenarioBrowserPage() {
   const router = useRouter()
   const [scenarios, setScenarios] = useState<ScenarioDisplay[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('ALL SCENARIOS')
   const shouldSkip = useReducedMotion()
 
@@ -289,23 +189,21 @@ export default function ScenarioBrowserPage() {
     async function load() {
       try {
         const res = await fetch('/api/scenarios')
-        if (!res.ok) throw new Error('fetch failed')
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`)
         const json = (await res.json()) as { data: ScenarioSummary[]; error: unknown }
-        if (json.data && json.data.length > 0) {
-          const mapped: ScenarioDisplay[] = json.data.map((s) => ({
-            ...s,
-            displayCategory: CATEGORY_MAP[s.category] ?? 'HYPOTHETICAL',
-            classification: 'CONFIDENTIAL' as const,
-            status: 'ARCHIVED' as const,
-            actorCount: 0,
-            lastActive: '—',
-          }))
-          setScenarios(mapped)
-        } else {
-          setScenarios(MOCK_SCENARIOS)
-        }
-      } catch {
-        setScenarios(MOCK_SCENARIOS)
+        const mapped: ScenarioDisplay[] = (json.data ?? []).map((s) => ({
+          ...s,
+          displayCategory: CATEGORY_MAP[s.category] ?? 'HYPOTHETICAL',
+          classification: 'CONFIDENTIAL' as const,
+          status: 'ARCHIVED' as const,
+          actorCount: 0,
+          lastActive: '—',
+        }))
+        setScenarios(mapped)
+      } catch (err) {
+        console.error('[ScenarioBrowser] fetch failed:', err)
+        setError('Unable to load scenarios. Check your connection and try again.')
+        setScenarios([])
       } finally {
         setLoading(false)
       }
@@ -344,6 +242,12 @@ export default function ScenarioBrowserPage() {
               All scenarios are modeled with actor-neutral rigor.
             </p>
           </motion.div>
+
+          {!loading && error !== null && (
+            <div className="mb-4 px-4 py-3 border border-[#3a1a1a] bg-[rgba(185,28,28,0.06)] font-mono text-[10px] uppercase tracking-[0.08em] text-[#b91c1c]">
+              {error}
+            </div>
+          )}
 
           {!loading && (
             <CategoryTabStrip active={activeTab} onChange={setActiveTab} />

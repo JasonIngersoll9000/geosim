@@ -23,6 +23,14 @@ export interface BranchNode {
   lastPlayedAt: string
   controlledActor: string | null
   children: BranchNode[]
+  /** ISO date string for the in-world date of the head turn */
+  turnDate?: string
+  /** Whether this branch head represents an actor action or a response */
+  nodeType?: 'action' | 'response'
+  /** Escalation direction relative to parent branch */
+  escalationDirection?: 'up' | 'down' | 'lateral'
+  /** Number of cached alternate responses available at this node */
+  cachedAlternates?: number
 }
 
 export interface ActorOption {
@@ -152,6 +160,38 @@ function NodePanel({
 
       {/* Metadata */}
       <div className="flex flex-col gap-1">
+        {/* Date display */}
+        <div style={{ fontSize: 9, color: '#8a8880', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
+          {node.turnDate
+            ? new Date(node.turnDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : `Turn ${node.headTurn}`
+          }
+        </div>
+
+        {/* Node type badge + escalation direction */}
+        <div className="flex items-center" style={{ marginBottom: 4 }}>
+          {node.nodeType && (
+            <span style={{
+              padding: '1px 5px', borderRadius: 2, fontSize: 8,
+              textTransform: 'uppercase', letterSpacing: '0.1em',
+              color: node.nodeType === 'action' ? '#5dade2' : '#f39c12',
+              background: node.nodeType === 'action' ? 'rgba(41,128,185,0.15)' : 'rgba(230,126,34,0.15)',
+              border: `1px solid ${node.nodeType === 'action' ? '#2980b944' : '#e67e2244'}`,
+              marginRight: 6,
+            }}>
+              {node.nodeType.toUpperCase()}
+            </span>
+          )}
+          {node.escalationDirection && (
+            <span style={{
+              fontSize: 10,
+              color: node.escalationDirection === 'up' ? '#e74c3c' : node.escalationDirection === 'down' ? '#2ecc71' : '#f39c12',
+            }}>
+              {node.escalationDirection === 'up' ? '↑' : node.escalationDirection === 'down' ? '↓' : '→'}
+            </span>
+          )}
+        </div>
+
         <MetaRow label="TURN" value={`${String(node.headTurn).padStart(2, '0')} / ${String(node.totalTurns).padStart(2, '0')}`} />
         <MetaRow label="LAST ACTIVE" value={node.lastPlayedAt} />
         <MetaRow
@@ -159,6 +199,13 @@ function NodePanel({
           value={node.isTrunk ? 'GROUND TRUTH' : node.status.toUpperCase()}
           valueColor={node.isTrunk ? GOLD : (node.status === 'active' ? '#7ab87a' : '#5a5a5a')}
         />
+
+        {/* Cached alternates count */}
+        {(node.cachedAlternates ?? 0) > 0 && (
+          <div style={{ fontSize: 9, color: '#555', marginTop: 4 }}>
+            {node.cachedAlternates}{node.cachedAlternates !== 1 ? ' alternates' : ' alternate'}{' cached'}
+          </div>
+        )}
       </div>
 
       {/* Actor selector (not shown for trunk) */}
@@ -201,7 +248,7 @@ function MetaRow({ label, value, valueColor }: { label: string; value: string; v
   )
 }
 
-function ActorChip({ id, label, selected, onSelect }: { id: string; label: string; selected: boolean; onSelect: () => void }) {
+function ActorChip({ id: _id, label, selected, onSelect }: { id: string; label: string; selected: boolean; onSelect: () => void }) {
   return (
     <button
       onClick={onSelect}
@@ -237,7 +284,7 @@ export function BranchTree({ root, scenarioId, actors }: Props) {
    * Uses clientX/clientY + container bounding rect to stay scroll-aware.
    */
   const handleNodeClick = useCallback(
-    (e: React.MouseEvent, node: BranchNode, row: number) => {
+    (e: React.MouseEvent, node: BranchNode, _row: number) => {
       e.stopPropagation()
       if (panel?.node.id === node.id) { setPanel(null); return }
       const container = containerRef.current

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
@@ -16,6 +16,7 @@ import { ActorDetailPanel } from '@/components/panels/ActorDetailPanel'
 import { BranchTree } from '@/components/scenario/BranchTree'
 import type { BranchNode, ActorOption } from '@/components/scenario/BranchTree'
 import type { ActorDetail } from '@/lib/types/panels'
+import { createClient } from '@/lib/supabase/client'
 
 // ─── Actor mock data ──────────────────────────────────────────────────────────
 
@@ -234,79 +235,50 @@ const TIMELINE_ENTRIES = [
   },
 ]
 
-// ─── Branch tree mock data ────────────────────────────────────────────────────
+// ─── Branch tree helpers ──────────────────────────────────────────────────────
 
-const BRANCH_TREE_ROOT: BranchNode = {
-  id: 'trunk',
-  name: 'TRUNK // GROUND TRUTH',
-  isTrunk: true,
-  status: 'active',
-  forkTurn: 0,
-  headTurn: 4,
-  totalTurns: 12,
-  lastPlayedAt: '22 MAR 2026',
-  controlledActor: null,
-  children: [
-    {
-      id: 'branch-01',
-      name: 'BR-01 // PLAY AS USA',
-      isTrunk: false,
-      status: 'active',
-      forkTurn: 2,
-      headTurn: 3,
-      totalTurns: 12,
-      lastPlayedAt: '18 MAR 2026',
-      controlledActor: 'United States',
-      children: [
-        {
-          id: 'branch-03',
-          name: 'BR-03 // IRAN PLAYS BACK',
-          isTrunk: false,
-          status: 'active',
-          forkTurn: 3,
-          headTurn: 4,
-          totalTurns: 12,
-          lastPlayedAt: '20 MAR 2026',
-          controlledActor: 'Iran',
-          children: [],
-        },
-      ],
-    },
-    {
-      id: 'branch-02',
-      name: 'BR-02 // PLAY AS IRAN',
-      isTrunk: false,
-      status: 'archived',
-      forkTurn: 2,
-      headTurn: 2,
-      totalTurns: 12,
-      lastPlayedAt: '12 MAR 2026',
-      controlledActor: 'Iran',
-      children: [],
-    },
-    {
-      id: 'branch-04',
-      name: 'BR-04 // NEGOTIATE CEASEFIRE',
-      isTrunk: false,
-      status: 'active',
-      forkTurn: 3,
-      headTurn: 3,
-      totalTurns: 12,
-      lastPlayedAt: '24 MAR 2026',
-      controlledActor: null,
-      children: [],
-    },
-  ],
+type BranchRow = {
+  id: string
+  name: string
+  is_trunk: boolean
+  status: string
+  head_commit_id: string | null
+  created_at: string
+  parent_branch_id: string | null
+  turn_commits: Array<{ turn_number: number; simulated_date: string }>
 }
 
-const ACTOR_OPTIONS: ActorOption[] = [
-  { id: 'united_states', name: 'United States', flag: 'USA' },
-  { id: 'iran',          name: 'Iran',          flag: 'IRN' },
-  { id: 'israel',        name: 'Israel',        flag: 'ISR' },
-  { id: 'russia',        name: 'Russia',        flag: 'RUS' },
-  { id: 'china',         name: 'China',         flag: 'CHN' },
-  { id: 'gulf_states',   name: 'Gulf States',   flag: 'SAU' },
-]
+function buildBranchTree(rows: BranchRow[]): BranchNode | null {
+  const map = new Map<string, BranchNode>()
+  for (const row of rows) {
+    const commits = row.turn_commits ?? []
+    const maxTurn = commits.reduce((m, c) => Math.max(m, c.turn_number), 0)
+    const latestCommit = commits.find(c => c.turn_number === maxTurn)
+    map.set(row.id, {
+      id: row.id,
+      name: row.name,
+      isTrunk: row.is_trunk,
+      status: row.status === 'active' ? 'active' : 'archived',
+      forkTurn: 0,
+      headTurn: maxTurn,
+      totalTurns: commits.length,
+      lastPlayedAt: row.created_at,
+      controlledActor: null,
+      children: [],
+      turnDate: latestCommit?.simulated_date,
+    })
+  }
+  let root: BranchNode | null = null
+  for (const row of rows) {
+    const node = map.get(row.id)!
+    if (row.parent_branch_id && map.has(row.parent_branch_id)) {
+      map.get(row.parent_branch_id)!.children.push(node)
+    } else {
+      root = node
+    }
+  }
+  return root
+}
 
 // ─── Tab type ─────────────────────────────────────────────────────────────────
 
@@ -334,8 +306,41 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
   const [panelOpen, setPanelOpen] = useState(false)
   const [creatingBranch, setCreatingBranch] = useState(false)
   const [branchError, setBranchError] = useState<string | null>(null)
+  const [branchRoot, setBranchRoot] = useState<BranchNode | null>(null)
+  const [actorOptions, setActorOptions] = useState<ActorOption[]>([])
   const router = useRouter()
   const shouldSkip = useReducedMotion()
+
+  useEffect(() => {
+    const supabase = createClient()
+    void (async () => {
+      const [branchRes, actorRes] = await Promise.all([
+        supabase
+          .from('branches')
+          .select('id, name, is_trunk, status, head_commit_id, created_at, parent_branch_id, turn_commits(turn_number, simulated_date)')
+          .eq('scenario_id', params.id)
+          .order('created_at', { ascending: true }),
+        supabase
+          .from('actors')
+          .select('id, name, country_code')
+          .eq('scenario_id', params.id),
+      ])
+      if (branchRes.data && branchRes.data.length > 0) {
+        const rows = branchRes.data as unknown as BranchRow[]
+        const tree = buildBranchTree(rows)
+        if (tree) setBranchRoot(tree)
+      }
+      if (actorRes.data) {
+        setActorOptions(
+          actorRes.data.map((a: Record<string, unknown>) => ({
+            id: a.id as string,
+            name: a.name as string,
+            flag: ((a.country_code as string | null) ?? (a.name as string).slice(0, 3)).toUpperCase(),
+          }))
+        )
+      }
+    })()
+  }, [params.id])
 
   function openDossier(actorId: string) {
     const detail = MOCK_ACTOR_DETAILS[actorId] ?? null
@@ -412,7 +417,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
               <Badge variant="critical">SECRET</Badge>
               <Badge variant="military">ACTIVE CONFLICT</Badge>
               <span className="font-mono text-2xs text-text-tertiary ml-auto tracking-[0.04em] uppercase">
-                TURN 03 // ACTIVE
+                TURN 03{' // '}ACTIVE
               </span>
             </div>
 
@@ -454,7 +459,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
               >
                 Observe — AI vs AI
               </Button>
-              <Button variant="ghost" className="text-[11px] py-1.5">
+              <Button variant="ghost" className="text-[11px] py-1.5 opacity-50 cursor-not-allowed" disabled title="Coming soon">
                 Browse Branches
               </Button>
             </div>
@@ -518,11 +523,17 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
             </div>
 
             {/* Tree */}
-            <BranchTree
-              root={BRANCH_TREE_ROOT}
-              scenarioId={params.id}
-              actors={ACTOR_OPTIONS}
-            />
+            {branchRoot ? (
+              <BranchTree
+                root={branchRoot}
+                scenarioId={params.id}
+                actors={actorOptions}
+              />
+            ) : (
+              <p className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em] py-4">
+                Loading branches...
+              </p>
+            )}
           </section>
 
           {/* Section divider */}
