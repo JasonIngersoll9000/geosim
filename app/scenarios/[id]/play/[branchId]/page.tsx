@@ -14,6 +14,17 @@ interface Props {
 }
 
 export default async function PlayPage({ params }: Props) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[#050A12]">
+        <div className="text-center space-y-2">
+          <p className="font-mono text-sm text-[#888]">DATABASE NOT CONFIGURED</p>
+          <p className="font-mono text-xs text-[#555]">Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to play</p>
+        </div>
+      </div>
+    )
+  }
+
   const supabase = await createClient()
 
   // 1. Fetch scenario metadata

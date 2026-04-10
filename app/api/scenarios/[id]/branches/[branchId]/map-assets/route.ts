@@ -38,6 +38,10 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string; branchId: string } }
 ) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
+  }
+
   const { searchParams } = new URL(request.url)
   const turnCommitId = searchParams.get('turnCommitId')
 

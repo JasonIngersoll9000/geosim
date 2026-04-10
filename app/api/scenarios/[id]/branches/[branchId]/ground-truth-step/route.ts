@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/server'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; branchId: string }> }
 ) {
+  if (!isSupabaseConfigured()) {
+    return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
+  }
+
   const { branchId } = await params
   const currentTurn = parseInt(request.nextUrl.searchParams.get('currentTurn') ?? '0', 10)
 
