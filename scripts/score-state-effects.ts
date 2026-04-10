@@ -384,12 +384,15 @@ async function main(): Promise<void> {
       console.warn(`  [warn] Parse failed for ${event.id}: ${err}. Using zero-delta stub.`)
       effects = {
         event_id: event.id,
-        timestamp: event.date,
+        timestamp: event.timestamp,
+        is_decision_revised: false,
         actor_deltas: {},
         asset_changes: [],
         global_updates: {},
+        depletion_rate_changes: [],
+        decision_nodes: [],
         confidence: "low",
-      } as EventStateEffects
+      } as unknown as EventStateEffects
     }
 
     if (dryRun) {

@@ -5,12 +5,13 @@ import { FloatingMetricChip } from './FloatingMetricChip'
 import { MapLegend } from './MapLegend'
 import { MapLayerControls } from './MapLayerControls'
 import { AssetDetailPanel } from './AssetDetailPanel'
+import { AssetInfoPanel } from './AssetInfoPanel'
 import { AssetPopup } from './AssetPopup'
 import { CityPopup } from './CityPopup'
 import { CityDetailPanel } from './CityDetailPanel'
 import { ActorStatusPanel } from '@/components/game/ActorStatusPanel'
 import type { LayerState } from './MapLayerControls'
-import type { GlobalState, PositionedAsset, City } from '@/lib/types/simulation'
+import type { GlobalState, MapAsset, PositionedAsset, City } from '@/lib/types/simulation'
 
 const MapboxMap = dynamic(
   () => import('./MapboxMap').then(m => ({ default: m.MapboxMap })),
@@ -45,11 +46,16 @@ const DEFAULT_LAYERS: LayerState = {
 
 interface Props {
   globalState?: GlobalState
+  scenarioId?: string
+  branchId?: string
+  turnCommitId?: string | null
 }
 
-export function GameMap({ globalState }: Props) {
+export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', turnCommitId = null }: Props) {
   const [layers, setLayers] = useState<LayerState>(DEFAULT_LAYERS)
-  const [assets, setAssets] = useState<PositionedAsset[]>([])
+  const [assets, _setAssets] = useState<PositionedAsset[]>([])
+  const [mapAssets, setMapAssets] = useState<MapAsset[]>([])
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
   const [selectedAsset, setSelectedAsset] = useState<PositionedAsset | null>(null)
   const [popupAsset, setPopupAsset] = useState<PositionedAsset | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
@@ -58,12 +64,16 @@ export function GameMap({ globalState }: Props) {
   const [cityPopup, setCityPopup] = useState<City | null>(null)
   const [cityDetailOpen, setCityDetailOpen] = useState(false)
 
+  const selectedMapAsset = mapAssets.find(a => a.id === selectedAssetId) ?? null
+
   useEffect(() => {
-    fetch('/api/scenarios/iran-2026/assets')
+    if (!branchId) return
+    const url = `/api/scenarios/${scenarioId}/branches/${branchId}/map-assets${turnCommitId ? `?turnCommitId=${turnCommitId}` : ''}`
+    fetch(url)
       .then(r => r.json())
-      .then(({ data }: { data: PositionedAsset[] | null }) => { if (data) setAssets(data) })
+      .then(({ assets: data }: { assets: MapAsset[] | null }) => { if (data) setMapAssets(data) })
       .catch(() => {})
-  }, [])
+  }, [scenarioId, branchId, turnCommitId])
 
   useEffect(() => {
     fetch('/api/scenarios/iran-2026/cities')
@@ -75,6 +85,7 @@ export function GameMap({ globalState }: Props) {
   function handleAssetClick(asset: PositionedAsset) {
     setPopupAsset(asset)
     setSelectedAsset(asset)
+    setSelectedAssetId(asset.id)
   }
 
   function handleExpand(asset: PositionedAsset) {
@@ -253,6 +264,14 @@ export function GameMap({ globalState }: Props) {
         isOpen={detailOpen}
         onClose={() => { setDetailOpen(false); setSelectedAsset(null) }}
       />
+
+      {/* ── Asset info panel (map-assets click-to-inspect) ── */}
+      {selectedMapAsset && (
+        <AssetInfoPanel
+          asset={selectedMapAsset}
+          onClose={() => setSelectedAssetId(null)}
+        />
+      )}
 
       {/* ── Actor status panel ── */}
       <div style={{ position: 'absolute', bottom: 28, left: 10, zIndex: 40 }}>

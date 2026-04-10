@@ -79,7 +79,7 @@ function nowStamp(): string {
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useSubmitTurn(branchId: string): UseSubmitTurnResult {
+export function useSubmitTurn(scenarioId: string, branchId: string): UseSubmitTurnResult {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isComplete, setIsComplete]     = useState(false)
   const [error, setError]               = useState<string | null>(null)
@@ -111,7 +111,7 @@ export function useSubmitTurn(branchId: string): UseSubmitTurnResult {
     }])
 
     try {
-      const res = await fetch(`/api/branches/${branchId}/advance`, {
+      const res = await fetch(`/api/scenarios/${scenarioId}/branches/${branchId}/advance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -186,7 +186,7 @@ export function useSubmitTurn(branchId: string): UseSubmitTurnResult {
     } finally {
       setIsSubmitting(false)
     }
-  }, [branchId, appendLine, runMockStream])
+  }, [scenarioId, branchId, appendLine, runMockStream])
 
   const reset = useCallback(() => {
     setIsSubmitting(false)

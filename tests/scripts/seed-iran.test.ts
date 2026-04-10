@@ -106,16 +106,16 @@ describe('buildTurnCommitInsert', () => {
       is_decision_revised: false,
       actor_deltas: {},
       asset_changes: [],
-      global_updates: [],
+      global_updates: {},
       depletion_rate_changes: [],
       decision_nodes: [
-        { event_id: 'evt_001', label: 'Escalation Decision', significance: 'high', rationale: 'Major inflection' }
+        { is_major_decision_node: true, label: 'Escalation Decision', significance: 'significant' as const }
       ],
       confidence: 'high' as const
     }
     const result = buildTurnCommitInsert(event, 'branch-uuid', null, 5, 0, stateEffects)
     expect(result.is_major_decision_node).toBe(true)
     expect(result.decision_node_label).toBe('Escalation Decision')
-    expect(result.decision_node_significance).toBe('high')
+    expect(result.decision_node_significance).toBe('significant')
   })
 })

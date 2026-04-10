@@ -787,7 +787,7 @@ export function createMockDecisions(actorId: string): Decision[] {
   const base = {
     actorId,
     prerequisites: [],
-    expectedOutcomes: [],
+    projectedOutcomes: [],
     advancesObjectives: [],
     risksObjectives: [],
     violatesConstraints: [],
