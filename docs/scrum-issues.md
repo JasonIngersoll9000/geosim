@@ -322,5 +322,45 @@ Independent (can start any time):
 | #39      | #64     | Mapbox real impl | ✅ CLOSED |
 | #40      | #65     | Auth | 🔲 OPEN (partial) |
 | #41      | #66     | CI/CD | 🔲 OPEN |
-| new      | —       | Playable game bug fixes (11 bugs) | 🔲 CREATE |
+| #51      | —       | Playable game bug fixes (11 bugs) | 🔲 OPEN |
+| #52      | —       | Multi-actor decision catalog | 🔲 OPEN |
+| #53      | —       | Observer mode full implementation | 🔲 OPEN |
+| #54      | —       | Actor dossier data quality | 🔲 OPEN |
+| #55      | —       | Seed data quality pass | 🔲 OPEN |
+| #56      | —       | Error boundaries + blank state handling | 🔲 OPEN |
+| #57      | —       | Favicon | 🔲 OPEN |
+| #58      | —       | Rate limiting + AI cost controls | 🔲 OPEN |
 | new      | —       | Live State Engine | ✅ DONE — PR #49 (no GH issue existed) |
+
+---
+
+## Sprint Planning — Implementation Plans
+
+The remaining open issues group into **5 implementation plans** plus 2 quick tasks:
+
+### Plan 1 — Bug Fixes (Issue #51)
+**Issues:** #51 + #55 (seed data quality), #56 (error boundaries), #57 (favicon)
+**Branch:** `fix/playable-game-bugs`
+**Description:** Fix all 11 post-merge bugs blocking the playable game. Root causes are wrong DB column names, hardcoded URLs, missing API fallbacks, and wrong CSS z-index. No AI involved. One focused pass.
+
+### Plan 2 — Research Pipeline (Issue #31)
+**Issues:** #31
+**Description:** Implement the 7-stage Iran scenario research pipeline per `docs/research-pipeline.md`. Self-contained — feeds enriched context into actor agents.
+
+### Plan 3 — AI Pipeline Core (Issues #32, #33, #52)
+**Issues:** #32 (actor agent full TurnPlan), #33 (resolution engine), #52 (multi-actor decision catalog)
+**Description:** Actor agents generate TurnPlans from their decision catalog → resolution engine processes all actors' plans simultaneously → produces `EventStateEffects`. Tightly coupled: actor output feeds directly into resolution.
+**Blocker:** #52 (multi-actor decision catalog) must be done first or alongside.
+
+### Plan 4 — Judge + Narrator (Issues #34, #35)
+**Issues:** #34 (judge evaluator), #35 (narrator)
+**Description:** Evaluator-optimizer pair. Judge scores resolution output (0–100); if below threshold, resolution retries. Narrator converts final resolution into `ChronicleEntry` narrative. Always work together.
+
+### Plan 5 — Game Loop + Player Interaction (Issues #36, #37, #38, #53, #54)
+**Issues:** #36 (game loop orchestration), #37 (full turn submission), #38 (branch creation), #53 (observer mode), #54 (actor dossier)
+**Description:** Orchestration layer wires Plans 3+4 into a complete turn. Advance route calls game loop → streams SSE → narrator writes chronicle. Also covers player-facing UI improvements: observer mode view and actor dossier quality.
+
+### Quick Tasks (no /plan needed)
+- **#40** — Auth: middleware update only (~2 hours)
+- **#41** — CI/CD: single `.github/workflows/ci.yml` file (~1 hour)
+- **#58** — Rate limiting: add after AI loop is working (cost controls without working loop are premature)
