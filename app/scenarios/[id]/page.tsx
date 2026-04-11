@@ -328,7 +328,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
           .order('created_at', { ascending: true }),
         supabase
           .from('actors')
-          .select('id, name, country_code')
+          .select('actor_id, name')
           .eq('scenario_id', params.id),
       ])
       if (branchRes.data && branchRes.data.length > 0) {
@@ -339,9 +339,9 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
       if (actorRes.data) {
         setActorOptions(
           actorRes.data.map((a: Record<string, unknown>) => ({
-            id: a.id as string,
+            id: a.actor_id as string,
             name: a.name as string,
-            flag: ((a.country_code as string | null) ?? (a.name as string).slice(0, 3)).toUpperCase(),
+            flag: (a.name as string).slice(0, 3).toUpperCase(),
           }))
         )
       }
@@ -376,7 +376,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
           return
         }
       }
-      setBranchError('Branch creation is not available yet.')
+      setBranchError('Branching is available from the Play page after selecting a turn.')
     } catch {
       setBranchError('Failed to create branch — please try again.')
     } finally {
