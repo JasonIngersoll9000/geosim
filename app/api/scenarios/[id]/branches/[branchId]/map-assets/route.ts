@@ -20,6 +20,50 @@ const ACTOR_COLORS: Record<string, string> = {
   china:        '#de2910',
 }
 
+async function fillFromCapabilities(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  scenarioId: string,
+  assets: MapAsset[]
+): Promise<void> {
+  const { data: caps } = await supabase
+    .from('actor_capabilities')
+    .select('id, actor_id, name, asset_type, category, lat, lng, status, description')
+    .eq('scenario_id', scenarioId)
+    .not('lat', 'is', null)
+    .not('lng', 'is', null)
+
+  if (!caps) return
+
+  const typeMap: Record<string, string> = {
+    nuclear_facility: 'nuclear_facility', oil_gas_facility: 'oil_gas_facility',
+    military_base: 'military_base', carrier: 'carrier_group',
+    carrier_group: 'carrier_group', naval_base: 'naval_asset',
+    airbase: 'military_base', headquarters: 'military_base',
+    missile_battery: 'missile_battery',
+  }
+
+  for (const cap of caps as Array<{
+    id: string; actor_id: string; name: string; asset_type: string | null
+    category: string | null; lat: number; lng: number; status: string | null
+    description: string | null
+  }>) {
+    const rawType = cap.asset_type ?? cap.category ?? 'military_base'
+    assets.push({
+      id:                      cap.id,
+      actor_id:                cap.actor_id,
+      asset_type:              (typeMap[rawType] ?? 'military_base') as MapAssetType,
+      label:                   cap.name,
+      lat:                     cap.lat,
+      lng:                     cap.lng,
+      status:                  cap.status === 'destroyed' ? 'destroyed' : cap.status === 'degraded' ? 'degraded' : 'operational',
+      capacity_pct:            100,
+      actor_color:             ACTOR_COLORS[cap.actor_id] ?? '#888888',
+      tooltip:                 cap.description ?? cap.name,
+      is_approximate_location: rawType === 'carrier' || rawType === 'carrier_group',
+    })
+  }
+}
+
 function facilityTypeToMapAssetType(type: string): MapAssetType {
   const map: Record<string, MapAssetType> = {
     nuclear_facility:  'nuclear_facility',
@@ -45,89 +89,77 @@ export async function GET(
   const { searchParams } = new URL(request.url)
   const turnCommitId = searchParams.get('turnCommitId')
 
-  if (!turnCommitId) {
-    return NextResponse.json({ error: 'turnCommitId is required' }, { status: 400 })
-  }
-
   try {
-    const state = await getStateAtTurn(params.branchId, turnCommitId)
+    const supabase = await createClient()
+    const assets: MapAsset[] = []
 
-    const assets: MapAsset[] = state.facility_statuses
-      .filter(f => f.lat !== undefined && f.lng !== undefined)
-      .map(f => ({
-        id:                      `${f.actor_id}-${f.name.toLowerCase().replace(/\s+/g, '-')}`,
-        actor_id:                f.actor_id,
-        asset_type:              facilityTypeToMapAssetType(f.type),
-        label:                   f.name,
-        lat:                     f.lat!,
-        lng:                     f.lng!,
-        status:                  f.status,
-        capacity_pct:            f.capacity_pct,
-        actor_color:             ACTOR_COLORS[f.actor_id] ?? '#888888',
-        tooltip:                 `${f.name} — ${f.status} (${f.capacity_pct}% capacity). ${f.location_label}`,
-        is_approximate_location: f.type === 'carrier_group' || f.type === 'troop_deployment',
-      }))
+    if (turnCommitId) {
+      // Prefer state-engine data when we have a commit reference
+      const state = await getStateAtTurn(params.branchId, turnCommitId)
 
-    // Fallback: if facility_statuses had no coordinates, query actor_capabilities directly
-    if (assets.length === 0) {
-      const supabase = await createClient()
-      const { data: caps } = await supabase
-        .from('actor_capabilities')
-        .select('id, actor_id, name, asset_type, category, lat, lng, status, description')
-        .eq('scenario_id', state.scenario_id)
-        .not('lat', 'is', null)
-        .not('lng', 'is', null)
+      const stateAssets: MapAsset[] = state.facility_statuses
+        .filter(f => f.lat !== undefined && f.lng !== undefined)
+        .map(f => ({
+          id:                      `${f.actor_id}-${f.name.toLowerCase().replace(/\s+/g, '-')}`,
+          actor_id:                f.actor_id,
+          asset_type:              facilityTypeToMapAssetType(f.type),
+          label:                   f.name,
+          lat:                     f.lat!,
+          lng:                     f.lng!,
+          status:                  f.status,
+          capacity_pct:            f.capacity_pct,
+          actor_color:             ACTOR_COLORS[f.actor_id] ?? '#888888',
+          tooltip:                 `${f.name} — ${f.status} (${f.capacity_pct}% capacity). ${f.location_label}`,
+          is_approximate_location: f.type === 'carrier_group' || f.type === 'troop_deployment',
+        }))
 
-      if (caps) {
-        for (const cap of caps as Array<{
-          id: string; actor_id: string; name: string; asset_type: string | null
-          category: string | null; lat: number; lng: number; status: string | null
-          description: string | null
-        }>) {
-          const typeMap: Record<string, string> = {
-            nuclear_facility: 'nuclear_facility', oil_gas_facility: 'oil_gas_facility',
-            military_base: 'military_base', carrier: 'carrier_group',
-            carrier_group: 'carrier_group', naval_base: 'naval_asset',
-            airbase: 'military_base', headquarters: 'military_base',
-            missile_battery: 'missile_battery',
-          }
-          const rawType = cap.asset_type ?? cap.category ?? 'military_base'
-          assets.push({
-            id: cap.id,
-            actor_id: cap.actor_id,
-            asset_type: (typeMap[rawType] ?? 'military_base') as MapAssetType,
-            label: cap.name,
-            lat: cap.lat,
-            lng: cap.lng,
-            status: cap.status === 'destroyed' ? 'destroyed' : cap.status === 'degraded' ? 'degraded' : 'operational',
-            capacity_pct: 100,
-            actor_color: ACTOR_COLORS[cap.actor_id] ?? '#888888',
-            tooltip: cap.description ?? cap.name,
-            is_approximate_location: rawType === 'carrier' || rawType === 'carrier_group',
-          })
-        }
+      assets.push(...stateAssets)
+
+      // Fallback within the turnCommitId path: if facility_statuses had no coordinates
+      if (assets.length === 0) {
+        await fillFromCapabilities(supabase, params.id, assets)
       }
+
+      const shipping_lanes: ShippingLane[] = [
+        {
+          id:             'strait_of_hormuz',
+          label:          'Strait of Hormuz',
+          throughput_pct: state.global_state.hormuz_throughput_pct,
+          coordinates:    HORMUZ_COORDINATES,
+        },
+      ]
+
+      const response: MapAssetsResponse = {
+        turn_commit_id: turnCommitId,
+        as_of_date:     state.as_of_date,
+        assets,
+        shipping_lanes,
+      }
+      return NextResponse.json({ data: response })
     }
+
+    // No turnCommitId — return static capability snapshot
+    await fillFromCapabilities(supabase, params.id, assets)
 
     const shipping_lanes: ShippingLane[] = [
       {
         id:             'strait_of_hormuz',
         label:          'Strait of Hormuz',
-        throughput_pct: state.global_state.hormuz_throughput_pct,
+        throughput_pct: 100,
         coordinates:    HORMUZ_COORDINATES,
       },
     ]
 
     const response: MapAssetsResponse = {
-      turn_commit_id: turnCommitId,
-      as_of_date:     state.as_of_date,
+      turn_commit_id: '',
+      as_of_date:     new Date().toISOString().split('T')[0],
       assets,
       shipping_lanes,
     }
-
     return NextResponse.json({ data: response })
+
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('[map-assets] Error:', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

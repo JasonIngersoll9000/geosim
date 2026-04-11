@@ -3,10 +3,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 vi.mock('@/lib/game/state-engine', () => ({
   getStateAtTurn: vi.fn(),
 }))
-vi.mock('@/lib/supabase/server')
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: vi.fn(),
+}))
 
 import { GET } from '@/app/api/scenarios/[id]/branches/[branchId]/map-assets/route'
 import { getStateAtTurn } from '@/lib/game/state-engine'
+import { createClient } from '@/lib/supabase/server'
 import type { BranchStateAtTurn } from '@/lib/types/simulation'
 
 function makeState(): BranchStateAtTurn {
@@ -119,10 +122,43 @@ describe('GET /api/scenarios/[id]/branches/[branchId]/map-assets', () => {
     expect(body.data.assets).toHaveLength(2) // only the 2 with coordinates
   })
 
-  it('returns 400 when turnCommitId is missing', async () => {
-    const req = makeRequest('br-1') // no query params
+  it('returns 200 with assets from actor_capabilities when turnCommitId is missing', async () => {
+    const mockSupabase = {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            not: vi.fn().mockReturnValue({
+              not: vi.fn().mockResolvedValue({
+                data: [
+                  {
+                    id: 'cap-1',
+                    actor_id: 'iran',
+                    name: 'Fordow Nuclear Site',
+                    asset_type: 'nuclear_facility',
+                    category: null,
+                    lat: 34.89,
+                    lng: 49.93,
+                    status: 'operational',
+                    description: 'Uranium enrichment facility',
+                  },
+                ],
+              }),
+            }),
+          }),
+        }),
+      }),
+    }
+    vi.mocked(createClient).mockResolvedValue(mockSupabase as never)
+
+    const req = makeRequest('br-1') // no turnCommitId
     const res = await GET(req, { params: { id: 'sc-1', branchId: 'br-1' } })
-    expect(res.status).toBe(400)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.data.assets).toHaveLength(1)
+    expect(body.data.assets[0].actor_id).toBe('iran')
+    expect(body.data.assets[0].lat).toBe(34.89)
+    expect(body.data.turn_commit_id).toBe('')
   })
 
   it('returns 500 when getStateAtTurn throws', async () => {
@@ -132,6 +168,6 @@ describe('GET /api/scenarios/[id]/branches/[branchId]/map-assets', () => {
     const res = await GET(req, { params: { id: 'sc-1', branchId: 'br-1' } })
     expect(res.status).toBe(500)
     const body = await res.json()
-    expect(body.error).toContain('DB error')
+    expect(body.error).toBe('Internal server error')
   })
 })
