@@ -59,7 +59,6 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
   const [selectedAsset, setSelectedAsset] = useState<PositionedAsset | null>(null)
   const [popupAsset, setPopupAsset] = useState<PositionedAsset | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
-  const [cities, setCities] = useState<City[]>([])
   const [selectedCity, setSelectedCity] = useState<City | null>(null)
   const [cityPopup, setCityPopup] = useState<City | null>(null)
   const [cityDetailOpen, setCityDetailOpen] = useState(false)
@@ -71,16 +70,11 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
     const url = `/api/scenarios/${scenarioId}/branches/${branchId}/map-assets${turnCommitId ? `?turnCommitId=${turnCommitId}` : ''}`
     fetch(url)
       .then(r => r.json())
-      .then(({ assets: data }: { assets: MapAsset[] | null }) => { if (data) setMapAssets(data) })
+      .then(({ data }: { data: { assets: MapAsset[] } | null }) => {
+        if (data?.assets) setMapAssets(data.assets)
+      })
       .catch(() => {})
   }, [scenarioId, branchId, turnCommitId])
-
-  useEffect(() => {
-    fetch('/api/scenarios/iran-2026/cities')
-      .then(r => r.json())
-      .then(({ data }: { data: City[] | null }) => { if (data) setCities(data) })
-      .catch(() => {})
-  }, [])
 
   function handleAssetClick(asset: PositionedAsset) {
     setPopupAsset(asset)
@@ -133,7 +127,6 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
             assets={assets}
             selectedAssetId={selectedAsset?.id ?? null}
             onAssetClick={handleAssetClick}
-            cities={cities}
             onCityClick={handleCityClick}
           />
           {popupAsset && (
