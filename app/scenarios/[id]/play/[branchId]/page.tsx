@@ -45,7 +45,7 @@ export default async function PlayPage({ params }: Props) {
   const { data: actorRows } = await supabase
     .from('actors')
     .select('actor_id, name, win_condition, lose_condition, strategic_posture, escalation_ladder')
-    .eq('scenario_id', params.id)
+    .eq('scenario_id', scenario?.id ?? params.id)
 
   // 4. Fetch current state via state engine
   let currentState = null
@@ -61,7 +61,7 @@ export default async function PlayPage({ params }: Props) {
   const { data: commits } = await supabase
     .from('turn_commits')
     .select('turn_number, simulated_date, narrative_entry')
-    .eq('branch_id', params.branchId)
+    .eq('branch_id', branch?.id ?? params.branchId)
     .order('turn_number', { ascending: true })
 
   // 6. Fetch ground truth branch
@@ -77,6 +77,14 @@ export default async function PlayPage({ params }: Props) {
     .select('id, turn_number, simulated_date, narrative_entry')
     .eq('branch_id', trunkBranch?.id ?? params.branchId)
     .order('turn_number', { ascending: true })
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[play page] params:', { id: params.id, branchId: params.branchId })
+    console.log('[play page] scenario?.id:', scenario?.id)
+    console.log('[play page] branch?.id:', branch?.id)
+    console.log('[play page] actorRows?.length:', actorRows?.length ?? 0)
+    console.log('[play page] commits?.length:', commits?.length ?? 0)
+  }
 
   // --- Transform DB rows → GameInitialData types ---
 
