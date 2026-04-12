@@ -63,8 +63,8 @@ export function TopBar({
       {/* Right side: turn counter + phase badge */}
       <div className="ml-auto flex items-center gap-3">
         <span className="font-mono text-xs text-text-tertiary">
-          TURN {String(turnNumber).padStart(2, "0")} /{" "}
-          {String(totalTurns).padStart(2, "0")}
+          TURN {turnNumber > 0 ? String(turnNumber).padStart(2, "0") : "--"} /{" "}
+          {totalTurns > 0 ? String(totalTurns).padStart(2, "0") : "--"}
         </span>
         <span className="px-2 py-0.5 font-mono text-2xs bg-gold-dim rounded-none border border-gold-border tracking-[0.03em] uppercase">
           <TurnPhaseIndicator phase={toPhase(phase)} />

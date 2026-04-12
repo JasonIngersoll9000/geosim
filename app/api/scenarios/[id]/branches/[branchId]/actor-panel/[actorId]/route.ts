@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { getStateAtTurn } from '@/lib/game/state-engine'
 import type { ActorPanelResponse, ActorPanelAssetGroup, AssetItem } from '@/lib/types/simulation'
 
@@ -36,11 +37,65 @@ export async function GET(
   const { searchParams } = new URL(request.url)
   const turnCommitId = searchParams.get('turnCommitId')
 
+  // Baseline path: no turnCommitId — return capability counts from actor_capabilities
   if (!turnCommitId) {
-    return NextResponse.json(
-      { error: 'turnCommitId is required — pass ?turnCommitId=<id>' },
-      { status: 400 }
-    )
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
+    }
+    try {
+      const supabase = await createClient()
+      const { data: caps } = await supabase
+        .from('actor_capabilities')
+        .select('id, name, asset_type, category, quantity, status, description')
+        .eq('scenario_id', params.id)
+        .eq('actor_id', params.actorId)
+
+      const grouped: Record<string, AssetItem[]> = {}
+      for (const cap of (caps ?? []) as Array<{
+        id: string; name: string; asset_type: string | null; category: string | null
+        quantity: number | null; status: string | null; description: string | null
+      }>) {
+        const category = getCategory(cap.asset_type ?? cap.category ?? cap.name)
+        const qty = cap.quantity ?? 1
+        const item: AssetItem = {
+          name:                 cap.name,
+          initial_count:        qty,
+          current_count:        qty,
+          daily_rate:           0,
+          unit:                 'units',
+          status:               cap.status === 'destroyed' ? 'exhausted' : cap.status === 'degraded' ? 'constrained' : 'available',
+          days_until_exhausted: null,
+        }
+        if (!grouped[category]) grouped[category] = []
+        grouped[category].push(item)
+      }
+
+      const asset_categories: ActorPanelAssetGroup[] = Object.entries(grouped).map(
+        ([category, items]) => ({ category, items })
+      )
+
+      const response: ActorPanelResponse = {
+        actor_id:              params.actorId,
+        actor_name:            ACTOR_NAMES[params.actorId] ?? params.actorId,
+        turn_commit_id:        '',
+        as_of_date:            new Date().toISOString().slice(0, 10),
+        scores: {
+          military_strength:      { value: 50, trend: 'stable', delta_since_start: 0 },
+          political_stability:    { value: 50, trend: 'stable', delta_since_start: 0 },
+          economic_health:        { value: 50, trend: 'stable', delta_since_start: 0 },
+          public_support:         { value: 50, trend: 'stable', delta_since_start: 0 },
+          international_standing: { value: 50, trend: 'stable', delta_since_start: 0 },
+        },
+        asset_categories,
+        facilities:            [],
+        reserve_capacity:      [],
+        active_depletion_rates: [],
+      }
+      return NextResponse.json({ data: response })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      return NextResponse.json({ error: message }, { status: 500 })
+    }
   }
 
   try {

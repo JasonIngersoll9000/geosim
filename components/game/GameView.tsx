@@ -382,7 +382,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
                 onSelect={(id) => dispatch({ type: 'SELECT_ACTOR', payload: id })}
               />
             )}
-            {activeTab === 'decisions' && (
+            {activeTab === 'decisions' && !isGtMode && (
               <DecisionCatalog
                 decisions={initialData.decisions}
                 onSelect={handleDecisionSelect}
@@ -398,8 +398,8 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             )}
           </div>
 
-          {/* Turn plan builder — fixed at bottom when on decisions tab */}
-          {activeTab === 'decisions' && (
+          {/* Turn plan builder — fixed at bottom when on decisions tab (not in GT mode) */}
+          {activeTab === 'decisions' && !isGtMode && (
             <div className="shrink-0">
               <TurnPlanBuilder
                 primaryAction={primaryAction}

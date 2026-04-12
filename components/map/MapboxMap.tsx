@@ -458,20 +458,6 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         }
         applyBuiltinLayerVisibility(map, ls)
         setupCustomLayers(map, closed, ls)
-
-        // Re-add Nimitz marker after style reset
-        if (nimitzMarkerRef.current) {
-          nimitzMarkerRef.current.remove()
-          nimitzMarkerRef.current = null
-        }
-        const reloadNimitzEl = buildNimitzElement()
-        reloadNimitzEl.style.display = ls.militaryAssets ? '' : 'none'
-        nimitzMarkerRef.current = new mapboxgl.Marker({
-          element: reloadNimitzEl,
-          anchor: 'left',
-        })
-          .setLngLat([56.5, 24.0])
-          .addTo(map)
       })
       return
     }
@@ -479,7 +465,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
     // Non-terrain toggles
     applyBuiltinLayerVisibility(map, layerState)
     applyCustomLayerVisibility(map, layerState)
-  }, [layerState, applyBuiltinLayerVisibility, applyCustomLayerVisibility, setupCustomLayers, buildNimitzElement])
+  }, [layerState, applyBuiltinLayerVisibility, applyCustomLayerVisibility, setupCustomLayers])
 
   // ── Asset markers ────────────────────────────────────────────────────────
   useEffect(() => {
