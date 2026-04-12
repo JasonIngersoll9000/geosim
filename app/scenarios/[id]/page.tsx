@@ -374,7 +374,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
         router.push(`/scenarios/${params.id}/play/${json.id}`)
         return
       }
-      setBranchError(json.error ?? 'Failed to create branch — please try again.')
+      setBranchError(json.error ?? 'Branching is available from the Play page after selecting a turn.')
     } catch {
       setBranchError('Failed to create branch — please try again.')
     } finally {
