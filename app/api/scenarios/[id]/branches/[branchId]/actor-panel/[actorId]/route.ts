@@ -37,7 +37,10 @@ export async function GET(
   const turnCommitId = searchParams.get('turnCommitId')
 
   if (!turnCommitId) {
-    return NextResponse.json({ error: 'turnCommitId is required' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'turnCommitId is required — pass ?turnCommitId=<id>' },
+      { status: 400 }
+    )
   }
 
   try {

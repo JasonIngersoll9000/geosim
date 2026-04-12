@@ -45,11 +45,61 @@ export async function GET(
   const { searchParams } = new URL(request.url)
   const turnCommitId = searchParams.get('turnCommitId')
 
-  if (!turnCommitId) {
-    return NextResponse.json({ error: 'turnCommitId is required' }, { status: 400 })
-  }
-
   try {
+    // If no turnCommitId, fall back to actor_capabilities directly
+    if (!turnCommitId) {
+      const supabase = await createClient()
+      const { data: caps } = await supabase
+        .from('actor_capabilities')
+        .select('id, actor_id, name, asset_type, category, lat, lng, status, description')
+        .not('lat', 'is', null)
+        .not('lng', 'is', null)
+
+      const assets: MapAsset[] = []
+      if (caps) {
+        for (const cap of caps as Array<{
+          id: string; actor_id: string; name: string; asset_type: string | null
+          category: string | null; lat: number; lng: number; status: string | null
+          description: string | null
+        }>) {
+          const typeMap: Record<string, string> = {
+            nuclear_facility: 'nuclear_facility', oil_gas_facility: 'oil_gas_facility',
+            military_base: 'military_base', carrier: 'carrier_group',
+            carrier_group: 'carrier_group', naval_base: 'naval_asset',
+            airbase: 'military_base', headquarters: 'military_base',
+            missile_battery: 'missile_battery',
+          }
+          const rawType = cap.asset_type ?? cap.category ?? 'military_base'
+          assets.push({
+            id: cap.id,
+            actor_id: cap.actor_id,
+            asset_type: (typeMap[rawType] ?? 'military_base') as MapAssetType,
+            label: cap.name,
+            lat: cap.lat,
+            lng: cap.lng,
+            status: cap.status === 'destroyed' ? 'destroyed' : cap.status === 'degraded' ? 'degraded' : 'operational',
+            capacity_pct: 100,
+            actor_color: ACTOR_COLORS[cap.actor_id] ?? '#888888',
+            tooltip: cap.description ?? cap.name,
+            is_approximate_location: rawType === 'carrier' || rawType === 'carrier_group',
+          })
+        }
+      }
+
+      const response: MapAssetsResponse = {
+        turn_commit_id: '',
+        as_of_date: new Date().toISOString().slice(0, 10),
+        assets,
+        shipping_lanes: [{
+          id: 'strait_of_hormuz',
+          label: 'Strait of Hormuz',
+          throughput_pct: 0,
+          coordinates: HORMUZ_COORDINATES,
+        }],
+      }
+      return NextResponse.json({ data: response })
+    }
+
     const state = await getStateAtTurn(params.branchId, turnCommitId)
 
     const assets: MapAsset[] = state.facility_statuses

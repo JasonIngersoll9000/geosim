@@ -21,8 +21,8 @@ function toPhase(raw: string): Phase {
 export function TopBar({
   scenarioName = "Iran Conflict Scenario",
   scenarioHref,
-  turnNumber = 4,
-  totalTurns = 12,
+  turnNumber = 0,
+  totalTurns = 0,
   phase = "Planning",
   gameMode = "Simulation",
 }: TopBarProps) {

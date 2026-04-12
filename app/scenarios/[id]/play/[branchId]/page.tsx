@@ -34,12 +34,20 @@ export default async function PlayPage({ params }: Props) {
     .eq('id', params.id)
     .single()
 
-  // 2. Fetch branch record
-  const { data: branch } = await supabase
-    .from('branches')
-    .select('id, name, is_trunk, head_commit_id')
-    .eq('id', params.branchId)
-    .single()
+  // 2. Fetch branch record — 'trunk' slug resolves to the is_trunk=true branch
+  const branchQuery = params.branchId === 'trunk'
+    ? supabase
+        .from('branches')
+        .select('id, name, is_trunk, head_commit_id')
+        .eq('scenario_id', params.id)
+        .eq('is_trunk', true)
+        .single()
+    : supabase
+        .from('branches')
+        .select('id, name, is_trunk, head_commit_id')
+        .eq('id', params.branchId)
+        .single()
+  const { data: branch } = await branchQuery
 
   // 3. Fetch actors for this scenario
   const { data: actorRows } = await supabase
@@ -51,17 +59,18 @@ export default async function PlayPage({ params }: Props) {
   let currentState = null
   if (branch?.head_commit_id) {
     try {
-      currentState = await getStateAtTurn(params.branchId, branch.head_commit_id)
+      currentState = await getStateAtTurn(branch.id, branch.head_commit_id)
     } catch {
       // State engine failure is non-fatal
     }
   }
 
-  // 5. Fetch chronicle (turn_commits on this branch)
+  // 5. Fetch chronicle (turn_commits on this branch) — use resolved branch.id, not the URL slug
+  const resolvedBranchId = branch?.id ?? params.branchId
   const { data: commits } = await supabase
     .from('turn_commits')
     .select('turn_number, simulated_date, narrative_entry')
-    .eq('branch_id', params.branchId)
+    .eq('branch_id', resolvedBranchId)
     .order('turn_number', { ascending: true })
 
   // 6. Fetch ground truth branch
@@ -130,7 +139,7 @@ export default async function PlayPage({ params }: Props) {
       classification: (scenario?.classification as string | null) ?? 'SECRET',
     },
     branch: {
-      id:           params.branchId,
+      id:           resolvedBranchId,
       name:         branch?.name ?? 'Ground Truth',
       isTrunk:      branch?.is_trunk ?? false,
       headCommitId: branch?.head_commit_id ?? null,
@@ -158,7 +167,7 @@ export default async function PlayPage({ params }: Props) {
       />
       <main className="h-screen pt-[66px] overflow-hidden">
         <GameView
-          branchId={params.branchId}
+          branchId={resolvedBranchId}
           scenarioId={params.id}
           initialData={initialData}
         />

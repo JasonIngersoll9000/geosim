@@ -71,20 +71,21 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
     const url = `/api/scenarios/${scenarioId}/branches/${branchId}/map-assets${turnCommitId ? `?turnCommitId=${turnCommitId}` : ''}`
     fetch(url)
       .then(r => r.json())
-      .then(({ assets: data }: { assets: MapAsset[] | null }) => { if (data) setMapAssets(data) })
+      .then((json: { data?: { assets?: MapAsset[] } }) => {
+        const data = json?.data?.assets
+        if (data) setMapAssets(data)
+      })
       .catch(() => {})
   }, [scenarioId, branchId, turnCommitId])
 
-  useEffect(() => {
-    fetch('/api/scenarios/iran-2026/cities')
-      .then(r => r.json())
-      .then(({ data }: { data: City[] | null }) => { if (data) setCities(data) })
-      .catch(() => {})
-  }, [])
 
   function handleAssetClick(asset: PositionedAsset) {
     setPopupAsset(asset)
     setSelectedAsset(asset)
+    setSelectedAssetId(asset.id)
+  }
+
+  function handleMapAssetClick(asset: MapAsset) {
     setSelectedAssetId(asset.id)
   }
 
@@ -135,6 +136,8 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
             onAssetClick={handleAssetClick}
             cities={cities}
             onCityClick={handleCityClick}
+            mapAssets={mapAssets}
+            onMapAssetClick={handleMapAssetClick}
           />
           {popupAsset && (
             <div style={{ position: 'absolute', top: '30%', left: '30%', zIndex: 50 }}>
@@ -274,7 +277,7 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
       )}
 
       {/* ── Actor status panel ── */}
-      <div style={{ position: 'absolute', bottom: 28, left: 10, zIndex: 40 }}>
+      <div style={{ position: 'absolute', bottom: 28, right: 10, zIndex: 40 }}>
         <ActorStatusPanel isGroundTruth={true} />
       </div>
 

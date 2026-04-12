@@ -328,7 +328,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
           .order('created_at', { ascending: true }),
         supabase
           .from('actors')
-          .select('id, name, country_code')
+          .select('actor_id, name')
           .eq('scenario_id', params.id),
       ])
       if (branchRes.data && branchRes.data.length > 0) {
@@ -339,9 +339,9 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
       if (actorRes.data) {
         setActorOptions(
           actorRes.data.map((a: Record<string, unknown>) => ({
-            id: a.id as string,
+            id: a.actor_id as string,
             name: a.name as string,
-            flag: ((a.country_code as string | null) ?? (a.name as string).slice(0, 3)).toUpperCase(),
+            flag: (a.name as string).slice(0, 3).toUpperCase(),
           }))
         )
       }
@@ -369,14 +369,12 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scenarioId: params.id }),
       })
-      if (res.ok) {
-        const json = (await res.json()) as { id?: string }
-        if (json.id) {
-          router.push(`/scenarios/${params.id}/play/${json.id}`)
-          return
-        }
+      const json = (await res.json()) as { id?: string; error?: string }
+      if (res.ok && json.id) {
+        router.push(`/scenarios/${params.id}/play/${json.id}`)
+        return
       }
-      setBranchError('Branch creation is not available yet.')
+      setBranchError(json.error ?? 'Failed to create branch — please try again.')
     } catch {
       setBranchError('Failed to create branch — please try again.')
     } finally {
