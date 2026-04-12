@@ -2,85 +2,85 @@
 Updated by Claude Code at the end of each session.
 
 ## Current sprint: Sprint 3 — Real Data + AI Pipeline
-## Last session: 2026-04-08
+## Last session: 2026-04-11
 
 ### Completed (this session)
-- **Merged PR #48** (feat/iran-seed-comprehensive → main) via squash merge
-- **Live State Engine — PR #49 open** (feat/live-state-engine, all 9 tasks complete, 179/179 tests passing)
-  - Task 1: Live State Engine types added to lib/types/simulation.ts
-    (BranchStateAtTurn, LiveActorState, ThresholdTrigger, ThresholdResult, FacilityStatus,
-     LiveGlobalState, ActorPanelResponse, MapAssetsResponse, etc.)
-  - Task 2: lib/game/state-engine.ts — pure functions (daysBetween, computeAssetAvailability,
-    applyDepletion, applyEventEffects) — 25 tests
-  - Task 3: lib/game/state-engine.ts — async DB functions (getStateAtTurn, forkStateForBranch,
-    persistStateSnapshot) — mocked Supabase tests
-  - Task 4: lib/game/threshold-evaluator.ts — evaluateThresholds, resolveVariablePath,
-    sustained-days evaluation, armed-only query, DB writes on fire — 7 tests
-  - Task 5: lib/ai/actor-agent.ts — buildStateContextBlock (formats live actor state for AI
-    prompts with AVAILABLE/CONSTRAINED/EXHAUSTED asset labels) — 6 tests
-  - Task 6: app/api/scenarios/[id]/branches/[branchId]/map-assets/route.ts — returns
-    geo-coded facilities + shipping lanes for Mapbox — 6 tests
-  - Task 7: app/api/scenarios/[id]/branches/[branchId]/actor-panel/[actorId]/route.ts —
-    returns live scores, grouped asset inventory, depletion forecast — 7 tests
-  - Task 8: lib/game/game-loop.ts — onGroundTruthAdvanced, onPlayerDecision, onBranchCreated
-    integration points
-  - Task 9: Pushed branch, opened PR #49
-- **Vercel build fixes** (all on feat/live-state-engine):
-  - Double-cast LiveGlobalState and LiveActorState in threshold-evaluator.ts to satisfy tsc
-  - Replaced Bun.main with process.argv[1] in all 9 scripts/* files
-  - Replaced Bun.spawn with spawnSync (child_process) in scripts/update-ground-truth.ts
-- **Phase A–D status audit** (explore agent):
-  - Phase A: ALL DONE (#53 seed, #54 fog-of-war, #55 decision-prerequisites, #56 state-updates)
-  - Phase B: #57 DONE (buildStateContextBlock), #58 MISSING (resolution engine + API route)
-  - Phase C: #61 PARTIAL (TurnPlan builder display only), #62–#64 DONE (chronicle, actor panel, Mapbox)
-  - Phase D: #65 PARTIAL (auth pages exist + dev bypass), #66 MISSING (no .github/workflows/)
+- **Playable game bug fixes — PR #59 open** (fix/playable-game-bugs, closes #51 + #57)
+  - 10 of 11 bugs fixed; Bug 10 (z-index panel overlap, P2) deferred for browser inspection
+  - 502/502 tests passing, 0 typecheck errors, 0 lint errors
+  - Bug 1: Fixed actors query in scenario hub — `actor_id` not `id`, removed `country_code`
+  - Bug 2: Removed hardcoded `/api/scenarios/iran-2026/cities` fetch from GameMap.tsx
+  - Bug 3: Made `turnCommitId` optional in map-assets route — fallback to `actor_capabilities`
+  - Bug 4: Fixed GameMap response parsing — `{ data }` not `{ assets }` (was reading wrong level)
+  - Bug 5: Removed `<ResearchUpdatePanel>` from GameView — admin-only tool, no permission check
+  - Bug 6: Fixed TopBar hardcoded `turnNumber=4, totalTurns=12` defaults → 0/0 with dash display
+  - Bug 7: Actors query in play page now uses `scenario?.id ?? params.id` (UUID vs slug fix)
+  - Bug 8: Chronicle query now uses `branch?.id ?? params.branchId` (same UUID fix)
+  - Bug 9: Decisions tab and DecisionCatalog hidden when `isGtMode` (observer/trunk mode)
+  - Bug 11: Branch creation error message improved to explain it's available from Play page
+  - Issue #57: Added `public/favicon.svg` and metadata to resolve 404
+  - Excluded `tests/e2e/**` from Vitest to prevent Playwright type conflicts
+- **Wrote bug fix implementation plan** — `docs/superpowers/plans/2026-04-09-playable-game-bug-fixes.md`
+- **Updated docs/scrum-issues.md** — marked completed issues, added GH↔scrum number map, added 5-plan sprint summary
+- **Added GitHub issues #51-#58** for remaining work items
 
 ### Open PRs
-- PR #49: feat/live-state-engine — Live State Engine (ready for review, Vercel build in progress)
+- PR #59: fix/playable-game-bugs — 10 bug fixes (ready for review, closes #51 + #57)
 
 ### In progress
-- Vercel build on PR #49 — fixing scripts/* Bun globals, may need one more build check
+- Nothing — PR #59 is the only open work item
 
 ### Next up (in priority order)
-1. **#66 CI/CD** — GitHub Actions with Vitest + typecheck + lint; closes the Vercel feedback loop
-2. **#58 Resolution engine** — lib/ai/resolution-engine.ts + app/api/branches/[branchId]/resolve/route.ts
-   — THE critical blocker for a playable turn; requires actor agent to emit TurnPlan first
-3. **#57 Actor agent (TurnPlan generation)** — app/api/ai/actor/route.ts needs full TurnPlan output;
-   buildStateContextBlock exists but TurnPlan generation and the route are missing
-4. **#61 TurnPlan builder UI** — DispatchTerminal is read-only display; need interactive decision submission
-
-### GitHub issue map (current open)
-- #49: PR — Live State Engine
-- #53: Iran scenario Supabase seed (DONE — seed script + 4MB enriched dataset)
-- #54: Fog of war (DONE)
-- #55: Decision prerequisites (DONE)
-- #56: State updates (DONE)
-- #57: Actor agent — PARTIAL (buildStateContextBlock done; TurnPlan API route missing)
-- #58: Resolution engine — MISSING
-- #59–#61: Game logic / player interaction — most game logic DONE, TurnPlan UI PARTIAL
-- #62: Chronicle — DONE
-- #63: Actor detail panel — DONE
-- #64: Mapbox real impl — DONE (655 lines, real Mapbox GL)
-- #65: Auth — PARTIAL (pages + dev bypass; real auth not enforced)
-- #66: CI/CD — MISSING
+1. **Merge PR #59** — review and merge the playable game bug fixes
+2. **Plan 2: Research Pipeline (Issue #31)** — 7-stage Iran scenario research pipeline
+   - `lib/ai/research-pipeline.ts`, `app/api/scenarios/[id]/research/route.ts`
+3. **Plan 3: AI Pipeline Core (Issues #32, #33, #52)**
+   - #52: Multi-actor decision catalog (decisions for all 6 actors, not just US)
+   - #32: Actor agent full TurnPlan generation (buildStateContextBlock exists, route missing)
+   - #33: Resolution engine (processes all actor TurnPlans simultaneously)
+4. **Plan 4: Judge + Narrator (Issues #34, #35)**
+5. **Plan 5: Game Loop + Player Interaction (Issues #36, #37, #38, #53, #54)**
+6. **Quick tasks: #40 (auth middleware), #41 (CI/CD)**
 
 ### Known bugs / debt
+- Bug 10: Actor status panel overlaps map layer toggles — P2, CSS z-index issue, needs browser inspection
 - getConstraintCascadeRisk (lib/game/escalation.ts) uses Iran-specific keyword matching
   instead of reading from Scenario.constraintCascades — tracked for future sprint
 - scripts/update-ground-truth.ts: Bun.spawn replaced with spawnSync — blocking call,
   fine for CLI use but would need async refactor if ever called from server context
+- actors tab and chronicle: root cause of empty data (UUID vs slug) is patched with fallback,
+  but underlying data consistency should be verified in Supabase (do actors have UUID scenario_id
+  or slug scenario_id?)
+
+### GitHub issue map (current open)
+- #59: PR — Playable game bug fixes (fix/playable-game-bugs)
+- #31: Research pipeline — OPEN
+- #32: Actor agent full TurnPlan — OPEN (partial: buildStateContextBlock done)
+- #33: Resolution engine — OPEN
+- #34: Judge agent — OPEN
+- #35: Narrator — OPEN
+- #36: Game loop controller — OPEN
+- #37: Turn submission — OPEN (partial: advance route + useSubmitTurn exist)
+- #38: Branch creation — OPEN
+- #40: Auth — OPEN (partial: pages + dev bypass)
+- #41: CI/CD — OPEN
+- #51: Playable game bugs — OPEN (PR #59 in review)
+- #52: Multi-actor decision catalog — OPEN
+- #53: Observer mode full implementation — OPEN
+- #54: Actor dossier data quality — OPEN
+- #55: Seed data quality pass — OPEN
+- #56: Error boundaries + blank state — OPEN
+- #57: Favicon — OPEN (PR #59 in review)
+- #58: Rate limiting + AI cost controls — OPEN
 
 ### Architecture decisions (this session)
-- BranchStateAtTurn includes initial_inventories: Record<string, Record<string, number>>
-  (not in spec) — needed so applyDepletion can recompute asset_availability without
-  additional DB calls; populated by getStateAtTurn from actor_capabilities table
-- ActorPanelAssetGroup named to avoid collision with existing AssetCategory union type
-- ThresholdResult.forced_event typed as Record<string, unknown> | null — correct because
-  it's constructed from jsonb forced_event_template (schema defined per scenario, not at compile time)
-- Double cast (as unknown as T) required for LiveGlobalState/LiveActorState index access
-  — TypeScript strict mode doesn't allow direct cast without index signature
-- process.argv[1] === new URL(import.meta.url).pathname replaces Bun.main guard
-  — identical semantics, works without @types/bun
+- map-assets route: when `turnCommitId` absent, use `params.id` (scenario ID) for
+  `actor_capabilities` query; return `turn_commit_id: ''` as sentinel for static snapshot
+- `fillFromCapabilities` extracted as named helper to avoid duplication between the two
+  code paths (with/without turnCommitId)
+- GameMap response parsing: route returns `{ data: MapAssetsResponse }` envelope;
+  client must destructure `{ data }` then access `data.assets`
+- Vitest excludes `tests/e2e/**` — Playwright specs cause type conflicts in Vitest runner
 
 ### Architecture decisions (previous sessions)
 - Using bun (not npm/npx) for all package management — npm/npx are Windows binaries in WSL2
@@ -93,3 +93,10 @@ Updated by Claude Code at the end of each session.
 - Inline style objects: put border shorthand BEFORE borderBottom, not after (shorthand overwrites specific)
 - Frontend validation workflow: geosim-playwright skill → geosim-uiux-validation skill → user approves all 4 CATs → commit
 - Supabase Realtime .subscribe() callback must be typed as (status: string, err?: Error) — implicit any breaks Vercel build
+- BranchStateAtTurn includes initial_inventories: Record<string, Record<string, number>>
+  (not in spec) — needed so applyDepletion can recompute asset_availability without
+  additional DB calls; populated by getStateAtTurn from actor_capabilities table
+- Double cast (as unknown as T) required for LiveGlobalState/LiveActorState index access
+  — TypeScript strict mode doesn't allow direct cast without index signature
+- process.argv[1] === new URL(import.meta.url).pathname replaces Bun.main guard
+  — identical semantics, works without @types/bun
