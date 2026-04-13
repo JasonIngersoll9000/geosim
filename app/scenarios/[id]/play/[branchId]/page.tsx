@@ -4,7 +4,6 @@ import { TopBar } from '@/components/ui/TopBar'
 import { GameProvider } from '@/components/providers/GameProvider'
 import { GameView } from '@/components/game/GameView'
 import { createClient } from '@/lib/supabase/server'
-import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
 import { getStateAtTurn } from '@/lib/game/state-engine'
 import { IRAN_DECISIONS, IRAN_DECISION_DETAILS } from '@/lib/game/iran-decisions'
 import type { GameInitialData, ChronicleEntry, GroundTruthCommit } from '@/lib/types/game-init'
@@ -28,60 +27,63 @@ export default async function PlayPage({ params }: Props) {
 
   const supabase = await createClient()
 
-  // 0. Resolve slug (e.g. "iran-2026") → real scenario UUID
-  const scenarioId = await resolveScenarioId(supabase, params.id)
-
-  // 1. Fetch scenario metadata
+  // 1. Fetch scenario metadata (classification column does not exist in live schema)
   const { data: scenario } = await supabase
     .from('scenarios')
     .select('id, name')
-    .eq('id', scenarioId)
+    .eq('id', params.id)
     .single()
 
-  // 2. Fetch branch record — 'trunk' slug resolves to the is_trunk=true branch
-  const branchQuery = params.branchId === 'trunk'
-    ? supabase
-        .from('branches')
-        .select('id, name, is_trunk, head_commit_id')
-        .eq('scenario_id', scenarioId)
-        .eq('is_trunk', true)
-        .single()
-    : supabase
-        .from('branches')
-        .select('id, name, is_trunk, head_commit_id')
-        .eq('id', params.branchId)
-        .single()
-  const { data: branch } = await branchQuery
+  // 2. Fetch branch record — support "trunk" slug by looking up is_trunk branch
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  let branchData: { id: string; name: string; is_trunk: boolean; head_commit_id: string | null } | null = null
+  if (UUID_RE.test(params.branchId)) {
+    const { data } = await supabase
+      .from('branches')
+      .select('id, name, is_trunk, head_commit_id')
+      .eq('id', params.branchId)
+      .single()
+    branchData = data
+  } else {
+    // slug like "trunk" → look up trunk branch for this scenario
+    const { data } = await supabase
+      .from('branches')
+      .select('id, name, is_trunk, head_commit_id')
+      .eq('scenario_id', params.id)
+      .eq('is_trunk', true)
+      .single()
+    branchData = data
+  }
+  const branch = branchData
 
   // 3. Fetch actors for this scenario
   const { data: actorRows } = await supabase
-    .from('actors')
-    .select('actor_id, name, win_condition, lose_condition, strategic_posture, escalation_ladder')
-    .eq('scenario_id', scenarioId)
+    .from('scenario_actors')
+    .select('id, name, biographical_summary, leadership_profile, win_condition, strategic_doctrine, historical_precedents, initial_scores, intelligence_profile')
+    .eq('scenario_id', scenario?.id ?? params.id)
 
   // 4. Fetch current state via state engine
   let currentState = null
   if (branch?.head_commit_id) {
     try {
-      currentState = await getStateAtTurn(branch.id, branch.head_commit_id)
+      currentState = await getStateAtTurn(params.branchId, branch.head_commit_id)
     } catch {
       // State engine failure is non-fatal
     }
   }
 
-  // 5. Fetch chronicle (turn_commits on this branch) — use resolved branch.id, not the URL slug
-  const resolvedBranchId = branch?.id ?? params.branchId
+  // 5. Fetch chronicle (turn_commits on this branch)
   const { data: commits } = await supabase
     .from('turn_commits')
-    .select('turn_number, simulated_date, narrative_entry')
-    .eq('branch_id', resolvedBranchId)
+    .select('turn_number, simulated_date, narrative_entry, chronicle_headline, chronicle_entry, chronicle_date_label, context_summary, is_decision_point')
+    .eq('branch_id', branch?.id ?? params.branchId)
     .order('turn_number', { ascending: true })
 
   // 6. Fetch ground truth branch
   const { data: trunkBranch } = await supabase
     .from('branches')
     .select('id')
-    .eq('scenario_id', scenarioId)
+    .eq('scenario_id', params.id)
     .eq('is_trunk', true)
     .single()
 
@@ -94,34 +96,42 @@ export default async function PlayPage({ params }: Props) {
   // --- Transform DB rows → GameInitialData types ---
 
   const actors: ActorSummary[] = (actorRows ?? []).map(a => {
-    const ladder = a.escalation_ladder as { current_rung?: number } | null
+    const scores = a.initial_scores as { escalationRung?: number } | null
     return {
-      id: a.actor_id,
+      id: a.id,
       name: a.name,
-      escalationRung: ladder?.current_rung ?? 0,
+      escalationRung: scores?.escalationRung ?? 0,
     }
   })
 
   const actorDetails: Record<string, ActorDetail> = {}
   for (const a of actorRows ?? []) {
-    const s = currentState?.actor_states[a.actor_id]
-    actorDetails[a.actor_id] = {
-      id: a.actor_id,
+    const s = currentState?.actor_states[a.id]
+    const scores = a.initial_scores as { escalationRung?: number } | null
+    actorDetails[a.id] = {
+      id: a.id,
       name: a.name,
-      escalationRung: (a.escalation_ladder as { current_rung?: number } | null)?.current_rung ?? 0,
-      briefing: a.strategic_posture ?? 'No briefing available.',
+      escalationRung: scores?.escalationRung ?? 0,
+      briefing: a.biographical_summary ?? 'No briefing available.',
       militaryStrength:   s ? Math.round(Number(s.military_strength))   : 50,
       economicStrength:   s ? Math.round(Number(s.economic_health))     : 50,
       politicalStability: s ? Math.round(Number(s.political_stability)) : 50,
-      objectives: [a.win_condition, a.lose_condition].filter(Boolean) as string[],
+      objectives: [a.win_condition].filter(Boolean) as string[],
+      leadershipProfile:    a.leadership_profile ?? undefined,
+      strategicDoctrine:    a.strategic_doctrine ?? undefined,
+      historicalPrecedents: a.historical_precedents ?? undefined,
+      intelligenceProfile:  a.intelligence_profile as Record<string, unknown> | undefined,
     }
   }
 
   const chronicle: ChronicleEntry[] = (commits ?? []).map(c => ({
     turnNumber: c.turn_number,
     date: c.simulated_date,
-    title: `Turn ${c.turn_number}`,
-    narrative: c.narrative_entry ?? 'No narrative recorded.',
+    title: c.chronicle_headline ?? `Turn ${c.turn_number}`,
+    narrative: c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.',
+    dateLabel: c.chronicle_date_label ?? undefined,
+    contextSummary: c.context_summary ?? undefined,
+    isDecisionPoint: c.is_decision_point ?? false,
     severity: 'major' as const,
     tags: [],
   }))
@@ -138,12 +148,12 @@ export default async function PlayPage({ params }: Props) {
 
   const initialData: GameInitialData = {
     scenario: {
-      id:             scenario?.id ?? scenarioId,
+      id:             scenario?.id ?? params.id,
       name:           scenario?.name ?? 'Unknown Scenario',
       classification: 'SECRET',
     },
     branch: {
-      id:           resolvedBranchId,
+      id:           branch?.id ?? params.branchId,
       name:         branch?.name ?? 'Ground Truth',
       isTrunk:      branch?.is_trunk ?? false,
       headCommitId: branch?.head_commit_id ?? null,
@@ -171,8 +181,8 @@ export default async function PlayPage({ params }: Props) {
       />
       <main className="h-screen pt-[66px] overflow-hidden">
         <GameView
-          branchId={resolvedBranchId}
-          scenarioId={scenarioId}
+          branchId={params.branchId}
+          scenarioId={params.id}
           initialData={initialData}
         />
       </main>

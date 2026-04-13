@@ -17,7 +17,6 @@ import { BranchTree } from '@/components/scenario/BranchTree'
 import type { BranchNode, ActorOption } from '@/components/scenario/BranchTree'
 import type { ActorDetail } from '@/lib/types/panels'
 import { createClient } from '@/lib/supabase/client'
-import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
 
 // ─── Actor mock data ──────────────────────────────────────────────────────────
 
@@ -308,9 +307,28 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
   const [creatingBranch, setCreatingBranch] = useState(false)
   const [branchError, setBranchError] = useState<string | null>(null)
   const [branchRoot, setBranchRoot] = useState<BranchNode | null>(null)
+  const [trunkBranchId, setTrunkBranchId] = useState<string | null>(null)
   const [actorOptions, setActorOptions] = useState<ActorOption[]>([])
   const router = useRouter()
   const shouldSkip = useReducedMotion()
+
+  // Resolve slug → UUID redirect (e.g. "iran-2026" → real scenario UUID)
+  useEffect(() => {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (UUID_RE.test(params.id)) return
+    let sb: ReturnType<typeof createClient> | null = null
+    try { sb = createClient() } catch { return }
+    if (!sb) return
+    const keyword = params.id.split('-')[0]
+    void sb.from('scenarios')
+      .select('id')
+      .ilike('name', `%${keyword}%`)
+      .limit(1)
+      .single()
+      .then(({ data }) => {
+        if (data?.id) router.replace(`/scenarios/${data.id}`)
+      })
+  }, [params.id, router])
 
   useEffect(() => {
     let supabase: ReturnType<typeof createClient> | null = null
@@ -321,29 +339,30 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
     }
     if (!supabase) return
     void (async () => {
-      const scenarioId = await resolveScenarioId(supabase, params.id)
       const [branchRes, actorRes] = await Promise.all([
         supabase
           .from('branches')
           .select('id, name, is_trunk, status, head_commit_id, created_at, parent_branch_id, turn_commits(turn_number, simulated_date)')
-          .eq('scenario_id', scenarioId)
+          .eq('scenario_id', params.id)
           .order('created_at', { ascending: true }),
         supabase
           .from('actors')
-          .select('actor_id, name')
-          .eq('scenario_id', scenarioId),
+          .select('id, name, country_code')
+          .eq('scenario_id', params.id),
       ])
       if (branchRes.data && branchRes.data.length > 0) {
         const rows = branchRes.data as unknown as BranchRow[]
         const tree = buildBranchTree(rows)
         if (tree) setBranchRoot(tree)
+        const trunk = rows.find(r => r.is_trunk)
+        if (trunk) setTrunkBranchId(trunk.id)
       }
       if (actorRes.data) {
         setActorOptions(
           actorRes.data.map((a: Record<string, unknown>) => ({
-            id: a.actor_id as string,
+            id: a.id as string,
             name: a.name as string,
-            flag: (a.name as string).slice(0, 3).toUpperCase(),
+            flag: ((a.country_code as string | null) ?? (a.name as string).slice(0, 3)).toUpperCase(),
           }))
         )
       }
@@ -371,12 +390,14 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scenarioId: params.id }),
       })
-      const json = (await res.json()) as { id?: string; error?: string }
-      if (res.ok && json.id) {
-        router.push(`/scenarios/${params.id}/play/${json.id}`)
-        return
+      if (res.ok) {
+        const json = (await res.json()) as { id?: string }
+        if (json.id) {
+          router.push(`/scenarios/${params.id}/play/${json.id}`)
+          return
+        }
       }
-      setBranchError(json.error ?? 'Branching is available from the Play page after selecting a turn.')
+      setBranchError('Branch creation is not available yet.')
     } catch {
       setBranchError('Failed to create branch — please try again.')
     } finally {
@@ -460,7 +481,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
             <div className="flex gap-3 flex-wrap">
               <Button
                 variant="primary"
-                onClick={() => router.push(`/scenarios/${params.id}/play/trunk`)}
+                onClick={() => router.push(`/scenarios/${params.id}/play/${trunkBranchId ?? 'trunk'}`)}
                 className="text-[11px] py-1.5"
               >
                 Observe — AI vs AI

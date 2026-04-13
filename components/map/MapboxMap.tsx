@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { LayerState } from './MapLayerControls'
-import type { PositionedAsset, City, MapAsset } from '@/lib/types/simulation'
+import type { PositionedAsset, City } from '@/lib/types/simulation'
 import { createAssetMarkerElement } from './AssetMarker'
 import { createCityMarkerElement } from './CityMarker'
 
@@ -84,20 +84,45 @@ interface Props {
   onAssetClick?: (asset: PositionedAsset) => void
   cities?: City[]
   onCityClick?: (city: City) => void
-  mapAssets?: MapAsset[]
-  onMapAssetClick?: (asset: MapAsset) => void
 }
 
-export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, onAssetClick, cities, onCityClick, mapAssets, onMapAssetClick }: Props) {
+export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, onAssetClick, cities, onCityClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
+  const nimitzMarkerRef = useRef<mapboxgl.Marker | null>(null)
   const hormuzClosedRef = useRef(hormuzClosed)
   const layerStateRef = useRef(layerState)
   const [webglFailed, setWebglFailed] = useState(false)
   const isTerrainRef = useRef(false)
   const assetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const cityMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
-  const mapAssetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
+
+  // ── Helper: build the Nimitz DOM marker element ──────────────────────────
+  const buildNimitzElement = useCallback(() => {
+    const el = document.createElement('div')
+    el.style.cssText = 'display:flex;align-items:center;gap:5px;cursor:pointer;pointer-events:auto;'
+    const dot = document.createElement('div')
+    dot.style.cssText = [
+      'width:8px;height:8px;flex-shrink:0;',
+      'background:rgba(74,144,217,0.9);',
+      'border:1.5px solid rgba(74,144,217,1);',
+      'border-radius:50%;',
+      'box-shadow:0 0 0 3px rgba(74,144,217,0.15);',
+    ].join('')
+    const label = document.createElement('div')
+    label.style.cssText = [
+      "font-family:'IBM Plex Mono',monospace;",
+      'font-size:8px;letter-spacing:0.08em;text-transform:uppercase;',
+      'color:rgba(74,144,217,0.9);',
+      'background:rgba(5,10,18,0.85);',
+      'border:1px solid rgba(74,144,217,0.35);',
+      'padding:1px 5px;white-space:nowrap;',
+    ].join('')
+    label.textContent = 'USS NIMITZ // CSG-11'
+    el.appendChild(dot)
+    el.appendChild(label)
+    return el
+  }, [])
 
   // ── Helper: add all custom sources + layers to the current map ───────────
   const setupCustomLayers = useCallback((map: mapboxgl.Map, closed: boolean, ls: LayerState) => {
@@ -338,6 +363,11 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', ls.militaryBases ? 'visible' : 'none')
     }
 
+    // Toggle Nimitz marker (DOM marker — use display style)
+    if (nimitzMarkerRef.current) {
+      const el = nimitzMarkerRef.current.getElement()
+      el.style.display = ls.militaryAssets ? '' : 'none'
+    }
   }, [])
 
   // ── Initial map setup ────────────────────────────────────────────────────
@@ -393,15 +423,30 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
       // Add all custom layers
       setupCustomLayers(map, closed, ls)
 
+      // USS Nimitz marker at Strait of Hormuz approach lane (open water)
+      if (nimitzMarkerRef.current) {
+        nimitzMarkerRef.current.remove()
+        nimitzMarkerRef.current = null
+      }
+      const nimitzEl = buildNimitzElement()
+      nimitzEl.style.display = ls.militaryAssets ? '' : 'none'
+      nimitzMarkerRef.current = new mapboxgl.Marker({
+        element: nimitzEl,
+        anchor: 'left',
+      })
+        .setLngLat([56.5, 24.0])
+        .addTo(map)
     }
 
     map.on('load', onStyleLoad)
 
     return () => {
+      if (nimitzMarkerRef.current) {
+        nimitzMarkerRef.current.remove()
+        nimitzMarkerRef.current = null
+      }
       cityMarkersRef.current.forEach(marker => marker.remove())
       cityMarkersRef.current.clear()
-      mapAssetMarkersRef.current.forEach(marker => marker.remove())
-      mapAssetMarkersRef.current.clear()
       try { map.remove() } catch (e) { console.warn('[MapboxMap] cleanup failed:', e) }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -458,6 +503,20 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         }
         applyBuiltinLayerVisibility(map, ls)
         setupCustomLayers(map, closed, ls)
+
+        // Re-add Nimitz marker after style reset
+        if (nimitzMarkerRef.current) {
+          nimitzMarkerRef.current.remove()
+          nimitzMarkerRef.current = null
+        }
+        const reloadNimitzEl = buildNimitzElement()
+        reloadNimitzEl.style.display = ls.militaryAssets ? '' : 'none'
+        nimitzMarkerRef.current = new mapboxgl.Marker({
+          element: reloadNimitzEl,
+          anchor: 'left',
+        })
+          .setLngLat([56.5, 24.0])
+          .addTo(map)
       })
       return
     }
@@ -465,7 +524,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
     // Non-terrain toggles
     applyBuiltinLayerVisibility(map, layerState)
     applyCustomLayerVisibility(map, layerState)
-  }, [layerState, applyBuiltinLayerVisibility, applyCustomLayerVisibility, setupCustomLayers])
+  }, [layerState, applyBuiltinLayerVisibility, applyCustomLayerVisibility, setupCustomLayers, buildNimitzElement])
 
   // ── Asset markers ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -500,69 +559,6 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
       assetMarkersRef.current.set(asset.id, marker)
     })
   }, [assets, layerState.usAssets, layerState.iranAssets, layerState.israelAssets, layerState.infrastructure, onAssetClick])
-
-  // ── MapAsset markers (Supabase-sourced live assets) ──────────────────────
-  useEffect(() => {
-    const map = mapRef.current
-    mapAssetMarkersRef.current.forEach(marker => marker.remove())
-    mapAssetMarkersRef.current.clear()
-    if (!map || !mapAssets || mapAssets.length === 0) return
-
-    mapAssets.forEach(asset => {
-      const isUs     = asset.actor_id === 'us' || asset.actor_id === 'united_states'
-      const isIran   = asset.actor_id === 'iran'
-      const isIsrael = asset.actor_id === 'israel'
-      const isInfra  = asset.asset_type === 'oil_gas_facility'
-
-      const actorVisible =
-        (isUs     && layerState.usAssets) ||
-        (isIran   && layerState.iranAssets) ||
-        (isIsrael && layerState.israelAssets) ||
-        (isInfra  && layerState.infrastructure) ||
-        (!isUs && !isIran && !isIsrael && !isInfra && layerState.militaryAssets)
-
-      if (!actorVisible) return
-      if (!layerState.militaryAssets && !isInfra) return
-
-      const destroyed = asset.status === 'destroyed'
-      const degraded  = asset.status === 'degraded'
-
-      const el = document.createElement('div')
-      el.style.cssText = 'display:flex;align-items:center;gap:4px;cursor:pointer;pointer-events:auto;'
-
-      const dot = document.createElement('div')
-      dot.style.cssText = [
-        'width:7px;height:7px;flex-shrink:0;border-radius:50%;',
-        `background:${destroyed ? 'rgba(180,50,50,0.5)' : degraded ? 'rgba(220,170,30,0.8)' : `${asset.actor_color}cc`};`,
-        `border:1.5px solid ${destroyed ? '#b43232' : degraded ? '#dcaa1e' : asset.actor_color};`,
-        `box-shadow:0 0 0 3px ${asset.actor_color}22;`,
-        destroyed ? 'opacity:0.4;' : '',
-      ].join('')
-
-      const label = document.createElement('div')
-      label.style.cssText = [
-        "font-family:'IBM Plex Mono',monospace;",
-        'font-size:7px;letter-spacing:0.07em;text-transform:uppercase;',
-        `color:${destroyed ? 'rgba(180,80,80,0.6)' : degraded ? 'rgba(220,170,30,0.85)' : `${asset.actor_color}ee`};`,
-        'background:rgba(5,10,18,0.88);',
-        `border:1px solid ${asset.actor_color}44;`,
-        'padding:1px 4px;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;',
-        destroyed ? 'text-decoration:line-through;opacity:0.5;' : '',
-      ].join('')
-      label.textContent = asset.label
-      label.title = asset.tooltip ?? asset.label
-
-      el.appendChild(dot)
-      el.appendChild(label)
-      el.addEventListener('click', () => onMapAssetClick?.(asset))
-
-      const marker = new mapboxgl.Marker({ element: el, anchor: 'left' })
-        .setLngLat([asset.lng, asset.lat])
-        .addTo(map)
-
-      mapAssetMarkersRef.current.set(asset.id, marker)
-    })
-  }, [mapAssets, layerState.usAssets, layerState.iranAssets, layerState.israelAssets, layerState.infrastructure, layerState.militaryAssets, onMapAssetClick])
 
   // ── City markers ─────────────────────────────────────────────────────────
   useEffect(() => {

@@ -47,4 +47,8 @@ export interface ActorDetail {
   economicStrength: number
   politicalStability: number
   objectives: string[]
+  leadershipProfile?: string
+  strategicDoctrine?: string
+  historicalPrecedents?: string
+  intelligenceProfile?: Record<string, unknown>
 }
