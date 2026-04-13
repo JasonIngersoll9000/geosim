@@ -115,14 +115,19 @@ function ActorsPanel({
                 </span>
                 {actor.primaryObjective && (
                   <span style={{
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: 9, color: 'rgba(229,226,225,0.4)', lineHeight: 1.35,
+                    fontFamily: actor.relationshipStance === 'adversary'
+                      ? "'IBM Plex Mono', monospace"
+                      : "'Inter', sans-serif",
+                    fontSize: 9,
+                    color: actor.relationshipStance === 'adversary' ? '#6a6860' : 'rgba(229,226,225,0.4)',
+                    letterSpacing: actor.relationshipStance === 'adversary' ? '0.04em' : undefined,
+                    lineHeight: 1.35,
                     overflow: 'hidden',
                     display: '-webkit-box' as const,
                     WebkitLineClamp: 1,
                     WebkitBoxOrient: 'vertical' as const,
                   }}>
-                    {actor.primaryObjective}
+                    {actor.relationshipStance === 'adversary' ? '[OBJ. CLASSIFIED]' : actor.primaryObjective}
                   </span>
                 )}
               </div>

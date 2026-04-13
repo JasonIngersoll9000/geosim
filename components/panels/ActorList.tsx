@@ -78,15 +78,23 @@ export function ActorList({ actors, selectedActorId, onSelect }: Props) {
               </span>
               {actor.primaryObjective && (
                 <span style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: 10, color: 'rgba(229,226,225,0.45)',
+                  fontFamily: actor.relationshipStance === 'adversary'
+                    ? "'IBM Plex Mono', monospace"
+                    : "'Inter', sans-serif",
+                  fontSize: 10,
+                  color: actor.relationshipStance === 'adversary'
+                    ? '#8a8880'
+                    : 'rgba(229,226,225,0.45)',
+                  letterSpacing: actor.relationshipStance === 'adversary' ? '0.04em' : undefined,
                   lineHeight: 1.35,
                   overflow: 'hidden',
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical' as const,
                 }}>
-                  {actor.primaryObjective}
+                  {actor.relationshipStance === 'adversary'
+                    ? '[OBJ. CLASSIFIED]'
+                    : actor.primaryObjective}
                 </span>
               )}
             </div>

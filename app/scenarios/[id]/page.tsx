@@ -192,7 +192,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
       try { supabase = createClient() } catch { /* ignore */ }
       if (supabase) {
         const sb = supabase
-        const [scenarioActorRes, scenarioRes] = await Promise.all([
+        const [scenarioActorRes, scenarioRes, simActorRes] = await Promise.all([
           sb
             .from('scenario_actors')
             .select('id, name, short_name, biographical_summary, win_condition, strategic_doctrine, historical_precedents, initial_scores, leadership_profile, intelligence_profile')
@@ -202,7 +202,23 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
             .select('id, name, description')
             .eq('id', params.id)
             .single(),
+          // Fetch simulation-layer actor data (escalation_ladder JSONB)
+          // from actors table — populated by the research pipeline Stage 5
+          sb
+            .from('actors')
+            .select('actor_id, escalation_ladder')
+            .eq('scenario_id', params.id),
         ])
+
+        // Index sim-actor escalation ladders by canonical actor_id
+        const escalationLadderByActorId: Record<string, ReturnType<typeof parseDbEscalationLadder>> = {}
+        for (const row of simActorRes.data ?? []) {
+          if (row.actor_id) {
+            escalationLadderByActorId[String(row.actor_id)] = parseDbEscalationLadder(
+              row.escalation_ladder as Record<string, unknown> | null
+            )
+          }
+        }
 
         if (scenarioRes.data) {
           setScenarioName(scenarioRes.data.name)
@@ -254,9 +270,9 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
               actorColor,
               escalationRung: rung,
               escalationRungName,
-              // Escalation rungs: fall back to empty array in scenario hub
-              // (actors.escalation_ladder not queried here; the play page fetches it)
-              escalationRungs: buildRungSummaries(a.id, null, rung),
+              // Escalation rungs: sourced from actors.escalation_ladder JSONB.
+              // Falls back to empty array if the actors table has no ladder data for this actor.
+              escalationRungs: buildRungSummaries(a.id, escalationLadderByActorId[a.id] ?? null, rung),
               briefing: a.biographical_summary,
               militaryStrength: milScore,
               economicStrength: ecoScore,
