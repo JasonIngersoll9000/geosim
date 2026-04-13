@@ -1,5 +1,4 @@
 'use client'
-import { useState } from 'react'
 import type { ActorSummary } from '@/lib/types/panels'
 
 interface Props {
@@ -21,18 +20,13 @@ export function ObserverOverlay({
   onChangePerspective,
   onToggleOmniscient,
 }: Props) {
-  const [localPerspective, setLocalPerspective] = useState<string | null>(perspectiveActorId)
-  const [localOmniscient, setLocalOmniscient] = useState(omniscientMode)
-
   if (!isVisible) return null
 
   function handlePerspectiveChange(actorId: string | null) {
-    setLocalPerspective(actorId)
     onChangePerspective?.(actorId)
   }
 
   function handleOmniscientToggle() {
-    setLocalOmniscient(prev => !prev)
     onToggleOmniscient?.()
   }
 
@@ -64,11 +58,9 @@ export function ObserverOverlay({
                 <input
                   type="radio"
                   name="perspective"
-                  checked={localOmniscient}
+                  checked={omniscientMode}
                   onChange={() => {
-                    handleOmniscientToggle()
-                    setLocalPerspective(null)
-                    onChangePerspective?.(null)
+                    if (!omniscientMode) handleOmniscientToggle()
                   }}
                   className="shrink-0"
                 />
@@ -84,12 +76,9 @@ export function ObserverOverlay({
                   <input
                     type="radio"
                     name="perspective"
-                    checked={!localOmniscient && localPerspective === actor.id}
+                    checked={!omniscientMode && perspectiveActorId === actor.id}
                     onChange={() => {
-                      if (localOmniscient) {
-                        setLocalOmniscient(false)
-                        onToggleOmniscient?.()
-                      }
+                      if (omniscientMode) handleOmniscientToggle()
                       handlePerspectiveChange(actor.id)
                     }}
                     className="shrink-0"
@@ -119,16 +108,16 @@ export function ObserverOverlay({
                 onClick={handleOmniscientToggle}
                 className="w-10 h-6 relative transition-colors"
                 style={{
-                  background: localOmniscient ? 'var(--gold)' : 'var(--bg-surface-high)',
+                  background: omniscientMode ? 'var(--gold)' : 'var(--bg-surface-high)',
                   border: '1px solid var(--border-hi)',
                 }}
-                aria-pressed={localOmniscient}
+                aria-pressed={omniscientMode}
               >
                 <div
                   className="absolute top-0.5 w-5 h-5 transition-transform"
                   style={{
-                    background: localOmniscient ? 'var(--bg-base)' : 'var(--text-tertiary)',
-                    transform: localOmniscient ? 'translateX(18px)' : 'translateX(2px)',
+                    background: omniscientMode ? 'var(--bg-base)' : 'var(--text-tertiary)',
+                    transform: omniscientMode ? 'translateX(18px)' : 'translateX(2px)',
                   }}
                 />
               </button>

@@ -663,8 +663,9 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
         perspectiveActorId={componentViewerActorId}
         omniscientMode={omniscientMode}
         onChangePerspective={(actorId) => {
+          // Switching perspective changes the *viewer* but never nullifies controlledActors
+          // (null = actor not yet chosen; we never revert to the actor-picker from inside a session)
           if (actorId) setControlledActors([actorId])
-          else setControlledActors(null)
         }}
         onToggleOmniscient={() => setOmniscientMode(prev => !prev)}
       />

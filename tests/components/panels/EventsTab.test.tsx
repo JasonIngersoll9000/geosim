@@ -38,6 +38,6 @@ describe('EventsTab', () => {
 
   it('renders null state when no resolution', () => {
     render(<EventsTab resolution={null} />)
-    expect(screen.getByText(/No resolution data/i)).toBeTruthy()
+    expect(screen.getByText(/No Events Yet/i)).toBeTruthy()
   })
 })
