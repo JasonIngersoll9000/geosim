@@ -52,9 +52,6 @@ export function MapAssetPopup({ asset, screenX, screenY, containerWidth, contain
   const isDestroyed = asset.status === 'destroyed'
   const isDegraded  = asset.status === 'degraded'
 
-  const navalIcon = asset.asset_type === 'carrier_group' ? '⬛' : '⬛'
-  void navalIcon
-
   return (
     <div
       style={{

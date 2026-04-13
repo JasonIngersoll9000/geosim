@@ -122,7 +122,7 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
     const isHormuz     = id === 'strait_of_hormuz'
     const lane         = isHormuz ? hormuzLane : babLane
     const throughput   = lane?.throughput_pct
-    const status       = throughput != null ? laneStatus(throughput) : (isHormuz ? 'contested' : 'contested')
+    const status       = throughput != null ? laneStatus(throughput) : 'contested'
     setChokepointPopup({
       id,
       label:          isHormuz ? 'STRAIT OF HORMUZ' : 'BAB-EL-MANDEB',

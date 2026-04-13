@@ -11,6 +11,13 @@ const HORMUZ_COORDINATES: [number, number][] = [
   [57.33, 25.65],
 ]
 
+const BAB_EL_MANDEB_COORDINATES: [number, number][] = [
+  [43.18, 12.90],
+  [43.35, 12.65],
+  [43.52, 12.40],
+  [43.68, 12.10],
+]
+
 const ACTOR_COLORS: Record<string, string> = {
   us:           '#4a90d9',
   iran:         '#c0392b',
@@ -119,8 +126,11 @@ export async function GET(
       })
     }
 
-    // Fallback: if facility_statuses had no geocoords, build from actor_capabilities directly
+    // Merge: include actor_capabilities rows not already covered by facility_statuses.
+    // This ensures naval/capability assets absent from the state engine are still rendered.
+    const matchedNormNames = new Set(assets.map(a => normalise(a.label)))
     if (assets.length === 0) {
+      // Pure fallback: state engine had no geocoords at all — use caps as primary source
       for (const cap of capRows) {
         const rawType = cap.asset_type ?? cap.category ?? 'military_base'
         const mapType = (ASSET_TYPE_MAP[rawType] ?? 'military_base') as MapAssetType
@@ -144,7 +154,38 @@ export async function GET(
           is_approximate_location: isNaval,
         })
       }
+    } else {
+      // Supplement: add capabilities not already represented in facility_statuses
+      for (const cap of capRows) {
+        const capLabel = cap.short_name ?? cap.name
+        if (matchedNormNames.has(normalise(capLabel)) || matchedNormNames.has(normalise(cap.name))) continue
+        const rawType = cap.asset_type ?? cap.category ?? 'military_base'
+        const mapType = (ASSET_TYPE_MAP[rawType] ?? 'military_base') as MapAssetType
+        const isNaval = rawType === 'carrier' || rawType === 'carrier_group' || rawType === 'naval_base' || rawType === 'naval_asset'
+        assets.push({
+          id:                      cap.id,
+          actor_id:                cap.actor_id,
+          asset_type:              mapType,
+          category:                cap.category ?? rawType,
+          label:                   capLabel,
+          lat:                     cap.lat,
+          lng:                     cap.lng,
+          status:                  cap.status === 'destroyed' ? 'destroyed' : cap.status === 'degraded' ? 'degraded' : 'operational',
+          capacity_pct:            100,
+          actor_color:             ACTOR_COLORS[cap.actor_id] ?? '#888888',
+          tooltip:                 cap.description ?? cap.name,
+          description:             cap.description ?? undefined,
+          notes:                   cap.notes ?? undefined,
+          strike_range_nm:         cap.strike_range_nm ?? undefined,
+          threat_range_nm:         cap.threat_range_nm ?? undefined,
+          is_approximate_location: isNaval,
+        })
+      }
     }
+
+    // Bab-el-Mandeb throughput: derive from global economic stress as a proxy for
+    // Houthi/regional activity. High stress → reduced throughput.
+    const babThroughput = Math.round(Math.max(5, 100 - state.global_state.global_economic_stress * 0.8))
 
     const shipping_lanes: ShippingLane[] = [
       {
@@ -152,6 +193,12 @@ export async function GET(
         label:          'Strait of Hormuz',
         throughput_pct: state.global_state.hormuz_throughput_pct,
         coordinates:    HORMUZ_COORDINATES,
+      },
+      {
+        id:             'bab_el_mandeb',
+        label:          'Bab-el-Mandeb',
+        throughput_pct: babThroughput,
+        coordinates:    BAB_EL_MANDEB_COORDINATES,
       },
     ]
 
