@@ -4,10 +4,14 @@ import { TopBar } from '@/components/ui/TopBar'
 import { GameProvider } from '@/components/providers/GameProvider'
 import { GameView } from '@/components/game/GameView'
 import { createClient } from '@/lib/supabase/server'
+import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
 import { getStateAtTurn } from '@/lib/game/state-engine'
 import { IRAN_DECISIONS, IRAN_DECISION_DETAILS } from '@/lib/game/iran-decisions'
 import type { GameInitialData, ChronicleEntry, GroundTruthCommit } from '@/lib/types/game-init'
 import type { ActorSummary, ActorDetail } from '@/lib/types/panels'
+import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel, getEscalationRungName } from '@/lib/game/actor-meta'
+import { parseIntelProfile, inferIntelConfidence, extractKnownUnknowns } from '@/lib/game/fow-panel'
+import { parseDbEscalationLadder, buildRungSummaries } from '@/lib/game/escalation-from-db'
 
 interface Props {
   params: { id: string; branchId: string }
@@ -27,25 +31,69 @@ export default async function PlayPage({ params }: Props) {
 
   const supabase = await createClient()
 
-  // 1. Fetch scenario metadata
+  // 0. Resolve scenario slug → UUID
+  const scenarioId = await resolveScenarioId(supabase, params.id)
+
+  // 1. Fetch scenario metadata (classification column does not exist in live schema)
   const { data: scenario } = await supabase
     .from('scenarios')
-    .select('id, name, classification')
-    .eq('id', params.id)
+    .select('id, name')
+    .eq('id', scenarioId)
     .single()
 
-  // 2. Fetch branch record
-  const { data: branch } = await supabase
-    .from('branches')
-    .select('id, name, is_trunk, head_commit_id')
-    .eq('id', params.branchId)
-    .single()
+  // 2. Fetch branch record — support "trunk" slug by looking up is_trunk branch
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  let branchData: { id: string; name: string; is_trunk: boolean; head_commit_id: string | null } | null = null
+  if (UUID_RE.test(params.branchId)) {
+    const { data } = await supabase
+      .from('branches')
+      .select('id, name, is_trunk, head_commit_id')
+      .eq('id', params.branchId)
+      .single()
+    branchData = data
+  } else {
+    // slug like "trunk" → look up trunk branch for this scenario
+    const { data } = await supabase
+      .from('branches')
+      .select('id, name, is_trunk, head_commit_id')
+      .eq('scenario_id', scenarioId)
+      .eq('is_trunk', true)
+      .single()
+    branchData = data
+  }
+  const branch = branchData
 
   // 3. Fetch actors for this scenario
   const { data: actorRows } = await supabase
     .from('scenario_actors')
-    .select('id, name, biographical_summary, leadership_profile, win_condition, strategic_doctrine, historical_precedents, initial_scores, intelligence_profile')
-    .eq('scenario_id', scenario?.id ?? params.id)
+    .select('id, name, short_name, biographical_summary, leadership_profile, win_condition, strategic_doctrine, historical_precedents, initial_scores, intelligence_profile')
+    .eq('scenario_id', scenarioId)
+
+  // 3b. Fetch simulation-layer actor data (escalation_ladder JSONB) from the
+  //     actors table.  This table is populated by the research pipeline (Stage 5)
+  //     and contains the full EscalationLadder object with real rung names,
+  //     descriptions, and reversibility markers per actor.
+  const { data: simActorRows } = await supabase
+    .from('actors')
+    .select('actor_id, escalation_ladder')
+    .eq('scenario_id', scenarioId)
+
+  // Index sim-actor rows by canonical actor_id for fast lookup
+  const escalationLadderByActorId: Record<string, ReturnType<typeof parseDbEscalationLadder>> = {}
+  for (const row of simActorRows ?? []) {
+    if (row.actor_id) {
+      escalationLadderByActorId[String(row.actor_id)] = parseDbEscalationLadder(
+        row.escalation_ladder as Record<string, unknown> | null
+      )
+    }
+  }
+
+  // Parse the viewer (US) actor's intelligence profile for FOW derivation
+  const viewerActorId = 'us'
+  const viewerRow = (actorRows ?? []).find(a => a.id === viewerActorId || a.id === 'united_states')
+  const viewerIntelProfile = parseIntelProfile(
+    viewerRow?.intelligence_profile as Record<string, unknown> | null
+  )
 
   // 4. Fetch current state via state engine
   let currentState = null
@@ -81,31 +129,88 @@ export default async function PlayPage({ params }: Props) {
   // --- Transform DB rows → GameInitialData types ---
 
   const actors: ActorSummary[] = (actorRows ?? []).map(a => {
-    const scores = a.initial_scores as { escalationRung?: number } | null
+    const scores = a.initial_scores as { escalationRung?: number; escalation_rung?: number } | null
+    const rung = scores?.escalationRung ?? scores?.escalation_rung ?? 0
+    const rawObjectives = a.win_condition
+      ? a.win_condition.split(/\n|•|–|-/).map((s: string) => s.trim()).filter((s: string) => s.length > 10)
+      : []
     return {
       id: a.id,
       name: a.name,
-      escalationRung: scores?.escalationRung ?? 0,
+      shortName: a.short_name ?? a.name.slice(0, 6).toUpperCase(),
+      actorColor: getActorColor(a.id),
+      escalationRung: rung,
+      escalationRungName: getEscalationRungName(a.id, rung),
+      primaryObjective: rawObjectives[0] ?? '',
+      relationshipStance: getRelationshipStance(a.id),
     }
   })
 
   const actorDetails: Record<string, ActorDetail> = {}
   for (const a of actorRows ?? []) {
     const s = currentState?.actor_states[a.id]
-    const scores = a.initial_scores as { escalationRung?: number } | null
+    const scores = a.initial_scores as { escalationRung?: number; escalation_rung?: number } | null
+    const rung = scores?.escalationRung ?? scores?.escalation_rung ?? 0
+    const rawObjectives = a.win_condition
+      ? a.win_condition.split(/\n|•|–|-/).map((w: string) => w.trim()).filter((w: string) => w.length > 10)
+      : []
+    const shortName = a.short_name ?? a.name.slice(0, 6).toUpperCase()
+    // Build recent history from chronicle entries mentioning this actor
+    const actorNameLower = a.name.toLowerCase()
+    const recentHistory = (commits ?? [])
+      .filter(c => {
+        const narrative = (c.chronicle_entry ?? c.narrative_entry ?? '').toLowerCase()
+        const headline  = (c.chronicle_headline ?? '').toLowerCase()
+        return narrative.includes(actorNameLower) || headline.includes(actorNameLower)
+      })
+      .slice(-5)
+      .reverse()
+      .map(c => {
+        const headline  = c.chronicle_headline ? `[T${c.turn_number}] ${c.chronicle_headline}` : null
+        const narrative = c.chronicle_entry ?? c.narrative_entry ?? ''
+        return headline ?? narrative.slice(0, 240)
+      })
+
+    // Derive FOW confidence and known unknowns using the panel FOW utilities,
+    // which mirror the fog-of-war engine's logic adapted to the DB data layer.
+    const stance          = getRelationshipStance(a.id, viewerActorId)
+    const intelConfidence = inferIntelConfidence(viewerIntelProfile, stance)
+    const knownUnknowns   = extractKnownUnknowns(
+      viewerRow?.intelligence_profile as Record<string, unknown> | null
+    )
+
+    // Escalation ladder: use real rung data from actors.escalation_ladder if
+    // available (populated by the research pipeline Stage 5), delegating blocked-
+    // rung computation to the escalation engine (lib/game/escalation.ts).
+    const dbLadder     = escalationLadderByActorId[a.id] ?? escalationLadderByActorId[`${a.id}_${scenarioId}`] ?? null
+    const escalationRungs = buildRungSummaries(a.id, dbLadder, rung)
+
     actorDetails[a.id] = {
       id: a.id,
       name: a.name,
-      escalationRung: scores?.escalationRung ?? 0,
+      shortName,
+      actorColor: getActorColor(a.id),
+      escalationRung: rung,
+      escalationRungName: getEscalationRungName(a.id, rung),
+      escalationRungs,
       briefing: a.biographical_summary ?? 'No briefing available.',
       militaryStrength:   s ? Math.round(Number(s.military_strength))   : 50,
       economicStrength:   s ? Math.round(Number(s.economic_health))     : 50,
       politicalStability: s ? Math.round(Number(s.political_stability)) : 50,
-      objectives: [a.win_condition].filter(Boolean) as string[],
+      objectives: rawObjectives,
+      primaryObjective: rawObjectives[0] ?? '',
+      winCondition: a.win_condition ?? undefined,
       leadershipProfile:    a.leadership_profile ?? undefined,
       strategicDoctrine:    a.strategic_doctrine ?? undefined,
       historicalPrecedents: a.historical_precedents ?? undefined,
       intelligenceProfile:  a.intelligence_profile as Record<string, unknown> | undefined,
+      isAdversary:      isAdversaryActor(a.id, viewerActorId),
+      hasLimitedIntel:  hasLimitedIntel(a.id, viewerActorId),
+      viewerActorId,
+      relationshipStance: stance,
+      recentHistory: recentHistory.length > 0 ? recentHistory : undefined,
+      knownUnknowns: knownUnknowns.length > 0 ? knownUnknowns : undefined,
+      intelConfidence,
     }
   }
 
@@ -135,10 +240,10 @@ export default async function PlayPage({ params }: Props) {
     scenario: {
       id:             scenario?.id ?? params.id,
       name:           scenario?.name ?? 'Unknown Scenario',
-      classification: (scenario?.classification as string | null) ?? 'SECRET',
+      classification: 'SECRET',
     },
     branch: {
-      id:           params.branchId,
+      id:           branch?.id ?? params.branchId,
       name:         branch?.name ?? 'Ground Truth',
       isTrunk:      branch?.is_trunk ?? false,
       headCommitId: branch?.head_commit_id ?? null,

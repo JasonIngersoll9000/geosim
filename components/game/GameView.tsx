@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useRealtime } from '@/hooks/useRealtime'
 import { useGame } from '@/components/providers/GameProvider'
@@ -12,16 +13,16 @@ import { DecisionCatalog } from '@/components/panels/DecisionCatalog'
 import { DecisionDetailPanel } from '@/components/panels/DecisionDetailPanel'
 import { TurnPlanBuilder } from '@/components/panels/TurnPlanBuilder'
 import { ChronicleTimeline } from '@/components/chronicle/ChronicleTimeline'
-import { EventsTab } from '@/components/panels/EventsTab'
 import { ActorControlSelector } from '@/components/game/ActorControlSelector'
 import { DispatchTerminal } from '@/components/game/DispatchTerminal'
-import { ResearchUpdatePanel } from '@/components/game/ResearchUpdatePanel'
 import { ObserverOverlay } from '@/components/panels/ObserverOverlay'
 import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import type { DispatchLine } from '@/components/game/DispatchTerminal'
 import type { ActorSummary, ActorDetail, DecisionDetail, ActionSlot } from '@/lib/types/panels'
 import type { GameInitialData, ChronicleEntry } from '@/lib/types/game-init'
+import { getRelationshipStance, isAdversaryActor, hasLimitedIntel } from '@/lib/game/actor-meta'
+import { inferIntelConfidence, applyFogOfWarToActorDetail, parseIntelProfile, applyScoreNoise } from '@/lib/game/fow-panel'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -42,40 +43,113 @@ const PANEL_TABS: { id: PanelTab; label: string }[] = [
 
 // ─── Actors tab inner component ───────────────────────────────────────────────
 
+const STANCE_LABEL: Record<string, { label: string; color: string }> = {
+  ally:       { label: 'ALLY',    color: '#5ebd8e' },
+  adversary:  { label: 'ADV.',    color: '#e74c3c' },
+  rival:      { label: 'RIVAL',   color: '#e67e22' },
+  proxy:      { label: 'PROXY',   color: '#4a90d9' },
+  neutral:    { label: 'NEUT.',   color: '#8a8880' },
+}
+
 function ActorsPanel({
   actors,
   actorMetrics,
   selectedActorId,
+  viewerActorId,
   onSelect,
 }: {
   actors: ActorSummary[]
   actorMetrics: Record<string, { military: number; economic: number; political: number }>
   selectedActorId: string | null
+  viewerActorId: string | null
   onSelect: (id: string) => void
 }) {
   return (
     <div className="flex flex-col">
       <div className="flex flex-col divide-y divide-border-subtle">
         {actors.map((actor) => {
-          const metrics = actorMetrics[actor.id]
+          const rawMetrics = actorMetrics[actor.id]
           const isSelected = actor.id === selectedActorId
+          // Recompute stance client-side if we know who the controlled actor is
+          const liveStance = viewerActorId
+            ? getRelationshipStance(actor.id, viewerActorId)
+            : actor.relationshipStance
+          const stance = STANCE_LABEL[liveStance] ?? STANCE_LABEL.neutral
+          const isAdv = liveStance === 'adversary'
+          const color = actor.actorColor
+          // Apply deterministic estimation noise to adversary metrics.
+          // Uses applyScoreNoise() from fow-panel.ts (seeded by actor ID) so the
+          // believed values are stable across renders — mirroring the fixed
+          // IntelligencePicture.believedX snapshot that the simulation engine carries.
+          const actorSeed = actor.id.split('').reduce((s, c) => s + c.charCodeAt(0), 0)
+          const metrics = (rawMetrics && isAdv) ? {
+            military:  applyScoreNoise(rawMetrics.military,  'unverified', actorSeed),
+            economic:  applyScoreNoise(rawMetrics.economic,  'unverified', actorSeed + 1),
+            political: applyScoreNoise(rawMetrics.political, 'unverified', actorSeed + 2),
+          } : rawMetrics
+
           return (
             <button
               key={actor.id}
               data-actor-id={actor.id}
               onClick={() => onSelect(actor.id)}
-              className={`w-full text-left px-4 py-3 transition-colors ${
-                isSelected
-                  ? 'bg-bg-surface border-l-2 border-gold'
-                  : 'bg-transparent hover:bg-bg-surface-dim border-l-2 border-transparent'
-              }`}
+              style={{
+                width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
+                borderLeft: isSelected ? `3px solid ${color}` : '3px solid transparent',
+                padding: '10px 14px 10px 13px',
+                background: isSelected ? `${color}0a` : 'transparent',
+                transition: 'background 0.15s, border-left-color 0.15s',
+              }}
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-label text-sm font-semibold text-text-primary">{actor.name}</span>
-                <span className="font-mono text-2xs text-text-tertiary">RUNG {actor.escalationRung}</span>
+              {/* Row 1: name + stance badge */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <div style={{
+                  width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                  background: color, boxShadow: isSelected ? `0 0 5px ${color}` : 'none',
+                }} />
+                <span style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 13, fontWeight: 600, color: '#e5e2e1', flex: 1, lineHeight: 1.2,
+                }}>
+                  {actor.name}
+                </span>
+                <span style={{
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize: 8, fontWeight: 700, letterSpacing: '0.1em',
+                  color: stance.color, flexShrink: 0,
+                }}>
+                  {stance.label}
+                </span>
               </div>
+
+              {/* Row 2: rung name */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, paddingLeft: 16, marginBottom: metrics ? 6 : 0 }}>
+                <span style={{
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize: 9, color, letterSpacing: '0.08em', flexShrink: 0, whiteSpace: 'nowrap',
+                }}>
+                  R{actor.escalationRung} · {actor.escalationRungName.toUpperCase().slice(0, 20)}
+                </span>
+                {actor.primaryObjective && (
+                  <span style={{
+                    fontFamily: isAdv ? "'IBM Plex Mono', monospace" : "'Inter', sans-serif",
+                    fontSize: 9,
+                    color: isAdv ? '#6a6860' : 'rgba(229,226,225,0.4)',
+                    letterSpacing: isAdv ? '0.04em' : undefined,
+                    lineHeight: 1.35,
+                    overflow: 'hidden',
+                    display: '-webkit-box' as const,
+                    WebkitLineClamp: 1,
+                    WebkitBoxOrient: 'vertical' as const,
+                  }}>
+                    {isAdv ? '[OBJ. CLASSIFIED]' : actor.primaryObjective}
+                  </span>
+                )}
+              </div>
+
+              {/* Row 3: metric bars */}
               {metrics && (
-                <div className="flex flex-col gap-1">
+                <div style={{ paddingLeft: 16 }} className="flex flex-col gap-1">
                   {([
                     { label: 'MIL', value: metrics.military },
                     { label: 'ECO', value: metrics.economic },
@@ -84,7 +158,9 @@ function ActorsPanel({
                     <div key={label} className="flex items-center gap-2">
                       <span className="font-mono text-2xs text-text-tertiary w-6 shrink-0">{label}</span>
                       <ProgressBar value={value} />
-                      <span className="font-mono text-2xs text-text-tertiary w-6 text-right">{value}</span>
+                      <span className="font-mono text-2xs text-text-tertiary w-6 text-right">
+                        {isAdv ? `~${value}` : value}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -120,10 +196,12 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   const { state, dispatch } = useGame()
   const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, reset: resetHook } = useSubmitTurn(scenarioId, branchId)
   const shouldSkip = useReducedMotion()
+  const router = useRouter()
 
   const actorMetrics = buildActorMetrics(initialData.actorDetails)
 
   const [controlledActors, setControlledActors]             = useState<string[] | null>(null)
+  const [forkingBranch, setForkingBranch]                   = useState(false)
   const [activeTab, setActiveTab]                           = useState<PanelTab>('actors')
   const [showObserver, setShowObserver]                     = useState(true)
   const [selectedDecisionDetail, setSelectedDecisionDetail] = useState<DecisionDetail | null>(null)
@@ -138,6 +216,11 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     text: `BRANCH: ${initialData.branch.name} // TURN ${String(initialData.branch.turnNumber).padStart(2, '0')} // PHASE: ${initialData.branch.isTrunk ? 'observer' : 'planning'}`,
     type: 'info',
   }])
+
+  // Viewer identity — derived from controlledActors so both the actor list and
+  // dossier slide-over use the same perspective. Null before the user chooses a
+  // controlled actor (observer mode); list uses the server-rendered stance in that case.
+  const componentViewerActorId: string | null = controlledActors?.[0] ?? null
 
   // Ground truth mode
   const isGtMode = initialData.branch.isTrunk
@@ -211,7 +294,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     if (!primaryAction) return
     dispatch({ type: 'SET_TURN_PHASE', payload: 'resolution' })
     setActiveTab('decisions') // stay on decisions tab header (terminal covers it)
-    await submitTurn({ primaryAction, concurrentActions })
+    await submitTurn({ primaryAction, concurrentActions, controlledActors: controlledActors ?? [] })
   }
 
   function handleReturnToPlanning() {
@@ -241,6 +324,28 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
 
   function handleRemoveConcurrent(id: string) {
     setConcurrentActions(prev => prev.filter(a => a.id !== id))
+  }
+
+  const handleForkNewBranch = async () => {
+    setForkingBranch(true)
+    try {
+      const res = await fetch('/api/branches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenarioId }),
+      })
+      if (res.ok) {
+        const json = await res.json() as { id?: string }
+        if (json.id) {
+          router.push(`/scenarios/${scenarioId}/play/${json.id}`)
+          return
+        }
+      }
+    } catch {
+      // non-fatal
+    } finally {
+      setForkingBranch(false)
+    }
   }
 
   const handleNextGroundTruthEvent = async () => {
@@ -357,7 +462,9 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
           >
-            {PANEL_TABS.map(({ id, label }) => (
+            {PANEL_TABS
+              .filter(({ id }) => !(isGtMode && id === 'decisions'))
+              .map(({ id, label }) => (
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
@@ -379,10 +486,11 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
                 actors={initialData.actors}
                 actorMetrics={actorMetrics}
                 selectedActorId={state.selectedActorId}
+                viewerActorId={componentViewerActorId}
                 onSelect={(id) => dispatch({ type: 'SELECT_ACTOR', payload: id })}
               />
             )}
-            {activeTab === 'decisions' && (
+            {activeTab === 'decisions' && !isGtMode && (
               <DecisionCatalog
                 decisions={initialData.decisions}
                 onSelect={handleDecisionSelect}
@@ -391,15 +499,15 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
               />
             )}
             {activeTab === 'events' && (
-              <EventsTab resolution={null} />
+              <ChronicleTimeline entries={chronicleEntries} />
             )}
             {activeTab === 'chronicle' && (
               <ChronicleTimeline entries={chronicleEntries} />
             )}
           </div>
 
-          {/* Turn plan builder — fixed at bottom when on decisions tab */}
-          {activeTab === 'decisions' && (
+          {/* Turn plan builder — fixed at bottom when on decisions tab (not in GT mode) */}
+          {activeTab === 'decisions' && !isGtMode && (
             <div className="shrink-0">
               <TurnPlanBuilder
                 primaryAction={primaryAction}
@@ -412,16 +520,26 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             </div>
           )}
 
-          {/* NEXT EVENT button — ground truth observer mode */}
+          {/* NEXT EVENT / FORK button — ground truth observer mode */}
           {isGtMode && (
             <div className="shrink-0 px-3 pt-2">
-              <button
-                onClick={handleNextGroundTruthEvent}
-                disabled={!gtHasNext || gtLoading}
-                className="w-full py-2 font-mono text-xs font-semibold bg-surface-3 border border-border-subtle text-text-secondary hover:text-text-primary hover:border-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {gtLoading ? 'LOADING…' : gtHasNext ? 'NEXT EVENT →' : 'END OF TIMELINE'}
-              </button>
+              {gtHasNext ? (
+                <button
+                  onClick={handleNextGroundTruthEvent}
+                  disabled={gtLoading}
+                  className="w-full py-2 font-mono text-xs font-semibold bg-surface-3 border border-border-subtle text-text-secondary hover:text-text-primary hover:border-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {gtLoading ? 'LOADING…' : 'NEXT EVENT →'}
+                </button>
+              ) : (
+                <button
+                  onClick={() => void handleForkNewBranch()}
+                  disabled={forkingBranch}
+                  className="w-full py-2 font-mono text-xs font-semibold border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {forkingBranch ? 'CREATING BRANCH…' : 'FORK NEW BRANCH →'}
+                </button>
+              )}
             </div>
           )}
 
@@ -430,16 +548,12 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             <DispatchTerminal lines={dispatchLines} isRunning={false} />
           </div>
 
-          {/* Ground truth research panel */}
-          <div className="shrink-0 p-3 border-t border-border-subtle">
-            <ResearchUpdatePanel scenarioId={scenarioId} />
-          </div>
         </>
       )}
     </div>
   )
 
-  if (controlledActors === null) {
+  if (controlledActors === null && !isGtMode) {
     return (
       <ActorControlSelector
         actors={initialData.actors}
@@ -456,14 +570,38 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
         exitHref={`/scenarios/${scenarioId}`}
       />
 
-      {/* Actor dossier slide-over */}
-      {selectedActorDetail && (
-        <ActorDetailPanel
-          actor={selectedActorDetail}
-          open={!!selectedActorDetail}
-          onClose={() => dispatch({ type: 'SELECT_ACTOR', payload: null })}
-        />
-      )}
+      {/* Actor dossier slide-over — apply FOW transformation client-side so that
+          viewerActorId reflects the actual controlled actor (not the server default).
+          The server pre-populates all fields; the client re-derives stance, isAdversary,
+          hasLimitedIntel, and intelConfidence, then applies actual field redaction via
+          applyFogOfWarToActorDetail() — mirroring the simulation engine's IntelligencePicture logic. */}
+      {selectedActorDetail && (() => {
+        const viewerActorId = controlledActors?.[0] ?? 'us'
+        const viewerIntelProfile = parseIntelProfile(
+          (initialData.actorDetails[viewerActorId]?.intelligenceProfile ?? null) as Record<string, unknown> | null
+        )
+        const stance          = getRelationshipStance(selectedActorDetail.id, viewerActorId)
+        const isAdv           = isAdversaryActor(selectedActorDetail.id, viewerActorId)
+        const limitedIntel    = hasLimitedIntel(selectedActorDetail.id, viewerActorId)
+        const intelConfidence = inferIntelConfidence(viewerIntelProfile, stance)
+
+        const fowActor = applyFogOfWarToActorDetail({
+          ...selectedActorDetail,
+          viewerActorId,
+          relationshipStance: stance,
+          isAdversary:     isAdv,
+          hasLimitedIntel: limitedIntel,
+          intelConfidence,
+        })
+
+        return (
+          <ActorDetailPanel
+            actor={fowActor}
+            open={!!selectedActorDetail}
+            onClose={() => dispatch({ type: 'SELECT_ACTOR', payload: null })}
+          />
+        )
+      })()}
 
       {/* Decision detail slide-over */}
       <DecisionDetailPanel

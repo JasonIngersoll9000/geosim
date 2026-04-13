@@ -38,7 +38,69 @@ export async function GET(request: Request) {
     return Response.json({ data: null, error: error.message }, { status: 500 });
   }
 
-  return Response.json({ data, error: null });
+  if (!data || data.length === 0) {
+    return Response.json({ data: [], error: null });
+  }
+
+  const scenarioIds = data.map(s => s.id);
+
+  const [actorCountRes, branchRes] = await Promise.all([
+    supabase
+      .from("scenario_actors")
+      .select("scenario_id")
+      .in("scenario_id", scenarioIds),
+    supabase
+      .from("branches")
+      .select("id, scenario_id, status")
+      .in("scenario_id", scenarioIds)
+      .eq("is_trunk", true),
+  ]);
+
+  const actorCounts: Record<string, number> = {};
+  for (const row of actorCountRes.data ?? []) {
+    actorCounts[row.scenario_id] = (actorCounts[row.scenario_id] ?? 0) + 1;
+  }
+
+  type TrunkBranch = { id: string; scenario_id: string; status: string };
+  const trunkByScenario: Record<string, TrunkBranch> = {};
+  for (const row of (branchRes.data ?? []) as TrunkBranch[]) {
+    trunkByScenario[row.scenario_id] = row;
+  }
+
+  // Fetch latest turn commit per trunk branch via separate query (avoids nested-join RLS issues)
+  const trunkIds = Object.values(trunkByScenario).map(b => b.id);
+  type TurnCommitRow = { branch_id: string; turn_number: number; simulated_date: string };
+  const commitsByBranch: Record<string, TurnCommitRow[]> = {};
+  if (trunkIds.length > 0) {
+    const { data: commits } = await supabase
+      .from("turn_commits")
+      .select("branch_id, turn_number, simulated_date")
+      .in("branch_id", trunkIds);
+    for (const c of (commits ?? []) as TurnCommitRow[]) {
+      if (!commitsByBranch[c.branch_id]) commitsByBranch[c.branch_id] = [];
+      commitsByBranch[c.branch_id].push(c);
+    }
+  }
+
+  const enriched = data.map(s => {
+    const trunk = trunkByScenario[s.id];
+    const commits = trunk ? (commitsByBranch[trunk.id] ?? []) : [];
+    const maxTurn = commits.reduce((m, c) => Math.max(m, c.turn_number), 0);
+    const latestCommit = commits.reduce<TurnCommitRow | null>(
+      (best, c) => (!best || c.turn_number > best.turn_number) ? c : best,
+      null
+    );
+    const isActive = (s.branch_count ?? 0) > 0 && trunk?.status === 'active';
+    return {
+      ...s,
+      actorCount: actorCounts[s.id] ?? 0,
+      turnNumber: maxTurn > 0 ? maxTurn : null,
+      lastActiveDate: latestCommit?.simulated_date ?? null,
+      isActive,
+    };
+  });
+
+  return Response.json({ data: enriched, error: null });
 }
 
 export async function POST(request: Request) {

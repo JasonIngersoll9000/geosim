@@ -9,6 +9,7 @@ const DEV_MOCK_ENABLED = process.env.NODE_ENV === 'development'
 interface TurnPlan {
   primaryAction: ActionSlot
   concurrentActions: ActionSlot[]
+  controlledActors?: string[]
 }
 
 interface UseSubmitTurnResult {
@@ -117,6 +118,7 @@ export function useSubmitTurn(scenarioId: string, branchId: string): UseSubmitTu
         body: JSON.stringify({
           primaryAction: plan.primaryAction.id,
           concurrentActions: plan.concurrentActions.map(a => a.id),
+          controlledActors: plan.controlledActors ?? [],
         }),
       })
 

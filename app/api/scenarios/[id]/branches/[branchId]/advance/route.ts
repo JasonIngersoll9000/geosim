@@ -27,7 +27,7 @@ export async function POST(
 
   const { id: scenarioId, branchId } = params
 
-  let body: { primaryAction: string; concurrentActions: string[] }
+  let body: { primaryAction: string; concurrentActions: string[]; controlledActors?: string[] }
   try {
     body = await request.json()
   } catch {
@@ -108,10 +108,14 @@ export async function POST(
           sendLine(controller, `State engine: ${e instanceof Error ? e.message : 'skipped'}`, 'info')
         }
 
-        // 5. Update branch head_commit_id
+        // 5. Update branch head_commit_id and persist controlled actors
+        const branchUpdate: Record<string, unknown> = { head_commit_id: newCommit.id }
+        if (body.controlledActors && body.controlledActors.length > 0) {
+          branchUpdate.user_controlled_actors = body.controlledActors
+        }
         await supabase
           .from('branches')
-          .update({ head_commit_id: newCommit.id })
+          .update(branchUpdate)
           .eq('id', branchId)
 
         sendLine(controller, 'Threshold evaluation complete.', 'info')

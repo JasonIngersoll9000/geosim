@@ -11,13 +11,20 @@ const HORMUZ_COORDINATES: [number, number][] = [
   [57.33, 25.65],
 ]
 
+const BAB_EL_MANDEB_COORDINATES: [number, number][] = [
+  [43.18, 12.90],
+  [43.35, 12.65],
+  [43.52, 12.40],
+  [43.68, 12.10],
+]
+
 const ACTOR_COLORS: Record<string, string> = {
-  us:           '#1a3a6e',
-  iran:         '#1a8a4a',
-  israel:       '#002b7f',
-  saudi_arabia: '#006c35',
-  russia:       '#cc0000',
-  china:        '#de2910',
+  us:           '#4a90d9',
+  iran:         '#c0392b',
+  israel:       '#ffba20',
+  saudi_arabia: '#5ebd8e',
+  russia:       '#9b59b6',
+  china:        '#4a90b8',
 }
 
 function facilityTypeToMapAssetType(type: string): MapAssetType {
@@ -32,6 +39,38 @@ function facilityTypeToMapAssetType(type: string): MapAssetType {
     troop_deployment:  'troop_deployment',
   }
   return map[type] ?? 'military_base'
+}
+
+/** Compute intel confidence (0–100) for an asset based on source and state certainty. */
+function computeConfidence(opts: {
+  fromStateEngine: boolean
+  isApproximate: boolean
+  status: 'operational' | 'degraded' | 'destroyed'
+}): number {
+  if (opts.status === 'destroyed') return 100 // confirmed destroyed
+  if (opts.fromStateEngine && !opts.isApproximate) return 90
+  if (opts.fromStateEngine && opts.isApproximate) return 55
+  if (!opts.fromStateEngine && !opts.isApproximate) return 70
+  return 45 // supplement + approximate
+}
+
+/** Compose a turn-aware status narrative from live simulation state. */
+function computeNarrative(opts: {
+  name: string
+  status: 'operational' | 'degraded' | 'destroyed'
+  capacity_pct: number
+  as_of_date: string
+  location_label?: string
+}): string {
+  const date = opts.as_of_date ? new Date(opts.as_of_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''
+  const loc  = opts.location_label ? ` (${opts.location_label})` : ''
+  if (opts.status === 'destroyed') {
+    return `As of ${date}, ${opts.name}${loc} is confirmed destroyed and non-operational.`
+  }
+  if (opts.status === 'degraded') {
+    return `As of ${date}, ${opts.name}${loc} is degraded — operating at ${opts.capacity_pct}% capacity following combat or strike damage.`
+  }
+  return `As of ${date}, ${opts.name}${loc} is fully operational at ${opts.capacity_pct}% capacity.`
 }
 
 export async function GET(
@@ -49,65 +88,145 @@ export async function GET(
     return NextResponse.json({ error: 'turnCommitId is required' }, { status: 400 })
   }
 
-  try {
-    const state = await getStateAtTurn(params.branchId, turnCommitId)
+  const ASSET_TYPE_MAP: Record<string, string> = {
+    nuclear_facility: 'nuclear_facility', oil_gas_facility: 'oil_gas_facility',
+    military_base: 'military_base', carrier: 'carrier_group',
+    carrier_group: 'carrier_group', naval_base: 'naval_asset',
+    naval_asset: 'naval_asset', airbase: 'military_base',
+    air_base: 'military_base', headquarters: 'military_base',
+    missile_battery: 'missile_battery', air_defense: 'air_defense_battery',
+    oil_terminal: 'oil_gas_facility', refinery: 'oil_gas_facility',
+  }
 
-    const assets: MapAsset[] = state.facility_statuses
+  try {
+    const [state, supabase] = await Promise.all([
+      getStateAtTurn(params.branchId, turnCommitId),
+      createClient(),
+    ])
+
+    // Always query actor_capabilities for rich metadata
+    const { data: caps } = await supabase
+      .from('actor_capabilities')
+      .select('id, actor_id, name, short_name, asset_type, category, lat, lng, status, description, notes, strike_range_nm, threat_range_nm')
+      .eq('scenario_id', state.scenario_id)
+      .not('lat', 'is', null)
+      .not('lng', 'is', null)
+
+    type CapRow = {
+      id: string; actor_id: string; name: string; short_name: string | null
+      asset_type: string | null; category: string | null; lat: number; lng: number
+      status: string | null; description: string | null; notes: string | null
+      strike_range_nm: number | null; threat_range_nm: number | null
+    }
+    const capRows = (caps ?? []) as CapRow[]
+
+    // Build a name-normalised lookup from actor_capabilities for augmentation
+    const normalise = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '')
+    const capByNormName = new Map<string, CapRow>()
+    for (const c of capRows) {
+      capByNormName.set(normalise(c.name), c)
+      if (c.short_name) capByNormName.set(normalise(c.short_name), c)
+    }
+
+    const assets: MapAsset[] = []
+
+    // Primary path: facility_statuses (has live status/capacity from state engine)
+    const facilityAssets = state.facility_statuses
       .filter(f => f.lat !== undefined && f.lng !== undefined)
-      .map(f => ({
+    for (const f of facilityAssets) {
+      const cap         = capByNormName.get(normalise(f.name))
+      const rawType     = cap?.asset_type ?? cap?.category ?? f.type
+      const isNaval     = rawType === 'carrier' || rawType === 'carrier_group' || rawType === 'naval_base' || rawType === 'naval_asset'
+      const isApprox    = isNaval || f.type === 'carrier_group' || f.type === 'troop_deployment'
+      const locLabel    = f.location_label ?? ''
+      assets.push({
         id:                      `${f.actor_id}-${f.name.toLowerCase().replace(/\s+/g, '-')}`,
         actor_id:                f.actor_id,
-        asset_type:              facilityTypeToMapAssetType(f.type),
-        label:                   f.name,
+        asset_type:              (ASSET_TYPE_MAP[rawType] ?? facilityTypeToMapAssetType(f.type)) as MapAssetType,
+        category:                cap?.category ?? f.type,
+        label:                   cap?.short_name ?? f.name,
         lat:                     f.lat!,
         lng:                     f.lng!,
         status:                  f.status,
         capacity_pct:            f.capacity_pct,
         actor_color:             ACTOR_COLORS[f.actor_id] ?? '#888888',
-        tooltip:                 `${f.name} — ${f.status} (${f.capacity_pct}% capacity). ${f.location_label}`,
-        is_approximate_location: f.type === 'carrier_group' || f.type === 'troop_deployment',
-      }))
+        tooltip:                 `${f.name} — ${f.status} (${f.capacity_pct}% capacity)${locLabel ? '. ' + locLabel : ''}`,
+        description:             cap?.description ?? undefined,
+        notes:                   cap?.notes ?? undefined,
+        strike_range_nm:         cap?.strike_range_nm ?? undefined,
+        threat_range_nm:         cap?.threat_range_nm ?? undefined,
+        is_approximate_location: isApprox,
+        visibility_confidence:   computeConfidence({ fromStateEngine: true, isApproximate: isApprox, status: f.status }),
+        status_narrative:        computeNarrative({ name: f.name, status: f.status, capacity_pct: f.capacity_pct, as_of_date: state.as_of_date, location_label: locLabel }),
+      })
+    }
 
-    // Fallback: if facility_statuses had no coordinates, query actor_capabilities directly
+    // Merge: include actor_capabilities rows not already covered by facility_statuses.
+    // This ensures naval/capability assets absent from the state engine are still rendered.
+    const matchedNormNames = new Set(assets.map(a => normalise(a.label)))
     if (assets.length === 0) {
-      const supabase = await createClient()
-      const { data: caps } = await supabase
-        .from('actor_capabilities')
-        .select('id, actor_id, name, asset_type, category, lat, lng, status, description')
-        .eq('scenario_id', state.scenario_id)
-        .not('lat', 'is', null)
-        .not('lng', 'is', null)
-
-      if (caps) {
-        for (const cap of caps as Array<{
-          id: string; actor_id: string; name: string; asset_type: string | null
-          category: string | null; lat: number; lng: number; status: string | null
-          description: string | null
-        }>) {
-          const typeMap: Record<string, string> = {
-            nuclear_facility: 'nuclear_facility', oil_gas_facility: 'oil_gas_facility',
-            military_base: 'military_base', carrier: 'carrier_group',
-            carrier_group: 'carrier_group', naval_base: 'naval_asset',
-            airbase: 'military_base', headquarters: 'military_base',
-            missile_battery: 'missile_battery',
-          }
-          const rawType = cap.asset_type ?? cap.category ?? 'military_base'
-          assets.push({
-            id: cap.id,
-            actor_id: cap.actor_id,
-            asset_type: (typeMap[rawType] ?? 'military_base') as MapAssetType,
-            label: cap.name,
-            lat: cap.lat,
-            lng: cap.lng,
-            status: cap.status === 'destroyed' ? 'destroyed' : cap.status === 'degraded' ? 'degraded' : 'operational',
-            capacity_pct: 100,
-            actor_color: ACTOR_COLORS[cap.actor_id] ?? '#888888',
-            tooltip: cap.description ?? cap.name,
-            is_approximate_location: rawType === 'carrier' || rawType === 'carrier_group',
-          })
-        }
+      // Pure fallback: state engine had no geocoords at all — use caps as primary source
+      for (const cap of capRows) {
+        const rawType   = cap.asset_type ?? cap.category ?? 'military_base'
+        const mapType   = (ASSET_TYPE_MAP[rawType] ?? 'military_base') as MapAssetType
+        const isNaval   = rawType === 'carrier' || rawType === 'carrier_group' || rawType === 'naval_base' || rawType === 'naval_asset'
+        const capStatus = cap.status === 'destroyed' ? 'destroyed' : cap.status === 'degraded' ? 'degraded' : 'operational'
+        assets.push({
+          id:                      cap.id,
+          actor_id:                cap.actor_id,
+          asset_type:              mapType,
+          category:                cap.category ?? rawType,
+          label:                   cap.short_name ?? cap.name,
+          lat:                     cap.lat,
+          lng:                     cap.lng,
+          status:                  capStatus,
+          capacity_pct:            100,
+          actor_color:             ACTOR_COLORS[cap.actor_id] ?? '#888888',
+          tooltip:                 cap.description ?? cap.name,
+          description:             cap.description ?? undefined,
+          notes:                   cap.notes ?? undefined,
+          strike_range_nm:         cap.strike_range_nm ?? undefined,
+          threat_range_nm:         cap.threat_range_nm ?? undefined,
+          is_approximate_location: isNaval,
+          visibility_confidence:   computeConfidence({ fromStateEngine: false, isApproximate: isNaval, status: capStatus }),
+          status_narrative:        computeNarrative({ name: cap.name, status: capStatus, capacity_pct: 100, as_of_date: state.as_of_date }),
+        })
+      }
+    } else {
+      // Supplement: add capabilities not already represented in facility_statuses
+      for (const cap of capRows) {
+        const capLabel  = cap.short_name ?? cap.name
+        if (matchedNormNames.has(normalise(capLabel)) || matchedNormNames.has(normalise(cap.name))) continue
+        const rawType   = cap.asset_type ?? cap.category ?? 'military_base'
+        const mapType   = (ASSET_TYPE_MAP[rawType] ?? 'military_base') as MapAssetType
+        const isNaval   = rawType === 'carrier' || rawType === 'carrier_group' || rawType === 'naval_base' || rawType === 'naval_asset'
+        const capStatus = cap.status === 'destroyed' ? 'destroyed' : cap.status === 'degraded' ? 'degraded' : 'operational'
+        assets.push({
+          id:                      cap.id,
+          actor_id:                cap.actor_id,
+          asset_type:              mapType,
+          category:                cap.category ?? rawType,
+          label:                   capLabel,
+          lat:                     cap.lat,
+          lng:                     cap.lng,
+          status:                  capStatus,
+          capacity_pct:            100,
+          actor_color:             ACTOR_COLORS[cap.actor_id] ?? '#888888',
+          tooltip:                 cap.description ?? cap.name,
+          description:             cap.description ?? undefined,
+          notes:                   cap.notes ?? undefined,
+          strike_range_nm:         cap.strike_range_nm ?? undefined,
+          threat_range_nm:         cap.threat_range_nm ?? undefined,
+          is_approximate_location: isNaval,
+          visibility_confidence:   computeConfidence({ fromStateEngine: false, isApproximate: isNaval, status: capStatus }),
+          status_narrative:        computeNarrative({ name: cap.name, status: capStatus, capacity_pct: 100, as_of_date: state.as_of_date }),
+        })
       }
     }
+
+    // Bab-el-Mandeb throughput: derive from global economic stress as a proxy for
+    // Houthi/regional activity. High stress → reduced throughput.
+    const babThroughput = Math.round(Math.max(5, 100 - state.global_state.global_economic_stress * 0.8))
 
     const shipping_lanes: ShippingLane[] = [
       {
@@ -115,6 +234,12 @@ export async function GET(
         label:          'Strait of Hormuz',
         throughput_pct: state.global_state.hormuz_throughput_pct,
         coordinates:    HORMUZ_COORDINATES,
+      },
+      {
+        id:             'bab_el_mandeb',
+        label:          'Bab-el-Mandeb',
+        throughput_pct: babThroughput,
+        coordinates:    BAB_EL_MANDEB_COORDINATES,
       },
     ]
 

@@ -1091,6 +1091,7 @@ export interface MapAsset {
   id: string
   actor_id: string
   asset_type: MapAssetType
+  category?: string
   label: string
   lat: number
   lng: number
@@ -1098,7 +1099,15 @@ export interface MapAsset {
   capacity_pct: number
   actor_color: string
   tooltip: string
+  description?: string
+  notes?: string
+  strike_range_nm?: number
+  threat_range_nm?: number
   is_approximate_location: boolean
+  /** Intel confidence 0–100: how certain this asset's status/position is for the observing actor */
+  visibility_confidence: number
+  /** Turn-aware narrative derived from live state (status, capacity, date context) */
+  status_narrative: string
 }
 
 export interface ShippingLane {
