@@ -19,7 +19,7 @@ import type { ActorDetail } from '@/lib/types/panels'
 import type { ChronicleEntry } from '@/lib/types/game-init'
 import { createClient } from '@/lib/supabase/client'
 import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel, getEscalationRungName } from '@/lib/game/actor-meta'
-import { parseIntelProfile, inferIntelConfidence, extractKnownUnknowns } from '@/lib/game/fow-panel'
+import { parseIntelProfile, inferIntelConfidence, extractKnownUnknowns, applyFogOfWarToActorDetail } from '@/lib/game/fow-panel'
 import { parseDbEscalationLadder, buildRungSummaries } from '@/lib/game/escalation-from-db'
 
 // ─── Live actor types ─────────────────────────────────────────────────────────
@@ -338,7 +338,12 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
   function openDossier(actorId: string) {
     const detail = liveActorDetails[actorId] ?? null
     if (detail) {
-      setSelectedActor(detail)
+      // Apply FOW before opening dossier — redacts adversary objectives,
+      // doctrine, and win-condition fields and applies intel confidence derived
+      // from the viewer's intelligence profile. In the scenario hub there is no
+      // controlled actor yet, so we default the viewer to 'us'.
+      const filtered = applyFogOfWarToActorDetail(detail)
+      setSelectedActor(filtered)
       setPanelOpen(true)
     }
   }

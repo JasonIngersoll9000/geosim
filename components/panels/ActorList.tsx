@@ -1,10 +1,12 @@
 'use client'
 
 import type { ActorSummary } from '@/lib/types/panels'
+import { getRelationshipStance } from '@/lib/game/actor-meta'
 
 interface Props {
   actors: ActorSummary[]
   selectedActorId: string | null
+  viewerActorId: string | null
   onSelect: (actorId: string) => void
 }
 
@@ -16,12 +18,18 @@ const STANCE_BADGE: Record<string, { label: string; color: string }> = {
   neutral:    { label: 'NEUTRAL',   color: '#8a8880' },
 }
 
-export function ActorList({ actors, selectedActorId, onSelect }: Props) {
+export function ActorList({ actors, selectedActorId, viewerActorId, onSelect }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       {actors.map(actor => {
         const isSelected = actor.id === selectedActorId
-        const stance = STANCE_BADGE[actor.relationshipStance] ?? STANCE_BADGE.neutral
+        // Recompute stance client-side if we know the viewer — prevents stale
+        // server-default ('us') stance from showing when a non-US actor is controlled.
+        const liveStance = viewerActorId
+          ? getRelationshipStance(actor.id, viewerActorId)
+          : actor.relationshipStance
+        const stance = STANCE_BADGE[liveStance] ?? STANCE_BADGE.neutral
+        const isAdv = liveStance === 'adversary'
 
         return (
           <button
@@ -78,23 +86,17 @@ export function ActorList({ actors, selectedActorId, onSelect }: Props) {
               </span>
               {actor.primaryObjective && (
                 <span style={{
-                  fontFamily: actor.relationshipStance === 'adversary'
-                    ? "'IBM Plex Mono', monospace"
-                    : "'Inter', sans-serif",
+                  fontFamily: isAdv ? "'IBM Plex Mono', monospace" : "'Inter', sans-serif",
                   fontSize: 10,
-                  color: actor.relationshipStance === 'adversary'
-                    ? '#8a8880'
-                    : 'rgba(229,226,225,0.45)',
-                  letterSpacing: actor.relationshipStance === 'adversary' ? '0.04em' : undefined,
+                  color: isAdv ? '#8a8880' : 'rgba(229,226,225,0.45)',
+                  letterSpacing: isAdv ? '0.04em' : undefined,
                   lineHeight: 1.35,
                   overflow: 'hidden',
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical' as const,
                 }}>
-                  {actor.relationshipStance === 'adversary'
-                    ? '[OBJ. CLASSIFIED]'
-                    : actor.primaryObjective}
+                  {isAdv ? '[OBJ. CLASSIFIED]' : actor.primaryObjective}
                 </span>
               )}
             </div>

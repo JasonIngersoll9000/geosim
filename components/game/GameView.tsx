@@ -55,21 +55,35 @@ function ActorsPanel({
   actors,
   actorMetrics,
   selectedActorId,
+  viewerActorId,
   onSelect,
 }: {
   actors: ActorSummary[]
   actorMetrics: Record<string, { military: number; economic: number; political: number }>
   selectedActorId: string | null
+  viewerActorId: string | null
   onSelect: (id: string) => void
 }) {
   return (
     <div className="flex flex-col">
       <div className="flex flex-col divide-y divide-border-subtle">
         {actors.map((actor) => {
-          const metrics = actorMetrics[actor.id]
+          const rawMetrics = actorMetrics[actor.id]
           const isSelected = actor.id === selectedActorId
-          const stance = STANCE_LABEL[actor.relationshipStance] ?? STANCE_LABEL.neutral
+          // Recompute stance client-side if we know who the controlled actor is
+          const liveStance = viewerActorId
+            ? getRelationshipStance(actor.id, viewerActorId)
+            : actor.relationshipStance
+          const stance = STANCE_LABEL[liveStance] ?? STANCE_LABEL.neutral
+          const isAdv = liveStance === 'adversary'
           const color = actor.actorColor
+          // Apply estimation noise to adversary metrics — ground-truth values should
+          // not be displayed for actors the viewer has limited intel on.
+          const metrics = (rawMetrics && isAdv) ? {
+            military:  Math.round(Math.min(100, Math.max(0, rawMetrics.military  + (Math.random() * 14 - 7)))),
+            economic:  Math.round(Math.min(100, Math.max(0, rawMetrics.economic  + (Math.random() * 10 - 5)))),
+            political: Math.round(Math.min(100, Math.max(0, rawMetrics.political + (Math.random() * 12 - 6)))),
+          } : rawMetrics
 
           return (
             <button
@@ -115,19 +129,17 @@ function ActorsPanel({
                 </span>
                 {actor.primaryObjective && (
                   <span style={{
-                    fontFamily: actor.relationshipStance === 'adversary'
-                      ? "'IBM Plex Mono', monospace"
-                      : "'Inter', sans-serif",
+                    fontFamily: isAdv ? "'IBM Plex Mono', monospace" : "'Inter', sans-serif",
                     fontSize: 9,
-                    color: actor.relationshipStance === 'adversary' ? '#6a6860' : 'rgba(229,226,225,0.4)',
-                    letterSpacing: actor.relationshipStance === 'adversary' ? '0.04em' : undefined,
+                    color: isAdv ? '#6a6860' : 'rgba(229,226,225,0.4)',
+                    letterSpacing: isAdv ? '0.04em' : undefined,
                     lineHeight: 1.35,
                     overflow: 'hidden',
                     display: '-webkit-box' as const,
                     WebkitLineClamp: 1,
                     WebkitBoxOrient: 'vertical' as const,
                   }}>
-                    {actor.relationshipStance === 'adversary' ? '[OBJ. CLASSIFIED]' : actor.primaryObjective}
+                    {isAdv ? '[OBJ. CLASSIFIED]' : actor.primaryObjective}
                   </span>
                 )}
               </div>
@@ -143,7 +155,9 @@ function ActorsPanel({
                     <div key={label} className="flex items-center gap-2">
                       <span className="font-mono text-2xs text-text-tertiary w-6 shrink-0">{label}</span>
                       <ProgressBar value={value} />
-                      <span className="font-mono text-2xs text-text-tertiary w-6 text-right">{value}</span>
+                      <span className="font-mono text-2xs text-text-tertiary w-6 text-right">
+                        {isAdv ? `~${value}` : value}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -199,6 +213,11 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     text: `BRANCH: ${initialData.branch.name} // TURN ${String(initialData.branch.turnNumber).padStart(2, '0')} // PHASE: ${initialData.branch.isTrunk ? 'observer' : 'planning'}`,
     type: 'info',
   }])
+
+  // Viewer identity — derived from controlledActors so both the actor list and
+  // dossier slide-over use the same perspective. Null before the user chooses a
+  // controlled actor (observer mode); list uses the server-rendered stance in that case.
+  const componentViewerActorId: string | null = controlledActors?.[0] ?? null
 
   // Ground truth mode
   const isGtMode = initialData.branch.isTrunk
@@ -464,6 +483,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
                 actors={initialData.actors}
                 actorMetrics={actorMetrics}
                 selectedActorId={state.selectedActorId}
+                viewerActorId={componentViewerActorId}
                 onSelect={(id) => dispatch({ type: 'SELECT_ACTOR', payload: id })}
               />
             )}
