@@ -1,121 +1,67 @@
-// @vitest-environment node
-import { describe, it, expect } from 'vitest'
-import { buildScenarioInsert, buildActorInsert, buildTurnCommitInsert } from '../../scripts/seed-iran'
-import type { ActorProfile, EnrichedEvent } from '../../scripts/pipeline/types'
+import { describe, it, expect, vi } from 'vitest'
 
-function makeActorProfile(): ActorProfile {
-  return {
-    id: 'iran',
-    name: 'Islamic Republic of Iran',
-    short_name: 'Iran',
-    biographical_summary: 'Iran biographical summary paragraph.',
-    leadership_profile: 'Iran leadership profile paragraph.',
-    win_condition: 'Iran win condition paragraph.',
-    strategic_doctrine: 'Iran doctrine paragraph.',
-    historical_precedents: 'Iran precedents paragraph.',
-    initial_scores: { militaryStrength: 60, politicalStability: 40, economicHealth: 30, publicSupport: 55, internationalStanding: 35, escalationRung: 8, escalationLevel: 2, escalationLevelName: 'Conventional War' },
-    intelligence_profile: { signalCapability: 50, humanCapability: 65, cyberCapability: 55, blindSpots: [], intelSharingPartners: [] },
-  }
-}
-
-function makeEnrichedEvent(overrides: Partial<EnrichedEvent> = {}): EnrichedEvent {
-  return {
-    id: 'evt_20260228_op_epic_fury',
-    timestamp: '2026-02-28',
-    timestamp_confidence: 'exact',
-    title: 'Trump Authorizes Operation Epic Fury',
-    description: 'A description paragraph.',
-    actors_involved: ['united_states'],
-    dimension: 'military',
-    is_decision: true,
-    deciding_actor: 'united_states',
-    escalation_direction: 'up',
-    source_excerpt: 'Source text.',
-    full_briefing: {
-      situation: 'Situation paragraph.',
-      actor_perspectives: { united_states: 'US perspective.', iran: 'Iran perspective.' },
-      context: 'Context paragraph.',
-    },
-    chronicle: {
-      headline: 'US Launches Strikes on Iran',
-      date_label: 'Day 1 — February 28, 2026',
-      entry: 'Chronicle entry four paragraphs.',
-    },
-    context_summary: 'Summary paragraph.',
-    decision_analysis: {
-      is_decision_point: true,
-      deciding_actor_id: 'united_states',
-      decision_summary: 'Trump authorized Operation Epic Fury.',
-      alternatives: [],
-    },
-    escalation: { global_ceiling: 12, direction: 'up', by_actor: {}, perceived: {}, dyads: {} },
-    ...overrides,
-  }
-}
-
-describe('buildScenarioInsert', () => {
-  it('sets background_context_enriched when provided', () => {
-    const insert = buildScenarioInsert('Enriched background paragraph.')
-    expect(insert.background_context_enriched).toBe('Enriched background paragraph.')
-    expect(insert.category).toBe('geopolitical_conflict')
-    expect(insert.visibility).toBe('public')
-  })
+// Use vi.hoisted so variables are available when vi.mock factories run
+const { mockInsert, mockSingle, mockSelect, mockEq, mockUpdate, mockFrom } = vi.hoisted(() => {
+  const mockSingle = vi.fn().mockResolvedValue({ data: { id: 'mock-id' }, error: null })
+  const mockChain: Record<string, unknown> = {}
+  const mockInsert = vi.fn().mockImplementation(() => mockChain)
+  const mockSelect = vi.fn().mockImplementation(() => mockChain)
+  const mockEq = vi.fn().mockImplementation(() => mockChain)
+  const mockUpdate = vi.fn().mockImplementation(() => mockChain)
+  Object.assign(mockChain, { insert: mockInsert, update: mockUpdate, select: mockSelect, eq: mockEq, single: mockSingle })
+  const mockFrom = vi.fn().mockReturnValue(mockChain)
+  return { mockInsert, mockSingle, mockSelect, mockEq, mockUpdate, mockFrom }
 })
 
-describe('buildActorInsert', () => {
-  it('maps ActorProfile fields to ScenarioActorInsert shape', () => {
-    const profile = makeActorProfile()
-    const insert = buildActorInsert(profile, 'scenario-uuid-123')
-    expect(insert.id).toBe('iran')
-    expect(insert.scenario_id).toBe('scenario-uuid-123')
-    expect(insert.biographical_summary).toBe(profile.biographical_summary)
-    expect(insert.initial_scores).toEqual(profile.initial_scores)
-  })
-})
+vi.mock('@/lib/supabase/service', () => ({
+  createServiceClient: vi.fn(() => ({ from: mockFrom })),
+}))
 
-describe('buildTurnCommitInsert', () => {
-  it('maps EnrichedEvent fields to TurnCommitInsert shape', () => {
-    const event = makeEnrichedEvent()
-    const insert = buildTurnCommitInsert(event, 'branch-uuid', null, 1, 5, null)
-    expect(insert.simulated_date).toBe('2026-02-28')
-    expect(insert.full_briefing).toBe(JSON.stringify(event.full_briefing))
-    expect(insert.chronicle_headline).toBe('US Launches Strikes on Iran')
-    expect(insert.chronicle_entry).toBe(event.chronicle.entry)
-    expect(insert.is_decision_point).toBe(true)
-    expect(insert.deciding_actor_id).toBe('united_states')
-    expect(insert.escalation_rung_before).toBe(5)
-    expect(insert.escalation_rung_after).toBe(12)
-    expect(insert.escalation_direction).toBe('up')
-    expect(insert.is_ground_truth).toBe(true)
-    expect(insert.state_effects).toBeNull()
-    expect(insert.is_major_decision_node).toBe(false)
-  })
+vi.mock('@/lib/ai/anthropic', () => ({
+  callClaude: vi.fn().mockResolvedValue({ escalationLadders: [], constraintCascades: [] }),
+}))
 
-  it('sets parent_commit_id correctly', () => {
-    const event = makeEnrichedEvent()
-    const insert = buildTurnCommitInsert(event, 'branch-uuid', 'parent-commit-id', 5, 0, null)
-    expect(insert.parent_commit_id).toBe('parent-commit-id')
-    expect(insert.turn_number).toBe(5)
-  })
+import { IRAN_EVENTS } from '@/lib/scenarios/iran/events'
+import { seedIranScenario } from '@/scripts/seed-iran'
 
-  it('populates decision node fields when effects have decision nodes', () => {
-    const event = makeEnrichedEvent()
-    const stateEffects = {
-      event_id: 'evt_001',
-      timestamp: '2026-03-01T00:00:00Z',
-      is_decision_revised: false,
-      actor_deltas: {},
-      asset_changes: [],
-      global_updates: {},
-      depletion_rate_changes: [],
-      decision_nodes: [
-        { is_major_decision_node: true, label: 'Escalation Decision', significance: 'significant' as const }
-      ],
-      confidence: 'high' as const
+describe('seedIranScenario (dry-run)', () => {
+  it('creates one turn_commit per event, with is_ground_truth: true, in chronological order', async () => {
+    mockInsert.mockClear()
+
+    await seedIranScenario({ dryRun: true })
+
+    // 1. One insert per event
+    expect(mockInsert.mock.calls.length).toBe(IRAN_EVENTS.length)
+
+    // 2. All have is_ground_truth: true
+    for (const [payload] of mockInsert.mock.calls as [{ is_ground_truth: boolean }][]) {
+      expect(payload.is_ground_truth).toBe(true)
     }
-    const result = buildTurnCommitInsert(event, 'branch-uuid', null, 5, 0, stateEffects)
-    expect(result.is_major_decision_node).toBe(true)
-    expect(result.decision_node_label).toBe('Escalation Decision')
-    expect(result.decision_node_significance).toBe('significant')
+
+    // 3. Chronological order
+    const dates = (mockInsert.mock.calls as [{ simulated_date: string }][]).map(([p]) => p.simulated_date)
+    expect(dates).toEqual([...dates].sort())
+  })
+
+  it('--from=<eventId> seeds only events from that id onward', async () => {
+    mockInsert.mockClear()
+
+    // Use the 3rd event as the resume point
+    const fromEventId = IRAN_EVENTS[2].id
+    await seedIranScenario({ fromEventId, dryRun: true })
+
+    // Should only insert events from index 2 onward
+    const expectedCount = IRAN_EVENTS.length - 2
+    expect(mockInsert.mock.calls.length).toBe(expectedCount)
+
+    // First inserted event should be the resume point
+    const firstDate = (mockInsert.mock.calls[0] as [{ simulated_date: string }])[0].simulated_date
+    expect(firstDate).toBe(IRAN_EVENTS[2].timestamp)
+  })
+
+  it('throws when fromEventId is not found in IRAN_EVENTS', async () => {
+    await expect(
+      seedIranScenario({ fromEventId: 'evt_nonexistent', dryRun: true })
+    ).rejects.toThrow("fromEventId 'evt_nonexistent' not found in IRAN_EVENTS")
   })
 })
