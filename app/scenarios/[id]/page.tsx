@@ -18,6 +18,7 @@ import type { BranchNode, ActorOption } from '@/components/scenario/BranchTree'
 import type { ActorDetail } from '@/lib/types/panels'
 import type { ChronicleEntry } from '@/lib/types/game-init'
 import { createClient } from '@/lib/supabase/client'
+import { getActorColor, getRelationshipStance, isAdversaryActor, getEscalationRungName, getEscalationRungs } from '@/lib/game/actor-meta'
 
 // ─── Live actor types ─────────────────────────────────────────────────────────
 
@@ -222,20 +223,37 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
             const rung = typeof scores.escalation_rung === 'number' ? scores.escalation_rung : 1
             const status: 'stable' | 'escalating' | 'critical' = rung >= 6 ? 'critical' : rung >= 3 ? 'escalating' : 'stable'
 
+            const actorColor = getActorColor(a.id)
+            const relationshipStance = getRelationshipStance(a.id)
+            const isAdversary = isAdversaryActor(a.id)
+            const escalationRungName = getEscalationRungName(a.id, rung)
+            const escalationRungs = getEscalationRungs(a.id)
+
+            const rawObjectives = a.win_condition
+              ? a.win_condition.split(/\n|•|–|-/).map((s: string) => s.trim()).filter((s: string) => s.length > 10)
+              : []
+            const primaryObjective = rawObjectives[0] ?? ''
+
             actorDetails[a.id] = {
               id: a.id,
               name: a.name,
+              shortName: a.short_name ?? a.name.slice(0, 6).toUpperCase(),
+              actorColor,
               escalationRung: rung,
+              escalationRungName,
+              escalationRungs,
               briefing: a.biographical_summary,
               militaryStrength: milScore,
               economicStrength: ecoScore,
               politicalStability: polScore,
-              objectives: a.win_condition
-                ? a.win_condition.split(/\n|•|–|-/).map((s: string) => s.trim()).filter((s: string) => s.length > 10)
-                : [],
+              objectives: rawObjectives,
+              primaryObjective,
+              winCondition: a.win_condition,
               leadershipProfile: a.leadership_profile,
               strategicDoctrine: a.strategic_doctrine,
               historicalPrecedents: a.historical_precedents,
+              isAdversary,
+              relationshipStance,
             }
 
             return {
