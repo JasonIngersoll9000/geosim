@@ -238,7 +238,7 @@ function ForkSelector({ scenarioId, availableTurns }: { scenarioId: string; avai
       const res = await fetch('/api/branches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenarioId, name: `Branch from T${selectedTurn}` }),
+        body: JSON.stringify({ scenarioId, name: `Branch from T${selectedTurn}`, forkTurn: selectedTurn }),
       })
       if (res.ok) {
         const json = await res.json() as { id?: string }

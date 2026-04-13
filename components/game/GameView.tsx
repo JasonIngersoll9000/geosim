@@ -212,7 +212,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     if (!primaryAction) return
     dispatch({ type: 'SET_TURN_PHASE', payload: 'resolution' })
     setActiveTab('decisions') // stay on decisions tab header (terminal covers it)
-    await submitTurn({ primaryAction, concurrentActions })
+    await submitTurn({ primaryAction, concurrentActions, controlledActors: controlledActors ?? [] })
   }
 
   function handleReturnToPlanning() {

@@ -80,7 +80,7 @@ export default function Home() {
         const branchApiRes = await fetch(`/api/branches?scenarioId=${encodeURIComponent(sc.id)}`)
         if (!branchApiRes.ok) return
         const branchJson = await branchApiRes.json() as {
-          branches: Array<{ id: string; is_trunk: boolean; turn_commits: Array<{ turn_number: number; simulated_date: string; chronicle_headline?: string; chronicle_entry?: string; narrative_entry?: string }> }>;
+          branches: Array<{ id: string; is_trunk: boolean; turn_commits: Array<{ turn_number: number; simulated_date: string; chronicle_headline: string | null; chronicle_entry?: string; narrative_entry?: string }> }>;
           actors: Array<{ id: string; name: string; short_name: string | null }>;
         }
 
@@ -95,8 +95,8 @@ export default function Home() {
           name: sc.name,
           description: sc.description,
           latestTurnNumber: latestCommit?.turn_number ?? null,
-          latestHeadline: (latestCommit as Record<string, unknown> | null)?.chronicle_headline as string ?? null,
-          latestNarrative: ((latestCommit as Record<string, unknown> | null)?.chronicle_entry ?? (latestCommit as Record<string, unknown> | null)?.narrative_entry) as string ?? null,
+          latestHeadline: latestCommit?.chronicle_headline ?? null,
+          latestNarrative: (latestCommit?.chronicle_entry ?? latestCommit?.narrative_entry) ?? null,
           latestDate: latestCommit?.simulated_date ?? null,
           actorLabels: actors.slice(0, 5).map(a => ({
             label: (a.short_name ?? a.name.slice(0, 3)).toUpperCase(),
@@ -442,10 +442,27 @@ export default function Home() {
               </div>
 
               <div className="flex flex-wrap gap-1.5 mb-6">
-                <Badge variant="critical">Gulf Infrastructure</Badge>
-                <Badge variant="military">Ras Tanura Hit</Badge>
-                <Badge variant="warning">Oil $142/bbl</Badge>
-                <Badge variant="escalation">Rung 7 — Limited War</Badge>
+                {featured?.latestTurnNumber != null ? (
+                  <>
+                    <Badge variant="critical">
+                      {`TURN ${String(featured.latestTurnNumber).padStart(2, '0')}`}
+                    </Badge>
+                    {featured.latestDate && (
+                      <Badge variant="military">
+                        {new Date(featured.latestDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase()}
+                      </Badge>
+                    )}
+                    {featured.actorLabels.length > 0 && (
+                      <Badge variant="warning">{`${featured.actorLabels.length} ACTORS ACTIVE`}</Badge>
+                    )}
+                    <Badge variant="escalation">SCENARIO LIVE</Badge>
+                  </>
+                ) : (
+                  <>
+                    <Badge variant="critical">SCENARIO LOADING</Badge>
+                    <Badge variant="escalation">MULTI-ACTOR</Badge>
+                  </>
+                )}
               </div>
 
               <Link href={featured ? `/scenarios/${featured.id}` : '/scenarios/iran-2026'}>

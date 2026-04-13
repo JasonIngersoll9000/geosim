@@ -21,6 +21,7 @@ interface ScenarioSummary {
   rating: number | null
   actorCount?: number
   turnNumber?: number | null
+  lastActiveDate?: string | null
   isActive?: boolean
 }
 
@@ -200,7 +201,9 @@ export default function ScenarioBrowserPage() {
           classification: 'SECRET' as const,
           status: (s.isActive ? 'LIVE' : s.branch_count > 0 ? 'ACTIVE' : 'ARCHIVED') as ScenarioDisplay['status'],
           actorCount: s.actorCount ?? 0,
-          lastActive: s.turnNumber != null ? `TURN ${s.turnNumber}` : '—',
+          lastActive: s.lastActiveDate
+            ? new Date(s.lastActiveDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()
+            : s.turnNumber != null ? `T${s.turnNumber}` : '—',
           turnNumber: s.turnNumber ?? undefined,
         }))
         setScenarios(mapped)
