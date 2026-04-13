@@ -196,7 +196,7 @@ function buildActorMetrics(
 export function GameView({ branchId, scenarioId, initialData }: Props) {
   useRealtime(branchId)
   const { state, dispatch } = useGame()
-  const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, reset: resetHook } = useSubmitTurn(scenarioId, branchId)
+  const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, resolutionSummary, reset: resetHook } = useSubmitTurn(scenarioId, branchId)
   const shouldSkip = useReducedMotion()
   const router = useRouter()
 
@@ -252,41 +252,62 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     if (!isComplete) return
     dispatch({ type: 'SET_TURN_PHASE', payload: 'complete' })
 
-    const nextTurn = turnNumber + 1
-    const actionTitles = [primaryAction, ...concurrentActions]
-      .filter(Boolean).map(a => a!.title)
+    const allSubmittedActions = primaryAction ? [primaryAction, ...concurrentActions] : [...concurrentActions]
+    const actionTitles = allSubmittedActions.map(a => a.title)
+    const actorId = controlledActors?.[0] ?? 'us'
+    const actorDetail = initialData.actorDetails[actorId]
 
-    // Build EventsTab resolution data from current turn plans and actors
-    const allActions = primaryAction ? [primaryAction, ...concurrentActions] : [...concurrentActions]
-    const events = allActions.map(slot => {
-      const actorId = controlledActors?.[0] ?? 'us'
-      const actorDetail = initialData.actorDetails[actorId]
+    // Build events list from server resolution summary if available, else from submitted plan
+    const actorActions = resolutionSummary?.actorActions ?? allSubmittedActions.map(slot => ({
+      actorId,
+      actionId: slot.id,
+      isPrimary: slot.id === primaryAction?.id,
+    }))
+
+    const events = actorActions.map(a => {
+      const decision = initialData.decisions.find(d => d.id === a.actionId) ?? initialData.decisions.find(d => d.title === a.actionId)
       return {
-        actorId,
-        actorName: actorDetail?.name ?? actorId,
-        actorColor: getActorColor(actorId),
-        actionTitle: slot.title,
-        dimension: slot.dimension,
+        actorId: a.actorId,
+        actorName: initialData.actorDetails[a.actorId]?.name ?? actorDetail?.name ?? a.actorId,
+        actorColor: getActorColor(a.actorId),
+        actionTitle: decision?.title ?? a.actionId,
+        dimension: decision?.dimension ?? 'unknown',
       }
     })
 
-    const simulatedDate = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+    const resolvedTurnNumber = resolutionSummary?.turnNumber ?? turnNumber + 1
+    const rawSimDate = resolutionSummary?.simulatedDate ?? null
+    const simulatedDate = rawSimDate
+      ? (() => {
+          const d = new Date(rawSimDate)
+          return isNaN(d.getTime()) ? rawSimDate : d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+        })()
+      : new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+
     const headline = primaryAction
-      ? `Turn ${nextTurn} — ${primaryAction.title}`
-      : `Turn ${nextTurn} Complete`
+      ? `Turn ${resolvedTurnNumber} — ${primaryAction.title}`
+      : `Turn ${resolvedTurnNumber} Complete`
+
+    const escalationChanges = (resolutionSummary?.escalationChanges ?? []).map(ec => ({
+      actorId: ec.actorId,
+      actorName: initialData.actorDetails[ec.actorId]?.name ?? ec.actorId,
+      previousRung: ec.previousRung,
+      newRung: ec.newRung,
+      rationale: ec.rationale,
+    }))
 
     setLastTurnResolution({
-      turnNumber: nextTurn,
+      turnNumber: resolvedTurnNumber,
       simulatedDate,
       chronicleHeadline: headline,
       narrativeSummary: `Resolution complete. Actions executed: ${actionTitles.join(', ')}.`,
-      judgeScore: 86,
+      judgeScore: resolutionSummary?.judgeScore ?? 0,
       events,
-      escalationChanges: [],
+      escalationChanges,
     })
 
     const newEntry: ChronicleEntry = {
-      turnNumber: nextTurn,
+      turnNumber: resolvedTurnNumber,
       date: simulatedDate,
       title: headline,
       narrative: `Resolution complete. Actions executed: ${actionTitles.join(', ')}.`,
@@ -501,7 +522,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             transition={{ duration: 0.4, ease: 'easeOut' }}
           >
             {PANEL_TABS
-              .filter(({ id }) => !(isGtMode && id === 'decisions'))
+              .filter(({ id }) => !(isGtMode && id === 'decisions') && !(omniscientMode && id === 'decisions'))
               .map(({ id, label }) => (
               <button
                 key={id}
@@ -528,7 +549,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
                 onSelect={(id) => dispatch({ type: 'SELECT_ACTOR', payload: id })}
               />
             )}
-            {activeTab === 'decisions' && !isGtMode && (
+            {activeTab === 'decisions' && !isGtMode && !omniscientMode && (
               <DecisionCatalog
                 decisions={initialData.decisions}
                 onSelect={handleDecisionSelect}
@@ -544,8 +565,8 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             )}
           </div>
 
-          {/* Turn plan builder — fixed at bottom when on decisions tab (not in GT mode) */}
-          {activeTab === 'decisions' && !isGtMode && (
+          {/* Turn plan builder — fixed at bottom when on decisions tab (not in GT mode, not in omniscient) */}
+          {activeTab === 'decisions' && !isGtMode && !omniscientMode && (
             <div className="shrink-0">
               <TurnPlanBuilder
                 primaryAction={primaryAction}
@@ -623,14 +644,24 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
         const limitedIntel    = hasLimitedIntel(selectedActorDetail.id, viewerActorId)
         const intelConfidence = inferIntelConfidence(viewerIntelProfile, stance)
 
-        const fowActor = applyFogOfWarToActorDetail({
-          ...selectedActorDetail,
-          viewerActorId,
-          relationshipStance: stance,
-          isAdversary:     isAdv,
-          hasLimitedIntel: limitedIntel,
-          intelConfidence,
-        })
+        // Omniscient mode: bypass fog-of-war entirely — show all intel as confirmed
+        const fowActor = omniscientMode
+          ? applyFogOfWarToActorDetail({
+              ...selectedActorDetail,
+              viewerActorId: selectedActorDetail.id, // view as self = full intel
+              relationshipStance: 'ally' as const,
+              isAdversary:     false,
+              hasLimitedIntel: false,
+              intelConfidence: 'high' as const,
+            })
+          : applyFogOfWarToActorDetail({
+              ...selectedActorDetail,
+              viewerActorId,
+              relationshipStance: stance,
+              isAdversary:     isAdv,
+              hasLimitedIntel: limitedIntel,
+              intelConfidence,
+            })
 
         return (
           <ActorDetailPanel

@@ -122,6 +122,21 @@ export async function POST(
         sendLine(controller, `Turn ${prevTurnNumber} → Turn ${newTurnNumber} (${newSimDate})`, 'confirmed')
         sendLine(controller, 'Awaiting next planning phase.', 'info')
 
+        // Structured resolution summary — consumed by the client to populate EventsTab
+        const resolutionSummary = JSON.stringify({
+          type: 'resolution_summary',
+          turnNumber: newTurnNumber,
+          simulatedDate: newSimDate,
+          turnCommitId: newCommit.id,
+          actorActions: [
+            { actorId: body.controlledActors?.[0] ?? 'player', actionId: body.primaryAction, isPrimary: true },
+            ...body.concurrentActions.map(id => ({ actorId: body.controlledActors?.[0] ?? 'player', actionId: id, isPrimary: false })),
+          ],
+          escalationChanges: [],
+          judgeScore: null,
+        })
+        controller.enqueue(encoder.encode(`data: ${resolutionSummary}\n\n`))
+
       } catch (err) {
         sendLine(controller, `ERROR: ${err instanceof Error ? err.message : 'Unknown error'}`, 'critical')
       } finally {
