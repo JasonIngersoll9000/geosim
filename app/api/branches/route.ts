@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     }
 
     const branchIds = (branchRes.data ?? []).map(b => b.id)
-    let commitsByBranch: Record<string, Array<{ id: string; turn_number: number; simulated_date: string; chronicle_headline: string | null }>> = {}
+    const commitsByBranch: Record<string, Array<{ id: string; turn_number: number; simulated_date: string; chronicle_headline: string | null }>> = {}
 
     if (branchIds.length > 0) {
       const { data: commits } = await supabase

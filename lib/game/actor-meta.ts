@@ -76,10 +76,6 @@ export function getRelationshipStance(targetActorId: string, viewerActorId = 'us
   return STANCE_MAP[key] ?? 'neutral'
 }
 
-// ── Adversary flag (from US perspective, used for FOW) ───────────────────────
-
-const ADVERSARY_IDS = new Set(['iran', 'russia'])
-
 /**
  * Whether `targetActorId` is an adversary from `viewerActorId`'s perspective.
  * When the viewer is adversary/rival to the target, full intelligence is available.
