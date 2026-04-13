@@ -87,4 +87,16 @@ export interface ActorDetail {
   intelligenceProfile?: Record<string, unknown>
   /** Recent chronicle entries mentioning this actor, from most recent first */
   recentHistory?: string[]
+  /**
+   * Known intelligence gaps about this actor from the viewer's perspective.
+   * Parsed from the viewer actor's intelligence_profile.blindSpots array.
+   * Mirrors knownUnknowns on IntelligencePicture in the simulation engine.
+   */
+  knownUnknowns?: string[]
+  /**
+   * Intel confidence tier for this actor from the viewer's perspective.
+   * Derived by fow-panel.ts from the viewer's intelligence capability profile
+   * and the relationship stance.
+   */
+  intelConfidence?: 'high' | 'moderate' | 'low' | 'unverified'
 }

@@ -9,7 +9,9 @@ import { getStateAtTurn } from '@/lib/game/state-engine'
 import { IRAN_DECISIONS, IRAN_DECISION_DETAILS } from '@/lib/game/iran-decisions'
 import type { GameInitialData, ChronicleEntry, GroundTruthCommit } from '@/lib/types/game-init'
 import type { ActorSummary, ActorDetail } from '@/lib/types/panels'
-import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel, getEscalationRungName, getEscalationRungs } from '@/lib/game/actor-meta'
+import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel, getEscalationRungName } from '@/lib/game/actor-meta'
+import { parseIntelProfile, inferIntelConfidence, extractKnownUnknowns } from '@/lib/game/fow-panel'
+import { parseDbEscalationLadder, buildRungSummaries } from '@/lib/game/escalation-from-db'
 
 interface Props {
   params: { id: string; branchId: string }
@@ -66,6 +68,32 @@ export default async function PlayPage({ params }: Props) {
     .from('scenario_actors')
     .select('id, name, short_name, biographical_summary, leadership_profile, win_condition, strategic_doctrine, historical_precedents, initial_scores, intelligence_profile')
     .eq('scenario_id', scenarioId)
+
+  // 3b. Fetch simulation-layer actor data (escalation_ladder JSONB) from the
+  //     actors table.  This table is populated by the research pipeline (Stage 5)
+  //     and contains the full EscalationLadder object with real rung names,
+  //     descriptions, and reversibility markers per actor.
+  const { data: simActorRows } = await supabase
+    .from('actors')
+    .select('actor_id, escalation_ladder')
+    .eq('scenario_id', scenarioId)
+
+  // Index sim-actor rows by canonical actor_id for fast lookup
+  const escalationLadderByActorId: Record<string, ReturnType<typeof parseDbEscalationLadder>> = {}
+  for (const row of simActorRows ?? []) {
+    if (row.actor_id) {
+      escalationLadderByActorId[String(row.actor_id)] = parseDbEscalationLadder(
+        row.escalation_ladder as Record<string, unknown> | null
+      )
+    }
+  }
+
+  // Parse the viewer (US) actor's intelligence profile for FOW derivation
+  const viewerActorId = 'us'
+  const viewerRow = (actorRows ?? []).find(a => a.id === viewerActorId || a.id === 'united_states')
+  const viewerIntelProfile = parseIntelProfile(
+    viewerRow?.intelligence_profile as Record<string, unknown> | null
+  )
 
   // 4. Fetch current state via state engine
   let currentState = null
@@ -143,6 +171,20 @@ export default async function PlayPage({ params }: Props) {
         return headline ?? narrative.slice(0, 240)
       })
 
+    // Derive FOW confidence and known unknowns using the panel FOW utilities,
+    // which mirror the fog-of-war engine's logic adapted to the DB data layer.
+    const stance          = getRelationshipStance(a.id, viewerActorId)
+    const intelConfidence = inferIntelConfidence(viewerIntelProfile, stance)
+    const knownUnknowns   = extractKnownUnknowns(
+      viewerRow?.intelligence_profile as Record<string, unknown> | null
+    )
+
+    // Escalation ladder: use real rung data from actors.escalation_ladder if
+    // available (populated by the research pipeline Stage 5), delegating blocked-
+    // rung computation to the escalation engine (lib/game/escalation.ts).
+    const dbLadder     = escalationLadderByActorId[a.id] ?? escalationLadderByActorId[`${a.id}_${scenarioId}`] ?? null
+    const escalationRungs = buildRungSummaries(a.id, dbLadder, rung)
+
     actorDetails[a.id] = {
       id: a.id,
       name: a.name,
@@ -150,7 +192,7 @@ export default async function PlayPage({ params }: Props) {
       actorColor: getActorColor(a.id),
       escalationRung: rung,
       escalationRungName: getEscalationRungName(a.id, rung),
-      escalationRungs: getEscalationRungs(a.id, rung),
+      escalationRungs,
       briefing: a.biographical_summary ?? 'No briefing available.',
       militaryStrength:   s ? Math.round(Number(s.military_strength))   : 50,
       economicStrength:   s ? Math.round(Number(s.economic_health))     : 50,
@@ -162,11 +204,13 @@ export default async function PlayPage({ params }: Props) {
       strategicDoctrine:    a.strategic_doctrine ?? undefined,
       historicalPrecedents: a.historical_precedents ?? undefined,
       intelligenceProfile:  a.intelligence_profile as Record<string, unknown> | undefined,
-      isAdversary:      isAdversaryActor(a.id),
-      hasLimitedIntel:  hasLimitedIntel(a.id),
-      viewerActorId:    'us',
-      relationshipStance: getRelationshipStance(a.id),
+      isAdversary:      isAdversaryActor(a.id, viewerActorId),
+      hasLimitedIntel:  hasLimitedIntel(a.id, viewerActorId),
+      viewerActorId,
+      relationshipStance: stance,
       recentHistory: recentHistory.length > 0 ? recentHistory : undefined,
+      knownUnknowns: knownUnknowns.length > 0 ? knownUnknowns : undefined,
+      intelConfidence,
     }
   }
 

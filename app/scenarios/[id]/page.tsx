@@ -18,7 +18,9 @@ import type { BranchNode, ActorOption } from '@/components/scenario/BranchTree'
 import type { ActorDetail } from '@/lib/types/panels'
 import type { ChronicleEntry } from '@/lib/types/game-init'
 import { createClient } from '@/lib/supabase/client'
-import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel, getEscalationRungName, getEscalationRungs } from '@/lib/game/actor-meta'
+import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel, getEscalationRungName } from '@/lib/game/actor-meta'
+import { parseIntelProfile, inferIntelConfidence, extractKnownUnknowns } from '@/lib/game/fow-panel'
+import { parseDbEscalationLadder, buildRungSummaries } from '@/lib/game/escalation-from-db'
 
 // ─── Live actor types ─────────────────────────────────────────────────────────
 
@@ -193,7 +195,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
         const [scenarioActorRes, scenarioRes] = await Promise.all([
           sb
             .from('scenario_actors')
-            .select('id, name, short_name, biographical_summary, win_condition, strategic_doctrine, historical_precedents, initial_scores, leadership_profile')
+            .select('id, name, short_name, biographical_summary, win_condition, strategic_doctrine, historical_precedents, initial_scores, leadership_profile, intelligence_profile')
             .eq('scenario_id', params.id),
           sb
             .from('scenarios')
@@ -212,7 +214,15 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
             id: string; name: string; short_name: string; biographical_summary: string;
             win_condition: string; strategic_doctrine: string; historical_precedents: string;
             initial_scores: Record<string, number>; leadership_profile: string;
+            intelligence_profile?: Record<string, unknown>;
           }>
+
+          // Parse viewer (US) intelligence profile for FOW derivation
+          const viewerActorId = 'us'
+          const viewerRow = actorRows.find(a => a.id === viewerActorId || a.id === 'united_states')
+          const viewerIntelProfile = parseIntelProfile(
+            viewerRow?.intelligence_profile ?? null
+          )
 
           const actorDetails: Record<string, ActorDetail> = {}
           const live: LiveActor[] = actorRows.map(a => {
@@ -224,9 +234,13 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
             const status: 'stable' | 'escalating' | 'critical' = rung >= 6 ? 'critical' : rung >= 3 ? 'escalating' : 'stable'
 
             const actorColor = getActorColor(a.id)
-            const relationshipStance = getRelationshipStance(a.id)
-            const isAdversary = isAdversaryActor(a.id)
+            const stance     = getRelationshipStance(a.id, viewerActorId)
+            const isAdversary = isAdversaryActor(a.id, viewerActorId)
             const escalationRungName = getEscalationRungName(a.id, rung)
+
+            // FOW: derive intel confidence from viewer's intel profile + stance
+            const intelConfidence = inferIntelConfidence(viewerIntelProfile, stance)
+            const knownUnknowns   = extractKnownUnknowns(viewerRow?.intelligence_profile ?? null)
 
             const rawObjectives = a.win_condition
               ? a.win_condition.split(/\n|•|–|-/).map((s: string) => s.trim()).filter((s: string) => s.length > 10)
@@ -240,7 +254,9 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
               actorColor,
               escalationRung: rung,
               escalationRungName,
-              escalationRungs: getEscalationRungs(a.id, rung),
+              // Escalation rungs: fall back to empty array in scenario hub
+              // (actors.escalation_ladder not queried here; the play page fetches it)
+              escalationRungs: buildRungSummaries(a.id, null, rung),
               briefing: a.biographical_summary,
               militaryStrength: milScore,
               economicStrength: ecoScore,
@@ -252,9 +268,11 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
               strategicDoctrine: a.strategic_doctrine,
               historicalPrecedents: a.historical_precedents,
               isAdversary,
-              hasLimitedIntel: hasLimitedIntel(a.id),
-              viewerActorId: 'us',
-              relationshipStance,
+              hasLimitedIntel: hasLimitedIntel(a.id, viewerActorId),
+              viewerActorId,
+              relationshipStance: stance,
+              knownUnknowns: knownUnknowns.length > 0 ? knownUnknowns : undefined,
+              intelConfidence,
             }
 
             return {

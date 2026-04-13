@@ -235,9 +235,47 @@ function EscalationTab({ actor }: { actor: ActorDetail }) {
   )
 }
 
+const CONFIDENCE_LABEL: Record<string, { text: string; color: string }> = {
+  high:       { text: 'HIGH CONFIDENCE',       color: '#5ebd8e' },
+  moderate:   { text: 'MODERATE CONFIDENCE',   color: '#f39c12' },
+  low:        { text: 'LOW CONFIDENCE',         color: '#e67e22' },
+  unverified: { text: 'UNVERIFIED / ESTIMATED', color: '#e74c3c' },
+}
+
 function IntelligenceTab({ actor }: { actor: ActorDetail }) {
+  const conf = CONFIDENCE_LABEL[actor.intelConfidence ?? 'moderate']
+  const hasKnownUnknowns = actor.knownUnknowns && actor.knownUnknowns.length > 0
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Intel confidence banner — derived from viewer's intel profile + stance */}
+      <section>
+        <SectionLabel>Intelligence Assessment Quality</SectionLabel>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '6px 10px', background: '#1a1a1a',
+          borderLeft: `3px solid ${conf.color}`,
+        }}>
+          <span style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: 9, letterSpacing: '0.1em', color: conf.color, fontWeight: 700,
+          }}>
+            {conf.text}
+          </span>
+        </div>
+      </section>
+
+      {/* Relationship stance */}
+      <section>
+        <SectionLabel>Relationship to Player-Controlled Faction</SectionLabel>
+        <RelationshipStanceBadge stance={actor.relationshipStance} />
+        {actor.hasLimitedIntel && !actor.isAdversary && (
+          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: '#f39c12', marginTop: 6, letterSpacing: '0.06em' }}>
+            ⚠ LIMITED INTELLIGENCE ACCESS — DATA MAY BE INCOMPLETE
+          </p>
+        )}
+      </section>
+
       {/* Leadership profile */}
       {actor.leadershipProfile && (
         <section>
@@ -262,19 +300,32 @@ function IntelligenceTab({ actor }: { actor: ActorDetail }) {
         </section>
       )}
 
-      {/* Relationship stance */}
-      <section>
-        <SectionLabel>Relationship to Player-Controlled Faction</SectionLabel>
-        <RelationshipStanceBadge stance={actor.relationshipStance} />
-        {actor.hasLimitedIntel && !actor.isAdversary && (
-          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: '#f39c12', marginTop: 6, letterSpacing: '0.06em' }}>
-            ⚠ LIMITED INTELLIGENCE ACCESS — DATA MAY BE INCOMPLETE
-          </p>
-        )}
-      </section>
+      {/* Known unknowns — intelligence gaps from viewer's intel profile.
+          Mirrors knownUnknowns on IntelligencePicture in the simulation engine. */}
+      {hasKnownUnknowns && (
+        <section>
+          <SectionLabel>Known Intelligence Gaps</SectionLabel>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {actor.knownUnknowns!.map((gap, i) => (
+              <div key={i} style={{
+                padding: '7px 10px',
+                background: '#1a1a1a',
+                borderLeft: '2px solid #f39c1244',
+              }}>
+                <p style={{
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize: 9, lineHeight: 1.6, color: '#c8a850', margin: 0,
+                }}>
+                  {gap}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* No intel fallback */}
-      {!actor.leadershipProfile && (
+      {!actor.leadershipProfile && !hasKnownUnknowns && (
         <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: 'rgba(229,226,225,0.45)' }}>
           {actor.isAdversary
             ? 'INTEL REDACTED — INSUFFICIENT HUMINT COVERAGE'
