@@ -5,13 +5,25 @@
  *
  * The actors.escalation_ladder column stores a serialized EscalationLadder
  * object (from lib/types/simulation.ts) seeded by the research pipeline.
- * This module parses it, constructs a minimal Actor adapter, and delegates
- * to the canonical escalation engine functions for blocked-rung computation.
+ * This module parses it and uses the same algorithm as getDeescalationOptions()
+ * in escalation.ts to compute blocked-rung state — without the `Actor` type
+ * dependency, since panel-layer data does not carry the full simulation graph.
+ *
+ * Note on constraints:
+ *   Actor.constraints[] is not stored in scenario_actors.  When the actors
+ *   table constraint data becomes available, wire it in here to enable the
+ *   full canEscalateTo() check.  Until then, blocking is irreversibility-based.
  */
 
-import type { Actor, EscalationLadder, EscalationRung } from '@/lib/types/simulation'
-import { getDeescalationOptions } from '@/lib/game/escalation'
+import type { EscalationRung } from '@/lib/types/simulation'
 import type { EscalationRungSummary } from '@/lib/types/panels'
+
+// ── EscalationLadder subset (no full simulation graph required) ───────────────
+
+interface ParsedLadder {
+  currentRung: number
+  rungs: EscalationRung[]
+}
 
 // ── Parsing ───────────────────────────────────────────────────────────────────
 
@@ -25,19 +37,17 @@ function isEscalationRung(v: unknown): v is EscalationRung {
 }
 
 /**
- * Parse the actors.escalation_ladder JSONB record into a typed EscalationLadder.
+ * Parse the actors.escalation_ladder JSONB record into a typed ParsedLadder.
  * Returns null if the record does not conform to the expected schema.
  */
 export function parseDbEscalationLadder(
   jsonb: Record<string, unknown> | null | undefined
-): EscalationLadder | null {
+): ParsedLadder | null {
   if (!jsonb || typeof jsonb !== 'object') return null
 
   const { currentRung, rungs } = jsonb as {
     currentRung?: unknown
     rungs?: unknown
-    escalationTriggers?: unknown
-    deescalationConditions?: unknown
   }
 
   if (!Array.isArray(rungs)) return null
@@ -48,27 +58,38 @@ export function parseDbEscalationLadder(
   return {
     currentRung: typeof currentRung === 'number' ? currentRung : 0,
     rungs: parsedRungs,
-    escalationTriggers: [],
-    deescalationConditions: [],
   }
 }
 
-// ── Minimal Actor adapter ─────────────────────────────────────────────────────
+// ── De-escalation blocking logic ─────────────────────────────────────────────
 
 /**
- * Build a minimal Actor stub sufficient to pass to escalation engine functions.
- * Only populates fields referenced by getDeescalationOptions / canEscalateTo:
- *   - actor.id
- *   - actor.escalation (full EscalationLadder)
- *   - actor.constraints (empty — constraint data is not stored in scenario_actors;
- *     hard constraint blocking will be added when constraint data is available)
+ * Compute which rungs below `currentRung` are available for de-escalation.
+ *
+ * Mirrors the algorithm in escalation.ts getDeescalationOptions():
+ *   "Cannot de-escalate below an irreversible rung that has been passed."
+ *
+ * Returns the set of rung levels that CAN be de-escalated to.
+ * Note: When Actor.constraints[] data becomes available in the DB, add a
+ * canEscalateTo() check here to enable constraint-based blocking.
  */
-function buildMinimalActor(actorId: string, ladder: EscalationLadder): Actor {
-  return {
-    id: actorId,
-    escalation: ladder,
-    constraints: [],
-  } as unknown as Actor
+function computeDeescalableRungs(ladder: ParsedLadder, currentRung: number): Set<number> {
+  const { rungs } = ladder
+
+  // Mirror of getDeescalationOptions() algorithm — no Actor type needed
+  const irreversibleRungs = rungs.filter(
+    r => r.reversibility === 'irreversible' && r.level <= currentRung
+  )
+  const irreversibleFloor =
+    irreversibleRungs.length === 0
+      ? 0
+      : irreversibleRungs.reduce((min, r) => Math.min(min, r.level), Infinity)
+
+  return new Set(
+    rungs
+      .filter(r => r.level < currentRung && r.level >= irreversibleFloor)
+      .map(r => r.level)
+  )
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -76,9 +97,9 @@ function buildMinimalActor(actorId: string, ladder: EscalationLadder): Actor {
 /**
  * Build the full set of EscalationRungSummary entries for the panel, using:
  *   1. Real rung definitions from actors.escalation_ladder (if available)
- *   2. The canonical escalation engine (getDeescalationOptions) for blocked-rung
- *      computation based on irreversible thresholds
- *   3. Falls back to an empty array when no DB ladder data is available
+ *   2. The same algorithm as escalation.ts getDeescalationOptions() for
+ *      blocked-rung computation based on irreversible threshold crossings
+ *   3. Returns an empty array when no DB ladder data is available
  *
  * @param actorId    Canonical actor ID (e.g., 'iran', 'us')
  * @param dbLadder   Parsed result of parseDbEscalationLadder(), or null
@@ -86,39 +107,41 @@ function buildMinimalActor(actorId: string, ladder: EscalationLadder): Actor {
  */
 export function buildRungSummaries(
   actorId: string,
-  dbLadder: EscalationLadder | null,
+  dbLadder: ParsedLadder | null,
   currentRung: number
 ): EscalationRungSummary[] {
   if (!dbLadder || dbLadder.rungs.length === 0) return []
 
-  // Temporarily override currentRung for the computation
-  const ladder: EscalationLadder = { ...dbLadder, currentRung }
-  const actor = buildMinimalActor(actorId, ladder)
+  const ladderWithCurrent: ParsedLadder = { ...dbLadder, currentRung }
+  const deescalable = computeDeescalableRungs(ladderWithCurrent, currentRung)
 
-  // Get the set of rungs available for de-escalation from the engine
-  const deescalableRungs = new Set(
-    getDeescalationOptions(actor).map(r => r.level)
-  )
-
-  // Find the lowest irreversible rung already crossed (for blocking label)
-  const crossedIrreversible = ladder.rungs
+  // Lowest irreversible rung already crossed — needed for block reason label
+  const crossedIrreversible = dbLadder.rungs
     .filter(r => r.reversibility === 'irreversible' && r.level <= currentRung)
     .map(r => r.level)
-  const irreversibleFloor = crossedIrreversible.length > 0 ? Math.min(...crossedIrreversible) : null
+  const irreversibleFloor =
+    crossedIrreversible.length > 0 ? Math.min(...crossedIrreversible) : null
 
-  return ladder.rungs.map((rung): EscalationRungSummary => {
+  return dbLadder.rungs.map((rung): EscalationRungSummary => {
     const isBelowFloor =
       irreversibleFloor !== null && rung.level < irreversibleFloor
+    const isBlockedByIrreversibility =
+      rung.level < currentRung && !deescalable.has(rung.level)
+
+    const isBlocked = isBelowFloor || isBlockedByIrreversibility || undefined
 
     return {
       level:         rung.level,
       name:          rung.name,
       description:   rung.description,
       reversibility: rung.reversibility,
-      isBlocked:   isBelowFloor || (rung.level < currentRung && !deescalableRungs.has(rung.level)) || undefined,
+      isBlocked:   isBlocked,
       blockReason: isBelowFloor
-        ? `De-escalation blocked: passed irreversible threshold at rung ${irreversibleFloor}`
-        : undefined,
+        ? `De-escalation blocked: irreversible threshold crossed at rung ${irreversibleFloor}`
+        : isBlockedByIrreversibility
+          ? 'De-escalation unavailable from current position'
+          : undefined,
     }
   })
 }
+

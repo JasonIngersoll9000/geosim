@@ -170,3 +170,74 @@ export function extractKnownUnknowns(
   if (!raw || !Array.isArray(raw.blindSpots)) return []
   return (raw.blindSpots as unknown[]).filter((s): s is string => typeof s === 'string')
 }
+
+// ── FOW field transformation ──────────────────────────────────────────────────
+
+const REDACTED_TEXT = '[CLASSIFIED — INSUFFICIENT HUMINT COVERAGE]'
+const LIMITED_TEXT  = '[PARTIAL — DATA CONFIDENCE LIMITED]'
+
+/**
+ * Apply fog-of-war transformation to an ActorDetail based on the viewer's
+ * relationship to the target actor.
+ *
+ * For adversary targets (confidence unverified/low):
+ *   - Classified text fields (doctrine, win condition, objectives) are redacted
+ *   - Numeric scores are replaced with estimated values (with noise applied)
+ *
+ * For limited-intel targets (confidence moderate/low):
+ *   - Numeric scores have noise applied but text fields remain
+ *   - Partial warning text appended to redacted fields
+ *
+ * This mirrors the IntelligencePicture.believedX approach in the simulation
+ * engine: the panel receives believed values, not ground truth, for non-allies.
+ *
+ * Important: call this on the *client* side where viewerActorId is known from
+ * the controlled actor context; the server pre-populates all fields for later
+ * client-side filtering.
+ */
+export function applyFogOfWarToActorDetail<T extends {
+  id: string
+  isAdversary: boolean
+  hasLimitedIntel?: boolean
+  intelConfidence?: IntelConfidence
+  militaryStrength: number
+  economicStrength: number
+  politicalStability: number
+  objectives: string[]
+  winCondition?: string
+  strategicDoctrine?: string
+}>(detail: T): T {
+  const confidence: IntelConfidence = detail.intelConfidence ?? 'high'
+
+  if (!detail.isAdversary && !detail.hasLimitedIntel) return detail
+
+  // Deterministic seed for noise — based on actor ID character sum
+  const seed = detail.id.split('').reduce((sum, c) => sum + c.charCodeAt(0), 0)
+
+  const militaryStrength   = applyScoreNoise(detail.militaryStrength,   confidence, seed)
+  const economicStrength   = applyScoreNoise(detail.economicStrength,   confidence, seed + 1)
+  const politicalStability = applyScoreNoise(detail.politicalStability, confidence, seed + 2)
+
+  if (detail.isAdversary) {
+    return {
+      ...detail,
+      militaryStrength,
+      economicStrength,
+      politicalStability,
+      // Redact classified planning fields for adversaries
+      objectives:       [REDACTED_TEXT],
+      winCondition:     REDACTED_TEXT,
+      strategicDoctrine: REDACTED_TEXT,
+    }
+  }
+
+  // Limited intel: apply score noise, mark doctrine/win-condition as partial
+  return {
+    ...detail,
+    militaryStrength,
+    economicStrength,
+    politicalStability,
+    winCondition:     detail.winCondition     ? `${detail.winCondition} ${LIMITED_TEXT}`      : undefined,
+    strategicDoctrine: detail.strategicDoctrine ? `${detail.strategicDoctrine} ${LIMITED_TEXT}` : undefined,
+  }
+}

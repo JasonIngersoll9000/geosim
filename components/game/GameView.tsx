@@ -21,6 +21,8 @@ import { ProgressBar } from '@/components/ui/ProgressBar'
 import type { DispatchLine } from '@/components/game/DispatchTerminal'
 import type { ActorSummary, ActorDetail, DecisionDetail, ActionSlot } from '@/lib/types/panels'
 import type { GameInitialData, ChronicleEntry } from '@/lib/types/game-init'
+import { getRelationshipStance, isAdversaryActor, hasLimitedIntel } from '@/lib/game/actor-meta'
+import { inferIntelConfidence, applyFogOfWarToActorDetail, parseIntelProfile } from '@/lib/game/fow-panel'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -540,14 +542,38 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
         exitHref={`/scenarios/${scenarioId}`}
       />
 
-      {/* Actor dossier slide-over */}
-      {selectedActorDetail && (
-        <ActorDetailPanel
-          actor={selectedActorDetail}
-          open={!!selectedActorDetail}
-          onClose={() => dispatch({ type: 'SELECT_ACTOR', payload: null })}
-        />
-      )}
+      {/* Actor dossier slide-over — apply FOW transformation client-side so that
+          viewerActorId reflects the actual controlled actor (not the server default).
+          The server pre-populates all fields; the client re-derives stance, isAdversary,
+          hasLimitedIntel, and intelConfidence, then applies actual field redaction via
+          applyFogOfWarToActorDetail() — mirroring the simulation engine's IntelligencePicture logic. */}
+      {selectedActorDetail && (() => {
+        const viewerActorId = controlledActors?.[0] ?? 'us'
+        const viewerIntelProfile = parseIntelProfile(
+          (initialData.actorDetails[viewerActorId]?.intelligenceProfile ?? null) as Record<string, unknown> | null
+        )
+        const stance          = getRelationshipStance(selectedActorDetail.id, viewerActorId)
+        const isAdv           = isAdversaryActor(selectedActorDetail.id, viewerActorId)
+        const limitedIntel    = hasLimitedIntel(selectedActorDetail.id, viewerActorId)
+        const intelConfidence = inferIntelConfidence(viewerIntelProfile, stance)
+
+        const fowActor = applyFogOfWarToActorDetail({
+          ...selectedActorDetail,
+          viewerActorId,
+          relationshipStance: stance,
+          isAdversary:     isAdv,
+          hasLimitedIntel: limitedIntel,
+          intelConfidence,
+        })
+
+        return (
+          <ActorDetailPanel
+            actor={fowActor}
+            open={!!selectedActorDetail}
+            onClose={() => dispatch({ type: 'SELECT_ACTOR', payload: null })}
+          />
+        )
+      })()}
 
       {/* Decision detail slide-over */}
       <DecisionDetailPanel
