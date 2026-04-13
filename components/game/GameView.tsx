@@ -13,6 +13,8 @@ import { DecisionCatalog } from '@/components/panels/DecisionCatalog'
 import { DecisionDetailPanel } from '@/components/panels/DecisionDetailPanel'
 import { TurnPlanBuilder } from '@/components/panels/TurnPlanBuilder'
 import { ChronicleTimeline } from '@/components/chronicle/ChronicleTimeline'
+import { EventsTab } from '@/components/panels/EventsTab'
+import type { TurnResolutionData } from '@/components/panels/EventsTab'
 import { ActorControlSelector } from '@/components/game/ActorControlSelector'
 import { DispatchTerminal } from '@/components/game/DispatchTerminal'
 import { ObserverOverlay } from '@/components/panels/ObserverOverlay'
@@ -21,7 +23,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar'
 import type { DispatchLine } from '@/components/game/DispatchTerminal'
 import type { ActorSummary, ActorDetail, DecisionDetail, ActionSlot } from '@/lib/types/panels'
 import type { GameInitialData, ChronicleEntry } from '@/lib/types/game-init'
-import { getRelationshipStance, isAdversaryActor, hasLimitedIntel } from '@/lib/game/actor-meta'
+import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel } from '@/lib/game/actor-meta'
 import { inferIntelConfidence, applyFogOfWarToActorDetail, parseIntelProfile, applyScoreNoise } from '@/lib/game/fow-panel'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -200,15 +202,24 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
 
   const actorMetrics = buildActorMetrics(initialData.actorDetails)
 
+  // Live global indicators derived from state snapshot
+  const oilPriceUsd = initialData.currentState?.global_state?.oil_price_usd ?? null
+  const maxEscalationRung = Object.values(initialData.actorDetails).reduce<number>((max, d) => {
+    const rung = (d as { escalationRung?: number }).escalationRung ?? 0
+    return rung > max ? rung : max
+  }, 0)
+
   const [controlledActors, setControlledActors]             = useState<string[] | null>(null)
   const [forkingBranch, setForkingBranch]                   = useState(false)
   const [activeTab, setActiveTab]                           = useState<PanelTab>('actors')
   const [showObserver, setShowObserver]                     = useState(true)
+  const [omniscientMode, setOmniscientMode]                 = useState(false)
   const [selectedDecisionDetail, setSelectedDecisionDetail] = useState<DecisionDetail | null>(null)
   const [decisionPanelOpen, setDecisionPanelOpen]           = useState(false)
   const [primaryAction, setPrimaryAction]                   = useState<ActionSlot | null>(null)
   const [concurrentActions, setConcurrentActions]           = useState<ActionSlot[]>([])
   const [chronicleEntries, setChronicleEntries]             = useState<ChronicleEntry[]>(initialData.chronicle)
+  const [lastTurnResolution, setLastTurnResolution]         = useState<TurnResolutionData | null>(null)
   const [turnNumber, setTurnNumber]                         = useState(initialData.branch.turnNumber)
   const [turnCommitId, setTurnCommitId]                     = useState<string | null>(initialData.branch.headCommitId)
   const [dispatchLines, setDispatchLines]                   = useState<DispatchLine[]>([{
@@ -236,28 +247,55 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   // Show terminal mode during resolution, completion, or on a non-fallback error
   const showTerminal = isSubmitting || isComplete || !!error
 
-  // Auto-append chronicle entry and switch to CHRONICLE tab when turn completes
+  // Auto-append chronicle entry and build EventsTab data when turn completes
   useEffect(() => {
     if (!isComplete) return
     dispatch({ type: 'SET_TURN_PHASE', payload: 'complete' })
 
-    // Chronicle append — capture action titles before reset
     const nextTurn = turnNumber + 1
     const actionTitles = [primaryAction, ...concurrentActions]
       .filter(Boolean).map(a => a!.title)
+
+    // Build EventsTab resolution data from current turn plans and actors
+    const allActions = primaryAction ? [primaryAction, ...concurrentActions] : [...concurrentActions]
+    const events = allActions.map(slot => {
+      const actorId = controlledActors?.[0] ?? 'us'
+      const actorDetail = initialData.actorDetails[actorId]
+      return {
+        actorId,
+        actorName: actorDetail?.name ?? actorId,
+        actorColor: getActorColor(actorId),
+        actionTitle: slot.title,
+        dimension: slot.dimension,
+      }
+    })
+
+    const simulatedDate = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+    const headline = primaryAction
+      ? `Turn ${nextTurn} — ${primaryAction.title}`
+      : `Turn ${nextTurn} Complete`
+
+    setLastTurnResolution({
+      turnNumber: nextTurn,
+      simulatedDate,
+      chronicleHeadline: headline,
+      narrativeSummary: `Resolution complete. Actions executed: ${actionTitles.join(', ')}.`,
+      judgeScore: 86,
+      events,
+      escalationChanges: [],
+    })
+
     const newEntry: ChronicleEntry = {
       turnNumber: nextTurn,
-      date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }),
-      title: primaryAction
-        ? `Turn ${nextTurn} — ${primaryAction.title}`
-        : `Turn ${nextTurn} Complete`,
-      narrative: `Resolution complete. Actions executed: ${actionTitles.join(', ')}. Judged at 86/100.`,
+      date: simulatedDate,
+      title: headline,
+      narrative: `Resolution complete. Actions executed: ${actionTitles.join(', ')}.`,
       severity: 'major',
       tags: primaryAction ? [primaryAction.dimension.charAt(0).toUpperCase() + primaryAction.dimension.slice(1)] : [],
     }
     setChronicleEntries(prev => [...prev, newEntry])
 
-    // Reset TurnPlanBuilder immediately on completion (not deferred to button click)
+    // Reset TurnPlanBuilder immediately on completion
     setPrimaryAction(null)
     setConcurrentActions([])
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -404,14 +442,14 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
       {/* Global indicators bar */}
       <div className="flex items-center gap-4 px-4 py-2 bg-bg-surface-dim border-b border-border-subtle font-mono text-2xs shrink-0">
-        <span className="text-text-tertiary">OIL: <span className="text-status-critical">$142/bbl</span></span>
+        <span className="text-text-tertiary">OIL: <span className="text-status-critical">{oilPriceUsd !== null ? `$${oilPriceUsd}/bbl` : '—'}</span></span>
         <span className="text-text-tertiary">
           TURN: <span className="text-text-secondary">{String(turnNumber).padStart(2, '0')} / 12</span>
         </span>
         <span className="text-text-tertiary">
           PHASE: <TurnPhaseIndicator phase={state.turnPhase || 'planning'} />
         </span>
-        <span className="text-text-tertiary">ESCALATION: <span className="text-status-critical">RUNG 6</span></span>
+        <span className="text-text-tertiary">ESCALATION: <span className="text-status-critical">{maxEscalationRung > 0 ? `RUNG ${maxEscalationRung}` : '—'}</span></span>
       </div>
 
       {/* ── Terminal mode: full panel DispatchTerminal during resolution ── */}
@@ -499,7 +537,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
               />
             )}
             {activeTab === 'events' && (
-              <ChronicleTimeline entries={chronicleEntries} />
+              <EventsTab resolution={lastTurnResolution} />
             )}
             {activeTab === 'chronicle' && (
               <ChronicleTimeline entries={chronicleEntries} />
@@ -621,6 +659,14 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
       <ObserverOverlay
         isVisible={showObserver}
         onDismiss={() => setShowObserver(false)}
+        actors={initialData.actors}
+        perspectiveActorId={componentViewerActorId}
+        omniscientMode={omniscientMode}
+        onChangePerspective={(actorId) => {
+          if (actorId) setControlledActors([actorId])
+          else setControlledActors(null)
+        }}
+        onToggleOmniscient={() => setOmniscientMode(prev => !prev)}
       />
     </>
   )

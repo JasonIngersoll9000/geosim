@@ -1,4 +1,5 @@
 'use client'
+import { useState, useMemo } from 'react'
 import { DimensionTag, toDimensionTagDimension } from '@/components/game/DimensionTag'
 import type { DecisionOption } from '@/lib/types/panels'
 
@@ -21,14 +22,53 @@ const ESCALATION_LABEL: Record<string, { label: string; color: string; indicator
 }
 
 export function DecisionCatalog({ decisions, onSelect, selectedPrimaryId, selectedConcurrentIds = [] }: Props) {
-  const grouped = decisions.reduce<Record<string, DecisionOptionDisplay[]>>((acc, d) => {
-    if (!acc[d.dimension]) acc[d.dimension] = []
-    acc[d.dimension].push(d)
-    return acc
-  }, {})
+  const [query, setQuery] = useState('')
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase().trim()
+    if (!q) return decisions
+    return decisions.filter(d =>
+      d.title.toLowerCase().includes(q) ||
+      (d.description ?? '').toLowerCase().includes(q) ||
+      d.dimension.toLowerCase().includes(q)
+    )
+  }, [decisions, query])
+
+  const grouped: Record<string, DecisionOptionDisplay[]> = filtered.reduce(
+    (acc: Record<string, DecisionOptionDisplay[]>, d) => {
+      if (!acc[d.dimension]) acc[d.dimension] = []
+      acc[d.dimension].push(d)
+      return acc
+    },
+    {}
+  )
 
   return (
-    <div className="flex flex-col gap-6 p-4">
+    <div className="flex flex-col gap-0">
+      {/* Search bar */}
+      <div className="px-4 py-2 border-b border-border-subtle bg-bg-surface-dim">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-2xs text-text-tertiary shrink-0">SEARCH</span>
+          <input
+            type="text"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="filter by title or dimension…"
+            className="flex-1 bg-transparent font-mono text-2xs text-text-secondary placeholder:text-text-tertiary outline-none border-none"
+            style={{ caretColor: 'var(--gold)' }}
+          />
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              className="font-mono text-2xs text-text-tertiary hover:text-text-primary transition-colors shrink-0"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6 p-4">
       {Object.entries(grouped).map(([dimension, items]) => (
         <div key={dimension}>
           {/* Dimension group header */}
@@ -122,11 +162,18 @@ export function DecisionCatalog({ decisions, onSelect, selectedPrimaryId, select
         </div>
       ))}
 
+      {filtered.length === 0 && decisions.length > 0 && (
+        <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-text-tertiary text-center py-8">
+          No decisions match &quot;{query}&quot;
+        </p>
+      )}
+
       {decisions.length === 0 && (
         <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-text-tertiary text-center py-8">
           No decisions available for this turn
         </p>
       )}
+      </div>
     </div>
   )
 }
