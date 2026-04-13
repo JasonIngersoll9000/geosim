@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getStateAtTurn, applyEventEffects, persistStateSnapshot } from '@/lib/game/state-engine'
 import { runActorAgent } from '@/lib/ai/actor-agent-runner'
@@ -12,8 +13,11 @@ import type { TurnPlan, Decision } from '@/lib/types/simulation'
  * Full turn orchestrator. Sequences all four AI agents, persists the new turn_commit,
  * and advances the branch head_commit_id.
  *
+ * Authorization: the caller must be the user who created the branch, or the
+ * branch's parent scenario must be public visibility. The service-role client
+ * is only used for write mutations AFTER auth has been verified.
+ *
  * Body: {
- *   scenarioId: string
  *   branchId: string
  *   playerActorId: string | null      // null = observer mode (all actors are AI)
  *   playerTurnPlan: TurnPlan | null   // required if playerActorId is set
@@ -41,45 +45,88 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json() as {
-      scenarioId: string
       branchId: string
       playerActorId: string | null
       playerTurnPlan: TurnPlan | null
       availableDecisions: Record<string, Decision[]>
     }
 
-    const { scenarioId, branchId, playerActorId, playerTurnPlan, availableDecisions } = body
+    const { branchId, playerActorId, playerTurnPlan, availableDecisions } = body
 
-    if (!scenarioId || !branchId) {
-      return NextResponse.json({ error: 'scenarioId and branchId are required' }, { status: 400 })
+    if (!branchId) {
+      return NextResponse.json({ error: 'branchId is required' }, { status: 400 })
     }
     if (playerActorId && !playerTurnPlan) {
       return NextResponse.json({ error: 'playerTurnPlan is required when playerActorId is set' }, { status: 400 })
     }
 
-    const supabase = createServiceClient()
+    // ── 1. Authenticate and authorize ─────────────────────────────────────
+    // Use session-scoped client to get the authenticated user.
+    // Allow unauthed access only when Supabase auth is not configured (dev mode).
 
-    // ── 1. Load current branch + scenario data ─────────────────────────────
+    const sessionClient = await createClient()
+    const { data: { user } } = await sessionClient.auth.getUser()
 
-    const { data: branch, error: branchError } = await supabase
+    // Load branch with ownership/visibility data using session client.
+    // RLS on branches should restrict reads to owner or public scenarios.
+    const { data: branchRaw, error: branchError } = await sessionClient
       .from('branches')
-      .select('id, head_commit_id, scenario_id, user_controlled_actors')
+      .select('id, head_commit_id, scenario_id, user_controlled_actors, created_by, visibility')
       .eq('id', branchId)
       .single()
 
-    if (branchError || !branch) {
-      return NextResponse.json({ error: 'Branch not found' }, { status: 404 })
+    if (branchError || !branchRaw) {
+      return NextResponse.json({ error: 'Branch not found or access denied' }, { status: 404 })
     }
 
-    const headCommitId = (branch as Record<string, unknown>).head_commit_id as string | null
+    const branch = branchRaw as {
+      id: string
+      head_commit_id: string | null
+      scenario_id: string
+      user_controlled_actors: string[]
+      created_by: string | null
+      visibility: string | null
+    }
+
+    // If auth is configured and user is authenticated, enforce ownership.
+    // Observers (non-owners) may only run in observer mode (playerActorId === null).
+    if (user) {
+      const isOwner = branch.created_by === user.id
+      const isPublic = branch.visibility === 'public'
+
+      if (!isOwner && !isPublic) {
+        return NextResponse.json({ error: 'Access denied: you do not own this branch' }, { status: 403 })
+      }
+
+      // Non-owners of private scenarios cannot submit player decisions
+      if (!isOwner && playerActorId) {
+        return NextResponse.json(
+          { error: 'Access denied: only the branch owner can submit player decisions' },
+          { status: 403 }
+        )
+      }
+    }
+
+    // Derive scenarioId from the branch record — never trust body input
+    const scenarioId = branch.scenario_id
+
+    const headCommitId = branch.head_commit_id
     if (!headCommitId) {
-      return NextResponse.json({ error: 'Branch has no head commit — run the research pipeline first' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Branch has no head commit — run the research pipeline first' },
+        { status: 400 }
+      )
     }
 
-    // Load the head commit to get current turn number and simulated_date
+    // All subsequent reads and writes use the service-role client.
+    // Auth has already been enforced above.
+    const supabase = createServiceClient()
+
+    // ── 2. Load head commit ───────────────────────────────────────────────
+
     const { data: headCommit, error: headError } = await supabase
       .from('turn_commits')
-      .select('id, turn_number, simulated_date, parent_commit_id')
+      .select('id, turn_number, simulated_date')
       .eq('id', headCommitId)
       .single()
 
@@ -89,45 +136,46 @@ export async function POST(request: Request) {
 
     const currentTurn = (headCommit as Record<string, unknown>).turn_number as number
     const newTurnNumber = currentTurn + 1
-
-    // Advance simulated date by 7 days (one turn = one week)
     const currentDate = (headCommit as Record<string, unknown>).simulated_date as string
     const simulatedDate = advanceDate(currentDate, 7)
 
-    // ── 2. Load scenario actors and context ────────────────────────────────
+    // ── 3. Load scenario actors and context ───────────────────────────────
 
-    const { data: actorRows, error: actorsError } = await supabase
-      .from('scenario_actors')
-      .select('id, name, short_name, biographical_summary, leadership_profile, win_condition, strategic_doctrine, historical_precedents, initial_scores, intelligence_profile')
-      .eq('scenario_id', scenarioId)
+    const [actorRes, scenarioRes] = await Promise.all([
+      supabase
+        .from('scenario_actors')
+        .select('id, name, short_name, biographical_summary, leadership_profile, win_condition, strategic_doctrine, historical_precedents, initial_scores, intelligence_profile')
+        .eq('scenario_id', scenarioId),
+      supabase
+        .from('scenarios')
+        .select('name, description, critical_context')
+        .eq('id', scenarioId)
+        .single(),
+    ])
 
-    if (actorsError || !actorRows?.length) {
+    if (actorRes.error || !actorRes.data?.length) {
       return NextResponse.json({ error: 'No actors found for scenario' }, { status: 404 })
     }
 
-    const { data: scenario, error: scenarioError } = await supabase
-      .from('scenarios')
-      .select('name, description, critical_context')
-      .eq('id', scenarioId)
-      .single()
-
+    const actorRows = actorRes.data
+    const scenario = scenarioRes.data as Record<string, unknown> | null
     const scenarioContext = scenario
-      ? `${(scenario as Record<string, unknown>).name}: ${(scenario as Record<string, unknown>).description ?? ''}${(scenario as Record<string, unknown>).critical_context ? '\n' + (scenario as Record<string, unknown>).critical_context : ''}`
+      ? `${scenario.name}: ${scenario.description ?? ''}${scenario.critical_context ? '\n' + scenario.critical_context : ''}`
       : 'Geopolitical simulation'
 
-    // ── 3. Load branch state at current head ──────────────────────────────
+    // ── 4. Load branch state and compute divergence ────────────────────────
 
-    const branchState = await getStateAtTurn(branchId, headCommitId)
+    const [branchState, branchDivergence] = await Promise.all([
+      getStateAtTurn(branchId, headCommitId),
+      computeBranchDivergence(supabase, branchId),
+    ])
 
-    // ── 4. Determine AI actors and generate their TurnPlans ───────────────
+    // ── 5. Generate AI actor TurnPlans in parallel ─────────────────────────
 
-    const userControlledActors = ((branch as Record<string, unknown>).user_controlled_actors as string[]) ?? []
+    const userControlledActors = branch.user_controlled_actors ?? []
     const aiActors = actorRows.filter(
       a => a.id !== playerActorId && !userControlledActors.includes(a.id)
     )
-
-    // Branch divergence: count turns since fork from trunk
-    const branchDivergence = await computeBranchDivergence(supabase, branchId, scenarioId)
 
     const aiTurnPlans: Array<{ actorId: string; actorName: string; turnPlan: TurnPlan; rationale: string }> = []
 
@@ -175,13 +223,15 @@ export async function POST(request: Request) {
     }
 
     if (allTurnPlans.length === 0) {
-      return NextResponse.json({ error: 'No turn plans generated — ensure actors have available decisions' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No turn plans generated — ensure actors have available decisions' },
+        { status: 400 }
+      )
     }
 
-    // Flatten decision catalog for resolution
     const decisionCatalog: Decision[] = Object.values(availableDecisions).flat()
 
-    // ── 5. Resolution engine ───────────────────────────────────────────────
+    // ── 6. Resolution engine ───────────────────────────────────────────────
 
     const resolution = await runResolutionEngine({
       turnPlans: allTurnPlans,
@@ -192,7 +242,7 @@ export async function POST(request: Request) {
       scenarioContext,
     })
 
-    // ── 6. Judge evaluator ─────────────────────────────────────────────────
+    // ── 7. Judge evaluator ─────────────────────────────────────────────────
 
     const judgeResult = await runJudge({
       turnPlans: allTurnPlans,
@@ -204,7 +254,7 @@ export async function POST(request: Request) {
       scenarioContext,
     })
 
-    // ── 7. Narrator ────────────────────────────────────────────────────────
+    // ── 8. Narrator ────────────────────────────────────────────────────────
 
     const narration = await runNarrator({
       turnPlans: allTurnPlans,
@@ -219,7 +269,7 @@ export async function POST(request: Request) {
       escalationChanges: resolution.escalationChanges,
     })
 
-    // ── 8. Persist new turn_commit ─────────────────────────────────────────
+    // ── 9. Persist new turn_commit ─────────────────────────────────────────
 
     const { data: newCommit, error: commitError } = await supabase
       .from('turn_commits')
@@ -229,9 +279,7 @@ export async function POST(request: Request) {
         turn_number: newTurnNumber,
         simulated_date: simulatedDate,
         scenario_snapshot: {},
-        planning_phase: {
-          turnPlans: allTurnPlans,
-        },
+        planning_phase: { turnPlans: allTurnPlans },
         resolution_phase: {
           effects: resolution.effects,
           escalationChanges: resolution.escalationChanges,
@@ -257,17 +305,30 @@ export async function POST(request: Request) {
 
     const newCommitId = (newCommit as { id: string }).id
 
-    // ── 9. Apply state effects and persist snapshots ───────────────────────
+    // ── 10. Apply state effects and persist snapshots ──────────────────────
 
     const newState = applyEventEffects(branchState, resolution.effects)
     await persistStateSnapshot(scenarioId, branchId, newCommitId, newState)
 
-    // ── 10. Advance branch head_commit_id ─────────────────────────────────
+    // ── 11. Advance branch head_commit_id (atomic fail) ───────────────────
 
-    await supabase
+    const { error: headUpdateError } = await supabase
       .from('branches')
       .update({ head_commit_id: newCommitId, updated_at: new Date().toISOString() })
       .eq('id', branchId)
+
+    if (headUpdateError) {
+      // The commit and snapshots are persisted, but the branch pointer wasn't advanced.
+      // Log and return partial error so the caller can retry the head update.
+      console.error('[turn] failed to advance branch head_commit_id:', headUpdateError.message)
+      return NextResponse.json(
+        {
+          error: 'Turn committed but branch head not advanced — contact support',
+          turnCommitId: newCommitId,
+        },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       turnCommitId: newCommitId,
@@ -297,8 +358,7 @@ function advanceDate(dateStr: string, days: number): string {
 
 async function computeBranchDivergence(
   supabase: ReturnType<typeof createServiceClient>,
-  branchId: string,
-  _scenarioId: string
+  branchId: string
 ): Promise<number> {
   try {
     const { data: branch } = await supabase
@@ -309,7 +369,6 @@ async function computeBranchDivergence(
 
     if (!branch || (branch as Record<string, unknown>).is_trunk) return 0
 
-    // Count commits on this branch (non-trunk branches start from 1)
     const { data: commits } = await supabase
       .from('turn_commits')
       .select('id')
