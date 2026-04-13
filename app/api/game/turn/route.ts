@@ -4,7 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { getStateAtTurn, applyEventEffects, persistStateSnapshot } from '@/lib/game/state-engine'
 import { runActorAgent } from '@/lib/ai/actor-agent-runner'
 import { runResolutionEngine } from '@/lib/ai/resolution-engine'
-import { runJudge } from '@/lib/ai/judge-evaluator'
+import { runJudge, JUDGE_THRESHOLD } from '@/lib/ai/judge-evaluator'
 import { runNarrator } from '@/lib/ai/narrator'
 import type { TurnPlan, Decision } from '@/lib/types/simulation'
 
@@ -254,9 +254,12 @@ export async function POST(request: Request) {
 
     const decisionCatalog: Decision[] = Object.values(availableDecisions).flat()
 
-    // ── 8. Resolution engine ───────────────────────────────────────────────
+    // ── 8. Resolution → Judge loop (max 2 attempts) ────────────────────────
+    // First attempt: resolve, then score. If score < threshold, run a corrected
+    // resolution informed by the judge's critique, then re-score. Accept on the
+    // second pass regardless of score (capped at 2 resolution attempts).
 
-    const resolution = await runResolutionEngine({
+    let resolution = await runResolutionEngine({
       turnPlans: allTurnPlans,
       branchState,
       decisionCatalog,
@@ -265,9 +268,7 @@ export async function POST(request: Request) {
       scenarioContext,
     })
 
-    // ── 9. Judge evaluator ─────────────────────────────────────────────────
-
-    const judgeResult = await runJudge({
+    let judgeResult = await runJudge({
       turnPlans: allTurnPlans,
       effects: resolution.effects,
       headline: resolution.headline,
@@ -276,6 +277,32 @@ export async function POST(request: Request) {
       turnNumber: newTurnNumber,
       scenarioContext,
     })
+
+    if (judgeResult.verdict === 'retry' || judgeResult.score < JUDGE_THRESHOLD) {
+      // Second resolution pass: feed judge critique back so Claude can correct flaws
+      resolution = await runResolutionEngine({
+        turnPlans: allTurnPlans,
+        branchState,
+        decisionCatalog,
+        simulatedDate,
+        turnNumber: newTurnNumber,
+        scenarioContext,
+        judgeCorrection: judgeResult.critique,
+      })
+
+      const retryJudge = await runJudge({
+        turnPlans: allTurnPlans,
+        effects: resolution.effects,
+        headline: resolution.headline,
+        narrativeSummary: resolution.narrativeSummary,
+        simulatedDate,
+        turnNumber: newTurnNumber,
+        scenarioContext,
+      })
+
+      // Accept the retry result unconditionally — we've done our 2 passes
+      judgeResult = { ...retryJudge, verdict: 'accept' }
+    }
 
     // ── 10. Narrator ───────────────────────────────────────────────────────
 
@@ -329,9 +356,22 @@ export async function POST(request: Request) {
     const newCommitId = (newCommit as { id: string }).id
 
     // ── 12. Apply state effects and persist snapshots ──────────────────────
+    // Wrap separately so snapshot failures are distinct from commit failures.
 
     const newState = applyEventEffects(branchState, resolution.effects)
-    await persistStateSnapshot(scenarioId, branchId, newCommitId, newState)
+    try {
+      await persistStateSnapshot(scenarioId, branchId, newCommitId, newState)
+    } catch (snapshotErr) {
+      const msg = snapshotErr instanceof Error ? snapshotErr.message : String(snapshotErr)
+      console.error('[turn] snapshot persistence failed after commit insert:', msg)
+      return NextResponse.json(
+        {
+          error: 'Turn committed but state snapshot failed — data may be inconsistent',
+          turnCommitId: newCommitId,
+        },
+        { status: 500 }
+      )
+    }
 
     // ── 13. Advance branch head_commit_id ──────────────────────────────────
 

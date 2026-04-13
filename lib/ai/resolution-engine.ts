@@ -20,6 +20,11 @@ export interface ResolutionInput {
   simulatedDate: string
   turnNumber: number
   scenarioContext: string
+  /**
+   * Optional critique from the Judge evaluator on a prior attempt.
+   * When set the resolution engine is instructed to correct the identified flaws.
+   */
+  judgeCorrection?: string
 }
 
 export interface ResolutionOutput {
@@ -114,6 +119,7 @@ export async function runResolutionEngine(input: ResolutionInput): Promise<Resol
     simulatedDate,
     turnNumber,
     scenarioContext,
+    judgeCorrection,
   } = input
 
   const decisionMap = new Map(decisionCatalog.map(d => [d.id, d]))
@@ -140,6 +146,10 @@ export async function runResolutionEngine(input: ResolutionInput): Promise<Resol
 
   const globalBlock = buildGlobalStateBlock(branchState.global_state)
 
+  const correctionBlock = judgeCorrection
+    ? `\nJUDGE CORRECTION (prior attempt scored below threshold — address these issues):\n${judgeCorrection}\n`
+    : ''
+
   const userPrompt = `SIMULATION CONTEXT:
 Turn ${turnNumber} | Simulated date: ${simulatedDate}
 
@@ -150,7 +160,7 @@ ${globalBlock}
 
 ALL ACTOR PLANS FOR THIS TURN:
 ${plansBlock}
-
+${correctionBlock}
 Resolve all simultaneous actions and return the JSON effects object.`
 
   const raw = await callClaude(RESOLUTION_SYSTEM, userPrompt, { maxTokens: 4096 })

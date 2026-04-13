@@ -1,14 +1,14 @@
 /**
  * Judge Evaluator
  * Scores the plausibility of a resolved turn (0-100) and provides critique.
- * Retries resolution if score is below the threshold.
+ * The turn controller is responsible for the retry loop (judge → new resolution → re-judge).
  */
 
 import { callClaude } from '@/lib/ai/anthropic'
 import { NEUTRALITY_PREAMBLE } from '@/lib/ai/prompts'
 import type { TurnPlan, EventStateEffects } from '@/lib/types/simulation'
 
-const JUDGE_THRESHOLD = 40
+export const JUDGE_THRESHOLD = 40
 
 export interface JudgeInput {
   turnPlans: Array<{
@@ -49,7 +49,7 @@ SCORING GUIDE:
   30-49:  Marginal — significant implausibilities that weaken realism
   0-29:   Reject — fundamental realism failures
 
-If score < 40, set verdict = "retry". Otherwise "accept".
+If score < ${JUDGE_THRESHOLD}, set verdict = "retry". Otherwise "accept".
 
 OUTPUT FORMAT — return ONLY this JSON:
 {
@@ -64,7 +64,11 @@ OUTPUT FORMAT — return ONLY this JSON:
   "verdict": "accept" | "retry"
 }`
 
-async function scoreResolution(input: JudgeInput): Promise<JudgeOutput> {
+/**
+ * Score a single resolution attempt. Returns score, critique, and verdict.
+ * Verdict is "retry" when score < JUDGE_THRESHOLD.
+ */
+export async function runJudge(input: JudgeInput): Promise<JudgeOutput> {
   const {
     turnPlans,
     effects,
@@ -109,28 +113,10 @@ Score the plausibility of this turn resolution.`
     verdict: 'accept' | 'retry'
   }
 
+  const score = Math.max(0, Math.min(100, parsed.score ?? 0))
   return {
-    score: Math.max(0, Math.min(100, parsed.score ?? 0)),
+    score,
     critique: parsed.critique ?? '',
-    verdict: (parsed.score ?? 0) < JUDGE_THRESHOLD ? 'retry' : (parsed.verdict ?? 'accept'),
-  }
-}
-
-/**
- * Run the judge evaluator with a single automatic retry if score < threshold.
- */
-export async function runJudge(input: JudgeInput): Promise<JudgeOutput> {
-  const firstResult = await scoreResolution(input)
-
-  if (firstResult.verdict === 'accept' || firstResult.score >= JUDGE_THRESHOLD) {
-    return firstResult
-  }
-
-  // One retry — the caller is expected to get a new resolution, but for now
-  // we accept the second pass regardless of score (max 2 attempts total).
-  const retryResult = await scoreResolution(input)
-  return {
-    ...retryResult,
-    verdict: 'accept',
+    verdict: score < JUDGE_THRESHOLD ? 'retry' : 'accept',
   }
 }
