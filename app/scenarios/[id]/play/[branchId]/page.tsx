@@ -4,6 +4,7 @@ import { TopBar } from '@/components/ui/TopBar'
 import { GameProvider } from '@/components/providers/GameProvider'
 import { GameView } from '@/components/game/GameView'
 import { createClient } from '@/lib/supabase/server'
+import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
 import { getStateAtTurn } from '@/lib/game/state-engine'
 import { IRAN_DECISIONS, IRAN_DECISION_DETAILS } from '@/lib/game/iran-decisions'
 import type { GameInitialData, ChronicleEntry, GroundTruthCommit } from '@/lib/types/game-init'
@@ -27,11 +28,14 @@ export default async function PlayPage({ params }: Props) {
 
   const supabase = await createClient()
 
+  // 0. Resolve slug (e.g. "iran-2026") → real scenario UUID
+  const scenarioId = await resolveScenarioId(supabase, params.id)
+
   // 1. Fetch scenario metadata
   const { data: scenario } = await supabase
     .from('scenarios')
-    .select('id, name, classification')
-    .eq('id', params.id)
+    .select('id, name')
+    .eq('id', scenarioId)
     .single()
 
   // 2. Fetch branch record — 'trunk' slug resolves to the is_trunk=true branch
@@ -39,7 +43,7 @@ export default async function PlayPage({ params }: Props) {
     ? supabase
         .from('branches')
         .select('id, name, is_trunk, head_commit_id')
-        .eq('scenario_id', params.id)
+        .eq('scenario_id', scenarioId)
         .eq('is_trunk', true)
         .single()
     : supabase
@@ -53,7 +57,7 @@ export default async function PlayPage({ params }: Props) {
   const { data: actorRows } = await supabase
     .from('actors')
     .select('actor_id, name, win_condition, lose_condition, strategic_posture, escalation_ladder')
-    .eq('scenario_id', params.id)
+    .eq('scenario_id', scenarioId)
 
   // 4. Fetch current state via state engine
   let currentState = null
@@ -77,7 +81,7 @@ export default async function PlayPage({ params }: Props) {
   const { data: trunkBranch } = await supabase
     .from('branches')
     .select('id')
-    .eq('scenario_id', params.id)
+    .eq('scenario_id', scenarioId)
     .eq('is_trunk', true)
     .single()
 
@@ -134,9 +138,9 @@ export default async function PlayPage({ params }: Props) {
 
   const initialData: GameInitialData = {
     scenario: {
-      id:             scenario?.id ?? params.id,
+      id:             scenario?.id ?? scenarioId,
       name:           scenario?.name ?? 'Unknown Scenario',
-      classification: (scenario?.classification as string | null) ?? 'SECRET',
+      classification: 'SECRET',
     },
     branch: {
       id:           resolvedBranchId,
@@ -168,7 +172,7 @@ export default async function PlayPage({ params }: Props) {
       <main className="h-screen pt-[66px] overflow-hidden">
         <GameView
           branchId={resolvedBranchId}
-          scenarioId={params.id}
+          scenarioId={scenarioId}
           initialData={initialData}
         />
       </main>

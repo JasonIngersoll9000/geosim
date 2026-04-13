@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
 
 export async function POST(request: Request) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -8,13 +9,14 @@ export async function POST(request: Request) {
 
   try {
     const body = (await request.json()) as { scenarioId?: string; name?: string; parentBranchId?: string }
-    const { scenarioId, name, parentBranchId } = body
+    const { scenarioId: rawScenarioId, name, parentBranchId } = body
 
-    if (!scenarioId) {
+    if (!rawScenarioId) {
       return NextResponse.json({ error: 'scenarioId is required' }, { status: 400 })
     }
 
     const supabase = await createClient()
+    const scenarioId = await resolveScenarioId(supabase, rawScenarioId)
 
     // Find the trunk branch to use as parent if not supplied
     let resolvedParentId = parentBranchId ?? null

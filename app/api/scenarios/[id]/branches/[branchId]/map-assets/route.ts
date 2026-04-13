@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
 import { getStateAtTurn } from '@/lib/game/state-engine'
 import type { MapAssetsResponse, MapAsset, MapAssetType, ShippingLane } from '@/lib/types/simulation'
 
@@ -97,10 +98,9 @@ export async function GET(
 
   const { searchParams } = new URL(request.url)
   const turnCommitId = searchParams.get('turnCommitId')
-  const scenarioId = params.id
-
   try {
     const supabase = await createClient()
+    const scenarioId = await resolveScenarioId(supabase, params.id)
 
     if (!turnCommitId) {
       const assets = await fillFromCapabilities(supabase, scenarioId)

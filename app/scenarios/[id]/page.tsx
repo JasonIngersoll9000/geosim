@@ -17,6 +17,7 @@ import { BranchTree } from '@/components/scenario/BranchTree'
 import type { BranchNode, ActorOption } from '@/components/scenario/BranchTree'
 import type { ActorDetail } from '@/lib/types/panels'
 import { createClient } from '@/lib/supabase/client'
+import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
 
 // ─── Actor mock data ──────────────────────────────────────────────────────────
 
@@ -320,16 +321,17 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
     }
     if (!supabase) return
     void (async () => {
+      const scenarioId = await resolveScenarioId(supabase, params.id)
       const [branchRes, actorRes] = await Promise.all([
         supabase
           .from('branches')
           .select('id, name, is_trunk, status, head_commit_id, created_at, parent_branch_id, turn_commits(turn_number, simulated_date)')
-          .eq('scenario_id', params.id)
+          .eq('scenario_id', scenarioId)
           .order('created_at', { ascending: true }),
         supabase
           .from('actors')
           .select('actor_id, name')
-          .eq('scenario_id', params.id),
+          .eq('scenario_id', scenarioId),
       ])
       if (branchRes.data && branchRes.data.length > 0) {
         const rows = branchRes.data as unknown as BranchRow[]

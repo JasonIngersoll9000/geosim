@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
 import { getStateAtTurn } from '@/lib/game/state-engine'
 import type { ActorPanelResponse, ActorPanelAssetGroup, AssetItem } from '@/lib/types/simulation'
 
@@ -44,10 +45,11 @@ export async function GET(
     }
     try {
       const supabase = await createClient()
+      const scenarioId = await resolveScenarioId(supabase, params.id)
       const { data: caps } = await supabase
         .from('actor_capabilities')
         .select('id, name, asset_type, category, quantity, status, description')
-        .eq('scenario_id', params.id)
+        .eq('scenario_id', scenarioId)
         .eq('actor_id', params.actorId)
 
       const grouped: Record<string, AssetItem[]> = {}
