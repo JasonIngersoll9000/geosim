@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
+import { UserMenu } from '@/components/ui/UserMenu'
 
 type Phase = 'planning' | 'resolution' | 'reaction' | 'judging' | 'complete'
 
@@ -60,7 +61,7 @@ export function TopBar({
         {gameMode}
       </span>
 
-      {/* Right side: turn counter + phase badge */}
+      {/* Right side: turn counter + phase badge + user menu */}
       <div className="ml-auto flex items-center gap-3">
         <span className="font-mono text-xs text-text-tertiary">
           TURN {turnNumber > 0 ? String(turnNumber).padStart(2, "0") : "\u2014"} /{" "}
@@ -69,6 +70,7 @@ export function TopBar({
         <span className="px-2 py-0.5 font-mono text-2xs bg-gold-dim rounded-none border border-gold-border tracking-[0.03em] uppercase">
           <TurnPhaseIndicator phase={toPhase(phase)} />
         </span>
+        <UserMenu />
       </div>
     </div>
   );

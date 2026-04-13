@@ -194,7 +194,6 @@ function buildActorMetrics(
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function GameView({ branchId, scenarioId, initialData }: Props) {
-  useRealtime(branchId)
   const { state, dispatch } = useGame()
   const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, resolutionSummary, reset: resetHook } = useSubmitTurn(scenarioId, branchId)
   const shouldSkip = useReducedMotion()
@@ -227,6 +226,14 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     text: `BRANCH: ${initialData.branch.name} // TURN ${String(initialData.branch.turnNumber).padStart(2, '0')} // PHASE: ${initialData.branch.isTrunk ? 'observer' : 'planning'}`,
     type: 'info',
   }])
+
+  // ── Realtime: observer live-updates ─────────────────────────────────────────
+  // In observer mode (no controlled actors), refresh server data when a new
+  // turn_commits INSERT fires so chronicle + actor state update without reload.
+  const isObserverMode = controlledActors === null || controlledActors.length === 0
+  useRealtime(branchId, {
+    onTurnCommit: isObserverMode ? () => { router.refresh() } : undefined,
+  })
 
   // Viewer identity — derived from controlledActors so both the actor list and
   // dossier slide-over use the same perspective. Null before the user chooses a
