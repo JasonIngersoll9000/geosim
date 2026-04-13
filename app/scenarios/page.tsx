@@ -19,12 +19,15 @@ interface ScenarioSummary {
   branch_count: number
   play_count: number
   rating: number | null
+  actorCount?: number
+  turnNumber?: number | null
+  isActive?: boolean
 }
 
 interface ScenarioDisplay extends ScenarioSummary {
   displayCategory: 'ACTIVE CONFLICTS' | 'HISTORICAL' | 'HYPOTHETICAL'
   classification: 'SECRET' | 'CONFIDENTIAL'
-  status: 'ACTIVE' | 'ARCHIVED'
+  status: 'ACTIVE' | 'ARCHIVED' | 'LIVE'
   actorCount: number
   lastActive: string
   turnNumber?: number
@@ -194,10 +197,11 @@ export default function ScenarioBrowserPage() {
         const mapped: ScenarioDisplay[] = (json.data ?? []).map((s) => ({
           ...s,
           displayCategory: CATEGORY_MAP[s.category] ?? 'HYPOTHETICAL',
-          classification: 'CONFIDENTIAL' as const,
-          status: 'ARCHIVED' as const,
-          actorCount: 0,
-          lastActive: '—',
+          classification: 'SECRET' as const,
+          status: (s.isActive ? 'LIVE' : s.branch_count > 0 ? 'ACTIVE' : 'ARCHIVED') as ScenarioDisplay['status'],
+          actorCount: s.actorCount ?? 0,
+          lastActive: s.turnNumber != null ? `TURN ${s.turnNumber}` : '—',
+          turnNumber: s.turnNumber ?? undefined,
         }))
         setScenarios(mapped)
       } catch (err) {

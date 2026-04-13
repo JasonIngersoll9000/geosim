@@ -49,6 +49,26 @@ Set these as secrets in Replit:
 - Package manager: bun (detected from bun.lock)
 - Workflow: "Start application" runs `bun run dev`
 
+## Data Fetching Architecture
+
+All pages that read `branches` and `turn_commits` must use **server-side API routes** (not the browser Supabase client) because those tables have RLS that blocks the anon key.
+
+| Table | Browser client | Server route |
+|-------|---------------|-------------|
+| `branches` | ❌ RLS blocks | ✅ `/api/branches?scenarioId=` |
+| `turn_commits` | ❌ RLS blocks | ✅ `/api/chronicle/[branchId]` |
+| `scenario_actors` | ✅ works | — |
+| `scenarios` | ✅ works | — |
+
+**Performance note**: `full_briefing` column on `turn_commits` can be 10–15 KB per row. Never select it in list endpoints; only select it when displaying a single turn's detailed briefing.
+
+## Active API Routes (server-side, bypass RLS)
+
+- `GET /api/branches?scenarioId=` — branches + actors for a scenario
+- `GET /api/chronicle/[branchId]` — turn_commits for a branch (no `full_briefing`)
+- `GET /api/scenarios` — enriched scenario list (actorCount, turnNumber, isActive)
+- `GET /api/scenarios/[id]` — single scenario detail
+
 ## GitHub Workflow Rules
 
 - **Never push directly to `main`** — always push to a named feature branch.

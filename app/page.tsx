@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { TopBar } from "@/components/ui/TopBar";
 import { Badge } from "@/components/ui/Badge";
@@ -41,10 +42,72 @@ const inViewItem: Variants = {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+interface FeaturedScenario {
+  id: string
+  name: string
+  description: string
+  latestTurnNumber: number | null
+  latestHeadline: string | null
+  latestNarrative: string | null
+  latestDate: string | null
+  actorLabels: { label: string; color: string }[]
+}
+
+const ACTOR_COLORS: Record<string, string> = {
+  usa: '#4a90d9', irn: '#c0392b', isr: '#ffba20',
+  sau: '#5EBD8E', chn: '#4A90B8', rus: '#9B59B6',
+}
+
+function getColor(code: string) {
+  return ACTOR_COLORS[code.toLowerCase()] ?? '#888'
+}
+
 export default function Home() {
   const shouldSkip = useReducedMotion()
-
   const heroInit = shouldSkip ? "visible" : "hidden"
+
+  const [featured, setFeatured] = useState<FeaturedScenario | null>(null)
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const scenRes = await fetch('/api/scenarios?limit=1')
+        if (!scenRes.ok) return
+        const scenJson = await scenRes.json() as { data: Array<{ id: string; name: string; description: string; actorCount?: number }> }
+        const sc = scenJson.data?.[0]
+        if (!sc) return
+
+        const branchApiRes = await fetch(`/api/branches?scenarioId=${encodeURIComponent(sc.id)}`)
+        if (!branchApiRes.ok) return
+        const branchJson = await branchApiRes.json() as {
+          branches: Array<{ id: string; is_trunk: boolean; turn_commits: Array<{ turn_number: number; simulated_date: string; chronicle_headline?: string; chronicle_entry?: string; narrative_entry?: string }> }>;
+          actors: Array<{ id: string; name: string; short_name: string | null }>;
+        }
+
+        const trunk = branchJson.branches?.find(b => b.is_trunk)
+        const commits = (trunk?.turn_commits ?? []).sort((a, b) => b.turn_number - a.turn_number)
+        const latestCommit = commits[0] ?? null
+
+        const actors = branchJson.actors ?? []
+
+        setFeatured({
+          id: sc.id,
+          name: sc.name,
+          description: sc.description,
+          latestTurnNumber: latestCommit?.turn_number ?? null,
+          latestHeadline: (latestCommit as Record<string, unknown> | null)?.chronicle_headline as string ?? null,
+          latestNarrative: ((latestCommit as Record<string, unknown> | null)?.chronicle_entry ?? (latestCommit as Record<string, unknown> | null)?.narrative_entry) as string ?? null,
+          latestDate: latestCommit?.simulated_date ?? null,
+          actorLabels: actors.slice(0, 5).map(a => ({
+            label: (a.short_name ?? a.name.slice(0, 3)).toUpperCase(),
+            color: getColor(a.short_name ?? a.name.slice(0, 3)),
+          })),
+        })
+      } catch (err) {
+        console.error('[Home] fetch error:', err)
+      }
+    })()
+  }, [])
 
   return (
     <>
@@ -278,7 +341,7 @@ export default function Home() {
           </motion.div>
         </section>
 
-        {/* Iran 2026 Scenario Card */}
+        {/* Featured Scenario Card */}
         <section className="px-8 py-12 max-w-[1100px] mx-auto">
           <div className="flex items-center gap-3 mb-8">
             <span className="inline-block h-px flex-1 bg-[#1a1a1a] max-w-[40px]" />
@@ -308,12 +371,14 @@ export default function Home() {
                 <div className="flex items-center gap-3">
                   <Badge variant="critical">SECRET</Badge>
                   <span className="font-mono text-2xs text-text-tertiary tracking-[0.08em] uppercase">
-                    IRAN 2026 // STRAIT OF HORMUZ
+                    {featured ? featured.name.toUpperCase() : 'IRAN 2026 // STRAIT OF HORMUZ'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-2xs text-text-tertiary">
-                    TURN 03 // ACTIVE
+                    {featured?.latestTurnNumber != null
+                      ? `TURN ${String(featured.latestTurnNumber).padStart(2, '0')} // ACTIVE`
+                      : 'TURN 03 // ACTIVE'}
                   </span>
                   <span
                     className="inline-block w-2 h-2 rounded-full actor-pulse"
@@ -323,31 +388,40 @@ export default function Home() {
               </div>
 
               <h2 className="font-label font-bold text-xl text-text-primary uppercase tracking-[0.02em] mb-1">
-                The Oil War Escalates
+                {featured?.latestHeadline ?? 'The Oil War Escalates'}
               </h2>
               <div className="font-mono text-2xs text-text-tertiary tracking-[0.04em] mb-4">
-                15 MAR 2026 // 14:32 UTC // INTEL BRIEF // SEVERITY: CRITICAL
+                {featured?.latestDate
+                  ? `${new Date(featured.latestDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()} // INTEL BRIEF // SEVERITY: CRITICAL`
+                  : '15 MAR 2026 // 14:32 UTC // INTEL BRIEF // SEVERITY: CRITICAL'}
               </div>
 
               <div className="prose-chronicle max-w-[760px]">
-                Frustrated by the Strait closure,{" "}
-                <strong>US and Israeli</strong> forces pivoted to economic warfare,
-                striking Iran&rsquo;s oil export infrastructure &mdash; Kharg Island
-                terminal, refineries near Abadan.{" "}
-                <strong>Iran</strong> responded in kind with devastating precision.
-                Ballistic missiles struck the <strong>Ras Tanura</strong> complex in
-                Saudi Arabia. The message was unmistakable: if Iran&rsquo;s oil burned,
-                so would everyone else&rsquo;s.
+                {featured?.latestNarrative ?? (
+                  <>
+                    Frustrated by the Strait closure,{" "}
+                    <strong>US and Israeli</strong> forces pivoted to economic warfare,
+                    striking Iran&rsquo;s oil export infrastructure &mdash; Kharg Island
+                    terminal, refineries near Abadan.{" "}
+                    <strong>Iran</strong> responded in kind with devastating precision.
+                    Ballistic missiles struck the <strong>Ras Tanura</strong> complex in
+                    Saudi Arabia. The message was unmistakable: if Iran&rsquo;s oil burned,
+                    so would everyone else&rsquo;s.
+                  </>
+                )}
               </div>
 
               <div className="flex items-center gap-2 mt-5 mb-5">
-                {[
-                  { label: "USA", color: "#4a90d9" },
-                  { label: "IRN", color: "#c0392b" },
-                  { label: "ISR", color: "#ffba20" },
-                  { label: "SAU", color: "#5EBD8E" },
-                  { label: "CHN", color: "#4A90B8" },
-                ].map(({ label, color }) => (
+                {(featured?.actorLabels.length
+                  ? featured.actorLabels
+                  : [
+                      { label: "USA", color: "#4a90d9" },
+                      { label: "IRN", color: "#c0392b" },
+                      { label: "ISR", color: "#ffba20" },
+                      { label: "SAU", color: "#5EBD8E" },
+                      { label: "CHN", color: "#4A90B8" },
+                    ]
+                ).map(({ label, color }) => (
                   <span
                     key={label}
                     className="font-mono text-2xs px-2 py-0.5 border"
@@ -361,7 +435,9 @@ export default function Home() {
                   </span>
                 ))}
                 <span className="font-mono text-2xs text-text-tertiary ml-1">
-                  5 actors // simultaneous resolution
+                  {featured?.actorLabels.length
+                    ? `${featured.actorLabels.length} actors // simultaneous resolution`
+                    : '5 actors // simultaneous resolution'}
                 </span>
               </div>
 
@@ -372,7 +448,7 @@ export default function Home() {
                 <Badge variant="escalation">Rung 7 — Limited War</Badge>
               </div>
 
-              <Link href="/scenarios/iran-2026">
+              <Link href={featured ? `/scenarios/${featured.id}` : '/scenarios/iran-2026'}>
                 <Button variant="primary">Enter Simulation &rarr;</Button>
               </Link>
             </div>

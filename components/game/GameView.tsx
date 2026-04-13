@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useRealtime } from '@/hooks/useRealtime'
 import { useGame } from '@/components/providers/GameProvider'
@@ -118,10 +119,12 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   const { state, dispatch } = useGame()
   const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, reset: resetHook } = useSubmitTurn(scenarioId, branchId)
   const shouldSkip = useReducedMotion()
+  const router = useRouter()
 
   const actorMetrics = buildActorMetrics(initialData.actorDetails)
 
   const [controlledActors, setControlledActors]             = useState<string[] | null>(null)
+  const [forkingBranch, setForkingBranch]                   = useState(false)
   const [activeTab, setActiveTab]                           = useState<PanelTab>('actors')
   const [showObserver, setShowObserver]                     = useState(true)
   const [selectedDecisionDetail, setSelectedDecisionDetail] = useState<DecisionDetail | null>(null)
@@ -239,6 +242,28 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
 
   function handleRemoveConcurrent(id: string) {
     setConcurrentActions(prev => prev.filter(a => a.id !== id))
+  }
+
+  const handleForkNewBranch = async () => {
+    setForkingBranch(true)
+    try {
+      const res = await fetch('/api/branches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenarioId }),
+      })
+      if (res.ok) {
+        const json = await res.json() as { id?: string }
+        if (json.id) {
+          router.push(`/scenarios/${scenarioId}/play/${json.id}`)
+          return
+        }
+      }
+    } catch {
+      // non-fatal
+    } finally {
+      setForkingBranch(false)
+    }
   }
 
   const handleNextGroundTruthEvent = async () => {
@@ -414,7 +439,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
 
           {/* NEXT EVENT button — ground truth observer mode */}
           {isGtMode && (
-            <div className="shrink-0 px-3 pt-2">
+            <div className="shrink-0 px-3 pt-2 flex flex-col gap-1.5">
               <button
                 onClick={handleNextGroundTruthEvent}
                 disabled={!gtHasNext || gtLoading}
@@ -422,6 +447,15 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
               >
                 {gtLoading ? 'LOADING…' : gtHasNext ? 'NEXT EVENT →' : 'END OF TIMELINE'}
               </button>
+              {!gtHasNext && (
+                <button
+                  onClick={() => void handleForkNewBranch()}
+                  disabled={forkingBranch}
+                  className="w-full py-2 font-mono text-xs font-semibold border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {forkingBranch ? 'CREATING BRANCH…' : 'FORK NEW BRANCH →'}
+                </button>
+              )}
             </div>
           )}
 
@@ -435,7 +469,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     </div>
   )
 
-  if (controlledActors === null) {
+  if (controlledActors === null && !isGtMode) {
     return (
       <ActorControlSelector
         actors={initialData.actors}

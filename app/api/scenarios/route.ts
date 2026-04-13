@@ -38,7 +38,49 @@ export async function GET(request: Request) {
     return Response.json({ data: null, error: error.message }, { status: 500 });
   }
 
-  return Response.json({ data, error: null });
+  if (!data || data.length === 0) {
+    return Response.json({ data: [], error: null });
+  }
+
+  const scenarioIds = data.map(s => s.id);
+
+  const [actorCountRes, branchRes] = await Promise.all([
+    supabase
+      .from("scenario_actors")
+      .select("scenario_id")
+      .in("scenario_id", scenarioIds),
+    supabase
+      .from("branches")
+      .select("scenario_id, status, turn_commits(turn_number)")
+      .in("scenario_id", scenarioIds)
+      .eq("is_trunk", true),
+  ]);
+
+  const actorCounts: Record<string, number> = {};
+  for (const row of actorCountRes.data ?? []) {
+    actorCounts[row.scenario_id] = (actorCounts[row.scenario_id] ?? 0) + 1;
+  }
+
+  type BranchWithCommits = { scenario_id: string; status: string; turn_commits: Array<{ turn_number: number }> };
+  const trunkByScenario: Record<string, BranchWithCommits> = {};
+  for (const row of (branchRes.data ?? []) as BranchWithCommits[]) {
+    trunkByScenario[row.scenario_id] = row;
+  }
+
+  const enriched = data.map(s => {
+    const trunk = trunkByScenario[s.id];
+    const commits = trunk?.turn_commits ?? [];
+    const maxTurn = commits.reduce((m, c) => Math.max(m, c.turn_number), 0);
+    const isActive = (s.branch_count ?? 0) > 0 && trunk?.status === 'active';
+    return {
+      ...s,
+      actorCount: actorCounts[s.id] ?? 0,
+      turnNumber: maxTurn > 0 ? maxTurn : null,
+      isActive,
+    };
+  });
+
+  return Response.json({ data: enriched, error: null });
 }
 
 export async function POST(request: Request) {

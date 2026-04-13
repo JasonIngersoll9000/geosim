@@ -16,224 +16,19 @@ import { ActorDetailPanel } from '@/components/panels/ActorDetailPanel'
 import { BranchTree } from '@/components/scenario/BranchTree'
 import type { BranchNode, ActorOption } from '@/components/scenario/BranchTree'
 import type { ActorDetail } from '@/lib/types/panels'
+import type { ChronicleEntry } from '@/lib/types/game-init'
 import { createClient } from '@/lib/supabase/client'
 
-// ─── Actor mock data ──────────────────────────────────────────────────────────
+// ─── Live actor types ─────────────────────────────────────────────────────────
 
-const MOCK_ACTORS = [
-  {
-    id: 'united_states',
-    name: 'United States',
-    escalationRung: 5,
-    status: 'escalating' as const,
-    description: 'Federal republic leading coalition operations. Air campaign active.',
-    metrics: [
-      { label: 'Air Defense', value: '42%' },
-      { label: 'Mil. Readiness', value: '58' },
-    ],
-  },
-  {
-    id: 'iran',
-    name: 'Iran',
-    escalationRung: 6,
-    status: 'critical' as const,
-    description: 'Theocratic republic executing asymmetric attrition strategy.',
-    metrics: [
-      { label: 'Strait Status', value: 'CLOSED' },
-      { label: 'Regime Stab.', value: '68' },
-    ],
-  },
-  {
-    id: 'israel',
-    name: 'Israel',
-    escalationRung: 6,
-    status: 'critical' as const,
-    description: 'Parliamentary democracy on existential footing. Multi-front pressure.',
-    metrics: [
-      { label: 'Pub. Support', value: '71%' },
-      { label: 'Mil. Readiness', value: '74' },
-    ],
-  },
-  {
-    id: 'russia',
-    name: 'Russia',
-    escalationRung: 1,
-    status: 'stable' as const,
-    description: 'Authoritarian state exploiting US overextension. Intel support to Iran.',
-    metrics: [
-      { label: 'Opportunity', value: 'HIGH' },
-      { label: 'Oil Revenue', value: '+38%' },
-    ],
-  },
-  {
-    id: 'china',
-    name: 'China',
-    escalationRung: 1,
-    status: 'stable' as const,
-    description: 'Strategic patience. De-escalating around Taiwan. Passive beneficiary.',
-    metrics: [
-      { label: 'Trade Posture', value: 'NEUTRAL' },
-      { label: 'Oil Access', value: 'SECURE' },
-    ],
-  },
-  {
-    id: 'gulf_states',
-    name: 'Gulf States',
-    escalationRung: 2,
-    status: 'escalating' as const,
-    description: 'UAE, Saudi, Qatar caught in crossfire. Reviewing US alliance commitments.',
-    metrics: [
-      { label: 'Oil Output', value: '−15%' },
-      { label: 'US Alignment', value: 'STRAINED' },
-    ],
-  },
-]
-
-// ─── Actor detail dossier mock data ──────────────────────────────────────────
-
-const MOCK_ACTOR_DETAILS: Record<string, ActorDetail> = {
-  united_states: {
-    id: 'united_states',
-    name: 'United States',
-    escalationRung: 5,
-    briefing:
-      'The United States leads a joint coalition air campaign targeting Iranian nuclear infrastructure. Carrier Strike Group 12 operates from the eastern Mediterranean. Public approval for kinetic operations holding at 52% domestically; coalition partners diverging on escalation tempo.',
-    militaryStrength: 74,
-    economicStrength: 68,
-    politicalStability: 52,
-    objectives: [
-      'Neutralize Iranian nuclear enrichment capability',
-      'Reopen Strait of Hormuz to commercial traffic',
-      'Prevent Hezbollah second-front escalation',
-      'Maintain allied coalition cohesion',
-    ],
-  },
-  iran: {
-    id: 'iran',
-    name: 'Iran',
-    escalationRung: 6,
-    briefing:
-      'IRGC executing asymmetric attrition doctrine. Hormuz closure achieved; economic pressure on adversaries mounting. Fordow facility partially intact. Regime stability under domestic pressure — Revolutionary Guards controlling information environment. Proxy networks in Lebanon and Iraq activating.',
-    militaryStrength: 44,
-    economicStrength: 22,
-    politicalStability: 38,
-    objectives: [
-      'Preserve regime survival at all costs',
-      'Maintain Hormuz closure as leverage',
-      'Activate proxy network for multi-front pressure',
-      'Secure Russian and Chinese diplomatic cover',
-    ],
-  },
-  israel: {
-    id: 'israel',
-    name: 'Israel',
-    escalationRung: 6,
-    briefing:
-      'IDF operating at maximum tempo across Northern Command and Air Force. Nevatim airbase sustained 14 Iranian drone strikes; operational continuity maintained. Public consensus for operations holding. Ben Gurion alternate airlift routing secured through Cyprus.',
-    militaryStrength: 74,
-    economicStrength: 58,
-    politicalStability: 71,
-    objectives: [
-      'Destroy remaining Iranian nuclear sites, including Fordow',
-      'Suppress Hezbollah rocket capability',
-      'Maintain US political and intelligence support',
-      'Prevent coalition fracture over civilian casualties',
-    ],
-  },
-  russia: {
-    id: 'russia',
-    name: 'Russia',
-    escalationRung: 1,
-    briefing:
-      'Kremlin pursuing strategic patience. Oil at $142/bbl generates $4.2B additional monthly revenue. Supplying Iran with electronic warfare and drone countermeasures indirectly. Diplomatic messaging calibrated to extend conflict while avoiding direct involvement.',
-    militaryStrength: 61,
-    economicStrength: 44,
-    politicalStability: 64,
-    objectives: [
-      'Maximize economic benefit from elevated oil prices',
-      'Exhaust US strategic reserves and political capital',
-      'Preserve Iranian state as future leverage point',
-      'Prevent NATO from increasing Eastern Flank readiness',
-    ],
-  },
-  china: {
-    id: 'china',
-    name: 'China',
-    escalationRung: 1,
-    briefing:
-      'Beijing in strategic observation posture. Continuing Iranian oil imports via grey-market tanker fleet. Maintaining Taiwan Strait calm to avoid two-crisis simultaneity. Watching US carrier group redeployment patterns carefully.',
-    militaryStrength: 66,
-    economicStrength: 71,
-    politicalStability: 72,
-    objectives: [
-      'Secure continued Iranian oil supply at discount',
-      'Monitor US force posture for Taiwan assessment',
-      'Support BRICS diplomatic mediation narrative',
-      'Avoid direct involvement triggering sanctions',
-    ],
-  },
-  gulf_states: {
-    id: 'gulf_states',
-    name: 'Gulf States',
-    escalationRung: 2,
-    briefing:
-      'Saudi Arabia, UAE, and Qatar navigating between US alliance obligations and proximity to conflict. Oil output reduced 15% due to insurance and tanker flight. Emergency OPEC+ session ongoing. US base access in Qatar and Bahrain under domestic political review.',
-    militaryStrength: 38,
-    economicStrength: 52,
-    politicalStability: 44,
-    objectives: [
-      'Prevent Iranian proxy attacks on GCC territory',
-      'Maintain oil infrastructure and export continuity',
-      'Negotiate security guarantees from US without escalation',
-      'Preserve economic relationships with China',
-    ],
-  },
+interface LiveActor {
+  id: string
+  name: string
+  escalationRung: number
+  status: 'stable' | 'escalating' | 'critical'
+  description: string
+  metrics: { label: string; value: string }[]
 }
-
-// ─── Timeline mock data ───────────────────────────────────────────────────────
-
-const TIMELINE_ENTRIES = [
-  {
-    turnNumber: 1,
-    date: '4 March 2026',
-    title: 'Operation Epic Fury Launched',
-    narrative:
-      'Joint US-Israeli decapitation strike targeting 14 nuclear facilities. Three sites hardened beyond conventional penetration. Fordow partially intact.',
-    severity: 'critical' as const,
-    tags: ['Military', 'Nuclear'],
-    detail:
-      'B-2 sorties from Diego Garcia, F-35I from Nevatim. Carrier group CVN-73 launched 64 Tomahawks. Fordow bunker penetration failed — requires GBU-57 on second sortie.',
-  },
-  {
-    turnNumber: 2,
-    date: '8 March 2026',
-    title: 'Strait of Hormuz Closed',
-    narrative:
-      'IRGC mining operation closes Hormuz. 22 tankers rerouted. Oil spikes to $142/bbl. Gulf States emergency session convened.',
-    severity: 'critical' as const,
-    tags: ['Economic', 'Military'],
-    detail:
-      'MCM assets deployed. US 5th Fleet estimating 72–96 hours to clear main channel. LNG terminal at Ras Laffan operational.',
-  },
-  {
-    turnNumber: 3,
-    date: '14 March 2026',
-    title: 'Oman Diplomatic Breakthrough',
-    narrative:
-      'Oman announces framework for temporary ceasefire. Iran signals willingness to negotiate Hormuz reopening. US rejects preconditions.',
-    severity: 'major' as const,
-    tags: ['Diplomatic'],
-  },
-  {
-    turnNumber: 4,
-    date: '22 March 2026',
-    title: 'Hezbollah Northern Front Activated',
-    narrative:
-      'Hezbollah launches 340 rockets into northern Israel. Iron Dome at 87% intercept rate. Three civilians killed in Haifa.',
-    severity: 'major' as const,
-    tags: ['Military', 'Escalation'],
-  },
-]
 
 // ─── Branch tree helpers ──────────────────────────────────────────────────────
 
@@ -309,6 +104,12 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
   const [branchRoot, setBranchRoot] = useState<BranchNode | null>(null)
   const [trunkBranchId, setTrunkBranchId] = useState<string | null>(null)
   const [actorOptions, setActorOptions] = useState<ActorOption[]>([])
+  const [liveActors, setLiveActors] = useState<LiveActor[]>([])
+  const [liveActorDetails, setLiveActorDetails] = useState<Record<string, ActorDetail>>({})
+  const [timelineEntries, setTimelineEntries] = useState<ChronicleEntry[]>([])
+  const [scenarioName, setScenarioName] = useState<string>('US–Israel–Iran Conflict')
+  const [scenarioDesc, setScenarioDesc] = useState<string>('Phase 3: Operation Epic Fury — Day 19. Joint US-Israeli decapitation strike launched. Strait of Hormuz closed. Oil at $142/bbl.')
+  const [currentTurn, setCurrentTurn] = useState<number | null>(null)
   const router = useRouter()
   const shouldSkip = useReducedMotion()
 
@@ -325,52 +126,149 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
       .ilike('name', `%${keyword}%`)
       .limit(1)
       .single()
-      .then(({ data }) => {
+      .then(({ data }: { data: { id: string } | null }) => {
         if (data?.id) router.replace(`/scenarios/${data.id}`)
       })
   }, [params.id, router])
 
   useEffect(() => {
-    let supabase: ReturnType<typeof createClient> | null = null
-    try {
-      supabase = createClient()
-    } catch {
-      return
-    }
-    if (!supabase) return
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!UUID_RE.test(params.id)) return
+
     void (async () => {
-      const [branchRes, actorRes] = await Promise.all([
-        supabase
-          .from('branches')
-          .select('id, name, is_trunk, status, head_commit_id, created_at, parent_branch_id, turn_commits(turn_number, simulated_date)')
-          .eq('scenario_id', params.id)
-          .order('created_at', { ascending: true }),
-        supabase
-          .from('actors')
-          .select('id, name, country_code')
-          .eq('scenario_id', params.id),
-      ])
-      if (branchRes.data && branchRes.data.length > 0) {
-        const rows = branchRes.data as unknown as BranchRow[]
-        const tree = buildBranchTree(rows)
-        if (tree) setBranchRoot(tree)
-        const trunk = rows.find(r => r.is_trunk)
-        if (trunk) setTrunkBranchId(trunk.id)
+      // 1. Branches + actor list — server-side API bypasses RLS
+      const branchApiRes = await fetch(`/api/branches?scenarioId=${params.id}`)
+      let trunkId: string | null = null
+      if (branchApiRes.ok) {
+        const branchJson = await branchApiRes.json() as {
+          branches: BranchRow[];
+          actors: Array<{ id: string; name: string; short_name: string }>;
+        }
+
+        const rows = branchJson.branches ?? []
+        if (rows.length > 0) {
+          const tree = buildBranchTree(rows)
+          if (tree) setBranchRoot(tree)
+          const trunk = rows.find(r => r.is_trunk)
+          if (trunk) {
+            setTrunkBranchId(trunk.id)
+            trunkId = trunk.id
+            const commits = trunk.turn_commits ?? []
+            const maxTurn = commits.reduce((m: number, c: { turn_number: number }) => Math.max(m, c.turn_number), 0)
+            if (maxTurn > 0) setCurrentTurn(maxTurn)
+          }
+        }
+
+        const actors = branchJson.actors ?? []
+        if (actors.length > 0) {
+          setActorOptions(actors.map(a => ({
+            id: a.id,
+            name: a.name,
+            flag: (a.short_name ?? a.name.slice(0, 3)).toUpperCase(),
+          })))
+        }
       }
-      if (actorRes.data) {
-        setActorOptions(
-          actorRes.data.map((a: Record<string, unknown>) => ({
-            id: a.id as string,
-            name: a.name as string,
-            flag: ((a.country_code as string | null) ?? (a.name as string).slice(0, 3)).toUpperCase(),
-          }))
-        )
+
+      // 2. Scenario name + description + detailed actor data — browser client (no RLS on these)
+      let supabase: ReturnType<typeof createClient> | null = null
+      try { supabase = createClient() } catch { /* ignore */ }
+      if (supabase) {
+        const sb = supabase
+        const [scenarioActorRes, scenarioRes] = await Promise.all([
+          sb
+            .from('scenario_actors')
+            .select('id, name, short_name, biographical_summary, win_condition, strategic_doctrine, historical_precedents, initial_scores, leadership_profile')
+            .eq('scenario_id', params.id),
+          sb
+            .from('scenarios')
+            .select('id, name, description')
+            .eq('id', params.id)
+            .single(),
+        ])
+
+        if (scenarioRes.data) {
+          setScenarioName(scenarioRes.data.name)
+          if (scenarioRes.data.description) setScenarioDesc(scenarioRes.data.description)
+        }
+
+        if (scenarioActorRes.data && scenarioActorRes.data.length > 0) {
+          const actorRows = scenarioActorRes.data as Array<{
+            id: string; name: string; short_name: string; biographical_summary: string;
+            win_condition: string; strategic_doctrine: string; historical_precedents: string;
+            initial_scores: Record<string, number>; leadership_profile: string;
+          }>
+
+          const actorDetails: Record<string, ActorDetail> = {}
+          const live: LiveActor[] = actorRows.map(a => {
+            const scores = a.initial_scores ?? {}
+            const milScore = typeof scores.military_strength === 'number' ? scores.military_strength : 50
+            const ecoScore = typeof scores.economic_strength === 'number' ? scores.economic_strength : 50
+            const polScore = typeof scores.political_stability === 'number' ? scores.political_stability : 50
+            const rung = typeof scores.escalation_rung === 'number' ? scores.escalation_rung : 1
+            const status: 'stable' | 'escalating' | 'critical' = rung >= 6 ? 'critical' : rung >= 3 ? 'escalating' : 'stable'
+
+            actorDetails[a.id] = {
+              id: a.id,
+              name: a.name,
+              escalationRung: rung,
+              briefing: a.biographical_summary,
+              militaryStrength: milScore,
+              economicStrength: ecoScore,
+              politicalStability: polScore,
+              objectives: a.win_condition
+                ? a.win_condition.split(/\n|•|–|-/).map((s: string) => s.trim()).filter((s: string) => s.length > 10)
+                : [],
+              leadershipProfile: a.leadership_profile,
+              strategicDoctrine: a.strategic_doctrine,
+              historicalPrecedents: a.historical_precedents,
+            }
+
+            return {
+              id: a.id,
+              name: a.name,
+              escalationRung: rung,
+              status,
+              description: a.biographical_summary?.slice(0, 120) ?? '',
+              metrics: [
+                { label: 'Mil. Readiness', value: String(milScore) },
+                { label: 'Eco. Strength', value: String(ecoScore) },
+              ],
+            }
+          })
+
+          setLiveActors(live)
+          setLiveActorDetails(actorDetails)
+        }
+      }
+
+      // 3. Timeline — use chronicle API (server-side, bypasses RLS)
+      if (trunkId) {
+        const chronicleRes = await fetch(`/api/chronicle/${trunkId}`)
+        if (chronicleRes.ok) {
+          const chronicleJson = await chronicleRes.json() as {
+            commits: Array<{
+              turn_number: number; simulated_date: string;
+              chronicle_headline: string | null; chronicle_entry: string | null; narrative_entry: string | null;
+            }>;
+          }
+          const rows = chronicleJson.commits ?? []
+          if (rows.length > 0) {
+            setTimelineEntries(rows.map(c => ({
+              turnNumber: c.turn_number,
+              date: c.simulated_date,
+              title: c.chronicle_headline ?? `Turn ${c.turn_number}`,
+              narrative: c.chronicle_entry ?? c.narrative_entry ?? '',
+              severity: 'major' as const,
+              tags: [],
+            })))
+          }
+        }
       }
     })()
   }, [params.id])
 
   function openDossier(actorId: string) {
-    const detail = MOCK_ACTOR_DETAILS[actorId] ?? null
+    const detail = liveActorDetails[actorId] ?? null
     if (detail) {
       setSelectedActor(detail)
       setPanelOpen(true)
@@ -408,7 +306,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
   return (
     <>
       <ClassificationBanner classification="TOP SECRET // NOFORN // IRAN-CONFLICT" />
-      <TopBar scenarioName="US-ISRAEL-IRAN CONFLICT 2025-2026" />
+      <TopBar scenarioName={scenarioName.toUpperCase()} />
 
       <main className="pt-[66px] bg-bg-base min-h-screen">
         <div className="max-w-5xl mx-auto px-5 py-4">
@@ -443,38 +341,50 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               <Badge variant="critical">SECRET</Badge>
               <Badge variant="military">ACTIVE CONFLICT</Badge>
-              <span className="font-mono text-2xs text-text-tertiary ml-auto tracking-[0.04em] uppercase">
-                TURN 03{' // '}ACTIVE
-              </span>
+              {currentTurn && (
+                <span className="font-mono text-2xs text-text-tertiary ml-auto tracking-[0.04em] uppercase">
+                  TURN {String(currentTurn).padStart(2, '0')}{' // '}ACTIVE
+                </span>
+              )}
             </div>
 
             <h1 className="font-label font-bold text-xl text-text-primary uppercase tracking-[0.04em] mb-2 leading-[1.2]">
-              US–Israel–Iran Conflict
+              {scenarioName}
             </h1>
             <p className="font-serif text-base text-text-secondary leading-[1.75] mb-4 max-w-3xl">
-              Phase 3: Operation Epic Fury — Day 19. Joint US-Israeli decapitation
-              strike launched one day after Oman announced a diplomatic breakthrough.
-              Strait of Hormuz closed. Oil at $142/bbl. Nuclear constraint cascade forming.
+              {scenarioDesc}
             </p>
 
-            {/* Actor strip */}
+            {/* Actor strip — live from Supabase, fall back to known actors */}
             <div className="flex items-center gap-1.5 mb-4 flex-wrap">
-              {[
-                { label: 'USA', color: '#4a90d9' },
-                { label: 'IRN', color: '#c0392b' },
-                { label: 'ISR', color: '#ffba20' },
-                { label: 'SAU', color: '#5EBD8E' },
-                { label: 'CHN', color: '#4A90B8' },
-                { label: 'RUS', color: '#9B59B6' },
-              ].map(({ label, color }) => (
-                <span
-                  key={label}
-                  className="font-mono text-2xs px-2 py-0.5 border"
-                  style={{ color, borderColor: `${color}40`, background: `${color}12` }}
-                >
-                  {label}
-                </span>
-              ))}
+              {(actorOptions.length > 0 ? actorOptions : [
+                { id: 'usa', name: 'United States', flag: 'USA' },
+                { id: 'irn', name: 'Iran', flag: 'IRN' },
+                { id: 'isr', name: 'Israel', flag: 'ISR' },
+                { id: 'sau', name: 'Saudi Arabia', flag: 'SAU' },
+                { id: 'chn', name: 'China', flag: 'CHN' },
+                { id: 'rus', name: 'Russia', flag: 'RUS' },
+              ]).map((a) => {
+                const ACTOR_COLORS: Record<string, string> = {
+                  usa: '#4a90d9', us: '#4a90d9', united_states: '#4a90d9',
+                  irn: '#c0392b', iran: '#c0392b',
+                  isr: '#ffba20', israel: '#ffba20',
+                  sau: '#5EBD8E', saudi_arabia: '#5EBD8E',
+                  chn: '#4A90B8', china: '#4A90B8',
+                  rus: '#9B59B6', russia: '#9B59B6',
+                }
+                const label = a.flag.slice(0, 3).toUpperCase()
+                const color = ACTOR_COLORS[a.id.toLowerCase()] ?? '#8a8880'
+                return (
+                  <span
+                    key={a.id}
+                    className="font-mono text-2xs px-2 py-0.5 border"
+                    style={{ color, borderColor: `${color}40`, background: `${color}12` }}
+                  >
+                    {label}
+                  </span>
+                )
+              })}
             </div>
 
             {/* Actions */}
@@ -486,7 +396,19 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
               >
                 Observe — AI vs AI
               </Button>
-              <Button variant="ghost" className="text-[11px] py-1.5 opacity-50 cursor-not-allowed" disabled title="Coming soon">
+              <Button
+                variant="ghost"
+                className="text-[11px] py-1.5"
+                onClick={() => void handleStartNewBranch()}
+                disabled={creatingBranch}
+              >
+                {creatingBranch ? 'Creating...' : '+ Play as Actor →'}
+              </Button>
+              <Button
+                variant="ghost"
+                className="text-[11px] py-1.5"
+                onClick={() => router.push(`/scenarios/${params.id}/branches`)}
+              >
                 Browse Branches
               </Button>
             </div>
@@ -597,13 +519,17 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
                 exit="exit"
                 className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
               >
-                {MOCK_ACTORS.map((actor) => (
+                {liveActors.length > 0 ? liveActors.map((actor) => (
                   <ActorCard
                     key={actor.id}
                     actor={actor}
                     onViewDossier={() => openDossier(actor.id)}
                   />
-                ))}
+                )) : (
+                  <p className="col-span-3 font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em] py-4">
+                    Loading actors...
+                  </p>
+                )}
               </motion.div>
             ) : (
               <motion.div
@@ -613,7 +539,13 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
                 animate="visible"
                 exit="exit"
               >
-                <ChronicleTimeline entries={TIMELINE_ENTRIES} />
+                {timelineEntries.length > 0 ? (
+                  <ChronicleTimeline entries={timelineEntries} />
+                ) : (
+                  <p className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em] py-4">
+                    Loading timeline...
+                  </p>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

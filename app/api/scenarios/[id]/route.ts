@@ -9,7 +9,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("scenarios")
-    .select("*, actors(*), branches(*)")
+    .select("*")
     .eq("id", id)
     .single();
 
