@@ -233,7 +233,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   // In observer mode (no controlled actors), refresh server data when a new
   // turn_commits INSERT fires so chronicle + actor state update without reload.
   const isObserverMode = controlledActors === null || controlledActors.length === 0
-  useRealtime(branchId, {
+  const { status: realtimeStatus } = useRealtime(branchId, {
     onTurnCommit: isObserverMode
       ? (payload) => {
           // Directly update client state from the realtime payload so new
@@ -518,6 +518,22 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
                 [{user.email.split('@')[0]?.toUpperCase()}]
               </span>
             )}
+          </span>
+        )}
+        {/* Realtime connection status — visible in observer mode */}
+        {isObserverMode && (
+          <span className={`shrink-0 font-mono text-[8px] uppercase tracking-[0.08em] ${
+            componentViewerActorId ? '' : 'ml-auto'
+          } ${
+            realtimeStatus === 'connected'    ? 'text-status-stable'   :
+            realtimeStatus === 'error'        ? 'text-status-critical' :
+            realtimeStatus === 'disconnected' ? 'text-text-tertiary'   :
+            'text-text-tertiary animate-pulse'
+          }`}>
+            {realtimeStatus === 'connected'    ? '● LIVE'         :
+             realtimeStatus === 'error'        ? '● RT ERROR'     :
+             realtimeStatus === 'disconnected' ? '○ OFFLINE'      :
+             '○ CONNECTING'}
           </span>
         )}
       </div>
