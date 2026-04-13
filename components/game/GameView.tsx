@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useRealtime } from '@/hooks/useRealtime'
+import { useUser } from '@/hooks/useUser'
 import { useGame } from '@/components/providers/GameProvider'
 import { useSubmitTurn } from '@/hooks/useSubmitTurn'
 import { GameLayout } from '@/components/layout/GameLayout'
@@ -198,6 +199,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, resolutionSummary, reset: resetHook } = useSubmitTurn(scenarioId, branchId)
   const shouldSkip = useReducedMotion()
   const router = useRouter()
+  const { user } = useUser()
 
   const actorMetrics = buildActorMetrics(initialData.actorDetails)
 
@@ -232,7 +234,33 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   // turn_commits INSERT fires so chronicle + actor state update without reload.
   const isObserverMode = controlledActors === null || controlledActors.length === 0
   useRealtime(branchId, {
-    onTurnCommit: isObserverMode ? () => { router.refresh() } : undefined,
+    onTurnCommit: isObserverMode
+      ? (payload) => {
+          // Directly update client state from the realtime payload so new
+          // chronicle entries appear immediately without waiting for a
+          // full page re-render (router.refresh updates server components
+          // but doesn't reset initialized client state).
+          const newEntry: ChronicleEntry = {
+            turnNumber: payload.turn_number,
+            date:       payload.simulated_date ?? new Date().toISOString().slice(0, 10),
+            title:      payload.chronicle_headline ?? `Turn ${payload.turn_number}`,
+            narrative:  payload.chronicle_entry ?? payload.narrative_entry ?? 'Turn resolved.',
+            detail:     payload.chronicle_entry && payload.narrative_entry
+              ? payload.narrative_entry
+              : undefined,
+            severity: 'major',
+            tags: [],
+          }
+          setChronicleEntries(prev => {
+            // Avoid duplicate entries if the commit was already appended locally
+            const exists = prev.some(e => e.turnNumber === payload.turn_number)
+            return exists ? prev : [...prev, newEntry]
+          })
+          setTurnNumber(payload.turn_number)
+          // Also refresh server components (actor scores, branch state, etc.)
+          router.refresh()
+        }
+      : undefined,
   })
 
   // Viewer identity — derived from controlledActors so both the actor list and
@@ -469,15 +497,29 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   const panelContent = (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
       {/* Global indicators bar */}
-      <div className="flex items-center gap-4 px-4 py-2 bg-bg-surface-dim border-b border-border-subtle font-mono text-2xs shrink-0">
-        <span className="text-text-tertiary">OIL: <span className="text-status-critical">{oilPriceUsd !== null ? `$${oilPriceUsd}/bbl` : '—'}</span></span>
-        <span className="text-text-tertiary">
+      <div className="flex items-center gap-4 px-4 py-2 bg-bg-surface-dim border-b border-border-subtle font-mono text-2xs shrink-0 overflow-x-auto">
+        <span className="text-text-tertiary shrink-0">OIL: <span className="text-status-critical">{oilPriceUsd !== null ? `$${oilPriceUsd}/bbl` : '—'}</span></span>
+        <span className="text-text-tertiary shrink-0">
           TURN: <span className="text-text-secondary">{String(turnNumber).padStart(2, '0')} / 12</span>
         </span>
-        <span className="text-text-tertiary">
+        <span className="text-text-tertiary shrink-0">
           PHASE: <TurnPhaseIndicator phase={state.turnPhase || 'planning'} />
         </span>
-        <span className="text-text-tertiary">ESCALATION: <span className="text-status-critical">{maxEscalationRung > 0 ? `RUNG ${maxEscalationRung}` : '—'}</span></span>
+        <span className="text-text-tertiary shrink-0">ESCALATION: <span className="text-status-critical">{maxEscalationRung > 0 ? `RUNG ${maxEscalationRung}` : '—'}</span></span>
+        {/* User actor assignment — shows when user has chosen an actor to control */}
+        {componentViewerActorId && (
+          <span className="text-text-tertiary shrink-0 ml-auto">
+            PLAYING:{' '}
+            <span className="text-gold">
+              {initialData.actors.find(a => a.id === componentViewerActorId)?.shortName ?? componentViewerActorId.toUpperCase()}
+            </span>
+            {user?.email && (
+              <span className="text-text-tertiary ml-1">
+                [{user.email.split('@')[0]?.toUpperCase()}]
+              </span>
+            )}
+          </span>
+        )}
       </div>
 
       {/* ── Terminal mode: full panel DispatchTerminal during resolution ── */}

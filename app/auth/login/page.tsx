@@ -1,13 +1,21 @@
 'use client'
-import { useState, useEffect, Suspense } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
+/** Sanitize redirect URL — only allow same-origin relative paths. */
+function sanitizeRedirect(raw: string | null): string {
+  if (!raw) return '/scenarios'
+  // Must start with '/' but not '//' (protocol-relative) to be relative
+  if (raw.startsWith('/') && !raw.startsWith('//')) return raw
+  return '/scenarios'
+}
+
 function LoginForm() {
-  const router      = useRouter()
-  const params      = useSearchParams()
-  const redirectTo  = params.get('redirect') ?? '/scenarios'
+  const router     = useRouter()
+  const params     = useSearchParams()
+  const redirectTo = sanitizeRedirect(params.get('redirect'))
 
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
