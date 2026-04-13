@@ -12,10 +12,8 @@ import { DecisionCatalog } from '@/components/panels/DecisionCatalog'
 import { DecisionDetailPanel } from '@/components/panels/DecisionDetailPanel'
 import { TurnPlanBuilder } from '@/components/panels/TurnPlanBuilder'
 import { ChronicleTimeline } from '@/components/chronicle/ChronicleTimeline'
-import { EventsTab } from '@/components/panels/EventsTab'
 import { ActorControlSelector } from '@/components/game/ActorControlSelector'
 import { DispatchTerminal } from '@/components/game/DispatchTerminal'
-import { ResearchUpdatePanel } from '@/components/game/ResearchUpdatePanel'
 import { ObserverOverlay } from '@/components/panels/ObserverOverlay'
 import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
 import { ProgressBar } from '@/components/ui/ProgressBar'
@@ -357,7 +355,9 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
           >
-            {PANEL_TABS.map(({ id, label }) => (
+            {PANEL_TABS
+              .filter(({ id }) => !(isGtMode && id === 'decisions'))
+              .map(({ id, label }) => (
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
@@ -382,7 +382,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
                 onSelect={(id) => dispatch({ type: 'SELECT_ACTOR', payload: id })}
               />
             )}
-            {activeTab === 'decisions' && (
+            {activeTab === 'decisions' && !isGtMode && (
               <DecisionCatalog
                 decisions={initialData.decisions}
                 onSelect={handleDecisionSelect}
@@ -391,15 +391,15 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
               />
             )}
             {activeTab === 'events' && (
-              <EventsTab resolution={null} />
+              <ChronicleTimeline entries={chronicleEntries} />
             )}
             {activeTab === 'chronicle' && (
               <ChronicleTimeline entries={chronicleEntries} />
             )}
           </div>
 
-          {/* Turn plan builder — fixed at bottom when on decisions tab */}
-          {activeTab === 'decisions' && (
+          {/* Turn plan builder — fixed at bottom when on decisions tab (not in GT mode) */}
+          {activeTab === 'decisions' && !isGtMode && (
             <div className="shrink-0">
               <TurnPlanBuilder
                 primaryAction={primaryAction}
@@ -430,10 +430,6 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             <DispatchTerminal lines={dispatchLines} isRunning={false} />
           </div>
 
-          {/* Ground truth research panel */}
-          <div className="shrink-0 p-3 border-t border-border-subtle">
-            <ResearchUpdatePanel scenarioId={scenarioId} />
-          </div>
         </>
       )}
     </div>

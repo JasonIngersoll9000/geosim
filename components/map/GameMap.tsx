@@ -91,6 +91,10 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
     setSelectedAssetId(asset.id)
   }
 
+  function handleMapAssetClick(asset: MapAsset) {
+    setSelectedAssetId(asset.id)
+  }
+
   function handleExpand(asset: PositionedAsset) {
     setPopupAsset(null)
     setSelectedAsset(asset)
@@ -138,6 +142,8 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
             onAssetClick={handleAssetClick}
             cities={cities}
             onCityClick={handleCityClick}
+            mapAssets={mapAssets}
+            onMapAssetClick={handleMapAssetClick}
           />
           {popupAsset && (
             <div style={{ position: 'absolute', top: '30%', left: '30%', zIndex: 50 }}>
@@ -277,7 +283,7 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
       )}
 
       {/* ── Actor status panel ── */}
-      <div style={{ position: 'absolute', bottom: 28, left: 10, zIndex: 40 }}>
+      <div style={{ position: 'absolute', bottom: 28, right: 10, zIndex: 40 }}>
         <ActorStatusPanel isGroundTruth={true} />
       </div>
 

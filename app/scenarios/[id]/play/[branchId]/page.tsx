@@ -4,6 +4,7 @@ import { TopBar } from '@/components/ui/TopBar'
 import { GameProvider } from '@/components/providers/GameProvider'
 import { GameView } from '@/components/game/GameView'
 import { createClient } from '@/lib/supabase/server'
+import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
 import { getStateAtTurn } from '@/lib/game/state-engine'
 import { IRAN_DECISIONS, IRAN_DECISION_DETAILS } from '@/lib/game/iran-decisions'
 import type { GameInitialData, ChronicleEntry, GroundTruthCommit } from '@/lib/types/game-init'
@@ -27,11 +28,14 @@ export default async function PlayPage({ params }: Props) {
 
   const supabase = await createClient()
 
+  // 0. Resolve scenario slug → UUID
+  const scenarioId = await resolveScenarioId(supabase, params.id)
+
   // 1. Fetch scenario metadata (classification column does not exist in live schema)
   const { data: scenario } = await supabase
     .from('scenarios')
     .select('id, name')
-    .eq('id', params.id)
+    .eq('id', scenarioId)
     .single()
 
   // 2. Fetch branch record — support "trunk" slug by looking up is_trunk branch
@@ -49,7 +53,7 @@ export default async function PlayPage({ params }: Props) {
     const { data } = await supabase
       .from('branches')
       .select('id, name, is_trunk, head_commit_id')
-      .eq('scenario_id', params.id)
+      .eq('scenario_id', scenarioId)
       .eq('is_trunk', true)
       .single()
     branchData = data
@@ -60,7 +64,7 @@ export default async function PlayPage({ params }: Props) {
   const { data: actorRows } = await supabase
     .from('scenario_actors')
     .select('id, name, biographical_summary, leadership_profile, win_condition, strategic_doctrine, historical_precedents, initial_scores, intelligence_profile')
-    .eq('scenario_id', scenario?.id ?? params.id)
+    .eq('scenario_id', scenarioId)
 
   // 4. Fetch current state via state engine
   let currentState = null
