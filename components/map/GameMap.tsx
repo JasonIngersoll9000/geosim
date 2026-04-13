@@ -1,17 +1,19 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { FloatingMetricChip } from './FloatingMetricChip'
 import { MapLegend } from './MapLegend'
 import { MapLayerControls } from './MapLayerControls'
 import { AssetDetailPanel } from './AssetDetailPanel'
-import { AssetInfoPanel } from './AssetInfoPanel'
 import { AssetPopup } from './AssetPopup'
 import { CityPopup } from './CityPopup'
 import { CityDetailPanel } from './CityDetailPanel'
+import { MapAssetPopup } from './MapAssetPopup'
+import { ChokepointPopup } from './ChokepointPopup'
+import type { ChokepointId, ChokepointInfo } from './ChokepointPopup'
 import { ActorStatusPanel } from '@/components/game/ActorStatusPanel'
 import type { LayerState } from './MapLayerControls'
-import type { GlobalState, MapAsset, PositionedAsset, City } from '@/lib/types/simulation'
+import type { GlobalState, MapAsset, PositionedAsset, City, ShippingLane } from '@/lib/types/simulation'
 
 const MapboxMap = dynamic(
   () => import('./MapboxMap').then(m => ({ default: m.MapboxMap })),
@@ -51,11 +53,24 @@ interface Props {
   turnCommitId?: string | null
 }
 
+interface MapAssetSelection {
+  asset: MapAsset
+  screenX: number
+  screenY: number
+}
+
+function laneStatus(pct: number): ChokepointInfo['status'] {
+  if (pct <= 20) return 'blocked'
+  if (pct <= 70) return 'contested'
+  return 'open'
+}
+
 export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', turnCommitId = null }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const [layers, setLayers] = useState<LayerState>(DEFAULT_LAYERS)
   const [assets, _setAssets] = useState<PositionedAsset[]>([])
   const [mapAssets, setMapAssets] = useState<MapAsset[]>([])
-  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
+  const [shippingLanes, setShippingLanes] = useState<ShippingLane[]>([])
   const [selectedAsset, setSelectedAsset] = useState<PositionedAsset | null>(null)
   const [popupAsset, setPopupAsset] = useState<PositionedAsset | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
@@ -63,16 +78,17 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
   const [selectedCity, setSelectedCity] = useState<City | null>(null)
   const [cityPopup, setCityPopup] = useState<City | null>(null)
   const [cityDetailOpen, setCityDetailOpen] = useState(false)
-
-  const selectedMapAsset = mapAssets.find(a => a.id === selectedAssetId) ?? null
+  const [mapAssetSelection, setMapAssetSelection] = useState<MapAssetSelection | null>(null)
+  const [chokepointPopup, setChokepointPopup] = useState<ChokepointInfo | null>(null)
 
   useEffect(() => {
     if (!branchId || !turnCommitId) return
     const url = `/api/scenarios/${scenarioId}/branches/${branchId}/map-assets?turnCommitId=${turnCommitId}`
     fetch(url)
       .then(r => r.json())
-      .then(({ data }: { data: { assets?: MapAsset[] } | null }) => {
-        if (data?.assets) setMapAssets(data.assets)
+      .then(({ data }: { data: { assets?: MapAsset[]; shipping_lanes?: ShippingLane[] } | null }) => {
+        if (data?.assets)        setMapAssets(data.assets)
+        if (data?.shipping_lanes) setShippingLanes(data.shipping_lanes)
       })
       .catch(() => {})
   }, [scenarioId, branchId, turnCommitId])
@@ -86,13 +102,35 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
   }, [scenarioId])
 
   function handleAssetClick(asset: PositionedAsset) {
+    setMapAssetSelection(null)
+    setChokepointPopup(null)
     setPopupAsset(asset)
     setSelectedAsset(asset)
-    setSelectedAssetId(asset.id)
   }
 
-  function handleMapAssetClick(asset: MapAsset) {
-    setSelectedAssetId(asset.id)
+  function handleMapAssetClick(asset: MapAsset, screenPos: { x: number; y: number }) {
+    setPopupAsset(null)
+    setChokepointPopup(null)
+    setMapAssetSelection({ asset, screenX: screenPos.x, screenY: screenPos.y })
+  }
+
+  function handleChokepointClick(id: ChokepointId, screenPos: { x: number; y: number }) {
+    setPopupAsset(null)
+    setMapAssetSelection(null)
+    const hormuzLane   = shippingLanes.find(l => l.id === 'strait_of_hormuz')
+    const babLane      = shippingLanes.find(l => l.id === 'bab_el_mandeb')
+    const isHormuz     = id === 'strait_of_hormuz'
+    const lane         = isHormuz ? hormuzLane : babLane
+    const throughput   = lane?.throughput_pct
+    const status       = throughput != null ? laneStatus(throughput) : (isHormuz ? 'contested' : 'contested')
+    setChokepointPopup({
+      id,
+      label:          isHormuz ? 'STRAIT OF HORMUZ' : 'BAB-EL-MANDEB',
+      status,
+      throughput_pct: throughput,
+      screenX:        screenPos.x,
+      screenY:        screenPos.y,
+    })
   }
 
   function handleExpand(asset: PositionedAsset) {
@@ -102,6 +140,8 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
   }
 
   function handleCityClick(city: City) {
+    setMapAssetSelection(null)
+    setChokepointPopup(null)
     setCityPopup(city)
     setSelectedCity(city)
   }
@@ -112,24 +152,24 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
     setCityDetailOpen(true)
   }
 
-  const oilPrice   = globalState?.oilPricePerBarrel ?? 142
+  const oilPrice    = globalState?.oilPricePerBarrel ?? 142
   const oilCritical = oilPrice > 120
 
-  const hormuzAsset = globalState?.criticalAssets?.find(a =>
-    a.name.toLowerCase().includes('hormuz')
-  )
-  const hormuzClosed = hormuzAsset
-    ? hormuzAsset.currentStatus.toLowerCase().includes('clos')
-    : true
+  // Live Hormuz status from shipping lanes; fall back to globalState if unavailable
+  const hormuzLane   = shippingLanes.find(l => l.id === 'strait_of_hormuz')
+  const hormuzClosed = hormuzLane != null
+    ? laneStatus(hormuzLane.throughput_pct) === 'blocked'
+    : (globalState?.criticalAssets?.find(a => a.name.toLowerCase().includes('hormuz'))?.currentStatus.toLowerCase().includes('clos') ?? true)
 
-  const _hormuzStatus: 'open' | 'contested' | 'blocked' = hormuzClosed ? 'blocked' : 'contested'
+  const containerW = containerRef.current?.offsetWidth  ?? 800
+  const containerH = containerRef.current?.offsetHeight ?? 600
 
   function toggleLayer(key: keyof LayerState) {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
   return (
-    <div className="relative w-full h-full" style={{ background: '#050A12' }}>
+    <div ref={containerRef} className="relative w-full h-full" style={{ background: '#050A12' }}>
 
       {/* ── Map layer ── */}
       {TOKEN ? (
@@ -144,12 +184,38 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
             onCityClick={handleCityClick}
             mapAssets={mapAssets}
             onMapAssetClick={handleMapAssetClick}
+            onChokepointClick={handleChokepointClick}
           />
+
+          {/* PositionedAsset popup (legacy path) */}
           {popupAsset && (
             <div style={{ position: 'absolute', top: '30%', left: '30%', zIndex: 50 }}>
               <AssetPopup asset={popupAsset} onExpand={handleExpand} onClose={() => setPopupAsset(null)} />
             </div>
           )}
+
+          {/* MapAsset popup card (positioned at asset screen coords) */}
+          {mapAssetSelection && (
+            <MapAssetPopup
+              asset={mapAssetSelection.asset}
+              screenX={mapAssetSelection.screenX}
+              screenY={mapAssetSelection.screenY}
+              containerWidth={containerW}
+              containerHeight={containerH}
+              onClose={() => setMapAssetSelection(null)}
+            />
+          )}
+
+          {/* Chokepoint popup card */}
+          {chokepointPopup && (
+            <ChokepointPopup
+              chokepoint={chokepointPopup}
+              containerWidth={containerW}
+              containerHeight={containerH}
+              onClose={() => setChokepointPopup(null)}
+            />
+          )}
+
           {cityPopup && (
             <div style={{ position: 'absolute', top: '35%', left: '32%', zIndex: 50 }}>
               <CityPopup city={cityPopup} onExpand={handleCityExpand} onClose={() => setCityPopup(null)} />
@@ -198,7 +264,6 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
               </div>
             </div>
           </div>
-          {/* Placeholder chokepoint overlays */}
           <div
             className="absolute font-mono text-[9px] px-2 py-[2px] border"
             style={{
@@ -267,20 +332,12 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
         <MapLayerControls layers={layers} onToggle={toggleLayer} />
       )}
 
-      {/* ── Asset detail panel ── */}
+      {/* ── Asset detail panel (full slide-out) ── */}
       <AssetDetailPanel
         asset={selectedAsset}
         isOpen={detailOpen}
         onClose={() => { setDetailOpen(false); setSelectedAsset(null) }}
       />
-
-      {/* ── Asset info panel (map-assets click-to-inspect) ── */}
-      {selectedMapAsset && (
-        <AssetInfoPanel
-          asset={selectedMapAsset}
-          onClose={() => setSelectedAssetId(null)}
-        />
-      )}
 
       {/* ── Actor status panel ── */}
       <div style={{ position: 'absolute', bottom: 28, right: 10, zIndex: 40 }}>

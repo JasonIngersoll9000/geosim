@@ -4,6 +4,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { LayerState } from './MapLayerControls'
 import type { PositionedAsset, City, MapAsset } from '@/lib/types/simulation'
+import type { ChokepointId } from './ChokepointPopup'
 import { createAssetMarkerElement } from './AssetMarker'
 import { createCityMarkerElement } from './CityMarker'
 
@@ -76,6 +77,8 @@ const _CUSTOM_LAYER_IDS = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+interface ScreenPos { x: number; y: number }
+
 interface Props {
   hormuzClosed: boolean
   layerState: LayerState
@@ -85,19 +88,23 @@ interface Props {
   cities?: City[]
   onCityClick?: (city: City) => void
   mapAssets?: MapAsset[]
-  onMapAssetClick?: (asset: MapAsset) => void
+  onMapAssetClick?: (asset: MapAsset, screenPos: ScreenPos) => void
+  onChokepointClick?: (id: ChokepointId, screenPos: ScreenPos) => void
 }
 
-export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, onAssetClick, cities, onCityClick, mapAssets, onMapAssetClick }: Props) {
+export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, onAssetClick, cities, onCityClick, mapAssets, onMapAssetClick, onChokepointClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const hormuzClosedRef = useRef(hormuzClosed)
   const layerStateRef = useRef(layerState)
+  const onChokepointClickRef = useRef(onChokepointClick)
   const [webglFailed, setWebglFailed] = useState(false)
   const isTerrainRef = useRef(false)
   const assetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const cityMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const mapAssetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
+
+  useEffect(() => { onChokepointClickRef.current = onChokepointClick }, [onChokepointClick])
 
   // ── Helper: add all custom sources + layers to the current map ───────────
   const setupCustomLayers = useCallback((map: mapboxgl.Map, closed: boolean, ls: LayerState) => {
@@ -340,6 +347,27 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
 
   }, [])
 
+  // ── Helper: attach chokepoint click / cursor listeners ───────────────────
+  const setupChokepointListeners = useCallback((m: mapboxgl.Map) => {
+    const clickableLayers = ['hormuz-point', 'babelmandeb-label'] as const
+    for (const layerId of clickableLayers) {
+      if (m.getLayer(layerId)) {
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+      }
+    }
+    if (m.getLayer('hormuz-point')) {
+      m.on('click', 'hormuz-point', (e) => {
+        onChokepointClickRef.current?.('strait_of_hormuz', { x: e.point.x, y: e.point.y })
+      })
+    }
+    if (m.getLayer('babelmandeb-label')) {
+      m.on('click', 'babelmandeb-label', (e) => {
+        onChokepointClickRef.current?.('bab_el_mandeb', { x: e.point.x, y: e.point.y })
+      })
+    }
+  }, [])
+
   // ── Initial map setup ────────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return
@@ -393,6 +421,8 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
       // Add all custom layers
       setupCustomLayers(map, closed, ls)
 
+      // Wire chokepoint click handlers
+      setupChokepointListeners(map)
     }
 
     map.on('load', onStyleLoad)
@@ -458,6 +488,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         }
         applyBuiltinLayerVisibility(map, ls)
         setupCustomLayers(map, closed, ls)
+        setupChokepointListeners(map)
       })
       return
     }
@@ -465,7 +496,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
     // Non-terrain toggles
     applyBuiltinLayerVisibility(map, layerState)
     applyCustomLayerVisibility(map, layerState)
-  }, [layerState, applyBuiltinLayerVisibility, applyCustomLayerVisibility, setupCustomLayers])
+  }, [layerState, applyBuiltinLayerVisibility, applyCustomLayerVisibility, setupCustomLayers, setupChokepointListeners])
 
   // ── Asset markers ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -532,6 +563,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
       const isIran   = asset.actor_id === 'iran'
       const isIsrael = asset.actor_id === 'israel'
       const isInfra  = asset.asset_type === 'oil_gas_facility' || asset.asset_type === 'nuclear_facility'
+      const isNaval  = asset.asset_type === 'naval_asset' || asset.asset_type === 'carrier_group'
 
       const actorVisible =
         (isUs     && layerState.usAssets) ||
@@ -545,37 +577,77 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
 
       const destroyed = asset.status === 'destroyed'
       const degraded  = asset.status === 'degraded'
+      const color     = destroyed ? '#b43232' : degraded ? '#dcaa1e' : asset.actor_color
 
       const el = document.createElement('div')
-      el.style.cssText = 'display:flex;align-items:center;gap:4px;cursor:pointer;pointer-events:auto;'
-
-      const dot = document.createElement('div')
-      dot.style.cssText = [
-        'width:7px;height:7px;flex-shrink:0;border-radius:50%;',
-        `background:${destroyed ? 'rgba(180,50,50,0.5)' : degraded ? 'rgba(220,170,30,0.8)' : `${asset.actor_color}cc`};`,
-        `border:1.5px solid ${destroyed ? '#b43232' : degraded ? '#dcaa1e' : asset.actor_color};`,
-        `box-shadow:0 0 0 3px ${asset.actor_color}22;`,
-        destroyed ? 'opacity:0.4;' : '',
+      el.style.cssText = [
+        'display:flex;align-items:center;gap:4px;cursor:pointer;pointer-events:auto;',
+        destroyed ? 'opacity:0.45;' : '',
       ].join('')
+
+      if (isNaval) {
+        // Larger, distinctive naval marker
+        const shipIcon = document.createElement('div')
+        const size = asset.asset_type === 'carrier_group' ? 14 : 10
+        shipIcon.style.cssText = [
+          `width:${size}px;height:${size}px;flex-shrink:0;`,
+          'transform:rotate(-90deg);',
+          `color:${color};`,
+          'font-size:' + (size + 2) + 'px;line-height:1;',
+          degraded ? 'filter:brightness(0.8) saturate(0.7);' : '',
+        ].join('')
+        shipIcon.textContent = asset.asset_type === 'carrier_group' ? '▶' : '◀'
+
+        const ring = document.createElement('div')
+        ring.style.cssText = [
+          `width:${size + 6}px;height:${size + 6}px;border-radius:50%;flex-shrink:0;`,
+          'display:flex;align-items:center;justify-content:center;',
+          `border:1.5px solid ${color};`,
+          `background:${color}18;`,
+          `box-shadow:0 0 6px ${color}44;`,
+          destroyed ? 'opacity:0.5;' : '',
+        ].join('')
+        ring.appendChild(shipIcon)
+        el.appendChild(ring)
+      } else {
+        // Standard dot marker
+        const dot = document.createElement('div')
+        const dotSize = isInfra ? 8 : 7
+        dot.style.cssText = [
+          `width:${dotSize}px;height:${dotSize}px;flex-shrink:0;`,
+          isInfra ? 'border-radius:2px;' : 'border-radius:50%;',
+          `background:${destroyed ? 'rgba(180,50,50,0.4)' : degraded ? 'rgba(220,170,30,0.7)' : `${color}bb`};`,
+          `border:1.5px solid ${color};`,
+          `box-shadow:0 0 0 2px ${color}1a;`,
+        ].join('')
+        el.appendChild(dot)
+      }
 
       const label = document.createElement('div')
       label.style.cssText = [
         "font-family:'IBM Plex Mono',monospace;",
-        'font-size:7px;letter-spacing:0.07em;text-transform:uppercase;',
-        `color:${destroyed ? 'rgba(180,80,80,0.6)' : degraded ? 'rgba(220,170,30,0.85)' : `${asset.actor_color}ee`};`,
-        'background:rgba(5,10,18,0.88);',
-        `border:1px solid ${asset.actor_color}44;`,
-        'padding:1px 4px;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;',
-        destroyed ? 'text-decoration:line-through;opacity:0.5;' : '',
+        `font-size:${isNaval ? 8 : 7}px;letter-spacing:0.07em;text-transform:uppercase;`,
+        `color:${destroyed ? 'rgba(180,80,80,0.55)' : degraded ? 'rgba(220,170,30,0.9)' : `${color}ee`};`,
+        'background:rgba(5,10,18,0.9);',
+        `border:1px solid ${color}33;`,
+        `padding:${isNaval ? '2px 5px' : '1px 4px'};white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;`,
+        destroyed ? 'text-decoration:line-through;' : '',
+        isNaval ? `font-weight:600;border-left:2px solid ${color};` : '',
       ].join('')
       label.textContent = asset.label
       label.title = asset.tooltip ?? asset.label
 
-      el.appendChild(dot)
       el.appendChild(label)
-      el.addEventListener('click', () => onMapAssetClick?.(asset))
 
-      const marker = new mapboxgl.Marker({ element: el, anchor: 'left' })
+      el.addEventListener('click', () => {
+        const pos = map.project([asset.lng, asset.lat])
+        onMapAssetClick?.(asset, { x: pos.x, y: pos.y })
+      })
+      el.addEventListener('mouseenter', () => { el.style.opacity = '0.85'; el.style.filter = 'brightness(1.15)' })
+      el.addEventListener('mouseleave', () => { el.style.opacity = destroyed ? '0.45' : '1'; el.style.filter = '' })
+
+      const anchor = isNaval ? 'center' : 'left'
+      const marker = new mapboxgl.Marker({ element: el, anchor })
         .setLngLat([asset.lng, asset.lat])
         .addTo(map)
 

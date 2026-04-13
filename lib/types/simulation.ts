@@ -1091,6 +1091,7 @@ export interface MapAsset {
   id: string
   actor_id: string
   asset_type: MapAssetType
+  category?: string
   label: string
   lat: number
   lng: number
@@ -1098,6 +1099,10 @@ export interface MapAsset {
   capacity_pct: number
   actor_color: string
   tooltip: string
+  description?: string
+  notes?: string
+  strike_range_nm?: number
+  threat_range_nm?: number
   is_approximate_location: boolean
 }
 
