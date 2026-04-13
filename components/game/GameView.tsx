@@ -41,6 +41,14 @@ const PANEL_TABS: { id: PanelTab; label: string }[] = [
 
 // ─── Actors tab inner component ───────────────────────────────────────────────
 
+const STANCE_LABEL: Record<string, { label: string; color: string }> = {
+  ally:       { label: 'ALLY',    color: '#5ebd8e' },
+  adversary:  { label: 'ADV.',    color: '#e74c3c' },
+  rival:      { label: 'RIVAL',   color: '#e67e22' },
+  proxy:      { label: 'PROXY',   color: '#4a90d9' },
+  neutral:    { label: 'NEUT.',   color: '#8a8880' },
+}
+
 function ActorsPanel({
   actors,
   actorMetrics,
@@ -58,23 +66,68 @@ function ActorsPanel({
         {actors.map((actor) => {
           const metrics = actorMetrics[actor.id]
           const isSelected = actor.id === selectedActorId
+          const stance = STANCE_LABEL[actor.relationshipStance] ?? STANCE_LABEL.neutral
+          const color = actor.actorColor
+
           return (
             <button
               key={actor.id}
               data-actor-id={actor.id}
               onClick={() => onSelect(actor.id)}
-              className={`w-full text-left px-4 py-3 transition-colors ${
-                isSelected
-                  ? 'bg-bg-surface border-l-2 border-gold'
-                  : 'bg-transparent hover:bg-bg-surface-dim border-l-2 border-transparent'
-              }`}
+              style={{
+                width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
+                borderLeft: isSelected ? `3px solid ${color}` : '3px solid transparent',
+                padding: '10px 14px 10px 13px',
+                background: isSelected ? `${color}0a` : 'transparent',
+                transition: 'background 0.15s, border-left-color 0.15s',
+              }}
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-label text-sm font-semibold text-text-primary">{actor.name}</span>
-                <span className="font-mono text-2xs text-text-tertiary">RUNG {actor.escalationRung}</span>
+              {/* Row 1: name + stance badge */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <div style={{
+                  width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                  background: color, boxShadow: isSelected ? `0 0 5px ${color}` : 'none',
+                }} />
+                <span style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 13, fontWeight: 600, color: '#e5e2e1', flex: 1, lineHeight: 1.2,
+                }}>
+                  {actor.name}
+                </span>
+                <span style={{
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize: 8, fontWeight: 700, letterSpacing: '0.1em',
+                  color: stance.color, flexShrink: 0,
+                }}>
+                  {stance.label}
+                </span>
               </div>
+
+              {/* Row 2: rung name */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, paddingLeft: 16, marginBottom: metrics ? 6 : 0 }}>
+                <span style={{
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize: 9, color, letterSpacing: '0.08em', flexShrink: 0, whiteSpace: 'nowrap',
+                }}>
+                  R{actor.escalationRung} · {actor.escalationRungName.toUpperCase().slice(0, 20)}
+                </span>
+                {actor.primaryObjective && (
+                  <span style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 9, color: 'rgba(229,226,225,0.4)', lineHeight: 1.35,
+                    overflow: 'hidden',
+                    display: '-webkit-box' as const,
+                    WebkitLineClamp: 1,
+                    WebkitBoxOrient: 'vertical' as const,
+                  }}>
+                    {actor.primaryObjective}
+                  </span>
+                )}
+              </div>
+
+              {/* Row 3: metric bars */}
               {metrics && (
-                <div className="flex flex-col gap-1">
+                <div style={{ paddingLeft: 16 }} className="flex flex-col gap-1">
                   {([
                     { label: 'MIL', value: metrics.military },
                     { label: 'ECO', value: metrics.economic },

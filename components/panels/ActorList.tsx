@@ -29,10 +29,10 @@ export function ActorList({ actors, selectedActorId, onSelect }: Props) {
             data-actor-id={actor.id}
             onClick={() => onSelect(actor.id)}
             style={{
-              width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer',
+              width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
               borderBottom: '1px solid #1c1f23',
               borderLeft: isSelected ? `3px solid ${actor.actorColor}` : '3px solid transparent',
-              padding: isSelected ? '10px 14px 10px 13px' : '10px 14px 10px 13px',
+              padding: '10px 14px 10px 13px',
               background: isSelected ? `${actor.actorColor}08` : 'transparent',
               transition: 'background 0.15s, border-left-color 0.15s',
             }}

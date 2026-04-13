@@ -9,6 +9,7 @@ import { getStateAtTurn } from '@/lib/game/state-engine'
 import { IRAN_DECISIONS, IRAN_DECISION_DETAILS } from '@/lib/game/iran-decisions'
 import type { GameInitialData, ChronicleEntry, GroundTruthCommit } from '@/lib/types/game-init'
 import type { ActorSummary, ActorDetail } from '@/lib/types/panels'
+import { getActorColor, getRelationshipStance, isAdversaryActor, getEscalationRungName, getEscalationRungs } from '@/lib/game/actor-meta'
 
 interface Props {
   params: { id: string; branchId: string }
@@ -63,7 +64,7 @@ export default async function PlayPage({ params }: Props) {
   // 3. Fetch actors for this scenario
   const { data: actorRows } = await supabase
     .from('scenario_actors')
-    .select('id, name, biographical_summary, leadership_profile, win_condition, strategic_doctrine, historical_precedents, initial_scores, intelligence_profile')
+    .select('id, name, short_name, biographical_summary, leadership_profile, win_condition, strategic_doctrine, historical_precedents, initial_scores, intelligence_profile')
     .eq('scenario_id', scenarioId)
 
   // 4. Fetch current state via state engine
@@ -100,31 +101,53 @@ export default async function PlayPage({ params }: Props) {
   // --- Transform DB rows → GameInitialData types ---
 
   const actors: ActorSummary[] = (actorRows ?? []).map(a => {
-    const scores = a.initial_scores as { escalationRung?: number } | null
+    const scores = a.initial_scores as { escalationRung?: number; escalation_rung?: number } | null
+    const rung = scores?.escalationRung ?? scores?.escalation_rung ?? 0
+    const rawObjectives = a.win_condition
+      ? a.win_condition.split(/\n|•|–|-/).map((s: string) => s.trim()).filter((s: string) => s.length > 10)
+      : []
     return {
       id: a.id,
       name: a.name,
-      escalationRung: scores?.escalationRung ?? 0,
+      shortName: a.short_name ?? a.name.slice(0, 6).toUpperCase(),
+      actorColor: getActorColor(a.id),
+      escalationRung: rung,
+      escalationRungName: getEscalationRungName(a.id, rung),
+      primaryObjective: rawObjectives[0] ?? '',
+      relationshipStance: getRelationshipStance(a.id),
     }
   })
 
   const actorDetails: Record<string, ActorDetail> = {}
   for (const a of actorRows ?? []) {
     const s = currentState?.actor_states[a.id]
-    const scores = a.initial_scores as { escalationRung?: number } | null
+    const scores = a.initial_scores as { escalationRung?: number; escalation_rung?: number } | null
+    const rung = scores?.escalationRung ?? scores?.escalation_rung ?? 0
+    const rawObjectives = a.win_condition
+      ? a.win_condition.split(/\n|•|–|-/).map((w: string) => w.trim()).filter((w: string) => w.length > 10)
+      : []
+    const shortName = a.short_name ?? a.name.slice(0, 6).toUpperCase()
     actorDetails[a.id] = {
       id: a.id,
       name: a.name,
-      escalationRung: scores?.escalationRung ?? 0,
+      shortName,
+      actorColor: getActorColor(a.id),
+      escalationRung: rung,
+      escalationRungName: getEscalationRungName(a.id, rung),
+      escalationRungs: getEscalationRungs(a.id),
       briefing: a.biographical_summary ?? 'No briefing available.',
       militaryStrength:   s ? Math.round(Number(s.military_strength))   : 50,
       economicStrength:   s ? Math.round(Number(s.economic_health))     : 50,
       politicalStability: s ? Math.round(Number(s.political_stability)) : 50,
-      objectives: [a.win_condition].filter(Boolean) as string[],
+      objectives: rawObjectives,
+      primaryObjective: rawObjectives[0] ?? '',
+      winCondition: a.win_condition ?? undefined,
       leadershipProfile:    a.leadership_profile ?? undefined,
       strategicDoctrine:    a.strategic_doctrine ?? undefined,
       historicalPrecedents: a.historical_precedents ?? undefined,
       intelligenceProfile:  a.intelligence_profile as Record<string, unknown> | undefined,
+      isAdversary: isAdversaryActor(a.id),
+      relationshipStance: getRelationshipStance(a.id),
     }
   }
 

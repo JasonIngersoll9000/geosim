@@ -87,15 +87,18 @@ function OverviewTab({ actor }: { actor: ActorDetail }) {
       {actor.briefing && (
         <section>
           <SectionLabel>Intelligence Briefing</SectionLabel>
+          {actor.isAdversary && (
+            <div style={{ marginBottom: 6 }}>
+              <FowLabel label="UNVERIFIED — BASED ON OPEN-SOURCE INTEL" />
+            </div>
+          )}
           <p style={{
             fontFamily: "'Newsreader', serif",
             fontSize: 13, lineHeight: 1.75,
-            color: '#c1c7d3',
+            color: actor.isAdversary ? '#c8a850' : '#c1c7d3',
             fontStyle: 'italic',
           }}>
-            {actor.isAdversary
-              ? actor.briefing
-              : actor.briefing}
+            {actor.briefing}
           </p>
         </section>
       )}
