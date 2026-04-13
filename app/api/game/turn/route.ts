@@ -13,26 +13,17 @@ import type { TurnPlan, Decision } from '@/lib/types/simulation'
  * Full turn orchestrator. Sequences all four AI agents, persists the new turn_commit,
  * and advances the branch head_commit_id.
  *
- * Authorization: the caller must be the user who created the branch, or the
- * branch's parent scenario must be public visibility. The service-role client
- * is only used for write mutations AFTER auth has been verified.
+ * Authorization:
+ *   - Requires an authenticated Supabase session (unless NEXT_PUBLIC_DEV_MODE=true).
+ *   - Owner of a branch may run turns with or without a player actor.
+ *   - Non-owners may only run in observer mode (playerActorId === null) on public scenarios.
+ *   - All unauthenticated requests are rejected when auth is configured.
  *
  * Body: {
  *   branchId: string
  *   playerActorId: string | null      // null = observer mode (all actors are AI)
  *   playerTurnPlan: TurnPlan | null   // required if playerActorId is set
  *   availableDecisions: Record<string, Decision[]>  // keyed by actorId
- * }
- *
- * Returns: {
- *   turnCommitId: string
- *   turnNumber: number
- *   simulatedDate: string
- *   chronicleHeadline: string
- *   fullBriefing: string
- *   judgeScore: number
- *   effects: EventStateEffects
- *   escalationChanges: [...]
  * }
  */
 export async function POST(request: Request) {
@@ -42,6 +33,11 @@ export async function POST(request: Request) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
   }
+
+  const devMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+  const authConfigured = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
 
   try {
     const body = await request.json() as {
@@ -57,21 +53,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'branchId is required' }, { status: 400 })
     }
     if (playerActorId && !playerTurnPlan) {
-      return NextResponse.json({ error: 'playerTurnPlan is required when playerActorId is set' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'playerTurnPlan is required when playerActorId is set' },
+        { status: 400 }
+      )
     }
 
-    // ── 1. Authenticate and authorize ─────────────────────────────────────
-    // Use session-scoped client to get the authenticated user.
-    // Allow unauthed access only when Supabase auth is not configured (dev mode).
+    // ── 1. Authenticate ────────────────────────────────────────────────────
+    // Use session-scoped client to resolve the authenticated user.
+    // Reject unauthenticated requests when auth is configured and dev mode is off.
 
     const sessionClient = await createClient()
     const { data: { user } } = await sessionClient.auth.getUser()
 
-    // Load branch with ownership/visibility data using session client.
-    // RLS on branches should restrict reads to owner or public scenarios.
+    if (!user && authConfigured && !devMode) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    // ── 2. Load branch (via session client — RLS enforces read access) ─────
+
     const { data: branchRaw, error: branchError } = await sessionClient
       .from('branches')
-      .select('id, head_commit_id, scenario_id, user_controlled_actors, created_by, visibility')
+      .select('id, head_commit_id, scenario_id, user_controlled_actors, created_by')
       .eq('id', branchId)
       .single()
 
@@ -85,30 +88,43 @@ export async function POST(request: Request) {
       scenario_id: string
       user_controlled_actors: string[]
       created_by: string | null
-      visibility: string | null
     }
 
-    // If auth is configured and user is authenticated, enforce ownership.
-    // Observers (non-owners) may only run in observer mode (playerActorId === null).
-    if (user) {
-      const isOwner = branch.created_by === user.id
-      const isPublic = branch.visibility === 'public'
+    // Derive scenarioId from the branch record — never trust body input
+    const scenarioId = branch.scenario_id
 
-      if (!isOwner && !isPublic) {
-        return NextResponse.json({ error: 'Access denied: you do not own this branch' }, { status: 403 })
+    // ── 3. Authorize against scenario visibility and branch ownership ──────
+    // Load scenario visibility as the authoritative source for public access.
+
+    const { data: scenarioMeta, error: scenarioMetaError } = await sessionClient
+      .from('scenarios')
+      .select('id, visibility')
+      .eq('id', scenarioId)
+      .single()
+
+    if (scenarioMetaError || !scenarioMeta) {
+      return NextResponse.json({ error: 'Scenario not found' }, { status: 404 })
+    }
+
+    const scenarioVisibility = (scenarioMeta as Record<string, unknown>).visibility as string
+    const isPublicScenario = scenarioVisibility === 'public'
+    const isOwner = user ? branch.created_by === user.id : devMode
+
+    // Non-owners may only observe (no playerActorId) on public scenarios
+    if (!isOwner) {
+      if (!isPublicScenario) {
+        return NextResponse.json(
+          { error: 'Access denied: this scenario is private' },
+          { status: 403 }
+        )
       }
-
-      // Non-owners of private scenarios cannot submit player decisions
-      if (!isOwner && playerActorId) {
+      if (playerActorId) {
         return NextResponse.json(
           { error: 'Access denied: only the branch owner can submit player decisions' },
           { status: 403 }
         )
       }
     }
-
-    // Derive scenarioId from the branch record — never trust body input
-    const scenarioId = branch.scenario_id
 
     const headCommitId = branch.head_commit_id
     if (!headCommitId) {
@@ -118,11 +134,9 @@ export async function POST(request: Request) {
       )
     }
 
-    // All subsequent reads and writes use the service-role client.
-    // Auth has already been enforced above.
-    const supabase = createServiceClient()
+    // ── 4. All further reads/writes use service-role (auth already enforced) ─
 
-    // ── 2. Load head commit ───────────────────────────────────────────────
+    const supabase = createServiceClient()
 
     const { data: headCommit, error: headError } = await supabase
       .from('turn_commits')
@@ -139,7 +153,7 @@ export async function POST(request: Request) {
     const currentDate = (headCommit as Record<string, unknown>).simulated_date as string
     const simulatedDate = advanceDate(currentDate, 7)
 
-    // ── 3. Load scenario actors and context ───────────────────────────────
+    // ── 5. Load actors and scenario context ───────────────────────────────
 
     const [actorRes, scenarioRes] = await Promise.all([
       supabase
@@ -163,51 +177,60 @@ export async function POST(request: Request) {
       ? `${scenario.name}: ${scenario.description ?? ''}${scenario.critical_context ? '\n' + scenario.critical_context : ''}`
       : 'Geopolitical simulation'
 
-    // ── 4. Load branch state and compute divergence ────────────────────────
+    // ── 6. Load branch state and compute divergence ────────────────────────
 
     const [branchState, branchDivergence] = await Promise.all([
       getStateAtTurn(branchId, headCommitId),
       computeBranchDivergence(supabase, branchId),
     ])
 
-    // ── 5. Generate AI actor TurnPlans in parallel ─────────────────────────
+    // ── 7. Generate AI actor TurnPlans ─────────────────────────────────────
+    // Fail the turn if any AI actor with available decisions fails to produce a plan.
 
     const userControlledActors = branch.user_controlled_actors ?? []
     const aiActors = actorRows.filter(
-      a => a.id !== playerActorId && !userControlledActors.includes(a.id)
+      a =>
+        a.id !== playerActorId &&
+        !userControlledActors.includes(a.id) &&
+        (availableDecisions[a.id]?.length ?? 0) > 0
     )
 
-    const aiTurnPlans: Array<{ actorId: string; actorName: string; turnPlan: TurnPlan; rationale: string }> = []
-
-    await Promise.all(
+    const aiPlanResults = await Promise.allSettled(
       aiActors.map(async (actor) => {
-        try {
-          const decisions = availableDecisions[actor.id] ?? []
-          if (decisions.length === 0) return
-
-          const result = await runActorAgent({
-            actorId: actor.id,
-            actorProfile: actor as Parameters<typeof runActorAgent>[0]['actorProfile'],
-            branchState,
-            availableDecisions: decisions,
-            branchDivergence,
-            simulatedDate,
-            turnNumber: newTurnNumber,
-          })
-
-          aiTurnPlans.push({
-            actorId: actor.id,
-            actorName: actor.name,
-            turnPlan: result.turnPlan,
-            rationale: result.rationale,
-          })
-        } catch (e) {
-          console.error(`[turn] actor agent failed for ${actor.id}:`, e)
-        }
+        const result = await runActorAgent({
+          actorId: actor.id,
+          actorProfile: actor as Parameters<typeof runActorAgent>[0]['actorProfile'],
+          branchState,
+          availableDecisions: availableDecisions[actor.id],
+          branchDivergence,
+          simulatedDate,
+          turnNumber: newTurnNumber,
+        })
+        return { actorId: actor.id, actorName: actor.name, turnPlan: result.turnPlan, rationale: result.rationale }
       })
     )
 
-    // Combine player plan with AI plans
+    const aiTurnPlans: Array<{ actorId: string; actorName: string; turnPlan: TurnPlan; rationale: string }> = []
+    const agentFailures: string[] = []
+
+    for (const result of aiPlanResults) {
+      if (result.status === 'fulfilled') {
+        aiTurnPlans.push(result.value)
+      } else {
+        const actor = aiActors[aiPlanResults.indexOf(result)]
+        const reason = result.reason instanceof Error ? result.reason.message : String(result.reason)
+        agentFailures.push(`${actor?.id ?? 'unknown'}: ${reason}`)
+      }
+    }
+
+    if (agentFailures.length > 0) {
+      console.error('[turn] actor agent failures:', agentFailures)
+      return NextResponse.json(
+        { error: `AI actor plan generation failed: ${agentFailures.join('; ')}` },
+        { status: 500 }
+      )
+    }
+
     const allTurnPlans: Array<{ actorId: string; actorName: string; turnPlan: TurnPlan; rationale?: string }> = [
       ...aiTurnPlans,
     ]
@@ -231,7 +254,7 @@ export async function POST(request: Request) {
 
     const decisionCatalog: Decision[] = Object.values(availableDecisions).flat()
 
-    // ── 6. Resolution engine ───────────────────────────────────────────────
+    // ── 8. Resolution engine ───────────────────────────────────────────────
 
     const resolution = await runResolutionEngine({
       turnPlans: allTurnPlans,
@@ -242,7 +265,7 @@ export async function POST(request: Request) {
       scenarioContext,
     })
 
-    // ── 7. Judge evaluator ─────────────────────────────────────────────────
+    // ── 9. Judge evaluator ─────────────────────────────────────────────────
 
     const judgeResult = await runJudge({
       turnPlans: allTurnPlans,
@@ -254,7 +277,7 @@ export async function POST(request: Request) {
       scenarioContext,
     })
 
-    // ── 8. Narrator ────────────────────────────────────────────────────────
+    // ── 10. Narrator ───────────────────────────────────────────────────────
 
     const narration = await runNarrator({
       turnPlans: allTurnPlans,
@@ -269,7 +292,7 @@ export async function POST(request: Request) {
       escalationChanges: resolution.escalationChanges,
     })
 
-    // ── 9. Persist new turn_commit ─────────────────────────────────────────
+    // ── 11. Persist new turn_commit ────────────────────────────────────────
 
     const { data: newCommit, error: commitError } = await supabase
       .from('turn_commits')
@@ -305,12 +328,12 @@ export async function POST(request: Request) {
 
     const newCommitId = (newCommit as { id: string }).id
 
-    // ── 10. Apply state effects and persist snapshots ──────────────────────
+    // ── 12. Apply state effects and persist snapshots ──────────────────────
 
     const newState = applyEventEffects(branchState, resolution.effects)
     await persistStateSnapshot(scenarioId, branchId, newCommitId, newState)
 
-    // ── 11. Advance branch head_commit_id (atomic fail) ───────────────────
+    // ── 13. Advance branch head_commit_id ──────────────────────────────────
 
     const { error: headUpdateError } = await supabase
       .from('branches')
@@ -318,12 +341,10 @@ export async function POST(request: Request) {
       .eq('id', branchId)
 
     if (headUpdateError) {
-      // The commit and snapshots are persisted, but the branch pointer wasn't advanced.
-      // Log and return partial error so the caller can retry the head update.
       console.error('[turn] failed to advance branch head_commit_id:', headUpdateError.message)
       return NextResponse.json(
         {
-          error: 'Turn committed but branch head not advanced — contact support',
+          error: 'Turn committed but branch head not advanced — retry the head update',
           turnCommitId: newCommitId,
         },
         { status: 500 }
