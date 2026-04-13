@@ -111,7 +111,10 @@ export async function POST(request: Request) {
       status:           'active',
       parent_branch_id: resolvedParentId,
     }
-    if (headCommitId) insertData.head_commit_id = headCommitId
+    if (headCommitId) {
+      insertData.head_commit_id       = headCommitId
+      insertData.fork_point_commit_id = headCommitId
+    }
 
     const { data, error } = await supabase
       .from('branches')

@@ -392,8 +392,8 @@ export default function Home() {
               </h2>
               <div className="font-mono text-2xs text-text-tertiary tracking-[0.04em] mb-4">
                 {featured?.latestDate
-                  ? `${new Date(featured.latestDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()} // INTEL BRIEF // SEVERITY: CRITICAL`
-                  : '15 MAR 2026 // 14:32 UTC // INTEL BRIEF // SEVERITY: CRITICAL'}
+                  ? `${new Date(featured.latestDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()} // INTEL BRIEF // T${featured.latestTurnNumber ?? 1} // ACTIVE`
+                  : 'INTEL BRIEF // AWAITING LIVE DATA'}
               </div>
 
               <div className="prose-chronicle max-w-[760px]">

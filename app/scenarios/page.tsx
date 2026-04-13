@@ -16,6 +16,7 @@ interface ScenarioSummary {
   name: string
   description: string
   category: string
+  visibility?: string
   branch_count: number
   play_count: number
   rating: number | null
@@ -198,7 +199,7 @@ export default function ScenarioBrowserPage() {
         const mapped: ScenarioDisplay[] = (json.data ?? []).map((s) => ({
           ...s,
           displayCategory: CATEGORY_MAP[s.category] ?? 'HYPOTHETICAL',
-          classification: 'SECRET' as const,
+          classification: (s.visibility === 'public' ? 'CONFIDENTIAL' : 'SECRET') as ScenarioDisplay['classification'],
           status: (s.isActive ? 'LIVE' : s.branch_count > 0 ? 'ACTIVE' : 'ARCHIVED') as ScenarioDisplay['status'],
           actorCount: s.actorCount ?? 0,
           lastActive: s.lastActiveDate
