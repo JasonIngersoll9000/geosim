@@ -110,7 +110,27 @@ export function MapAssetPopup({ asset, screenX, screenY, containerWidth, contain
         {asset.is_approximate_location && (
           <span style={{ fontSize: 9, color: '#f39c12', letterSpacing: '0.06em' }}>~LOC</span>
         )}
+        {asset.visibility_confidence != null && (
+          <span style={{
+            fontSize: 9, letterSpacing: '0.06em', fontWeight: 700,
+            color: asset.visibility_confidence >= 85 ? '#5ebd8e' : asset.visibility_confidence >= 65 ? '#f39c12' : '#e74c3c',
+          }}>
+            INTEL {asset.visibility_confidence}%
+          </span>
+        )}
       </div>
+
+      {asset.status_narrative && (
+        <div style={{
+          fontSize: 10, color: isDegraded ? '#c8a850' : isDestroyed ? '#8a8880' : '#a8c6a0',
+          lineHeight: 1.45, marginBottom: asset.description ? 6 : 8,
+          fontFamily: "'IBM Plex Mono', monospace",
+          opacity: isDestroyed ? 0.7 : 0.85,
+          fontStyle: 'italic',
+        }}>
+          {asset.status_narrative}
+        </div>
+      )}
 
       {asset.description && (
         <div style={{

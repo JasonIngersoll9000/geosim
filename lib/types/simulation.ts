@@ -1104,6 +1104,10 @@ export interface MapAsset {
   strike_range_nm?: number
   threat_range_nm?: number
   is_approximate_location: boolean
+  /** Intel confidence 0–100: how certain this asset's status/position is for the observing actor */
+  visibility_confidence: number
+  /** Turn-aware narrative derived from live state (status, capacity, date context) */
+  status_narrative: string
 }
 
 export interface ShippingLane {

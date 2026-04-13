@@ -41,6 +41,38 @@ function facilityTypeToMapAssetType(type: string): MapAssetType {
   return map[type] ?? 'military_base'
 }
 
+/** Compute intel confidence (0–100) for an asset based on source and state certainty. */
+function computeConfidence(opts: {
+  fromStateEngine: boolean
+  isApproximate: boolean
+  status: 'operational' | 'degraded' | 'destroyed'
+}): number {
+  if (opts.status === 'destroyed') return 100 // confirmed destroyed
+  if (opts.fromStateEngine && !opts.isApproximate) return 90
+  if (opts.fromStateEngine && opts.isApproximate) return 55
+  if (!opts.fromStateEngine && !opts.isApproximate) return 70
+  return 45 // supplement + approximate
+}
+
+/** Compose a turn-aware status narrative from live simulation state. */
+function computeNarrative(opts: {
+  name: string
+  status: 'operational' | 'degraded' | 'destroyed'
+  capacity_pct: number
+  as_of_date: string
+  location_label?: string
+}): string {
+  const date = opts.as_of_date ? new Date(opts.as_of_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''
+  const loc  = opts.location_label ? ` (${opts.location_label})` : ''
+  if (opts.status === 'destroyed') {
+    return `As of ${date}, ${opts.name}${loc} is confirmed destroyed and non-operational.`
+  }
+  if (opts.status === 'degraded') {
+    return `As of ${date}, ${opts.name}${loc} is degraded — operating at ${opts.capacity_pct}% capacity following combat or strike damage.`
+  }
+  return `As of ${date}, ${opts.name}${loc} is fully operational at ${opts.capacity_pct}% capacity.`
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string; branchId: string } }
@@ -102,10 +134,11 @@ export async function GET(
     const facilityAssets = state.facility_statuses
       .filter(f => f.lat !== undefined && f.lng !== undefined)
     for (const f of facilityAssets) {
-      const cap = capByNormName.get(normalise(f.name))
-      const rawType = cap?.asset_type ?? cap?.category ?? f.type
-      const isNaval = rawType === 'carrier' || rawType === 'carrier_group' || rawType === 'naval_base' || rawType === 'naval_asset'
-      const locLabel = f.location_label ?? ''
+      const cap         = capByNormName.get(normalise(f.name))
+      const rawType     = cap?.asset_type ?? cap?.category ?? f.type
+      const isNaval     = rawType === 'carrier' || rawType === 'carrier_group' || rawType === 'naval_base' || rawType === 'naval_asset'
+      const isApprox    = isNaval || f.type === 'carrier_group' || f.type === 'troop_deployment'
+      const locLabel    = f.location_label ?? ''
       assets.push({
         id:                      `${f.actor_id}-${f.name.toLowerCase().replace(/\s+/g, '-')}`,
         actor_id:                f.actor_id,
@@ -122,7 +155,9 @@ export async function GET(
         notes:                   cap?.notes ?? undefined,
         strike_range_nm:         cap?.strike_range_nm ?? undefined,
         threat_range_nm:         cap?.threat_range_nm ?? undefined,
-        is_approximate_location: isNaval || f.type === 'carrier_group' || f.type === 'troop_deployment',
+        is_approximate_location: isApprox,
+        visibility_confidence:   computeConfidence({ fromStateEngine: true, isApproximate: isApprox, status: f.status }),
+        status_narrative:        computeNarrative({ name: f.name, status: f.status, capacity_pct: f.capacity_pct, as_of_date: state.as_of_date, location_label: locLabel }),
       })
     }
 
@@ -132,9 +167,10 @@ export async function GET(
     if (assets.length === 0) {
       // Pure fallback: state engine had no geocoords at all — use caps as primary source
       for (const cap of capRows) {
-        const rawType = cap.asset_type ?? cap.category ?? 'military_base'
-        const mapType = (ASSET_TYPE_MAP[rawType] ?? 'military_base') as MapAssetType
-        const isNaval = rawType === 'carrier' || rawType === 'carrier_group' || rawType === 'naval_base' || rawType === 'naval_asset'
+        const rawType   = cap.asset_type ?? cap.category ?? 'military_base'
+        const mapType   = (ASSET_TYPE_MAP[rawType] ?? 'military_base') as MapAssetType
+        const isNaval   = rawType === 'carrier' || rawType === 'carrier_group' || rawType === 'naval_base' || rawType === 'naval_asset'
+        const capStatus = cap.status === 'destroyed' ? 'destroyed' : cap.status === 'degraded' ? 'degraded' : 'operational'
         assets.push({
           id:                      cap.id,
           actor_id:                cap.actor_id,
@@ -143,7 +179,7 @@ export async function GET(
           label:                   cap.short_name ?? cap.name,
           lat:                     cap.lat,
           lng:                     cap.lng,
-          status:                  cap.status === 'destroyed' ? 'destroyed' : cap.status === 'degraded' ? 'degraded' : 'operational',
+          status:                  capStatus,
           capacity_pct:            100,
           actor_color:             ACTOR_COLORS[cap.actor_id] ?? '#888888',
           tooltip:                 cap.description ?? cap.name,
@@ -152,16 +188,19 @@ export async function GET(
           strike_range_nm:         cap.strike_range_nm ?? undefined,
           threat_range_nm:         cap.threat_range_nm ?? undefined,
           is_approximate_location: isNaval,
+          visibility_confidence:   computeConfidence({ fromStateEngine: false, isApproximate: isNaval, status: capStatus }),
+          status_narrative:        computeNarrative({ name: cap.name, status: capStatus, capacity_pct: 100, as_of_date: state.as_of_date }),
         })
       }
     } else {
       // Supplement: add capabilities not already represented in facility_statuses
       for (const cap of capRows) {
-        const capLabel = cap.short_name ?? cap.name
+        const capLabel  = cap.short_name ?? cap.name
         if (matchedNormNames.has(normalise(capLabel)) || matchedNormNames.has(normalise(cap.name))) continue
-        const rawType = cap.asset_type ?? cap.category ?? 'military_base'
-        const mapType = (ASSET_TYPE_MAP[rawType] ?? 'military_base') as MapAssetType
-        const isNaval = rawType === 'carrier' || rawType === 'carrier_group' || rawType === 'naval_base' || rawType === 'naval_asset'
+        const rawType   = cap.asset_type ?? cap.category ?? 'military_base'
+        const mapType   = (ASSET_TYPE_MAP[rawType] ?? 'military_base') as MapAssetType
+        const isNaval   = rawType === 'carrier' || rawType === 'carrier_group' || rawType === 'naval_base' || rawType === 'naval_asset'
+        const capStatus = cap.status === 'destroyed' ? 'destroyed' : cap.status === 'degraded' ? 'degraded' : 'operational'
         assets.push({
           id:                      cap.id,
           actor_id:                cap.actor_id,
@@ -170,7 +209,7 @@ export async function GET(
           label:                   capLabel,
           lat:                     cap.lat,
           lng:                     cap.lng,
-          status:                  cap.status === 'destroyed' ? 'destroyed' : cap.status === 'degraded' ? 'degraded' : 'operational',
+          status:                  capStatus,
           capacity_pct:            100,
           actor_color:             ACTOR_COLORS[cap.actor_id] ?? '#888888',
           tooltip:                 cap.description ?? cap.name,
@@ -179,6 +218,8 @@ export async function GET(
           strike_range_nm:         cap.strike_range_nm ?? undefined,
           threat_range_nm:         cap.threat_range_nm ?? undefined,
           is_approximate_location: isNaval,
+          visibility_confidence:   computeConfidence({ fromStateEngine: false, isApproximate: isNaval, status: capStatus }),
+          status_narrative:        computeNarrative({ name: cap.name, status: capStatus, capacity_pct: 100, as_of_date: state.as_of_date }),
         })
       }
     }

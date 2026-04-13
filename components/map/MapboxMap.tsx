@@ -100,6 +100,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
   const onChokepointClickRef = useRef(onChokepointClick)
   const [webglFailed, setWebglFailed] = useState(false)
   const isTerrainRef = useRef(false)
+  const chokepointListenersAttachedRef = useRef(false)
   const assetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const cityMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const mapAssetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
@@ -348,7 +349,12 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
   }, [])
 
   // ── Helper: attach chokepoint click / cursor listeners ───────────────────
+  // Guards via chokepointListenersAttachedRef to prevent duplicate handlers
+  // accumulating across terrain style reloads.
   const setupChokepointListeners = useCallback((m: mapboxgl.Map) => {
+    if (chokepointListenersAttachedRef.current) return
+    chokepointListenersAttachedRef.current = true
+
     const clickableLayers = ['hormuz-point', 'babelmandeb-label'] as const
     for (const layerId of clickableLayers) {
       if (m.getLayer(layerId)) {
@@ -473,6 +479,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
     if (newTerrain !== isTerrainRef.current) {
       isTerrainRef.current = newTerrain
       const nextStyle = newTerrain ? TERRAIN_STYLE : DARK_STYLE
+      chokepointListenersAttachedRef.current = false
       map.setStyle(nextStyle)
       map.once('style.load', () => {
         const ls     = layerStateRef.current
