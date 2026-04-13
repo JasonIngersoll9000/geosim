@@ -293,7 +293,7 @@ async function main(): Promise<void> {
   console.log("Next: Run scripts/seed-iran.ts to push to Supabase")
 }
 
-if (process.argv[1] === new URL(import.meta.url).pathname) {
+if (process.argv[1] === decodeURIComponent(new URL(import.meta.url).pathname)) {
   main().catch(err => {
     console.error(err)
     process.exit(1)

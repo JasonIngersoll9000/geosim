@@ -1,0 +1,2732 @@
+{
+  "_meta": {
+    "generatedAt": "2026-04-06T03:32:01.960Z",
+    "totalEvents": 174,
+    "duplicateCandidates": 0,
+    "instructions": [
+      "Review this file before running generate-profiles.ts and enrich-timeline.ts.",
+      "Set event.exclude = true for temporally contaminated events.",
+      "Review _duplicates and set _duplicateOf on events you want excluded."
+    ]
+  },
+  "_duplicates": [],
+  "events": [
+    {
+      "id": "evt_20180301_china_launches_yuandenominated_crude_futures_on_shanghai_international_energy_exchange",
+      "timestamp": "2018-03-01",
+      "timestamp_confidence": "approximate",
+      "title": "China Launches Yuan-Denominated Crude Futures on Shanghai International Energy Exchange",
+      "description": "China's Shanghai International Energy Exchange launched yuan-denominated crude oil futures, establishing an early institutional foundation for yuan participation in global oil markets. By 2020 these contracts accounted for approximately 10.5% of global crude futures volume.",
+      "actors_involved": [
+        "china"
+      ],
+      "dimension": "economic",
+      "is_decision": true,
+      "deciding_actor": "china",
+      "escalation_direction": "lateral",
+      "source_excerpt": "China's Shanghai International Energy Exchange yuan-denominated crude futures launched in March 2018 and accounted for ~10.5% of global crude futures volume by 2020."
+    },
+    {
+      "id": "evt_20190101_iran_completes_irgc_mosaic_defense_restructuring_into_31_autonomous_provincial_commands",
+      "timestamp": "2019-01-01",
+      "timestamp_confidence": "period",
+      "title": "Iran Completes IRGC Mosaic Defense Restructuring into 31 Autonomous Provincial Commands",
+      "description": "Under restructuring completed by 2019, the IRGC was reorganized into 31 semi-autonomous provincial commands, each with independent intelligence, weapons stockpiles, and pre-delegated authority to launch strikes if communication with the center is severed.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Under restructuring completed by 2019, the IRGC was reorganized into 31 semi-autonomous provincial commands, each with independent intelligence, weapons stockpiles, and pre-delegated authority to launch strikes if communication with the center is severed."
+    },
+    {
+      "id": "evt_20190601_mojtaba_khamenei_takes_control_of_basij_paramilitary",
+      "timestamp": "2019-06-01",
+      "timestamp_confidence": "approximate",
+      "title": "Mojtaba Khamenei Takes Control of Basij Paramilitary",
+      "description": "Mojtaba Khamenei assumed control of the Basij paramilitary forces. He is later blamed by reformists for suppressing the Green Movement. US Treasury sanctioned him in 2019.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Took control of the Basij paramilitary in 2009 and is blamed by reformists for suppressing the Green Movement. Sanctioned by US Treasury in 2019."
+    },
+    {
+      "id": "evt_20210101_china_grants_iran_full_military_access_to_beidou3_encrypted_satellite_navigation_system",
+      "timestamp": "2021-01-01",
+      "timestamp_confidence": "approximate",
+      "title": "China Grants Iran Full Military Access to BeiDou-3 Encrypted Satellite Navigation System",
+      "description": "China granted Iran full military access to its BeiDou-3 encrypted satellite navigation system, a capability experts believe Iran is currently using to guide attacks during the 2026 conflict.",
+      "actors_involved": [
+        "china",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "china",
+      "escalation_direction": "up",
+      "source_excerpt": "What is confirmed: China granted Iran full military access to its BeiDou-3 encrypted satellite navigation system in 2021, which experts believe Iran is currently using to guide attacks."
+    },
+    {
+      "id": "evt_20230601_over_20_of_chinas_oil_imports_from_russia_settled_in_yuan",
+      "timestamp": "2023-06-01",
+      "timestamp_confidence": "approximate",
+      "title": "Over 20% of China's Oil Imports from Russia Settled in Yuan",
+      "description": "By mid-2023, over 20% of China's oil imports from Russia were being settled in yuan, reflecting a significant bilateral shift away from dollar-denominated transactions following the 2022 Ukraine invasion sanctions.",
+      "actors_involved": [
+        "china",
+        "russia"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "lateral",
+      "source_excerpt": "Over 20% of China's oil imports from Russia were settled in yuan by mid-2023."
+    },
+    {
+      "id": "evt_20240101_aipac_2024_cycle_spending_reaches_1269_million",
+      "timestamp": "2024-01-01",
+      "timestamp_confidence": "period",
+      "title": "AIPAC 2024 Cycle Spending Reaches ~$126.9 Million",
+      "description": "AIPAC PAC and its United Democracy Project super PAC spent a combined ~$126.9 million during the 2024 election cycle, more than doubling from ~$44 million in 2022. Money reached 349 senators and House members (65% of Congress), covering more than 80% of races.",
+      "actors_involved": [
+        "united_states",
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "AIPAC / United Democracy Project",
+      "escalation_direction": "up",
+      "source_excerpt": "AIPAC PAC plus its United Democracy Project super PAC spent a combined ~$126.9 million (FEC filings via Sludge). This more than doubled from ~$44 million in 2022."
+    },
+    {
+      "id": "evt_20240101_aipac_spends_146_million_to_defeat_rep_jamaal_bowman",
+      "timestamp": "2024-01-01",
+      "timestamp_confidence": "period",
+      "title": "AIPAC Spends $14.6 Million to Defeat Rep. Jamaal Bowman",
+      "description": "AIPAC's United Democracy Project spent $14.6 million to defeat Rep. Jamaal Bowman in his primary, the most expensive outside spending on a House race in history. AIPAC also spent $8.6 million targeting Rep. Cori Bush, both progressive critics of Israel policy.",
+      "actors_involved": [
+        "united_states",
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "AIPAC / United Democracy Project",
+      "escalation_direction": "lateral",
+      "source_excerpt": "AIPAC's UDP spent $14.6 million to defeat Rep. Jamaal Bowman (the most expensive outside spending on a House race in history) and $8.6 million targeting Rep. Cori Bush — both progressive critics of Israel policy."
+    },
+    {
+      "id": "evt_20240101_miriam_adelson_donates_120_million_to_trump_2024_via_preserve_america_pac",
+      "timestamp": "2024-01-01",
+      "timestamp_confidence": "period",
+      "title": "Miriam Adelson Donates $120 Million+ to Trump 2024 via Preserve America PAC",
+      "description": "Miriam Adelson donated over $120 million to Trump's 2024 campaign through Preserve America PAC, making her the single largest individual donor to outside groups in the cycle. Republican Jewish Coalition separately spent $13.3 million in outside spending.",
+      "actors_involved": [
+        "united_states",
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "Miriam Adelson",
+      "escalation_direction": "up",
+      "source_excerpt": "Preserve America PAC (Adelson) | $120M+ to Trump 2024 | Single largest individual donor to outside groups"
+    },
+    {
+      "id": "evt_20250101_marco_rubio_confirmed_as_secretary_of_state",
+      "timestamp": "2025-01-01",
+      "timestamp_confidence": "period",
+      "title": "Marco Rubio Confirmed as Secretary of State",
+      "description": "Marco Rubio began serving as US Secretary of State in January 2025. Per Track AIPAC, Rubio collected more than $1 million in Israel lobby campaign contributions since 2010.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "He has served since January 2025. Per Track AIPAC, Rubio collected >$1 million in Israel lobby campaign contributions since 2010."
+    },
+    {
+      "id": "evt_20250101_aipac_lobbying_costs_surge_in_first_half_of_2025",
+      "timestamp": "2025-01-01",
+      "timestamp_confidence": "period",
+      "title": "AIPAC Lobbying Costs Surge in First Half of 2025",
+      "description": "In 2025, AIPAC increased lobbying costs to $1.8 million in the first half alone, up 12.5% year-over-year, and PAC contributions surged 88% to $12.8 million in six months.",
+      "actors_involved": [
+        "united_states",
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "AIPAC",
+      "escalation_direction": "up",
+      "source_excerpt": "In 2025, AIPAC further increased lobbying costs to $1.8 million in the first half alone (up 12.5% year-over-year) and PAC contributions surged 88% to $12.8 million in six months."
+    },
+    {
+      "id": "evt_20250101_russiachina_yuan_oil_trade_reaches_1914_billion_annually",
+      "timestamp": "2025-01-01",
+      "timestamp_confidence": "period",
+      "title": "Russia-China Yuan Oil Trade Reaches $19.14 Billion Annually",
+      "description": "Russia-China crude oil trade settled in yuan reached $19.14 billion in 2025, reflecting the accelerated de-dollarization of bilateral energy trade following Russia's 2022 invasion of Ukraine and subsequent Western sanctions.",
+      "actors_involved": [
+        "russia",
+        "china"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "lateral",
+      "source_excerpt": "Russia-China trade shifted rapidly after the 2022 Ukraine sanctions — $19.14 billion in crude oil was settled in yuan in 2025."
+    },
+    {
+      "id": "evt_20250301_indias_foreign_minister_explicitly_rejects_brics_single_currency_to_replace_dollar",
+      "timestamp": "2025-03-01",
+      "timestamp_confidence": "approximate",
+      "title": "India's Foreign Minister Explicitly Rejects BRICS Single Currency to Replace Dollar",
+      "description": "Indian External Affairs Minister Jaishankar publicly stated India has no policy to replace the dollar, reflecting a fundamental internal divide within BRICS over de-dollarization ambitions.",
+      "actors_involved": [
+        "gulf_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "india",
+      "escalation_direction": "none",
+      "source_excerpt": "India's External Affairs Minister Jaishankar explicitly stated in March 2025: 'I do not believe we have any policy to have a replacement to the dollar.'"
+    },
+    {
+      "id": "evt_20250401_usiran_nuclear_talks_begin_mediated_by_oman",
+      "timestamp": "2025-04-01",
+      "timestamp_confidence": "period",
+      "title": "US-Iran Nuclear Talks Begin, Mediated by Oman",
+      "description": "Nuclear negotiations between the United States and Iran began in April 2025, mediated by Oman, with multiple rounds scheduled through at least mid-June 2025.",
+      "actors_involved": [
+        "united_states",
+        "iran"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "united_states, iran",
+      "escalation_direction": "down",
+      "source_excerpt": "The talks had been ongoing since April 2025, mediated by Oman."
+    },
+    {
+      "id": "evt_20250613_israel_launches_operation_rising_lion_against_iran",
+      "timestamp": "2025-06-13",
+      "timestamp_confidence": "exact",
+      "title": "Israel Launches Operation Rising Lion Against Iran",
+      "description": "Israel launched a massive surprise air attack using approximately 200 fighter jets and drones, striking over 100 targets across Iran, including nuclear facilities, ballistic missile production sites, air defenses, and military leadership. The strike occurred three days before the scheduled sixth round of US-Iran nuclear talks in Oman.",
+      "actors_involved": [
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "israel",
+      "escalation_direction": "up",
+      "source_excerpt": "On June 13, 2025, Israel launched Operation Rising Lion — a massive surprise air attack using ~200 fighter jets and drones, striking over 100 targets across Iran. The strike occurred three days before the scheduled sixth round of US-Iran nuclear talks in Oman (set for June 15)."
+    },
+    {
+      "id": "evt_20250613_israel_assassinates_senior_iranian_military_and_nuclear_leadership",
+      "timestamp": "2025-06-13",
+      "timestamp_confidence": "exact",
+      "title": "Israel Assassinates Senior Iranian Military and Nuclear Leadership",
+      "description": "Simultaneous with the air strikes, Israel assassinated IRGC Commander Hossein Salami, Armed Forces Chief of Staff Mohammed Bagheri, IRGC Aerospace Force Commander Amir Ali Hajizadeh, 30+ senior military commanders, and 11+ nuclear scientists.",
+      "actors_involved": [
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Israel simultaneously assassinated IRGC Commander Hossein Salami, Armed Forces Chief of Staff Mohammed Bagheri, IRGC Aerospace Force Commander Amir Ali Hajizadeh, 30+ senior military commanders, and 11+ nuclear scientists."
+    },
+    {
+      "id": "evt_20250613_iran_retaliates_with_missiles_and_drones_against_israel",
+      "timestamp": "2025-06-13",
+      "timestamp_confidence": "approximate",
+      "title": "Iran Retaliates with Missiles and Drones Against Israel",
+      "description": "Within hours of Israel's initial strikes, Iran retaliated with large-scale missile and drone barrages against Israel. Over the course of the war, Iran fired 550+ ballistic missiles and 1,000+ suicide drones at Israel.",
+      "actors_involved": [
+        "iran",
+        "israel"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Iran retaliated within hours of the initial strike with large-scale missile and drone barrages. Over the course of the war, Iran fired 550+ ballistic missiles and 1,000+ suicide drones at Israel."
+    },
+    {
+      "id": "evt_20250613_iran_fires_14_missiles_at_al_udeid_air_base_qatar",
+      "timestamp": "2025-06-13",
+      "timestamp_confidence": "approximate",
+      "title": "Iran Fires 14 Missiles at Al Udeid Air Base, Qatar",
+      "description": "During the Twelve-Day War, Iran fired 14 missiles at Al Udeid Air Base in Qatar. All were intercepted and no US casualties resulted.",
+      "actors_involved": [
+        "iran",
+        "gulf_states",
+        "united_states"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "14 missiles at Al Udeid Air Base, Qatar (all intercepted; no US casualties)."
+    },
+    {
+      "id": "evt_20250621_us_launches_operation_midnight_hammer_on_iranian_nuclear_sites",
+      "timestamp": "2025-06-21",
+      "timestamp_confidence": "exact",
+      "title": "US Launches Operation Midnight Hammer on Iranian Nuclear Sites",
+      "description": "The United States launched Operation Midnight Hammer overnight June 21–22, targeting Fordow with 7 B-2 Spirit stealth bombers dropping 14 GBU-57A/B Massive Ordnance Penetrators in their first-ever combat use, Natanz with Tomahawk cruise missiles from submarines, and Isfahan Nuclear Technology Center with 24 Tomahawk cruise missiles. F-35 and F-22 fighters entered Iranian airspace as decoys.",
+      "actors_involved": [
+        "united_states",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "On June 21–22, 2025 (overnight US time), the US launched Operation Midnight Hammer targeting three nuclear sites: Fordow: 7 B-2 Spirit stealth bombers dropped 14 GBU-57A/B Massive Ordnance Penetrators (30,000-lb 'bunker busters') — first-ever combat use of MOPs."
+    },
+    {
+      "id": "evt_20250623_trump_announces_ceasefire_ending_the_twelveday_war",
+      "timestamp": "2025-06-23",
+      "timestamp_confidence": "exact",
+      "title": "Trump Announces Ceasefire Ending the Twelve-Day War",
+      "description": "Trump announced a ceasefire on the evening of June 23 (US time), effective June 24, 2025. Brokered by the US and Qatar, the terms established sequential 12-hour cessation cycles. Serious violations occurred in the initial hours — Israel dropped bombs before its deadline, Iran fired missiles at Beersheba killing 4, and Israel retaliated by bombing a radar station near Tehran.",
+      "actors_involved": [
+        "united_states",
+        "israel",
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "down",
+      "source_excerpt": "Trump announced a ceasefire on the evening of June 23 (US time), effective June 24, 2025. Brokered by the US and Qatar. Terms: sequential 12-hour cessation cycles — first Iran, then both sides."
+    },
+    {
+      "id": "evt_20250624_twelveday_war_ends_dia_leaks_assessment_of_limited_nuclear_setback",
+      "timestamp": "2025-06-24",
+      "timestamp_confidence": "exact",
+      "title": "Twelve-Day War Ends; DIA Leaks Assessment of Limited Nuclear Setback",
+      "description": "The ceasefire took effect June 24, ending the Twelve-Day War. The same day, a leaked DIA assessment concluded the strikes had set back Iran's nuclear program only months, and that Iran had moved uranium before the strikes. Casualties: 610–1,062 killed in Iran, 28–29 killed in Israel.",
+      "actors_involved": [
+        "united_states",
+        "iran",
+        "israel"
+      ],
+      "dimension": "intelligence",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "DIA (leaked, June 24): Low-confidence: set back 'months' only; Iran moved uranium before strikes."
+    },
+    {
+      "id": "evt_20250701_iran_expels_iaea_inspectors_and_suspends_cooperation",
+      "timestamp": "2025-07-01",
+      "timestamp_confidence": "period",
+      "title": "Iran Expels IAEA Inspectors and Suspends Cooperation",
+      "description": "Following the Twelve-Day War, Iran expelled IAEA inspectors, halted cooperation with the international body, and began reconstituting nuclear capabilities at deeply buried alternative sites. No inspections at damaged sites occurred after June 2025.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Iran expelled IAEA inspectors, halted cooperation, and began reconstituting capabilities at deeply buried alternative sites... Iran has had no IAEA inspections at damaged sites since June 2025 and formally suspended cooperation in July 2025."
+    },
+    {
+      "id": "evt_20250701_joe_kent_confirmed_as_nctc_director_on_partyline_vote",
+      "timestamp": "2025-07-01",
+      "timestamp_confidence": "approximate",
+      "title": "Joe Kent Confirmed as NCTC Director on Party-Line Vote",
+      "description": "Joe Kent was confirmed by the Senate in July 2025 on a party-line vote of 52–44 as Director of the National Counterterrorism Center.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "intelligence",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "none",
+      "source_excerpt": "He was confirmed by the Senate in July 2025 on a party-line vote of 52–44."
+    },
+    {
+      "id": "evt_20250702_pentagon_assesses_nuclear_strikes_set_back_iranian_program_one_to_two_years",
+      "timestamp": "2025-07-02",
+      "timestamp_confidence": "exact",
+      "title": "Pentagon Assesses Nuclear Strikes Set Back Iranian Program One to Two Years",
+      "description": "The Pentagon released an official military assessment concluding that US strikes had set back Iran's nuclear program one to two years, contradicting Trump's claim of complete obliteration and the earlier DIA leak.",
+      "actors_involved": [
+        "united_states",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Pentagon (July 2): Set back program 'one to two years'."
+    },
+    {
+      "id": "evt_20250801_israel_kills_12_houthi_cabinet_members",
+      "timestamp": "2025-08-01",
+      "timestamp_confidence": "approximate",
+      "title": "Israel Kills 12 Houthi Cabinet Members",
+      "description": "Israel conducted strikes that killed 12 Houthi cabinet members in August 2025, significantly decimating Houthi leadership and contributing to their subsequent pause in Red Sea attacks.",
+      "actors_involved": [
+        "israel"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "israel",
+      "escalation_direction": "up",
+      "source_excerpt": "self-preservation (leadership decimated by Israel in 2025 — 12 cabinet members killed August 2025)"
+    },
+    {
+      "id": "evt_20250901_iaea_director_grossi_assesses_fordow_destroyed_but_iran_can_rebuild_in_months",
+      "timestamp": "2025-09-01",
+      "timestamp_confidence": "approximate",
+      "title": "IAEA Director Grossi Assesses Fordow Destroyed but Iran Can Rebuild in Months",
+      "description": "IAEA Director General Grossi stated that almost all sensitive equipment at Fordow was destroyed but that Iran possesses industrial and technological capabilities to rebuild in a matter of months. This assessment contradicted more optimistic US official claims.",
+      "actors_involved": [
+        "iran",
+        "united_states",
+        "israel"
+      ],
+      "dimension": "intelligence",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "IAEA Director Grossi (September 2025): 'Almost all sensitive equipment' at Fordow destroyed but Iran has 'industrial and technological capabilities' to rebuild in 'a matter of months'."
+    },
+    {
+      "id": "evt_20251001_former_iranian_defense_minister_shamkhani_advocates_for_nuclear_weapons_development",
+      "timestamp": "2025-10-01",
+      "timestamp_confidence": "approximate",
+      "title": "Former Iranian Defense Minister Shamkhani Advocates for Nuclear Weapons Development",
+      "description": "Former Iranian Defense Minister Ali Shamkhani publicly stated that if he returned to the defense portfolio, he would move toward building an atomic bomb, signaling a significant shift in elite Iranian thinking about nuclear weapons.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Former defense minister Ali Shamkhani publicly stated in October 2025: 'If I returned to the defence portfolio, I would move toward building an atomic bomb.'"
+    },
+    {
+      "id": "evt_20251010_gaza_ceasefire_takes_effect_under_trumps_20point_plan",
+      "timestamp": "2025-10-10",
+      "timestamp_confidence": "exact",
+      "title": "Gaza Ceasefire Takes Effect Under Trump's 20-Point Plan",
+      "description": "A ceasefire in Gaza took effect on October 10, 2025, under Trump's 20-point plan. However, Israel continued military operations with airstrikes, shelling, and gunfire despite the ceasefire, and eventually closed crossings and stopped aid flow.",
+      "actors_involved": [
+        "united_states",
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "down",
+      "source_excerpt": "A ceasefire took effect October 10, 2025 under Trump's 20-point plan. However, Israel continues 'military operations with airstrikes, shelling and gunfire' despite the ceasefire."
+    },
+    {
+      "id": "evt_20251101_white_house_internal_document_acknowledges_strikes_only_significantly_degraded_iranian_program",
+      "timestamp": "2025-11-01",
+      "timestamp_confidence": "approximate",
+      "title": "White House Internal Document Acknowledges Strikes Only 'Significantly Degraded' Iranian Program",
+      "description": "A leaked White House internal document from November 2025 acknowledged that the June 2025 strikes had only 'significantly degraded' rather than obliterated Iran's nuclear program, contradicting Trump's earlier public claims.",
+      "actors_involved": [
+        "united_states",
+        "iran"
+      ],
+      "dimension": "intelligence",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "White House (November 2025): Internal document acknowledged strikes only 'significantly degraded' (not obliterated) program."
+    },
+    {
+      "id": "evt_20251119_epstein_files_transparency_act_signed_into_law",
+      "timestamp": "2025-11-19",
+      "timestamp_confidence": "exact",
+      "title": "Epstein Files Transparency Act Signed into Law",
+      "description": "The Epstein Files Transparency Act was signed into law (Public Law 119-38) on November 19, 2025. The House voted 427–1 and the Senate passed unanimously. The law required the AG to release all unclassified Epstein-related records within 30 days.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "none",
+      "source_excerpt": "Verified: Signed into law November 19, 2025 (Public Law 119-38). House voted 427–1 (only Rep. Clay Higgins voted no); Senate passed unanimously. The law requires the AG to release all unclassified Epstein-related records within 30 days."
+    },
+    {
+      "id": "evt_20251201_ahmad_vahidi_appointed_irgc_deputy_commanderinchief",
+      "timestamp": "2025-12-01",
+      "timestamp_confidence": "approximate",
+      "title": "Ahmad Vahidi Appointed IRGC Deputy Commander-in-Chief",
+      "description": "Ahmad Vahidi was named new IRGC commander-in-chief deputy in December 2025, specifically to prepare for a possible US-Israeli attack on Iran.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Ahmad Vahidi was named new IRGC commander-in-chief (appointed deputy in December 2025 specifically to prepare for possible attack)."
+    },
+    {
+      "id": "evt_20251201_aipac_retreats_from_2026_midterm_endorsements_and_election_spending",
+      "timestamp": "2025-12-01",
+      "timestamp_confidence": "approximate",
+      "title": "AIPAC Retreats from 2026 Midterm Endorsements and Election Spending",
+      "description": "The Intercept reported in December 2025 that AIPAC is retreating from endorsements and election spending for the 2026 midterm cycle due to growing public backlash. California Governor Gavin Newsom publicly stated he would not take AIPAC money.",
+      "actors_involved": [
+        "united_states",
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "AIPAC",
+      "escalation_direction": "down",
+      "source_excerpt": "The Intercept reported (December 2025) that AIPAC is 'retreating from endorsements and election spending' for the 2026 midterm cycle due to growing public backlash. California Governor Gavin Newsom publicly stated he would not take AIPAC money."
+    },
+    {
+      "id": "evt_20251201_russia_signs_500_million_deal_to_supply_iran_with_500_verba_manpads",
+      "timestamp": "2025-12-01",
+      "timestamp_confidence": "approximate",
+      "title": "Russia Signs €500 Million Deal to Supply Iran with 500 Verba MANPADS",
+      "description": "Russia and Iran signed a €500 million deal for 500 Verba man-portable air defense systems in December 2025, representing a significant pre-conflict military supply arrangement.",
+      "actors_involved": [
+        "russia",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "russia",
+      "escalation_direction": "up",
+      "source_excerpt": "Pre-war confirmed arms transfers include contracts for 48 Su-35 fighter jets (delivery 2026–2028), Yak-130 training jets (at least one squadron delivered), Mi-28 attack helicopters (up to 6 delivered by January 2026), and a €500 million deal for 500 Verba MANPADS signed December 2025."
+    },
+    {
+      "id": "evt_20251201_china_conducts_justice_mission_drills_rehearsing_full_maritime_blockade_of_taiwan",
+      "timestamp": "2025-12-01",
+      "timestamp_confidence": "approximate",
+      "title": "China Conducts 'Justice Mission' Drills Rehearsing Full Maritime Blockade of Taiwan",
+      "description": "China conducted 'Justice Mission' military drills in December 2025 rehearsing a full maritime blockade of Taiwan, covering a larger area than any exercise since 2022, demonstrating continued long-term military preparation.",
+      "actors_involved": [
+        "china"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "china",
+      "escalation_direction": "up",
+      "source_excerpt": "The December 2025 'Justice Mission' drills rehearsed a full maritime blockade of Taiwan covering a larger area than any exercise since 2022."
+    },
+    {
+      "id": "evt_20251228_nationwide_protests_erupt_in_iran_over_currency_collapse",
+      "timestamp": "2025-12-28",
+      "timestamp_confidence": "exact",
+      "title": "Nationwide Protests Erupt in Iran Over Currency Collapse",
+      "description": "Massive nationwide protests erupted in Iran on December 28, 2025 over currency collapse and economic crisis, spreading to all 31 provinces and more than 200 cities.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "The crackdown followed massive nationwide protests that erupted December 28, 2025 over currency collapse and economic crisis, spreading to all 31 provinces and 200+ cities."
+    },
+    {
+      "id": "evt_20260101_massive_iranian_domestic_protests_regime_kills_thousands_of_citizens",
+      "timestamp": "2026-01-01",
+      "timestamp_confidence": "period",
+      "title": "Massive Iranian Domestic Protests; Regime Kills Thousands of Citizens",
+      "description": "During the interwar period, Iran experienced a massive economic crisis that triggered large-scale domestic protests. The Iranian regime killed thousands of its own citizens in suppressing the unrest.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "lateral",
+      "source_excerpt": "Economic crisis triggered massive protests (January 2026); regime killed thousands of its own citizens."
+    },
+    {
+      "id": "evt_20260101_irans_january_2026_massacre_mass_crackdown_on_protesters",
+      "timestamp": "2026-01-01",
+      "timestamp_confidence": "approximate",
+      "title": "Iran's January 2026 Massacre — Mass Crackdown on Protesters",
+      "description": "Iranian security forces conducted one of the deadliest protest crackdowns in modern history following December 2025 protests. Death toll estimates range from 3,110 (official) to 36,500+ (leaked IRGC documents). Amnesty International, Human Rights Watch, and UN bodies independently verified mass unlawful killings. Ali Khamenei personally ordered crushing the protests by any means necessary.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Amnesty International documented 'mass unlawful killings committed on an unprecedented scale' — security forces firing rifles and shotguns at heads and torsos, snipers on rooftops, forced disappearances, torture, and sexual violence. Ali Khamenei personally ordered to 'crush the protests by any means necessary.'"
+    },
+    {
+      "id": "evt_20260101_gulf_states_block_us_base_and_airspace_access_for_iran_strikes",
+      "timestamp": "2026-01-01",
+      "timestamp_confidence": "approximate",
+      "title": "Gulf States Block US Base and Airspace Access for Iran Strikes",
+      "description": "Gulf allies explicitly told the US their territory could not be used for strikes on Iran, blocking US base and airspace access in late January 2026.",
+      "actors_involved": [
+        "united_states",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "gulf_states",
+      "escalation_direction": "down",
+      "source_excerpt": "Fox News/WSJ reported Gulf allies blocked US base and airspace access in late January 2026. Vice Adm. Harward (former deputy CENTCOM commander): 'We have failed to earn the trust and confidence of our Gulf partners over the last decade and a half.'"
+    },
+    {
+      "id": "evt_20260101_pla_adiz_incursions_near_taiwan_drop_below_200_per_month",
+      "timestamp": "2026-01-01",
+      "timestamp_confidence": "period",
+      "title": "PLA ADIZ Incursions Near Taiwan Drop Below 200 Per Month",
+      "description": "Chinese PLA air defense identification zone incursions near Taiwan dropped below 200 per month in January–February 2026, down from a 300+ per month average, part of a broader de-escalation pattern ahead of a planned Trump-Xi summit.",
+      "actors_involved": [
+        "china"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "china",
+      "escalation_direction": "down",
+      "source_excerpt": "PLA ADIZ incursions dropped below 200/month in January–February 2026, down from 300+/month average."
+    },
+    {
+      "id": "evt_20260101_russia_delivers_up_to_6_mi28_attack_helicopters_to_iran",
+      "timestamp": "2026-01-01",
+      "timestamp_confidence": "approximate",
+      "title": "Russia Delivers Up to 6 Mi-28 Attack Helicopters to Iran",
+      "description": "Russia delivered up to six Mi-28 attack helicopters to Iran by January 2026, part of a broader pre-conflict military supply relationship including Su-35 jets and Yak-130 trainers.",
+      "actors_involved": [
+        "russia",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "russia",
+      "escalation_direction": "up",
+      "source_excerpt": "Mi-28 attack helicopters (up to 6 delivered by January 2026)."
+    },
+    {
+      "id": "evt_20260101_eu_gas_storage_begins_2026_at_only_46_bcm_fiveyear_low",
+      "timestamp": "2026-01-01",
+      "timestamp_confidence": "period",
+      "title": "EU Gas Storage Begins 2026 at Only 46 bcm — Five-Year Low",
+      "description": "The European Union entered 2026 with only 46 billion cubic meters in gas storage, compared to 60 bcm in 2025 and 77 bcm in 2024, leaving Europe structurally vulnerable to any supply disruption before the conflict began.",
+      "actors_involved": [],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "The EU started 2026 with only 46 bcm in storage versus 60 bcm in 2025 and 77 bcm in 2024."
+    },
+    {
+      "id": "evt_20260101_russia_oil_revenues_at_their_weakest_since_2022_invasion",
+      "timestamp": "2026-01-01",
+      "timestamp_confidence": "period",
+      "title": "Russia Oil Revenues at Their Weakest Since 2022 Invasion",
+      "description": "Before the conflict, Russia's oil exports were at their weakest since the 2022 invasion, generating $9.5 billion in February 2026 with Urals crude trading at approximately $40 per barrel, roughly $30 below Brent.",
+      "actors_involved": [
+        "russia"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Before the conflict, Russia's oil exports were at their weakest since the 2022 invasion — $9.5 billion in February 2026 with Urals crude trading at ~$40/barrel, roughly $30 below Brent."
+    },
+    {
+      "id": "evt_20260115_uss_abraham_lincoln_carrier_strike_group_departs_south_china_sea_for_middle_east",
+      "timestamp": "2026-01-15",
+      "timestamp_confidence": "approximate",
+      "title": "USS Abraham Lincoln Carrier Strike Group Departs South China Sea for Middle East",
+      "description": "USS Abraham Lincoln (CVN-72), Carrier Strike Group 3, was redirected from the South China Sea, departing the Philippines area around January 15, 2026, en route to the Arabian Sea, arriving in late January 2026.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "USS Abraham Lincoln (CVN-72), Carrier Strike Group 3 — redirected from South China Sea, arrived Arabian Sea late January 2026... departed Philippines ~January 15, 2026."
+    },
+    {
+      "id": "evt_20260126_last_israeli_hostage_body_returned_from_gaza",
+      "timestamp": "2026-01-26",
+      "timestamp_confidence": "exact",
+      "title": "Last Israeli Hostage Body Returned from Gaza",
+      "description": "The last Israeli hostage body was returned from Gaza on January 26, 2026, completing the hostage recovery process under the Gaza ceasefire framework.",
+      "actors_involved": [
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "All Israeli hostages recovered (last body returned January 26, 2026)."
+    },
+    {
+      "id": "evt_20260201_russia_china_and_iran_conduct_joint_naval_drills_in_strait_of_hormuz",
+      "timestamp": "2026-02-01",
+      "timestamp_confidence": "approximate",
+      "title": "Russia, China, and Iran Conduct Joint Naval Drills in Strait of Hormuz",
+      "description": "Russia, China, and Iran conducted joint naval drills in the Strait of Hormuz in February 2026, signaling deepening trilateral security cooperation ahead of the US-Israeli strikes on Iran.",
+      "actors_involved": [
+        "russia",
+        "china",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "russia",
+      "escalation_direction": "up",
+      "source_excerpt": "Russia, China, and Iran conducted joint naval drills in the Strait of Hormuz in February 2026."
+    },
+    {
+      "id": "evt_20260202_doj_announces_no_additional_epstein_prosecutions",
+      "timestamp": "2026-02-02",
+      "timestamp_confidence": "exact",
+      "title": "DOJ Announces No Additional Epstein Prosecutions",
+      "description": "Deputy AG Todd Blanche stated on February 2, 2026 there would be no additional prosecutions related to the Epstein files, following the DOJ's publication of over 3.5 million pages, 2,000+ videos, and 180,000 images. Approximately 200,000 pages were redacted or withheld.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "none",
+      "source_excerpt": "DOJ published over 3.5 million pages, 2,000+ videos, and 180,000 images. Approximately 200,000 pages were redacted or withheld. Deputy AG Todd Blanche stated on February 2, 2026 there would be no additional prosecutions."
+    },
+    {
+      "id": "evt_20260205_prewar_university_of_maryland_poll_shows_only_21_support_for_strikes_on_iran",
+      "timestamp": "2026-02-05",
+      "timestamp_confidence": "exact",
+      "title": "Pre-War University of Maryland Poll Shows Only 21% Support for Strikes on Iran",
+      "description": "A University of Maryland poll conducted February 5–9, 2026 found only 21% of Americans supported military action against Iran, with 49% opposed and 30% unsure — the lowest pre-conflict support level recorded for any comparable US military operation.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "University of Maryland (Feb 5–9, pre-war) | 21% | 49% | 30%"
+    },
+    {
+      "id": "evt_20260206_oman_hosts_indirect_usiran_talks_in_muscat",
+      "timestamp": "2026-02-06",
+      "timestamp_confidence": "exact",
+      "title": "Oman Hosts Indirect US-Iran Talks in Muscat",
+      "description": "Oman hosted indirect US-Iran talks in Muscat on February 6, 2026, coming close to achieving a genuine breakthrough. Iran agreed to transfer enriched uranium abroad and accept strict monitoring. Omani FM Al Busaidi declared peace was within reach on February 26, two days before the US-Israeli strikes began.",
+      "actors_involved": [
+        "united_states",
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "down",
+      "source_excerpt": "Verified: Oman hosted indirect US-Iran talks in Muscat (February 6, 2026) that came 'close to achieving a genuine breakthrough.' Iran agreed to transfer enriched uranium abroad and accept strict monitoring. Omani FM Al Busaidi declared peace was 'within reach' on February 26 — two days before the strikes."
+    },
+    {
+      "id": "evt_20260210_russia_gains_182_square_miles_of_ukrainian_territory_in_fourweek_period",
+      "timestamp": "2026-02-10",
+      "timestamp_confidence": "approximate",
+      "title": "Russia Gains 182 Square Miles of Ukrainian Territory in Four-Week Period",
+      "description": "Between approximately mid-January and February 10, 2026, Russian forces gained 182 square miles of Ukrainian territory, reflecting offensive momentum that would subsequently reverse following the outbreak of the Iran conflict.",
+      "actors_involved": [
+        "russia"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Between February 10 and March 10, Russian forces actually lost 57 square miles, in notable contrast to gaining 182 square miles in the prior four weeks."
+    },
+    {
+      "id": "evt_20260213_uss_gerald_r_ford_carrier_strike_group_ordered_to_middle_east",
+      "timestamp": "2026-02-13",
+      "timestamp_confidence": "exact",
+      "title": "USS Gerald R. Ford Carrier Strike Group Ordered to Middle East",
+      "description": "USS Gerald R. Ford (CVN-78), Carrier Strike Group 12, was ordered to the Middle East on February 13, 2026. It subsequently transited the Suez Canal on March 5–6 and deployed to the Red Sea.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "USS Gerald R. Ford (CVN-78), Carrier Strike Group 12 — ordered to Middle East February 13. Transited Suez Canal March 5–6. Currently in Red Sea."
+    },
+    {
+      "id": "evt_20260223_netanyahu_calls_trump_with_khameneis_meeting_location",
+      "timestamp": "2026-02-23",
+      "timestamp_confidence": "exact",
+      "title": "Netanyahu Calls Trump with Khamenei's Meeting Location",
+      "description": "Israeli Prime Minister Netanyahu called President Trump on February 23, 2026, to inform him of Supreme Leader Khamenei's upcoming meeting location with top advisors, providing the intelligence that enabled the subsequent decapitation strike.",
+      "actors_involved": [
+        "united_states",
+        "israel"
+      ],
+      "dimension": "intelligence",
+      "is_decision": true,
+      "deciding_actor": "israel",
+      "escalation_direction": "up",
+      "source_excerpt": "Netanyahu had called Trump on February 23 to inform him of Khamenei's upcoming meeting location with top advisors."
+    },
+    {
+      "id": "evt_20260226_omani_fm_declares_peace_with_iran_within_reach_two_days_before_strikes",
+      "timestamp": "2026-02-26",
+      "timestamp_confidence": "exact",
+      "title": "Omani FM Declares Peace with Iran 'Within Reach' Two Days Before Strikes",
+      "description": "Omani Foreign Minister Al Busaidi declared on February 26, 2026 that a diplomatic resolution with Iran was within reach, just two days before Operation Epic Fury was launched.",
+      "actors_involved": [
+        "united_states",
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "down",
+      "source_excerpt": "Omani FM Al Busaidi declared peace was 'within reach' on February 26 — two days before the strikes."
+    },
+    {
+      "id": "evt_20260227_oman_announces_diplomatic_breakthrough_iran_agrees_to_full_nuclear_verification",
+      "timestamp": "2026-02-27",
+      "timestamp_confidence": "exact",
+      "title": "Oman Announces Diplomatic Breakthrough; Iran Agrees to Full Nuclear Verification",
+      "description": "Oman's foreign minister announced a diplomatic breakthrough on February 27, 2026, stating that Iran had agreed to never stockpile enriched uranium, accept full IAEA verification, and downgrade existing enriched uranium. Further talks were scheduled to resume March 2.",
+      "actors_involved": [
+        "united_states",
+        "iran"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "down",
+      "source_excerpt": "This attack came one day after Oman's foreign minister announced a diplomatic 'breakthrough' — Iran had agreed to never stockpile enriched uranium, accept full IAEA verification, and downgrade existing enriched uranium. Talks were scheduled to resume March 2."
+    },
+    {
+      "id": "evt_20260227_iaea_reports_inability_to_track_iranian_enriched_uranium_stockpile",
+      "timestamp": "2026-02-27",
+      "timestamp_confidence": "exact",
+      "title": "IAEA Reports Inability to Track Iranian Enriched Uranium Stockpile",
+      "description": "The IAEA's February 27, 2026 report stated it 'cannot provide any information on the current size, composition or whereabouts of the stockpile of enriched uranium in Iran,' representing a critical intelligence gap on Iranian nuclear capabilities.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "intelligence",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "IAEA (February 2026): 'Cannot provide any information on the current size, composition or whereabouts of the stockpile of enriched uranium in Iran'."
+    },
+    {
+      "id": "evt_20260227_brent_crude_priced_at_7132bbl_final_preconflict_baseline",
+      "timestamp": "2026-02-27",
+      "timestamp_confidence": "exact",
+      "title": "Brent Crude Priced at $71.32/bbl — Final Pre-Conflict Baseline",
+      "description": "Brent crude oil closed at $71.32 per barrel on February 27, 2026, according to the EIA, establishing the pre-conflict baseline from which subsequent price surges are measured.",
+      "actors_involved": [],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Pre-conflict Brent traded at $65–73/bbl (the EIA cites $71.32 on February 27)."
+    },
+    {
+      "id": "evt_20260227_china_delivers_offensive_weapons_including_loitering_munitions_and_air_defense_systems_to_iran",
+      "timestamp": "2026-02-27",
+      "timestamp_confidence": "exact",
+      "title": "China Delivers Offensive Weapons Including Loitering Munitions and Air Defense Systems to Iran",
+      "description": "Middle East Eye reported, citing three officials, that China delivered offensive weapons including loitering munitions and air defense systems to Iran before the strikes began, on or around February 27.",
+      "actors_involved": [
+        "china",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "china",
+      "escalation_direction": "up",
+      "source_excerpt": "Middle East Eye reported (February 27, citing three officials) that China delivered 'offensive' weapons including loitering munitions and air defense systems before the strikes began."
+    },
+    {
+      "id": "evt_20260227_taiwan_records_beginning_of_13_consecutive_days_without_chinese_warplanes",
+      "timestamp": "2026-02-27",
+      "timestamp_confidence": "exact",
+      "title": "Taiwan Records Beginning of 13 Consecutive Days Without Chinese Warplanes",
+      "description": "Beginning February 27, Taiwan recorded 13 consecutive days without Chinese warplanes flying near the island, described by analysts as unlike anything seen in recent history, reflecting China's deliberate de-escalation around Taiwan coinciding with the Iran conflict outbreak.",
+      "actors_involved": [
+        "china"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "china",
+      "escalation_direction": "down",
+      "source_excerpt": "Beginning February 27, Taiwan recorded 13 consecutive days without Chinese warplanes flying near the island — described as 'frankly unlike anything we've seen in recent history' by PLATracker founder Ben Lewis."
+    },
+    {
+      "id": "evt_20260228_trump_orders_joint_usisrael_decapitation_strike_on_iran",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Trump Orders Joint US-Israel Decapitation Strike on Iran",
+      "description": "President Trump gave the order for Operation Epic Fury (US) and Operation Roaring Lion (Israel) at 20:38 UTC on February 28, 2026, launching a coordinated decapitation strike one day after the announced diplomatic breakthrough. Nearly 900 strikes hit 24 of Iran's 31 provinces in the first 12 hours.",
+      "actors_involved": [
+        "united_states",
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "On February 28, 2026, the US (Operation Epic Fury) and Israel (Operation Roaring Lion) launched a coordinated decapitation strike. Trump gave the order at 20:38 UTC. Nearly 900 strikes in the first 12 hours, targeting 24 of Iran's 31 provinces."
+    },
+    {
+      "id": "evt_20260228_supreme_leader_khamenei_killed_in_israeli_strike_on_tehran_compound",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Supreme Leader Khamenei Killed in Israeli Strike on Tehran Compound",
+      "description": "Supreme Leader Ali Khamenei was struck at his compound on Pasteur Street, Tehran, at approximately 09:32 local time by Israeli strikes. Iranian state media confirmed his death at approximately 05:00 March 1 Iran time. His daughter Boshra Khamenei, daughter-in-law Zahra Haddad-Adel, and son-in-law Mesbah Bagheri Kani were also killed in the same strikes.",
+      "actors_involved": [
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Khamenei was killed on Day 1... Struck at his compound on Pasteur Street, Tehran, at approximately 09:32 local time by Israeli strikes. Iranian state media confirmed death at ~05:00 March 1 Iran time."
+    },
+    {
+      "id": "evt_20260228_senior_iranian_military_and_security_officials_killed_in_opening_strikes",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Senior Iranian Military and Security Officials Killed in Opening Strikes",
+      "description": "In the opening strikes of February 28, 2026, the following senior Iranian officials were killed: IRGC Commander-in-Chief Mohammad Pakpour, Armed Forces Chief of Staff Abdolrahim Mousavi, Defense Minister Aziz Nasirzadeh, Security Council Secretary Ali Shamkhani, Intelligence head Salah Asadi, and Supreme National Security Council Secretary Ali Larijani, along with approximately 40 total senior officials.",
+      "actors_involved": [
+        "united_states",
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Mohammad Pakpour, IRGC Commander-in-Chief, Feb 28; Abdolrahim Mousavi, Armed Forces Chief of Staff, Feb 28; Aziz Nasirzadeh, Defense Minister, Feb 28; Ali Shamkhani, Security Council Secretary, Feb 28; Salah Asadi, Intelligence head, Feb 28... ~40 total officials, Various senior positions, Feb 28 onward."
+    },
+    {
+      "id": "evt_20260228_iran_opens_internet_reduced_to_4_of_normal_capacity_by_usisrael_cyber_operations",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Iran Opens Internet Reduced to 4% of Normal Capacity by US-Israel Cyber Operations",
+      "description": "Opening strikes on February 28 included cyber operations that reduced Iran's internet to 4% of normal capacity. Israel also hacked the BadeSaba Calendar prayer app used by millions of phones to urge military defection and hijacked Iranian state news agency IRNA.",
+      "actors_involved": [
+        "united_states",
+        "israel",
+        "iran"
+      ],
+      "dimension": "intelligence",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "Opening strikes reduced Iran's internet to 4% of normal. Israel hacked the BadeSaba Calendar prayer app (millions of phones) to urge military defection. Israel hijacked Iranian state news agency IRNA to display anti-regime articles."
+    },
+    {
+      "id": "evt_20260228_irgc_declares_strait_of_hormuz_closed_to_us_israeli_and_western_allied_shipping",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "IRGC Declares Strait of Hormuz Closed to US, Israeli, and Western Allied Shipping",
+      "description": "Within hours of the February 28 strikes, the IRGC issued VHF radio warnings that passage through the Strait of Hormuz was 'not allowed.' This represented the first actual closure of the Strait in history. Traffic collapsed from 100+ ships per day to effectively zero.",
+      "actors_involved": [
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Feb 28: Within hours of strikes, IRGC issued VHF radio warnings that passage 'not allowed.'... Only 21 tankers transited since February 28 (S&P Global), compared to 100+ ships/day before conflict."
+    },
+    {
+      "id": "evt_20260228_iran_begins_retaliatory_missile_and_drone_strikes_across_the_region",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Iran Begins Retaliatory Missile and Drone Strikes Across the Region",
+      "description": "Iran commenced large-scale retaliatory strikes beginning February 28, 2026. As of March 5, Iran had fired 500+ ballistic/naval missiles and approximately 2,000 drones. Approximately 40% were aimed at Israel and 60% at US targets. The IRGC attacked 27+ US bases across the Middle East.",
+      "actors_involved": [
+        "iran",
+        "israel",
+        "united_states",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "As of March 5, Iran had fired 500+ ballistic/naval missiles and ~2,000 drones since February 28. ~40% aimed at Israel, ~60% at US targets (per Fars News). IRGC attacked 27+ US bases across the Middle East."
+    },
+    {
+      "id": "evt_20260228_islamic_resistance_in_iraq_claims_16_drone_attacks_on_day_one",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Islamic Resistance in Iraq Claims 16+ Drone Attacks on Day One",
+      "description": "The Islamic Resistance in Iraq, a coalition of Iran-backed Shia militias with approximately 100,000 PMF personnel, claimed 16+ drone attacks on February 28 alone, targeting US bases in Erbil, Victory Base near Baghdad, Baghdad International Airport, and the US Embassy.",
+      "actors_involved": [
+        "iran",
+        "united_states"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Islamic Resistance in Iraq (IRI) — a coalition of Iran-backed Shia militias (~100,000 PMF personnel) — claimed 16+ drone attacks on February 28 alone, rising to 300+ missile/drone attacks by late March."
+    },
+    {
+      "id": "evt_20260228_fortyday_mourning_period_declared_in_iran_celebrations_erupt_in_some_cities",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "approximate",
+      "title": "Forty-Day Mourning Period Declared in Iran; Celebrations Erupt in Some Cities",
+      "description": "Following confirmation of Khamenei's death, Iran declared a forty-day mourning period. However, celebrations broke out in Isfahan, Karaj, Kermanshah, and other cities, with statues toppled in Dehloran. Security forces fired on celebrants, revealing the mixed domestic response.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Forty-day mourning period declared... celebrations broke out in Isfahan, Karaj, Kermanshah, and other cities after Khamenei's death was confirmed, with statues toppled in Dehloran. Security forces fired on celebrants."
+    },
+    {
+      "id": "evt_20260228_operation_epic_fury_launched_usisraeli_strikes_on_iran_begin",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Operation Epic Fury Launched — US-Israeli Strikes on Iran Begin",
+      "description": "Operation Epic Fury commenced on February 28, 2026 with nearly 900 US-Israeli strikes in the first 12 hours. Supreme Leader Ali Khamenei was killed on Day 1, along with Defense Minister Nasirzadeh, IRGC Commander-in-Chief Pakpour, intelligence chief Asadi, and other senior Iranian figures. CIA had tracked Khamenei's movements and shared intelligence with Israel.",
+      "actors_involved": [
+        "united_states",
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "'Operation Epic Fury' began February 28, 2026 with nearly 900 US-Israeli strikes in the first 12 hours. Supreme Leader Ali Khamenei was killed on Day 1."
+    },
+    {
+      "id": "evt_20260228_ayatollah_khamenei_killed_in_usisraeli_strikes_on_tehran",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Ayatollah Khamenei Killed in US-Israeli Strikes on Tehran",
+      "description": "Supreme Leader Ali Khamenei was killed in joint US-Israeli strikes on his compound in central Tehran on February 28, 2026. Iranian state media initially denied his death but confirmed it on March 1. Also killed were Defense Minister Nasirzadeh, IRGC Commander-in-Chief Pakpour, and intelligence chief Asadi.",
+      "actors_involved": [
+        "united_states",
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Verified: Ayatollah Ali Khamenei was killed February 28, 2026 in joint US-Israeli strikes on his compound in central Tehran. Iranian state media confirmed his death March 1 after initially denying it."
+    },
+    {
+      "id": "evt_20260228_iran_launches_retaliatory_strikes_against_all_six_gcc_members",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Iran Launches Retaliatory Strikes Against All Six GCC Members",
+      "description": "Iran launched retaliatory strikes against UAE, Saudi Arabia, Qatar, Bahrain, Kuwait, and Oman using over 2,000 missiles and drones. Approximately 1,800 were intercepted but hundreds broke through, damaging infrastructure across the Gulf including Dubai International Airport, Ras Tanura oil refinery, and the US Fifth Fleet service center in Bahrain.",
+      "actors_involved": [
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Verified: Iran launched retaliatory strikes against UAE, Saudi Arabia, Qatar, Bahrain, Kuwait, and even neutral Oman. Over 2,000 missiles and drones were launched at Gulf states; approximately 1,800 intercepted, with hundreds breaking through."
+    },
+    {
+      "id": "evt_20260228_brent_crude_oil_price_begins_surge_from_70bbl",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Brent Crude Oil Price Begins Surge from ~$70/bbl",
+      "description": "Following the launch of Operation Epic Fury, Brent crude surged from approximately $70 per barrel pre-war. Middle Eastern daily production fell from 21 million bpd to 14 million bpd within a week. The IEA later described this as the largest supply disruption in the history of the global oil market.",
+      "actors_involved": [
+        "united_states",
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Brent crude surged from ~$70/bbl pre-war to $108.78/bbl on March 18 — a 55%+ increase. Peaked at $119.48 on March 12. IEA described this as 'the largest supply disruption in the history of the global oil market.' Middle Eastern daily production fell from 21 million bpd to 14 million bpd within a week."
+    },
+    {
+      "id": "evt_20260228_iran_effectively_closes_strait_of_hormuz",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Iran Effectively Closes Strait of Hormuz",
+      "description": "Following the US-Israeli strikes, Iran effectively closed the Strait of Hormuz to most commercial traffic, deploying its decentralized military command's pre-delegated authority. Iran began allowing selective passage, with the first transit — a Pakistani tanker — occurring on March 16.",
+      "actors_involved": [
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Iran's retaliatory strikes against US bases in 9 countries and effectively closing the Strait of Hormuz... Strait of Hormuz: Effectively closed to most commercial traffic. Iran allowing selective passage. First transit (Pakistani tanker) on March 16."
+    },
+    {
+      "id": "evt_20260228_iran_launches_retaliatory_strikes_against_us_bases_in_9_countries",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Iran Launches Retaliatory Strikes Against US Bases in 9 Countries",
+      "description": "Iran's decentralized IRGC provincial commands launched retaliatory strikes against US military bases in nine countries, demonstrating the continued functioning of Iran's Mosaic Defense despite unprecedented leadership decapitation on Day 1.",
+      "actors_involved": [
+        "iran",
+        "united_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Despite killing the Supreme Leader, IRGC commander-in-chief, defense minister, and other senior figures on Day 1, Iran's military response continued and expanded — launching retaliatory strikes against US bases in 9 countries and effectively closing the Strait of Hormuz."
+    },
+    {
+      "id": "evt_20260228_dubai_financial_market_real_estate_index_begins_sharp_decline",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Dubai Financial Market Real Estate Index Begins Sharp Decline",
+      "description": "The Dubai Financial Market Real Estate Index stood at 16,140 on February 28, 2026 at the start of the conflict. It fell to approximately 11,500 by March 14, representing a ~30% decline in listed real estate developer equities.",
+      "actors_involved": [
+        "gulf_states"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "The Dubai Financial Market Real Estate Index fell from 16,140 on February 28 to ~11,500 by March 14 — a ~30% decline."
+    },
+    {
+      "id": "evt_20260228_reutersipsos_snap_poll_shows_27_support_for_iran_war",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Reuters/Ipsos Snap Poll Shows 27% Support for Iran War",
+      "description": "A Reuters/Ipsos snap poll conducted February 28–March 1, 2026 found 27% support, 43% opposition, and 29% unsure regarding the US military action against Iran.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Reuters/Ipsos snap (Feb 28–Mar 1) | 27% | 43% | 29%"
+    },
+    {
+      "id": "evt_20260228_operation_epic_fury_launched_by_us_and_israel_against_iran",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Operation Epic Fury Launched by US and Israel Against Iran",
+      "description": "The United States and Israel launched Operation Epic Fury, initiating the most severe global energy disruption since the 1973 oil embargo. The operation triggered immediate oil price surges, Strait of Hormuz closure, and cascading effects across global financial, food, semiconductor, and energy markets.",
+      "actors_involved": [
+        "united_states",
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "Operation Epic Fury, launched February 28, 2026, has produced the most severe global energy disruption since the 1973 oil embargo."
+    },
+    {
+      "id": "evt_20260228_european_ttf_gas_prices_begin_surge_from_319mwh",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "European TTF Gas Prices Begin Surge from €31.9/MWh",
+      "description": "European natural gas prices at the TTF benchmark stood at €31.9/MWh on February 28, the day Operation Epic Fury launched, before surging more than 70% by March 4 as markets priced in the Hormuz disruption.",
+      "actors_involved": [],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "European gas prices (TTF benchmark) surged from €31.9/MWh on February 28 to €54.3/MWh on March 4 — a 70%+ jump."
+    },
+    {
+      "id": "evt_20260228_iran_exports_216_million_barrels_per_day_in_february_highest_since_july_2018",
+      "timestamp": "2026-02-28",
+      "timestamp_confidence": "exact",
+      "title": "Iran Exports 2.16 Million Barrels Per Day in February — Highest Since July 2018",
+      "description": "Iran exported 2.16 million barrels per day in February 2026, the highest level since July 2018, reflecting aggressive pre-war stockpiling by China absorbing Iranian crude ahead of the anticipated conflict.",
+      "actors_involved": [
+        "iran",
+        "china"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Pre-war stockpiling was aggressive: Iran exported 2.16 mbd in February 2026 (highest since July 2018), all to China."
+    },
+    {
+      "id": "evt_20260301_iran_conducts_first_combat_use_of_fattah2_hypersonic_glide_vehicle",
+      "timestamp": "2026-03-01",
+      "timestamp_confidence": "exact",
+      "title": "Iran Conducts First Combat Use of Fattah-2 Hypersonic Glide Vehicle",
+      "description": "Iran conducted the first combat use of the Fattah-2 hypersonic missile, equipped with a true hypersonic glide vehicle, on March 1, 2026. The weapon claimed speeds of Mach 13–15 with a range of 1,400–1,500 km and a 200 kg warhead. Multiple successful strikes were reported against Israeli targets, including reportedly killing 7 senior IDF officers at a fortified command center.",
+      "actors_involved": [
+        "iran",
+        "israel"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Fattah-2 — equipped with a true hypersonic glide vehicle (HGV), first combat use March 1, 2026. Claimed speed Mach 13–15, range ~1,400–1,500 km, 200 kg warhead. Multiple successful strikes reported against Israeli targets, including reportedly killing 7 senior IDF officers at a fortified command center."
+    },
+    {
+      "id": "evt_20260301_six_us_soldiers_killed_in_kuwait_by_iranian_drone_strike",
+      "timestamp": "2026-03-01",
+      "timestamp_confidence": "approximate",
+      "title": "Six US Soldiers Killed in Kuwait by Iranian Drone Strike",
+      "description": "Six US soldiers were killed in Kuwait on approximately March 1 when an Iranian drone struck a makeshift troop facility, representing one of the deadliest single attacks on US personnel in the conflict.",
+      "actors_involved": [
+        "united_states",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Six soldiers killed in Kuwait March 1 by Iranian drone strike on makeshift troop facility."
+    },
+    {
+      "id": "evt_20260301_thaad_radar_apparently_destroyed_at_muwaffaq_salti_air_base_jordan",
+      "timestamp": "2026-03-01",
+      "timestamp_confidence": "approximate",
+      "title": "THAAD Radar Apparently Destroyed at Muwaffaq Salti Air Base, Jordan",
+      "description": "An Iranian strike on approximately March 1–2 apparently destroyed the AN/TPY-2 THAAD radar at Muwaffaq Salti Air Base in Jordan. Satellite imagery showed a blackened area, debris field, and two 13-foot craters. Replacement cost assessed at approximately $500 million.",
+      "actors_involved": [
+        "iran",
+        "united_states"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Muwaffaq Salti Air Base, Jordan: AN/TPY-2 radar apparently destroyed by Iranian strike (March 1–2). Satellite imagery shows blackened area, debris field, and two 13-foot craters. Replacement cost: ~$500 million."
+    },
+    {
+      "id": "evt_20260301_iranian_state_media_confirms_khameneis_death",
+      "timestamp": "2026-03-01",
+      "timestamp_confidence": "exact",
+      "title": "Iranian State Media Confirms Khamenei's Death",
+      "description": "Iranian state media confirmed Supreme Leader Ali Khamenei's death on March 1, 2026, after initially denying it following the February 28 strikes.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Iranian state media confirmed his death March 1 after initially denying it."
+    },
+    {
+      "id": "evt_20260301_iranian_fm_araghchi_admits_military_units_now_operating_independently",
+      "timestamp": "2026-03-01",
+      "timestamp_confidence": "exact",
+      "title": "Iranian FM Araghchi Admits Military Units Now Operating Independently",
+      "description": "Iranian Foreign Minister Araghchi publicly admitted on March 1 that Iranian military units were operating independently on pre-delegated authority, confirming the functioning of Iran's Mosaic Defense concept despite leadership decapitation.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Iranian FM Araghchi admitted on March 1: 'Our military units are now, in fact, independent and somewhat isolated, and they are acting based on general instructions given to them in advance.'"
+    },
+    {
+      "id": "evt_20260301_iranians_celebrate_khameneis_death_in_multiple_cities_diaspora_rallies",
+      "timestamp": "2026-03-01",
+      "timestamp_confidence": "approximate",
+      "title": "Iranians Celebrate Khamenei's Death in Multiple Cities; Diaspora Rallies",
+      "description": "Some Iranians celebrated Khamenei's death in Isfahan, Karaj, Kermanshah, Shiraz, and other cities, filming celebrations and toppling a Khamenei statue in Dehloran. Massive diaspora celebrations occurred with approximately 350,000 in Los Angeles, 350,000 in Toronto, and 250,000+ in Munich.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Some Iranians celebrated Khamenei's death in Isfahan, Karaj, Kermanshah, Shiraz, and other cities — filming celebrations and toppling a Khamenei statue in Dehloran. Massive diaspora celebrations: 350,000 in Los Angeles, 350,000 in Toronto, 250,000+ in Munich."
+    },
+    {
+      "id": "evt_20260301_uae_recalls_ambassador_to_israel_following_iranian_strikes_on_uae_territory",
+      "timestamp": "2026-03-01",
+      "timestamp_confidence": "approximate",
+      "title": "UAE Recalls Ambassador to Israel Following Iranian Strikes on UAE Territory",
+      "description": "The UAE recalled its ambassador to Israel following Iranian strikes on UAE territory, including damage to Dubai International Airport, the Burj Al Arab, Jebel Ali Port, DIFC, and an AWS data center. Three were killed and 58+ injured.",
+      "actors_involved": [
+        "gulf_states",
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "gulf_states",
+      "escalation_direction": "up",
+      "source_excerpt": "UAE recalled ambassador to Israel (not Iran)."
+    },
+    {
+      "id": "evt_20260301_qatar_shoots_down_two_iranian_jets_first_arabiranian_military_clash",
+      "timestamp": "2026-03-01",
+      "timestamp_confidence": "approximate",
+      "title": "Qatar Shoots Down Two Iranian Jets — First Arab-Iranian Military Clash",
+      "description": "Qatar shot down two Iranian jets during the Iranian retaliatory strikes, marking the first direct Arab-Iranian military confrontation. Qatar also declared force majeure on its main LNG facility.",
+      "actors_involved": [
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Qatar: 16 injured. Qatar shot down two Iranian jets — first Arab-Iranian military clash. Declared force majeure on main LNG facility (Qatar is world's #2 LNG producer)."
+    },
+    {
+      "id": "evt_20260301_qatar_declares_force_majeure_on_main_lng_facility",
+      "timestamp": "2026-03-01",
+      "timestamp_confidence": "approximate",
+      "title": "Qatar Declares Force Majeure on Main LNG Facility",
+      "description": "Qatar declared force majeure on its main LNG facility following Iranian strikes, disrupting supplies from the world's second-largest LNG producer.",
+      "actors_involved": [
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Declared force majeure on main LNG facility (Qatar is world's #2 LNG producer)."
+    },
+    {
+      "id": "evt_20260302_irgc_officially_declares_strait_of_hormuz_closed",
+      "timestamp": "2026-03-02",
+      "timestamp_confidence": "exact",
+      "title": "IRGC Officially Declares Strait of Hormuz Closed",
+      "description": "On March 2, the IRGC officially declared the Strait of Hormuz 'closed,' threatening to 'set on fire' any ship entering. This was subsequently clarified on March 5 to apply to ships from the US, Israel, and Western allies only; others could negotiate passage.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "March 2: IRGC officially declared strait 'closed,' threatening to 'set on fire' any entering ship. March 5: Clarified closure applies to ships from US, Israel, and Western allies only."
+    },
+    {
+      "id": "evt_20260302_qatar_shoots_down_two_iranian_su24_aircraft",
+      "timestamp": "2026-03-02",
+      "timestamp_confidence": "exact",
+      "title": "Qatar Shoots Down Two Iranian Su-24 Aircraft",
+      "description": "Qatar shot down two Iranian Su-24 aircraft on March 2, 2026, in an air engagement over or near the Strait of Hormuz region.",
+      "actors_involved": [
+        "gulf_states",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Two Su-24s were shot down by Qatar on March 2."
+    },
+    {
+      "id": "evt_20260302_three_us_f15e_jets_shot_down_by_kuwaiti_air_defenses_in_friendly_fire_incident",
+      "timestamp": "2026-03-02",
+      "timestamp_confidence": "exact",
+      "title": "Three US F-15E Jets Shot Down by Kuwaiti Air Defenses in Friendly Fire Incident",
+      "description": "Three US F-15E jets were shot down by Kuwaiti air defenses on March 2 in a friendly fire incident. All six crew members survived.",
+      "actors_involved": [
+        "united_states",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "lateral",
+      "source_excerpt": "Three US F-15E jets were shot down by Kuwaiti air defenses on March 2 (all six crew survived)."
+    },
+    {
+      "id": "evt_20260302_hezbollah_reenters_the_war_fires_100_rockets_per_day_at_israel",
+      "timestamp": "2026-03-02",
+      "timestamp_confidence": "exact",
+      "title": "Hezbollah Re-enters the War; Fires ~100 Rockets Per Day at Israel",
+      "description": "Hezbollah re-entered the conflict on March 2, 2026, firing approximately 100 rockets per day at Israel, significantly expanding the multi-front nature of the war and setting the stage for Israel's subsequent ground invasion of Lebanon.",
+      "actors_involved": [
+        "iran",
+        "israel"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Hezbollah re-entered the war March 2, firing ~100 rockets/day."
+    },
+    {
+      "id": "evt_20260302_rubio_makes_critical_admission_on_capitol_hill_regarding_israeli_plans",
+      "timestamp": "2026-03-02",
+      "timestamp_confidence": "exact",
+      "title": "Rubio Makes Critical Admission on Capitol Hill Regarding Israeli Plans",
+      "description": "Secretary of State Marco Rubio stated on Capitol Hill on March 2 that the US knew of Israeli military intentions in advance and acted preemptively to avoid higher American casualties. The remarks were widely interpreted as an accidental admission that Israel dragged the US into the conflict, causing significant political damage.",
+      "actors_involved": [
+        "united_states",
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "'We knew that there was going to be an Israeli action. We knew that that would precipitate an attack against American forces, and we knew that if we didn't preemptively go after them before they launched those attacks, we would suffer higher casualties.'"
+    },
+    {
+      "id": "evt_20260302_cnn_poll_shows_40_support_60_opposition_to_iran_war",
+      "timestamp": "2026-03-02",
+      "timestamp_confidence": "exact",
+      "title": "CNN Poll Shows ~40% Support, ~60% Opposition to Iran War",
+      "description": "A CNN poll conducted around March 2, 2026 found approximately 40% support and approximately 60% opposition to the US military action against Iran.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "CNN (Mar 2) | ~40% | ~60% | —"
+    },
+    {
+      "id": "evt_20260302_nprpbsmarist_poll_shows_44_support_56_opposition_to_iran_war",
+      "timestamp": "2026-03-02",
+      "timestamp_confidence": "exact",
+      "title": "NPR/PBS/Marist Poll Shows 44% Support, 56% Opposition to Iran War",
+      "description": "An NPR/PBS/Marist poll conducted March 2–4, 2026 found 44% support and 56% opposition to the US military action against Iran, with about 55% saying Iran did not pose an imminent military threat and 65% saying Trump had not clearly explained war goals.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "NPR/PBS/Marist (Mar 2–4) | 44% | 56% | — ... About 55% say Iran did not pose an imminent military threat. Roughly 65% say Trump has not clearly explained war goals."
+    },
+    {
+      "id": "evt_20260302_irgc_commander_announces_strait_of_hormuz_closed_to_westernaligned_shipping",
+      "timestamp": "2026-03-02",
+      "timestamp_confidence": "exact",
+      "title": "IRGC Commander Announces Strait of Hormuz Closed to Western-Aligned Shipping",
+      "description": "IRGC commander Ebrahim Jabari announced the Strait of Hormuz was 'closed,' warning that any vessels attempting to cross would be 'set ablaze.' Ship-tracking data showed an immediate 70% reduction in traffic.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "On March 2, IRGC commander Ebrahim Jabari announced the Strait 'closed,' warning that any vessels attempting to cross would be 'set ablaze.' Ship-tracking data initially showed a 70% reduction in traffic."
+    },
+    {
+      "id": "evt_20260302_iranian_drone_strikes_ras_laffan_lng_complex_in_qatar",
+      "timestamp": "2026-03-02",
+      "timestamp_confidence": "exact",
+      "title": "Iranian Drone Strikes Ras Laffan LNG Complex in Qatar",
+      "description": "An Iranian drone struck the Ras Laffan LNG complex in Qatar, the world's largest LNG production facility at 77 million tonnes per annum, prompting QatarEnergy to halt all LNG production. The strike also hit the Mesaieed Industrial City.",
+      "actors_involved": [
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Qatar: Iranian drone struck the Ras Laffan LNG complex on March 2, prompting QatarEnergy to halt all LNG production and declare force majeure on March 4. Ras Laffan produces 77 million tonnes per annum — 20% of global LNG."
+    },
+    {
+      "id": "evt_20260302_two_iranian_ships_depart_china_carrying_sodium_perchlorate_solid_rocket_fuel_precursor",
+      "timestamp": "2026-03-02",
+      "timestamp_confidence": "approximate",
+      "title": "Two Iranian Ships Depart China Carrying Sodium Perchlorate — Solid Rocket Fuel Precursor",
+      "description": "Two Iranian ships departed China carrying sodium perchlorate, a solid rocket fuel precursor, during the week of March 2, suggesting continued Chinese material support to Iran's military industrial capacity during the conflict.",
+      "actors_involved": [
+        "china",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "china",
+      "escalation_direction": "up",
+      "source_excerpt": "Two Iranian ships departed China carrying sodium perchlorate (solid rocket fuel precursor) the week of March 2."
+    },
+    {
+      "id": "evt_20260303_trump_claims_iran_has_no_navy_air_force_air_detection_or_radar",
+      "timestamp": "2026-03-03",
+      "timestamp_confidence": "exact",
+      "title": "Trump Claims Iran Has 'No Navy, Air Force, Air Detection, or Radar'",
+      "description": "President Trump publicly claimed on March 3 that Iran had 'no navy, air force, air detection, or radar.' Analysts assessed this as a political claim; Iran's conventional forces were severely degraded but asymmetric capabilities including drones, missiles, mines, and IRGC naval forces continued operating.",
+      "actors_involved": [
+        "united_states",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Trump claimed March 3 that Iran had 'no navy, air force, air detection, or radar.' This is a political claim. While Iran's conventional air force and navy have been severely degraded, Iran's asymmetric capabilities (drones, missiles, mines, IRGC naval forces) continue operating."
+    },
+    {
+      "id": "evt_20260303_rubio_walks_back_capitol_hill_remarks_on_israeli_war_causation",
+      "timestamp": "2026-03-03",
+      "timestamp_confidence": "exact",
+      "title": "Rubio Walks Back Capitol Hill Remarks on Israeli War Causation",
+      "description": "Secretary of State Rubio walked back his March 2 remarks the following day, stating: 'The president determined we were not going to get hit first. It's that simple, guys.' The political damage had already been done, with Tucker Carlson declaring 'this is Israel's war, not the United States' war.'",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "lateral",
+      "source_excerpt": "He walked back remarks the next day: 'The president determined we were not going to get hit first. It's that simple, guys.' The political damage was enormous regardless — Matt Walsh called it 'the worst possible thing he could have said,' Tucker Carlson declared 'this is Israel's war, not the United States' war.'"
+    },
+    {
+      "id": "evt_20260303_iran_assembly_of_experts_convenes_to_select_new_supreme_leader",
+      "timestamp": "2026-03-03",
+      "timestamp_confidence": "exact",
+      "title": "Iran Assembly of Experts Convenes to Select New Supreme Leader",
+      "description": "The Assembly of Experts convened on March 3, 2026 to begin the constitutional process of selecting a new Supreme Leader following Khamenei's death. The process ran through March 8.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "The constitutional process was formally followed — the Assembly convened from March 3–8, and Mojtaba obtained the required two-thirds majority in the initial round."
+    },
+    {
+      "id": "evt_20260303_inss_poll_shows_81_israeli_support_for_iran_war_operation",
+      "timestamp": "2026-03-03",
+      "timestamp_confidence": "exact",
+      "title": "INSS Poll Shows 81% Israeli Support for Iran War Operation",
+      "description": "An INSS poll conducted March 3, 2026 found 81% overall Israeli support for the military operation against Iran, with 74% of Jewish Israelis supporting continuation until the Iranian regime is overthrown.",
+      "actors_involved": [
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "INSS (Mar 3) | 81% | — | —"
+    },
+    {
+      "id": "evt_20260304_senate_defeats_war_powers_resolution_4753",
+      "timestamp": "2026-03-04",
+      "timestamp_confidence": "exact",
+      "title": "Senate Defeats War Powers Resolution 47–53",
+      "description": "The US Senate defeated a War Powers Resolution regarding the Iran conflict by a vote of 47–53 on March 4, 2026. Sen. Rand Paul was the sole Republican crossing party lines. No AUMF has been passed or sought for Iran.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "none",
+      "source_excerpt": "War Powers Resolution votes: Senate defeated 47–53 (March 4); House defeated 212–219 (March 5). Sen. Rand Paul was the sole Republican crossing party lines."
+    },
+    {
+      "id": "evt_20260304_qatarenergy_declares_force_majeure_on_all_lng_production",
+      "timestamp": "2026-03-04",
+      "timestamp_confidence": "exact",
+      "title": "QatarEnergy Declares Force Majeure on All LNG Production",
+      "description": "QatarEnergy declared force majeure on all LNG production following the Iranian drone strike on Ras Laffan on March 2, removing approximately 20% of global LNG supply from the market.",
+      "actors_involved": [
+        "gulf_states",
+        "iran"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "prompting QatarEnergy to halt all LNG production and declare force majeure on March 4."
+    },
+    {
+      "id": "evt_20260304_european_ttf_gas_prices_surge_to_543mwh_threeyear_high",
+      "timestamp": "2026-03-04",
+      "timestamp_confidence": "exact",
+      "title": "European TTF Gas Prices Surge to €54.3/MWh — Three-Year High",
+      "description": "European TTF gas prices surged from €31.9/MWh on February 28 to €54.3/MWh on March 4, a rise of over 70%, before reaching a three-year high of €63.77/MWh, as markets responded to the Ras Laffan shutdown and Hormuz closure.",
+      "actors_involved": [],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "European gas prices (TTF benchmark) surged from €31.9/MWh on February 28 to €54.3/MWh on March 4 — a 70%+ jump — reaching a three-year high of €63.77/MWh."
+    },
+    {
+      "id": "evt_20260304_south_koreas_kospi_suffers_biggest_crash_since_2008_drops_up_to_12",
+      "timestamp": "2026-03-04",
+      "timestamp_confidence": "exact",
+      "title": "South Korea's KOSPI Suffers Biggest Crash Since 2008 — Drops Up to 12%",
+      "description": "South Korea's KOSPI index dropped up to 12% on March 4, triggering circuit breakers, marking the index's worst single-day performance since the 2008 global financial crisis. Seoul subsequently imposed its first fuel price cap in nearly three decades.",
+      "actors_involved": [],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "South Korea's KOSPI suffered its biggest crash since 2008, dropping up to 12% on March 4 and triggering circuit breakers; Seoul imposed its first fuel price cap in nearly three decades."
+    },
+    {
+      "id": "evt_20260304_us_national_debt_reaches_3886_trillion",
+      "timestamp": "2026-03-04",
+      "timestamp_confidence": "exact",
+      "title": "US National Debt Reaches $38.86 Trillion",
+      "description": "Total US gross national debt stood at $38.86 trillion as of March 4, 2026, growing at $7.23 billion per day, with annual interest payments of approximately $970 billion in FY2025 and projected to reach $1.0 trillion in FY2026.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Total gross national debt stood at $38.86 trillion as of March 4, 2026, growing at $7.23 billion per day."
+    },
+    {
+      "id": "evt_20260305_uss_gerald_r_ford_transits_suez_canal_into_red_sea",
+      "timestamp": "2026-03-05",
+      "timestamp_confidence": "exact",
+      "title": "USS Gerald R. Ford Transits Suez Canal into Red Sea",
+      "description": "USS Gerald R. Ford (CVN-78) transited the Suez Canal on March 5–6, 2026, deploying to the Red Sea as part of the largest US naval concentration in the Middle East since 2003.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "USS Gerald R. Ford (CVN-78), Carrier Strike Group 12 — ordered to Middle East February 13. Transited Suez Canal March 5–6. Currently in Red Sea."
+    },
+    {
+      "id": "evt_20260305_house_defeats_war_powers_resolution_212219",
+      "timestamp": "2026-03-05",
+      "timestamp_confidence": "exact",
+      "title": "House Defeats War Powers Resolution 212–219",
+      "description": "The US House of Representatives defeated a War Powers Resolution regarding the Iran conflict by a vote of 212–219 on March 5, 2026. Sen. Fetterman (D-PA) was the sole Democrat supporting the war.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "none",
+      "source_excerpt": "War Powers Resolution votes: Senate defeated 47–53 (March 4); House defeated 212–219 (March 5)."
+    },
+    {
+      "id": "evt_20260305_financial_times_reports_gulf_states_begin_internal_reviews_of_us_investment_commitments",
+      "timestamp": "2026-03-05",
+      "timestamp_confidence": "exact",
+      "title": "Financial Times Reports Gulf States Begin Internal Reviews of US Investment Commitments",
+      "description": "The Financial Times reported on March 5 that at least three of four major Gulf economies had begun internal reviews of overseas investment commitments, examining whether force majeure clauses could be invoked. Gulf sovereign wealth funds collectively manage more than $2 trillion in US assets.",
+      "actors_involved": [
+        "gulf_states",
+        "united_states"
+      ],
+      "dimension": "economic",
+      "is_decision": true,
+      "deciding_actor": "gulf_states",
+      "escalation_direction": "up",
+      "source_excerpt": "Financial Times (March 5) reported at least three of four major Gulf economies have begun internal reviews of overseas investment commitments, examining whether force majeure clauses can be invoked. Gulf sovereign wealth funds collectively manage >$2 trillion in US assets."
+    },
+    {
+      "id": "evt_20260305_iran_expresses_appreciation_to_saudi_arabia_for_upholding_commitments",
+      "timestamp": "2026-03-05",
+      "timestamp_confidence": "exact",
+      "title": "Iran Expresses Appreciation to Saudi Arabia for Upholding Commitments",
+      "description": "Iran publicly expressed appreciation to Saudi Arabia on March 5, 2026 for upholding commitments not to allow its territory to be used against Iran, indicating that backchannels between Saudi Arabia and Iran remained active despite the public rupture.",
+      "actors_involved": [
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "down",
+      "source_excerpt": "Iran publicly expressed appreciation to Saudi Arabia (March 5) for upholding commitments not to allow its territory to be used against Iran."
+    },
+    {
+      "id": "evt_20260305_irgc_announces_selective_hormuz_passage_closed_only_to_us_israeli_and_western_allied_ships",
+      "timestamp": "2026-03-05",
+      "timestamp_confidence": "exact",
+      "title": "IRGC Announces Selective Hormuz Passage — Closed Only to US, Israeli, and Western Allied Ships",
+      "description": "The IRGC announced the Strait of Hormuz would remain closed only to ships from the US, Israel, and their Western allies, establishing a selective access regime that created a two-tier oil market favoring China and neutral states.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "lateral",
+      "source_excerpt": "On March 5, the IRGC announced the Strait would remain closed 'only to ships from the US, Israel, and their Western allies.' Turkey confirmed safe passage for a Turkish vessel on March 13."
+    },
+    {
+      "id": "evt_20260306_uss_george_hw_bush_completes_predeployment_training",
+      "timestamp": "2026-03-06",
+      "timestamp_confidence": "exact",
+      "title": "USS George H.W. Bush Completes Pre-Deployment Training",
+      "description": "USS George H.W. Bush (CVN-77) completed pre-deployment training on March 6, 2026, and was expected to deploy to the Eastern Mediterranean soon, though it had not yet arrived in theater as of March 18.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "USS George H.W. Bush (CVN-77) — completed pre-deployment training March 6. Expected to deploy to Eastern Mediterranean 'soon.' Not yet in theater as of March 18."
+    },
+    {
+      "id": "evt_20260306_washington_post_poll_shows_42_support_40_opposition_to_iran_war",
+      "timestamp": "2026-03-06",
+      "timestamp_confidence": "exact",
+      "title": "Washington Post Poll Shows 42% Support, 40% Opposition to Iran War",
+      "description": "A Washington Post poll conducted March 6–9, 2026 found 42% support, 40% opposition, and 17% unsure regarding the US military action against Iran — the only major poll showing support and opposition within the margin of error.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Washington Post (Mar 6–9) | 42% | 40% | 17%"
+    },
+    {
+      "id": "evt_20260306_russia_confirmed_to_be_sharing_satellite_imagery_and_targeting_data_with_iran",
+      "timestamp": "2026-03-06",
+      "timestamp_confidence": "exact",
+      "title": "Russia Confirmed to Be Sharing Satellite Imagery and Targeting Data with Iran",
+      "description": "Multiple major news outlets independently confirmed on March 6 that Russia was actively providing Iran with satellite imagery and targeting information on US forces, including locations and movements of American troops, ships, and aircraft, using the Kanopus-V satellite re-designated 'Khayyam' for Iranian operations.",
+      "actors_involved": [
+        "russia",
+        "iran",
+        "united_states"
+      ],
+      "dimension": "intelligence",
+      "is_decision": true,
+      "deciding_actor": "russia",
+      "escalation_direction": "up",
+      "source_excerpt": "Russia is actively providing intelligence to Iran to target US forces. This was confirmed independently on March 6, 2026, by the Washington Post (three US officials), CNN (multiple sources), NBC News (four sources), and AP (two officials). Russia is sharing satellite imagery and targeting information including 'locations and movements of American troops, ships, and aircraft.'"
+    },
+    {
+      "id": "evt_20260306_us_intelligence_assesses_china_may_prepare_financial_and_military_material_assistance_to_iran",
+      "timestamp": "2026-03-06",
+      "timestamp_confidence": "exact",
+      "title": "US Intelligence Assesses China May Prepare Financial and Military Material Assistance to Iran",
+      "description": "US intelligence indicated on March 6 that China 'may be preparing' to provide financial assistance, spare parts, and missile components to Iran, though China was characterized as 'more cautious' given its dependence on Middle Eastern energy supplies.",
+      "actors_involved": [
+        "china",
+        "iran",
+        "united_states"
+      ],
+      "dimension": "intelligence",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "US intelligence suggests China 'may be preparing' to provide financial assistance, spare parts, and missile components (CNN, March 6), but China is described as 'more cautious' — it wants the war to end because it endangers Chinese energy supplies."
+    },
+    {
+      "id": "evt_20260307_israel_strikes_iranian_oil_infrastructure",
+      "timestamp": "2026-03-07",
+      "timestamp_confidence": "exact",
+      "title": "Israel Strikes Iranian Oil Infrastructure",
+      "description": "Israel struck Iran's oil infrastructure on March 7, 2026, escalating the economic dimension of the conflict and targeting a critical source of Iranian state revenue.",
+      "actors_involved": [
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "israel",
+      "escalation_direction": "up",
+      "source_excerpt": "March 7 — Israel struck Iran's oil infrastructure."
+    },
+    {
+      "id": "evt_20260308_mojtaba_khamenei_appointed_supreme_leader_under_irgc_pressure",
+      "timestamp": "2026-03-08",
+      "timestamp_confidence": "exact",
+      "title": "Mojtaba Khamenei Appointed Supreme Leader Under IRGC Pressure",
+      "description": "Mojtaba Khamenei, age 56 and a mid-ranking cleric (Hojjatoleslam), was appointed Supreme Leader on March 8, 2026, following a 10-day governance gap by an Interim Leadership Council. His selection was pushed by IRGC pressure on Assembly of Experts members. He has not appeared publicly since appointment.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "none",
+      "source_excerpt": "Confirmed as new Supreme Leader (March 8, 2026). Age 56, mid-ranking cleric (Hojjatoleslam, one rank below Ayatollah)... His selection was pushed by IRGC pressure on Assembly of Experts members."
+    },
+    {
+      "id": "evt_20260308_mojtaba_khamenei_elected_third_supreme_leader_by_assembly_of_experts",
+      "timestamp": "2026-03-08",
+      "timestamp_confidence": "exact",
+      "title": "Mojtaba Khamenei Elected Third Supreme Leader by Assembly of Experts",
+      "description": "Mojtaba Khamenei was elected the third Supreme Leader of Iran on March 8–9, 2026 by the Assembly of Experts, obtaining the required two-thirds majority in the initial round. However, he was reportedly injured in the February 28 strikes, his wife, sister, and mother were killed, and no video or audio of him has been released since the war began. Reports indicate the IRGC pressured Assembly members through repeated contacts and psychological and political pressure.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Verified: Mojtaba Khamenei was elected third Supreme Leader on March 8–9, 2026 by the Assembly of Experts. The constitutional process was formally followed — the Assembly convened from March 3–8, and Mojtaba obtained the required two-thirds majority in the initial round."
+    },
+    {
+      "id": "evt_20260308_quinnipiac_poll_shows_40_support_53_opposition_to_iran_war",
+      "timestamp": "2026-03-08",
+      "timestamp_confidence": "exact",
+      "title": "Quinnipiac Poll Shows 40% Support, 53% Opposition to Iran War",
+      "description": "A Quinnipiac poll conducted March 8–9, 2026 found 40% support and 53% opposition to the US military action against Iran, with approximately 10% unsure.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Quinnipiac (Mar 8–9) | 40% | 53% | ~10%"
+    },
+    {
+      "id": "evt_20260308_china_special_envoy_zhai_jun_begins_regional_diplomatic_tour",
+      "timestamp": "2026-03-08",
+      "timestamp_confidence": "exact",
+      "title": "China Special Envoy Zhai Jun Begins Regional Diplomatic Tour",
+      "description": "China's Special Envoy Zhai Jun began a regional diplomatic tour starting March 8, reflecting China's active diplomatic engagement to end the conflict while protecting its energy interests, including pressuring Iran on the Strait of Hormuz to allow Qatari LNG to transit.",
+      "actors_involved": [
+        "china"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "china",
+      "escalation_direction": "down",
+      "source_excerpt": "China is diplomatically active — Special Envoy Zhai Jun conducted a regional tour starting March 8 — but is pressuring Iran on the Strait of Hormuz to protect Qatari gas exports."
+    },
+    {
+      "id": "evt_20260308_israel_strikes_tehran_oil_depots_and_tehran_refinery",
+      "timestamp": "2026-03-08",
+      "timestamp_confidence": "exact",
+      "title": "Israel Strikes Tehran Oil Depots and Tehran Refinery",
+      "description": "Israeli strikes hit Tehran oil depots at Aghdasieh, Shahran, and Shahr-e Rey, as well as the Tehran refinery with a 220,000 barrels per day capacity, and the Karaj oil depot in Alborz province on the same day.",
+      "actors_involved": [
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "israel",
+      "escalation_direction": "up",
+      "source_excerpt": "Tehran oil depots (Aghdasieh, Shahran, Shahr-e Rey) and the Tehran refinery (220,000 b/d capacity) struck on March 8; the Karaj oil depot in Alborz province on the same day."
+    },
+    {
+      "id": "evt_20260309_senior_israeli_defense_official_expresses_skepticism_about_regime_change_goal",
+      "timestamp": "2026-03-09",
+      "timestamp_confidence": "exact",
+      "title": "Senior Israeli Defense Official Expresses Skepticism About Regime Change Goal",
+      "description": "A senior Israeli defense official told Foreign Policy on March 9 that they do not see anyone who can replace the Iranian regime, expressing skepticism about Netanyahu's regime change goal and frustration with the lack of a defined endgame.",
+      "actors_involved": [
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "A senior defense official told Foreign Policy (March 9): 'We don't see anyone who can replace the regime' — expressing skepticism about Netanyahu's regime change goal and frustration with the lack of a defined endgame."
+    },
+    {
+      "id": "evt_20260309_brent_crude_settles_at_94bbl_up_50_from_start_of_year",
+      "timestamp": "2026-03-09",
+      "timestamp_confidence": "exact",
+      "title": "Brent Crude Settles at $94/bbl — Up ~50% from Start of Year",
+      "description": "Brent crude settled at $94 per barrel on March 9 according to the EIA's March 2026 Short-Term Energy Outlook, representing an approximately 50% increase from the start of the year. Prices briefly spiked to $119–126/bbl around March 9–10.",
+      "actors_involved": [],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "The EIA's March 2026 Short-Term Energy Outlook states Brent settled at $94/bbl on March 9, 'up about 50% from the beginning of the year.' Prices briefly spiked to $119–126/bbl around March 9–10."
+    },
+    {
+      "id": "evt_20260309_imf_managing_director_warns_of_significant_inflationary_risk",
+      "timestamp": "2026-03-09",
+      "timestamp_confidence": "exact",
+      "title": "IMF Managing Director Warns of Significant Inflationary Risk",
+      "description": "IMF Managing Director Georgieva publicly warned of significant inflationary risk from the conflict on March 9, with projections pointing to eurozone inflation above 4%, US inflation above 3%, and the specter of stagflation echoing 1973 and 1979.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "The IMF's Georgieva warned of significant inflationary risk on March 9. The specter of stagflation — echoing 1973 and 1979 — is now widely discussed."
+    },
+    {
+      "id": "evt_20260310_iran_begins_planting_naval_mines_in_the_strait_of_hormuz",
+      "timestamp": "2026-03-10",
+      "timestamp_confidence": "exact",
+      "title": "Iran Begins Planting Naval Mines in the Strait of Hormuz",
+      "description": "Iran confirmed it had begun planting naval mines in the Strait of Hormuz on March 10, 2026. The US subsequently destroyed 16 Iranian minelayers. Mine-clearing is assessed to take months.",
+      "actors_involved": [
+        "iran",
+        "united_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "March 10: Iran confirmed to have begun planting naval mines. US destroyed 16 Iranian minelayers. Mine-clearing takes months."
+    },
+    {
+      "id": "evt_20260310_iranian_missile_and_drone_attack_rate_declines_90_from_peak",
+      "timestamp": "2026-03-10",
+      "timestamp_confidence": "exact",
+      "title": "Iranian Missile and Drone Attack Rate Declines 90%+ from Peak",
+      "description": "By Day 10 of the 2026 war (March 10), Iranian missile and drone attacks had declined more than 90% from their peak, attributed to US/Israeli destruction of approximately 75% of Iranian missile launchers. However, analysts assessed Iran was also deliberately rationing assets for a longer war.",
+      "actors_involved": [
+        "iran",
+        "united_states",
+        "israel"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "down",
+      "source_excerpt": "By Day 10 (March 10), Iranian missile/drone attacks had declined 90%+ from peak — attributed to US/Israeli destruction of ~75% of Iranian missile launchers. However, Iran retained significant stockpiles and analysts assess deliberate rationing for a longer war."
+    },
+    {
+      "id": "evt_20260310_netanyahu_sets_aside_haredi_draft_law_to_secure_budget_coalition_support",
+      "timestamp": "2026-03-10",
+      "timestamp_confidence": "exact",
+      "title": "Netanyahu Sets Aside Haredi Draft Law to Secure Budget Coalition Support",
+      "description": "Israeli Prime Minister Netanyahu set aside the Haredi draft exemption legislation on March 10, 2026, prompting Shas and UTJ to indicate likely budget support ahead of the critical March 31 deadline.",
+      "actors_involved": [
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "israel",
+      "escalation_direction": "lateral",
+      "source_excerpt": "Both Shas and UTJ had withdrawn most active coalition participation over the Haredi draft exemption issue but indicated likely budget support after Netanyahu set aside the draft law on March 10."
+    },
+    {
+      "id": "evt_20260310_idi_poll_shows_81_israeli_support_for_iran_war_operation",
+      "timestamp": "2026-03-10",
+      "timestamp_confidence": "exact",
+      "title": "IDI Poll Shows 81% Israeli Support for Iran War Operation",
+      "description": "An Israel Democracy Institute poll conducted March 10–11, 2026 found 81% overall support for the Iran war operation, with 92.5% support among Jewish Israelis and approximately 25% among Arab Israelis.",
+      "actors_involved": [
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "IDI (Mar 10–11) | 81% | 92.5% | ~25%"
+    },
+    {
+      "id": "evt_20260311_inss_poll_shows_slight_decline_to_785_israeli_support_for_iran_operation",
+      "timestamp": "2026-03-11",
+      "timestamp_confidence": "exact",
+      "title": "INSS Poll Shows Slight Decline to 78.5% Israeli Support for Iran Operation",
+      "description": "An INSS poll conducted around March 11, 2026 found 78.5% overall Israeli support for the military operation against Iran, down slightly from 81% on March 3.",
+      "actors_involved": [
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "down",
+      "source_excerpt": "INSS (Mar 11) | 78.5% | — | —"
+    },
+    {
+      "id": "evt_20260311_iea_authorizes_400millionbarrel_emergency_reserve_release_largest_in_iea_history",
+      "timestamp": "2026-03-11",
+      "timestamp_confidence": "exact",
+      "title": "IEA Authorizes 400-Million-Barrel Emergency Reserve Release — Largest in IEA History",
+      "description": "The IEA authorized the release of 400 million barrels from member state emergency reserves on March 11, the largest release in IEA history and more than double the 182.7 million barrels released after Russia invaded Ukraine. The US contributed 172 million barrels from the Strategic Petroleum Reserve. Oil prices briefly dipped to $87/bbl before rebounding.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "economic",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "down",
+      "source_excerpt": "The IEA authorized a 400-million-barrel emergency reserve release on March 11 — the largest in IEA history, more than double the 182.7M barrels released after Russia invaded Ukraine. The US is contributing 172 million barrels from the SPR... Prices briefly dipped to $87 then quickly rebounded."
+    },
+    {
+      "id": "evt_20260311_saudi_arabias_eastwest_pipeline_converted_to_full_capacity",
+      "timestamp": "2026-03-11",
+      "timestamp_confidence": "exact",
+      "title": "Saudi Arabia's East-West Pipeline Converted to Full Capacity",
+      "description": "Saudi Arabia converted its East-West Pipeline (Petroline) to full capacity on March 11, with Yanbu loadings rising from 1.1 million to 2.2 million bpd, as part of efforts to bypass the Hormuz closure. Maximum capacity is 5–7 million bpd against a roughly 20 million bpd gap.",
+      "actors_involved": [
+        "gulf_states"
+      ],
+      "dimension": "economic",
+      "is_decision": true,
+      "deciding_actor": "gulf_states",
+      "escalation_direction": "down",
+      "source_excerpt": "Saudi Arabia's East-West Pipeline (Petroline) was converted to full capacity on March 11 (5–7 million bpd maximum; Yanbu loadings rose from 1.1M to 2.2M bpd)."
+    },
+    {
+      "id": "evt_20260312_iran_conducts_21_confirmed_attacks_on_merchant_shipping",
+      "timestamp": "2026-03-12",
+      "timestamp_confidence": "exact",
+      "title": "Iran Conducts 21 Confirmed Attacks on Merchant Shipping",
+      "description": "As of March 12, 2026, Iran had made 21 confirmed attacks on merchant ships in and around the Strait of Hormuz, killing at least 7 seafarers. Maritime insurance premiums rose 4–6 times over pre-war rates, causing voluntary cessation of traffic beyond the formal closure.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "As of March 12, Iran made 21 confirmed attacks on merchant ships, killing at least 7 seafarers... Maritime insurance premiums rose 4–6x over pre-war rates."
+    },
+    {
+      "id": "evt_20260312_mojtaba_khamenei_issues_first_message_via_state_tv_anchor_over_still_photo",
+      "timestamp": "2026-03-12",
+      "timestamp_confidence": "exact",
+      "title": "Mojtaba Khamenei Issues First Message via State TV Anchor Over Still Photo",
+      "description": "Mojtaba Khamenei's first message as Supreme Leader was delivered on March 12, 2026, read by a state TV anchor over a still photo — no live video or audio. This raised significant questions about his actual condition following the February 28 strikes.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "His first message (March 12) was read by a state TV anchor over a still photo."
+    },
+    {
+      "id": "evt_20260312_brent_crude_peaks_at_11948_per_barrel",
+      "timestamp": "2026-03-12",
+      "timestamp_confidence": "exact",
+      "title": "Brent Crude Peaks at $119.48 per Barrel",
+      "description": "Brent crude oil prices peaked at $119.48 per barrel on March 12, 2026, up from approximately $70 per barrel before the conflict began — a surge of more than 70% in less than two weeks.",
+      "actors_involved": [
+        "united_states",
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Peaked at $119.48 on March 12."
+    },
+    {
+      "id": "evt_20260312_us_gas_prices_hit_360_per_gallon_up_35_cents_in_one_week",
+      "timestamp": "2026-03-12",
+      "timestamp_confidence": "exact",
+      "title": "US Gas Prices Hit ~$3.60 per Gallon — Up 35 Cents in One Week",
+      "description": "US gasoline prices hit approximately $3.60 per gallon by March 12, 2026, up 35 cents in one week as a result of oil supply disruptions caused by the Iran conflict.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "US gas prices hit ~$3.60/gallon by March 12 (up 35 cents in one week)."
+    },
+    {
+      "id": "evt_20260312_commercial_shipping_traffic_through_hormuz_falls_to_zero_aisconfirmed_crossings",
+      "timestamp": "2026-03-12",
+      "timestamp_confidence": "exact",
+      "title": "Commercial Shipping Traffic Through Hormuz Falls to Zero AIS-Confirmed Crossings",
+      "description": "By March 12, commercial traffic through the Strait of Hormuz had fallen to zero AIS-confirmed crossings, described as a first in modern history. Over 400 vessels were holding position in the Gulf of Oman. There were 21 confirmed attacks on merchant ships as of this date.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "by March 14, commercial traffic had fallen to zero AIS-confirmed crossings — a first in modern history. Over 400 vessels are holding position in the Gulf of Oman... There have been 21 confirmed attacks on merchant ships as of March 12."
+    },
+    {
+      "id": "evt_20260312_wti_crude_reaches_9570bbl_up_over_30_since_war_began",
+      "timestamp": "2026-03-12",
+      "timestamp_confidence": "exact",
+      "title": "WTI Crude Reaches $95.70/bbl — Up Over 30% Since War Began",
+      "description": "WTI crude oil reached $95.70 per barrel on March 12, representing an increase of over 30% since the start of Operation Epic Fury on February 28.",
+      "actors_involved": [],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "WTI crude reached $95.70/bbl on March 12, up over 30% since the war began."
+    },
+    {
+      "id": "evt_20260312_chinese_pla_flights_near_taiwan_resume_at_moderate_levels_after_13day_pause",
+      "timestamp": "2026-03-12",
+      "timestamp_confidence": "exact",
+      "title": "Chinese PLA Flights Near Taiwan Resume at Moderate Levels After 13-Day Pause",
+      "description": "PLA warplane flights near Taiwan resumed March 12–15 at moderate levels following 13 consecutive days of no activity beginning February 27, as China maintained calibrated pressure while avoiding full escalation.",
+      "actors_involved": [
+        "china"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "china",
+      "escalation_direction": "lateral",
+      "source_excerpt": "Flights resumed March 12–15 but at moderate levels."
+    },
+    {
+      "id": "evt_20260313_trump_claims_us_has_totally_obliterated_kharg_island_military_targets",
+      "timestamp": "2026-03-13",
+      "timestamp_confidence": "exact",
+      "title": "Trump Claims US Has 'Totally Obliterated' Kharg Island Military Targets",
+      "description": "Trump stated on March 13 that the US had 'totally obliterated every military target' on Kharg Island, which handles 90% of Iranian crude exports, significantly escalating targeting of Iran's oil export infrastructure.",
+      "actors_involved": [
+        "united_states",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "March 13 — Trump said US 'totally obliterated every military target' on Kharg Island (handles 90% of Iranian crude exports)."
+    },
+    {
+      "id": "evt_20260313_saudi_arabia_destroys_51_iranian_drones_in_one_day",
+      "timestamp": "2026-03-13",
+      "timestamp_confidence": "exact",
+      "title": "Saudi Arabia Destroys 51 Iranian Drones in One Day",
+      "description": "Saudi Arabia destroyed 51 Iranian drones in a single day on March 13, 2026, expending approximately $150 million in interceptors to defeat approximately $3 million worth of drones — illustrating the acute cost asymmetry favoring the attacker.",
+      "actors_involved": [
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Saudi Arabia destroyed 51 drones in one day (March 13), expending ~$150 million+ in interceptors to defeat ~$3 million worth of drones."
+    },
+    {
+      "id": "evt_20260313_channel_12_poll_shows_israeli_coalition_bloc_trailing_opposition_51_to_59_seats",
+      "timestamp": "2026-03-13",
+      "timestamp_confidence": "exact",
+      "title": "Channel 12 Poll Shows Israeli Coalition Bloc Trailing Opposition 51 to 59 Seats",
+      "description": "A Channel 12 poll on March 13, 2026 showed Likud at 26 seats, with the coalition bloc at 51 seats versus the opposition bloc at 59 seats. Neither bloc can form a government without Arab parties holding 10 seats. Naftali Bennett polls at 18–21 seats as Netanyahu's main rival.",
+      "actors_involved": [
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Channel 12 (March 13): Likud 26 seats, coalition bloc 51 seats vs. opposition bloc 59 seats — neither can form government without Arab parties (10 seats). Naftali Bennett polls at 18–21 seats as Netanyahu's main rival."
+    },
+    {
+      "id": "evt_20260313_trump_administration_issues_30day_sanctions_waiver_on_russian_oil",
+      "timestamp": "2026-03-13",
+      "timestamp_confidence": "exact",
+      "title": "Trump Administration Issues 30-Day Sanctions Waiver on Russian Oil",
+      "description": "The Trump administration issued a 30-day sanctions waiver (Treasury General License GL 134) on Russian oil on March 13, authorizing delivery and sale of Russian crude oil and petroleum products loaded on vessels as of March 12, valid through April 11. The waiver covers approximately 120–128 million barrels of Russian oil. Treasury Secretary Scott Bessent called it 'narrowly tailored' to stabilize global energy markets.",
+      "actors_involved": [
+        "united_states",
+        "russia"
+      ],
+      "dimension": "economic",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "down",
+      "source_excerpt": "The Trump administration issued a 30-day sanctions waiver on Russian oil on March 13, 2026 (Treasury General License GL 134). The waiver authorized delivery and sale of Russian crude oil and petroleum products loaded on vessels as of March 12, valid through April 11. It covers approximately 120–128 million barrels of Russian oil."
+    },
+    {
+      "id": "evt_20260313_israel_strikes_military_targets_on_kharg_island_oil_infrastructure_deliberately_preserved",
+      "timestamp": "2026-03-13",
+      "timestamp_confidence": "exact",
+      "title": "Israel Strikes Military Targets on Kharg Island — Oil Infrastructure Deliberately Preserved",
+      "description": "Israel struck military targets on Kharg Island, which handles 90% of Iran's crude exports, on March 13–14, with oil infrastructure deliberately preserved as a warning shot, signaling potential for further escalation against Iranian energy export capacity.",
+      "actors_involved": [
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "israel",
+      "escalation_direction": "up",
+      "source_excerpt": "military targets on Kharg Island (which handles 90% of Iran's crude exports) struck March 13–14, with oil infrastructure deliberately preserved as a warning shot."
+    },
+    {
+      "id": "evt_20260313_turkey_confirms_safe_passage_for_turkish_vessel_through_hormuz",
+      "timestamp": "2026-03-13",
+      "timestamp_confidence": "exact",
+      "title": "Turkey Confirms Safe Passage for Turkish Vessel Through Hormuz",
+      "description": "Turkey confirmed safe passage for a Turkish vessel through the Strait of Hormuz on March 13, validating Iran's selective access regime that excludes US, Israeli, and Western-allied shipping while allowing neutral states to transit.",
+      "actors_involved": [
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "lateral",
+      "source_excerpt": "Turkey confirmed safe passage for a Turkish vessel on March 13."
+    },
+    {
+      "id": "evt_20260313_iran_considering_yuanforoil_passage_arrangement_cnn_reports",
+      "timestamp": "2026-03-13",
+      "timestamp_confidence": "exact",
+      "title": "Iran Considering Yuan-for-Oil Passage Arrangement — CNN Reports",
+      "description": "CNN reported around March 14 that a senior Iranian official confirmed Iran is 'considering' allowing tankers to transit the Strait if cargo is traded in Chinese yuan. The arrangement remains a proposal under consideration, not an operational policy. Chinese analysts reacted cautiously.",
+      "actors_involved": [
+        "iran",
+        "china"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "lateral",
+      "source_excerpt": "CNN reported around March 14 that a senior Iranian official confirmed Iran is 'considering' allowing tankers to pass if cargo is traded in yuan. This remains a proposal under consideration."
+    },
+    {
+      "id": "evt_20260313_european_council_and_german_and_french_leaders_sharply_criticize_us_russia_sanctions_waiver",
+      "timestamp": "2026-03-13",
+      "timestamp_confidence": "approximate",
+      "title": "European Council and German and French Leaders Sharply Criticize US Russia Sanctions Waiver",
+      "description": "European leaders reacted sharply to the US 30-day sanctions waiver on Russian oil. European Council President António Costa called it 'very concerning' for European security. German Chancellor Friedrich Merz said 'we believe it is wrong.' French President Macron said the Hormuz situation 'in no way' justifies lifting sanctions. Ukraine's Zelensky warned it would strengthen Russia's war capacity.",
+      "actors_involved": [
+        "united_states",
+        "russia"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "European Council President António Costa called it 'very concerning' for European security. German Chancellor Friedrich Merz said 'we believe it is wrong.' French President Macron said the Hormuz situation 'in no way' justifies lifting sanctions. Ukraine's Zelensky warned: 'Lifting sanctions will lead to a strengthening of Russia's position.'"
+    },
+    {
+      "id": "evt_20260314_iran_strikes_fujairah_oil_terminal_again_after_accusing_us_of_using_uae_ports",
+      "timestamp": "2026-03-14",
+      "timestamp_confidence": "exact",
+      "title": "Iran Strikes Fujairah Oil Terminal Again After Accusing US of Using UAE Ports",
+      "description": "Iran struck the Fujairah Oil Terminal in the UAE again on March 14, following accusations that the US used UAE ports for the Kharg Island operation. Earlier strikes had also hit the Mussafah Fuel Terminal in Abu Dhabi.",
+      "actors_involved": [
+        "iran",
+        "gulf_states",
+        "united_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Fujairah was struck again on March 14 after Iran accused the US of using UAE ports for the Kharg Island operation."
+    },
+    {
+      "id": "evt_20260314_us_thaad_missile_defense_components_removed_from_south_koreas_seongju_base",
+      "timestamp": "2026-03-14",
+      "timestamp_confidence": "approximate",
+      "title": "US THAAD Missile Defense Components Removed from South Korea's Seongju Base",
+      "description": "THAAD missile defense components were removed from South Korea's Seongju base for redeployment to the Middle East, confirmed by both the Washington Post and South Korean President Lee Jae-myung. The associated AN/TPY-2 radars, capable of observing approximately 3,000 kilometers into Chinese territory, were also removed — a strategic intelligence windfall for China.",
+      "actors_involved": [
+        "united_states",
+        "china"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "THAAD missile defense components from South Korea's Seongju base, confirmed by both the Washington Post and South Korean President Lee Jae-myung... The AN/TPY-2 radars associated with THAAD can peer approximately 3,000 kilometers into Chinese territory. Their removal represents a major intelligence benefit for China."
+    },
+    {
+      "id": "evt_20260314_uss_tripoli_amphibious_ready_group_spotted_transiting_south_china_sea_at_high_speed",
+      "timestamp": "2026-03-14",
+      "timestamp_confidence": "approximate",
+      "title": "USS Tripoli Amphibious Ready Group Spotted Transiting South China Sea at High Speed",
+      "description": "The USS Tripoli Amphibious Ready Group, homeported in Sasebo, Japan, with the 31st Marine Expeditionary Unit from Okinawa, was spotted transiting the South China Sea at high speed around March 16 en route to the Middle East, part of the largest US Middle East military buildup since the 2003 Iraq invasion.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "the USS Tripoli Amphibious Ready Group (homeported in Sasebo, Japan) with the 31st Marine Expeditionary Unit from Okinawa, spotted transiting the South China Sea at high speed on March 16."
+    },
+    {
+      "id": "evt_20260316_israel_launches_ground_invasion_of_southern_lebanon",
+      "timestamp": "2026-03-16",
+      "timestamp_confidence": "exact",
+      "title": "Israel Launches Ground Invasion of Southern Lebanon",
+      "description": "Israel launched 'limited and targeted ground operations' in southern Lebanon on March 16, 2026 — the largest ground invasion since 2006. The 91st Division led operations with 3 armored/infantry divisions. Goal was to seize all territory south of the Litani River and dismantle Hezbollah infrastructure. As of March 18: 886+ killed in Lebanon, 1 million+ displaced.",
+      "actors_involved": [
+        "israel"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "israel",
+      "escalation_direction": "up",
+      "source_excerpt": "Israel launched 'limited and targeted ground operations' in southern Lebanon on March 16, 2026 — the largest ground invasion since 2006. The 91st Division is leading operations, with 3 armored/infantry divisions deployed."
+    },
+    {
+      "id": "evt_20260316_saudi_arabia_intercepts_12_iranian_drones_targeting_shaybah_oil_field",
+      "timestamp": "2026-03-16",
+      "timestamp_confidence": "exact",
+      "title": "Saudi Arabia Intercepts 12 Iranian Drones Targeting Shaybah Oil Field",
+      "description": "Saudi Arabia intercepted 12 Iranian drones targeting the Shaybah oil field on March 16, 2026, as part of Iran's sustained campaign against Gulf state oil infrastructure.",
+      "actors_involved": [
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Saudi Arabia: Shaybah oil field targeted by drones; 12 drones intercepted March 16."
+    },
+    {
+      "id": "evt_20260316_reports_emerge_that_mojtaba_khamenei_transported_to_moscow_on_russian_military_plane",
+      "timestamp": "2026-03-16",
+      "timestamp_confidence": "exact",
+      "title": "Reports Emerge That Mojtaba Khamenei Transported to Moscow on Russian Military Plane",
+      "description": "On March 16, 2026, reports emerged that Mojtaba Khamenei was transported to Moscow on a Russian military plane, raising further questions about his condition and the degree to which Russia is providing support to Iran's new leadership.",
+      "actors_involved": [
+        "iran",
+        "russia"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "russia",
+      "escalation_direction": "up",
+      "source_excerpt": "On March 16, reports emerged he was transported to Moscow on a Russian military plane."
+    },
+    {
+      "id": "evt_20260316_us_intelligence_assesses_iranian_regime_will_likely_remain_in_place",
+      "timestamp": "2026-03-16",
+      "timestamp_confidence": "exact",
+      "title": "US Intelligence Assesses Iranian Regime Will Likely Remain in Place",
+      "description": "The Washington Post reported on March 16, citing multiple sources, that US intelligence assesses the Iranian regime will likely remain in place for now, weakened but more hard-line, with the IRGC exerting greater control.",
+      "actors_involved": [
+        "united_states",
+        "iran"
+      ],
+      "dimension": "intelligence",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Washington Post (March 16) reports US intelligence assesses the regime 'will likely remain in place for now, weakened but more hard-line, with the IRGC exerting greater control.'"
+    },
+    {
+      "id": "evt_20260316_first_commercial_transit_through_strait_of_hormuz_pakistani_tanker",
+      "timestamp": "2026-03-16",
+      "timestamp_confidence": "exact",
+      "title": "First Commercial Transit Through Strait of Hormuz — Pakistani Tanker",
+      "description": "The first commercial vessel transit through the Strait of Hormuz since its effective closure occurred on March 16, 2026, when a Pakistani tanker was allowed selective passage by Iran.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "economic",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "down",
+      "source_excerpt": "Strait of Hormuz: Effectively closed to most commercial traffic. Iran allowing selective passage. First transit (Pakistani tanker) on March 16."
+    },
+    {
+      "id": "evt_20260316_lapid_files_noconfidence_motion_against_netanyahu_government",
+      "timestamp": "2026-03-16",
+      "timestamp_confidence": "exact",
+      "title": "Lapid Files No-Confidence Motion Against Netanyahu Government",
+      "description": "Israeli opposition leader Yair Lapid filed a no-confidence motion on March 16, 2026, as cracks in the wartime opposition unity emerged after the coalition resumed advancing controversial legislation during wartime. Democrats leader Yair Golan became the first major opposition figure to challenge war policy.",
+      "actors_involved": [
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "israel",
+      "escalation_direction": "up",
+      "source_excerpt": "Lapid filed a no-confidence motion March 16. Democrats leader Yair Golan became the first major opposition figure to challenge war policy: 'This government does not know how to win wars.'"
+    },
+    {
+      "id": "evt_20260317_uss_gerald_r_ford_experiences_fire_onboard",
+      "timestamp": "2026-03-17",
+      "timestamp_confidence": "exact",
+      "title": "USS Gerald R. Ford Experiences Fire Onboard",
+      "description": "USS Gerald R. Ford (CVN-78) temporarily experienced a fire onboard on March 17, 2026, while deployed to the Red Sea.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Temporarily experienced fire onboard March 17."
+    },
+    {
+      "id": "evt_20260317_ali_larijani_and_basij_commander_gholamreza_soleimani_killed",
+      "timestamp": "2026-03-17",
+      "timestamp_confidence": "exact",
+      "title": "Ali Larijani and Basij Commander Gholamreza Soleimani Killed",
+      "description": "Ali Larijani, Supreme National Security Council Secretary, and Gholamreza Soleimani, Basij Commander, were killed in US-Israeli strikes on March 17, 2026, further depleting Iranian senior leadership.",
+      "actors_involved": [
+        "united_states",
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Ali Larijani, Supreme National Security Council Secretary, March 17; Gholamreza Soleimani, Basij Commander, March 17."
+    },
+    {
+      "id": "evt_20260317_trump_reverses_course_on_allied_help_threatens_to_leave_nato",
+      "timestamp": "2026-03-17",
+      "timestamp_confidence": "exact",
+      "title": "Trump Reverses Course on Allied Help; Threatens to Leave NATO",
+      "description": "After being rebuffed by NATO allies who refused to participate in the conflict, Trump reversed course on March 17–18, stating 'We don't need any help, actually' and threatening to leave NATO. US Energy Secretary Chris Wright also stated the US was 'not ready' to escort tankers through the Strait.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "lateral",
+      "source_excerpt": "Trump's reaction (March 17–18): After being rebuffed, Trump reversed course: 'We don't need any help, actually.' He threatened to leave NATO."
+    },
+    {
+      "id": "evt_20260317_13_us_service_members_killed_as_of_march_17",
+      "timestamp": "2026-03-17",
+      "timestamp_confidence": "exact",
+      "title": "13 US Service Members Killed as of March 17",
+      "description": "As of March 17, 2026, 13 US service members had been killed in the conflict — 7 by enemy fire and 6 in a KC-135 Stratotanker crash in western Iraq. Over 200 had been wounded across seven countries, with approximately 180 returned to duty and 8 remaining severely injured.",
+      "actors_involved": [
+        "united_states",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "13 US service members killed as of March 17 (7 by enemy fire, 6 in a KC-135 Stratotanker crash in western Iraq). 200+ wounded across seven countries."
+    },
+    {
+      "id": "evt_20260317_joe_kent_resigns_as_nctc_director_over_iran_war",
+      "timestamp": "2026-03-17",
+      "timestamp_confidence": "exact",
+      "title": "Joe Kent Resigns as NCTC Director Over Iran War",
+      "description": "Joe Kent resigned as Director of the National Counterterrorism Center on March 17, 2026, becoming the highest-ranking Trump administration official to resign over the Iran war. His resignation letter stated that Iran posed no imminent threat and the war was started due to pressure from Israel and its powerful American lobby.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "Confirmed: Joe Kent resigned as Director of the National Counterterrorism Center (NCTC) on March 17, 2026 — the highest-ranking Trump administration official to resign over the Iran war... 'I cannot in good conscience support the ongoing war in Iran. Iran posed no imminent threat to our nation, and it is clear that we started this war due to pressure from Israel and its powerful American lobby.'"
+    },
+    {
+      "id": "evt_20260317_house_oversight_committee_subpoenas_ag_bondi_over_epstein_files",
+      "timestamp": "2026-03-17",
+      "timestamp_confidence": "exact",
+      "title": "House Oversight Committee Subpoenas AG Bondi Over Epstein Files",
+      "description": "The House Oversight Committee voted on a bipartisan basis on March 17, 2026 — with 5 Republicans joining — to subpoena Attorney General Bondi over the Epstein files. Rep. Massie suggested Bondi could face obstruction charges. DOJ was caught logging what congressional members were searching in the files.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "AG Bonni was subpoenaed on March 17 by the House Oversight Committee (bipartisan vote, 5 Republicans joining). Rep. Massie suggested Bondi could face obstruction charges. DOJ was caught logging what congressional members were searching in the files — described as 'a form of intimidation.'"
+    },
+    {
+      "id": "evt_20260317_russia_expands_intelligence_sharing_with_iran_to_include_improved_drone_guidance",
+      "timestamp": "2026-03-17",
+      "timestamp_confidence": "exact",
+      "title": "Russia Expands Intelligence Sharing with Iran to Include Improved Drone Guidance",
+      "description": "The Wall Street Journal reported on March 17 that Russia had expanded its intelligence sharing with Iran to include improved drone guidance enabling more precise strikes on radar and missile systems in the Gulf, building on the initial confirmation of intelligence sharing reported on March 6.",
+      "actors_involved": [
+        "russia",
+        "iran",
+        "united_states"
+      ],
+      "dimension": "intelligence",
+      "is_decision": true,
+      "deciding_actor": "russia",
+      "escalation_direction": "up",
+      "source_excerpt": "By March 17, the Wall Street Journal reported Russia had expanded intelligence sharing to include improved drone guidance enabling 'more precise strikes on radar and missile systems in the Gulf.'"
+    },
+    {
+      "id": "evt_20260317_uae_gas_field_set_ablaze_in_iranian_strike",
+      "timestamp": "2026-03-17",
+      "timestamp_confidence": "exact",
+      "title": "UAE Gas Field Set Ablaze in Iranian Strike",
+      "description": "A UAE gas field was set ablaze on March 17 in an Iranian strike, part of a broader pattern of Iranian attacks on Gulf state energy infrastructure including the Mussafah Fuel Terminal and Fujairah Oil Terminal.",
+      "actors_involved": [
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "a separate UAE gas field (set ablaze March 17) were all hit."
+    },
+    {
+      "id": "evt_20260317_us_national_average_gasoline_price_reaches_379gallon_up_30_in_one_month",
+      "timestamp": "2026-03-17",
+      "timestamp_confidence": "exact",
+      "title": "US National Average Gasoline Price Reaches $3.79/Gallon — Up 30% in One Month",
+      "description": "The US national average gasoline price reached $3.79 per gallon as of March 17, up $0.87 (+30%) from $2.92 one month prior. Diesel hit $5.04/gallon, up $1.34. California gas reached $5.34–5.48/gallon.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "The national average gasoline price reached $3.79/gallon as of March 17 — up $0.87 (+30%) from $2.92 one month prior. Diesel hit $5.04/gallon, up $1.34."
+    },
+    {
+      "id": "evt_20260318_israel_strikes_south_pars_natural_gas_field_and_neighboring_refineries",
+      "timestamp": "2026-03-18",
+      "timestamp_confidence": "exact",
+      "title": "Israel Strikes South Pars Natural Gas Field and Neighboring Refineries",
+      "description": "Israel struck South Pars natural gas field — the world's largest shared gas field, shared with Qatar — and neighboring refineries on March 18, 2026, representing a significant escalation in targeting energy infrastructure with potential spillover effects on Qatar.",
+      "actors_involved": [
+        "israel",
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "israel",
+      "escalation_direction": "up",
+      "source_excerpt": "March 18 — Israel struck South Pars natural gas field (world's largest shared gas field with Qatar) and neighboring refineries."
+    },
+    {
+      "id": "evt_20260318_intelligence_minister_esmaeil_khatib_killed",
+      "timestamp": "2026-03-18",
+      "timestamp_confidence": "exact",
+      "title": "Intelligence Minister Esmaeil Khatib Killed",
+      "description": "Iranian Intelligence Minister Esmaeil Khatib was killed in US-Israeli strikes on March 18, 2026, further decapitating Iran's intelligence apparatus.",
+      "actors_involved": [
+        "united_states",
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Esmaeil Khatib, Intelligence Minister, March 18."
+    },
+    {
+      "id": "evt_20260318_us_strikes_iranian_antiship_missile_launchers_along_strait_of_hormuz_coast",
+      "timestamp": "2026-03-18",
+      "timestamp_confidence": "exact",
+      "title": "US Strikes Iranian Anti-Ship Missile Launchers Along Strait of Hormuz Coast",
+      "description": "The US struck Iranian anti-ship missile launchers along the Strait of Hormuz coastline using bunker-buster bombs on March 18, 2026, as part of efforts to reopen the Strait to commercial traffic.",
+      "actors_involved": [
+        "united_states",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "united_states",
+      "escalation_direction": "up",
+      "source_excerpt": "The US has struck Iranian anti-ship missile launchers along the Strait of Hormuz coast using bunker-buster bombs on March 18."
+    },
+    {
+      "id": "evt_20260318_centcom_reports_7000_targets_struck_in_iran_since_february_28",
+      "timestamp": "2026-03-18",
+      "timestamp_confidence": "approximate",
+      "title": "CENTCOM Reports 7,000+ Targets Struck in Iran Since February 28",
+      "description": "As of March 16–18, 2026, CENTCOM reported striking 7,000+ targets in Iran since February 28. Defense Secretary Hegseth had separately claimed 15,000+ targets by March 14, including some from Israeli operations.",
+      "actors_involved": [
+        "united_states",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "As of March 16, CENTCOM reported striking 7,000+ targets in Iran since February 28. Defense Secretary Hegseth claimed 15,000+ targets by March 14 (including some from Israeli operations)."
+    },
+    {
+      "id": "evt_20260318_brent_crude_oil_peaks_at_126barrel_currently_trading_at_103",
+      "timestamp": "2026-03-18",
+      "timestamp_confidence": "approximate",
+      "title": "Brent Crude Oil Peaks at $126/Barrel; Currently Trading at ~$103",
+      "description": "Brent crude oil surged from approximately $65/barrel before the war to a peak of $126/barrel, currently trading at approximately $103/barrel — a 40–50% increase driven by the Strait of Hormuz closure and attacks on regional energy infrastructure.",
+      "actors_involved": [
+        "iran",
+        "gulf_states",
+        "united_states"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Brent crude surged from ~$65/barrel pre-war to $126/barrel peak, currently trading ~$103/barrel — a 40–50% increase."
+    },
+    {
+      "id": "evt_20260318_regional_death_toll_reaches_2300_as_war_continues_with_no_ceasefire",
+      "timestamp": "2026-03-18",
+      "timestamp_confidence": "approximate",
+      "title": "Regional Death Toll Reaches 2,300+ as War Continues with No Ceasefire",
+      "description": "As of approximately March 17–18, 2026 (Day 19 of the 2026 war), approximately 2,300+ people had been killed regionally: 1,444 in Iran, 886+ in Lebanon, 17+ in Israel, 21+ in Gulf states, 58+ in Iraq, and 13 US service members. No ceasefire was in sight.",
+      "actors_involved": [
+        "united_states",
+        "iran",
+        "israel",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "~2,300+ killed regionally: 1,444 in Iran (Health Ministry; independent monitors estimate higher), 886+ in Lebanon, 17+ in Israel, 21+ in Gulf states, 58+ in Iraq, 13 US service members."
+    },
+    {
+      "id": "evt_20260318_brent_crude_at_10878_per_barrel_on_day_19_of_iran_war",
+      "timestamp": "2026-03-18",
+      "timestamp_confidence": "exact",
+      "title": "Brent Crude at $108.78 per Barrel on Day 19 of Iran War",
+      "description": "Brent crude oil was trading at $108.78 per barrel on March 18, 2026 — Day 19 of the Iran war — representing a 55%+ increase from the pre-war price of approximately $70 per barrel.",
+      "actors_involved": [
+        "united_states",
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Brent crude surged from ~$70/bbl pre-war to $108.78/bbl on March 18 — a 55%+ increase."
+    },
+    {
+      "id": "evt_20260318_fox_news_midmarch_poll_shows_5050_republicanbase_split_on_iran_war",
+      "timestamp": "2026-03-18",
+      "timestamp_confidence": "exact",
+      "title": "Fox News Mid-March Poll Shows 50-50 Republican-Base Split on Iran War",
+      "description": "A Fox News poll conducted in mid-March 2026 found 50% support and 50% opposition to the Iran war, reflecting the fracturing of the Republican base on the conflict.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Fox News (mid-Mar) | 50% | 50% | —"
+    },
+    {
+      "id": "evt_20260318_israel_strikes_south_pars_gas_processing_facility_phases_36",
+      "timestamp": "2026-03-18",
+      "timestamp_confidence": "exact",
+      "title": "Israel Strikes South Pars Gas Processing Facility Phases 3–6",
+      "description": "Israel struck the South Pars gas processing facility phases 3–6 on March 18, taking offline portions of the world's largest natural gas field. This represented a significant escalation in targeting Iranian energy infrastructure.",
+      "actors_involved": [
+        "israel",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "israel",
+      "escalation_direction": "up",
+      "source_excerpt": "most significantly, Israel struck the South Pars gas processing facility (phases 3–6) on March 18, taking offline portions of the world's largest gas field."
+    },
+    {
+      "id": "evt_20260318_brent_crude_reaches_10878bbl_up_approximately_4768_from_preconflict_baseline",
+      "timestamp": "2026-03-18",
+      "timestamp_confidence": "exact",
+      "title": "Brent Crude Reaches $108.78/bbl — Up Approximately 47–68% from Pre-Conflict Baseline",
+      "description": "Brent crude stood at $108.78 per barrel on March 18, climbing to $109.95 intraday (+6.3% on the day alone), representing an increase of approximately 47–68% from the pre-conflict baseline of $65–73/bbl depending on which baseline is used.",
+      "actors_involved": [],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Brent crude stood at $108.78/bbl on March 18, 2026, climbing to $109.95 intraday (+6.3% on the day alone). Pre-conflict Brent traded at $65–73/bbl."
+    },
+    {
+      "id": "evt_20260318_irans_irgc_threatens_five_specific_gulf_facilities_with_imminent_strikes",
+      "timestamp": "2026-03-18",
+      "timestamp_confidence": "exact",
+      "title": "Iran's IRGC Threatens Five Specific Gulf Facilities with Imminent Strikes",
+      "description": "Iran's IRGC threatened to strike five specific Gulf facilities within hours on March 18: the SAMREF refinery and Al-Jubail petrochemical complex in Saudi Arabia, the Al-Hosn gas field in the UAE, and both the Mesaieed complex and Ras Laffan refinery in Qatar.",
+      "actors_involved": [
+        "iran",
+        "gulf_states"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "On March 18, Iran's IRGC threatened to strike five specific Gulf facilities within hours: the SAMREF refinery and Al-Jubail petrochemical complex in Saudi Arabia, the Al-Hosn gas field in the UAE, and both the Mesaieed complex and Ras Laffan refinery in Qatar."
+    },
+    {
+      "id": "evt_20260331_critical_israeli_budget_deadline_knesset_dissolution_if_budget_fails",
+      "timestamp": "2026-03-31",
+      "timestamp_confidence": "exact",
+      "title": "Critical Israeli Budget Deadline — Knesset Dissolution If Budget Fails",
+      "description": "The Israeli 2026 state budget must pass its second and third Knesset readings by March 31, 2026, or the Knesset automatically dissolves, triggering elections approximately 90 days later. The first reading passed 53–45.",
+      "actors_involved": [
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "Critical deadline: March 31, 2026. The 2026 state budget must pass second and third readings by this date or the Knesset automatically dissolves, triggering elections ~90 days later. The first reading passed 53–45."
+    },
+    {
+      "id": "evt_20261103_2026_us_midterm_elections_projected_republican_losses_of_28_house_seats",
+      "timestamp": "2026-11-03",
+      "timestamp_confidence": "exact",
+      "title": "2026 US Midterm Elections — Projected Republican Losses of ~28 House Seats",
+      "description": "Pre-war structural models projected Republicans losing approximately 28 House seats in the November 3, 2026 midterms — enough to lose the chamber. Sabato's Crystal Ball identified 29 Republican-held seats in jeopardy. The Iran war compounds pre-existing vulnerabilities with economic anxiety, high gas prices, and base fracture.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "up",
+      "source_excerpt": "Pre-war structural models projected Republicans losing ~28 House seats — enough to lose the chamber. Sabato's Crystal Ball identified 29 Republican-held seats in jeopardy... Sen. Rand Paul warned: if oil prices stay high, 'you're going to see a disastrous election' for the GOP."
+    }
+  ]
+}

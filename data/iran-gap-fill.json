@@ -1,0 +1,503 @@
+{
+  "as_of_date": "2026-04-07",
+  "sources_summary": "Compiled from CENTCOM statements, CSIS/RUSI/Payne Institute analysis, USNI Fleet Tracker, satellite imagery, and open-source media reporting through April 7, 2026.",
+  "asset_inventory": {
+    "united_states": {
+      "tomahawk_cruise_missiles": {
+        "estimated_remaining": [
+          3150
+        ],
+        "unit": "missiles",
+        "confidence": "medium",
+        "notes": "~850 expended from estimated 4000 pre-war inventory; Day 4 transition to JDAMs sharply reduced expenditure rate."
+      },
+      "gbu57_massive_ordnance_penetrator": {
+        "estimated_remaining": [
+          6
+        ],
+        "unit": "bombs",
+        "confidence": "low",
+        "notes": "14 used in June 2025 Midnight Hammer; possible additional use at Taleghan 2 unconfirmed; Boeing replenishment contract covers delivery 2028-2030."
+      },
+      "sm3_sm6_naval_interceptors": {
+        "estimated_remaining": [
+          240
+        ],
+        "unit": "interceptors",
+        "confidence": "low",
+        "notes": "~80 expended in June 2025 Twelve-Day War plus ~180 combined naval interceptors in Epic Fury opening phase; exact SM-3 breakout classified."
+      },
+      "thaad_interceptors": {
+        "estimated_remaining": [
+          210
+        ],
+        "unit": "interceptors",
+        "confidence": "medium",
+        "notes": "100-150 expended in June 2025 plus ~40 in Epic Fury; production ~100-130/year; 2-4 AN/TPY-2 radars destroyed rendering some batteries non-operational."
+      },
+      "patriot_pac3_mse_interceptors": {
+        "estimated_remaining": [
+          400
+        ],
+        "unit": "interceptors",
+        "confidence": "low",
+        "notes": "~90 fired by US in opening phase; UAE alone used ~200; production surge from 500 to 2000/year authorized but not yet flowing."
+      },
+      "carrier_strike_groups_centcom": {
+        "estimated_remaining": [
+          2
+        ],
+        "unit": "carrier strike groups",
+        "confidence": "high",
+        "notes": "Lincoln operational in Arabian Sea; Ford departing after fire repair; Bush en route from Norfolk to relieve Ford."
+      }
+    },
+    "iran": {
+      "ballistic_missiles": {
+        "estimated_remaining": [
+          900
+        ],
+        "unit": "missiles",
+        "confidence": "medium",
+        "notes": "~480 fired Day 1, rate collapsed 92% by Day 10; IDF estimates 70% of launchers disabled though US intelligence assesses only ~50% destroyed."
+      },
+      "shahed_owa_drones": {
+        "estimated_remaining": [
+          75000
+        ],
+        "unit": "airframes",
+        "confidence": "low",
+        "notes": "~2000+ expended in first 4 days; pre-war inventory estimates vary 3x; dispersed production makes depletion extremely difficult to verify."
+      },
+      "ballistic_missile_launchers": {
+        "estimated_remaining": [
+          130
+        ],
+        "unit": "launchers",
+        "confidence": "medium",
+        "notes": "IDF estimates 290 of 410-440 launchers destroyed by Day 16; US intelligence more conservative at ~50% destroyed; divergence is significant."
+      },
+      "naval_vessels": {
+        "estimated_remaining": [
+          150
+        ],
+        "unit": "vessels",
+        "confidence": "medium",
+        "notes": "100+ vessels destroyed or disabled per CENTCOM by mid-March from ~250-300 pre-war fleet; IRGCN commander Tangsiri killed March 26."
+      },
+      "naval_mines": {
+        "estimated_remaining": [
+          5990
+        ],
+        "unit": "mines",
+        "confidence": "low",
+        "notes": "Fewer than 10 mines reportedly deployed as of mid-March despite 6000 pre-war stockpile; 16+ minelayers destroyed by CENTCOM."
+      },
+      "air_defense_systems": {
+        "estimated_remaining": [
+          40
+        ],
+        "unit": "percent of pre-war capability",
+        "confidence": "low",
+        "notes": "US claimed air superiority by Day 6 but F-15E shootdown April 3 confirms residual Bavar-373 or S-300 capability; no comprehensive battery count available."
+      }
+    },
+    "israel": {
+      "arrow_interceptors": {
+        "estimated_remaining": [
+          19
+        ],
+        "unit": "percent of pre-war stock",
+        "confidence": "medium",
+        "notes": "RUSI estimates 81.33% depleted by Day 16; IDF denies critical shortage; US moving THAAD from South Korea as emergency supplement."
+      },
+      "f35i_adir_aircraft": {
+        "estimated_remaining": [
+          50
+        ],
+        "unit": "aircraft",
+        "confidence": "medium",
+        "notes": "No confirmed losses in Epic Fury; Iran's June 2025 claims of 3 kills were denied and unsubstantiated; 2600+ sorties conducted across IAF fleet."
+      },
+      "standoff_precision_munitions": {
+        "estimated_remaining": [
+          40
+        ],
+        "unit": "percent of pre-war stock",
+        "confidence": "low",
+        "notes": "6500+ munitions expended in first 10 days of Roaring Lion alone; already partially depleted from June 2025 and Gaza operations pre-war."
+      }
+    }
+  },
+  "depletion_rates": {
+    "united_states": {
+      "tomahawk_cruise_missiles": [
+        {
+          "rate_per_day": -145,
+          "effective_from": "2026-02-28",
+          "effective_to": "2026-03-03",
+          "notes": "Peak rate ~130-160/day in first 72 hours across 13 destroyers and submarines."
+        },
+        {
+          "rate_per_day": -30,
+          "effective_from": "2026-03-04",
+          "notes": "Day 4 transition to stand-in JDAM strikes reduced Tomahawk expenditure to ~20-40/day for conservation."
+        }
+      ],
+      "thaad_interceptors": [
+        {
+          "rate_per_day": -20,
+          "effective_from": "2026-02-28",
+          "effective_to": "2026-03-07",
+          "notes": "Heavy demand during peak Iranian ballistic missile launches of ~480/day."
+        },
+        {
+          "rate_per_day": -3,
+          "effective_from": "2026-03-08",
+          "notes": "Rate declined sharply as Iranian launch tempo dropped 92% by Day 10."
+        }
+      ],
+      "sm3_sm6_naval_interceptors": [
+        {
+          "rate_per_day": -15,
+          "effective_from": "2026-02-28",
+          "effective_to": "2026-03-03",
+          "notes": "Peak intercept demand during Iranian ballistic missile salvo phase of ~480 launches/day."
+        },
+        {
+          "rate_per_day": -3,
+          "effective_from": "2026-03-04",
+          "notes": "Reduced rate as Iranian missile launches collapsed; residual demand from ongoing lower-tempo strikes."
+        }
+      ]
+    },
+    "iran": {
+      "ballistic_missiles": [
+        {
+          "rate_per_day": -480,
+          "effective_from": "2026-02-28",
+          "effective_to": "2026-03-03",
+          "notes": "Peak launch rate Day 1 of ~480; CENTCOM confirmed 500+ in first 4 days total."
+        },
+        {
+          "rate_per_day": -20,
+          "effective_from": "2026-03-09",
+          "notes": "Rate collapsed 92% by Day 10 due to launcher destruction, C2 degradation, and possible stockpile conservation."
+        }
+      ],
+      "shahed_owa_drones": [
+        {
+          "rate_per_day": -600,
+          "effective_from": "2026-02-28",
+          "effective_to": "2026-03-03",
+          "notes": "Peak rate ~720 Day 1; 2000+ total in first 4 days per CENTCOM."
+        },
+        {
+          "rate_per_day": -75,
+          "effective_from": "2026-03-09",
+          "notes": "Sustained rate 50-100/day from mid-March; dispersed production may partially offset losses."
+        }
+      ],
+      "ballistic_missile_launchers": [
+        {
+          "rate_per_day": -75,
+          "effective_from": "2026-02-28",
+          "effective_to": "2026-03-03",
+          "notes": "IDF assessed 300 launchers destroyed by Day 4 from a pre-war base of 410-440."
+        },
+        {
+          "rate_per_day": -5,
+          "effective_from": "2026-03-04",
+          "notes": "Slower destruction rate as high-value mobile launchers dispersed and CENTCOM shifted to precision stand-in strikes."
+        }
+      ]
+    },
+    "israel": {
+      "arrow_interceptors": [
+        {
+          "rate_per_day": -5,
+          "effective_from": "2026-02-28",
+          "effective_to": "2026-03-15",
+          "notes": "RUSI estimated 81.33% depletion by Day 16 implying ~5% of pre-war stock consumed per day at peak Iranian ballistic threat tempo."
+        },
+        {
+          "rate_per_day": -2,
+          "effective_from": "2026-03-16",
+          "notes": "Reduced but ongoing depletion as Iranian launches sustained at 15-30 ballistic missiles/day at all targets."
+        }
+      ]
+    }
+  },
+  "infrastructure_status": [
+    {
+      "facility_id": "fordow_enrichment",
+      "name": "Fordow Fuel Enrichment Plant",
+      "actor_id": "iran",
+      "facility_type": "nuclear",
+      "status": "destroyed",
+      "capacity_pct": 0,
+      "lat": 34.8847,
+      "lng": 50.9768,
+      "strike_date": "2025-06-21",
+      "notes": "Struck by 6 GBU-57 MOPs in June 2025 and again in February 2026; assessed inoperable with no IAEA access."
+    },
+    {
+      "facility_id": "natanz_enrichment",
+      "name": "Natanz Fuel Enrichment Plant",
+      "actor_id": "iran",
+      "facility_type": "nuclear",
+      "status": "destroyed",
+      "capacity_pct": 5,
+      "lat": 33.7225,
+      "lng": 51.7258,
+      "strike_date": "2026-02-28",
+      "notes": "Above-ground facilities destroyed; underground halls degraded with possible centrifuge damage from power loss; no IAEA access."
+    },
+    {
+      "facility_id": "bushehr_reactor",
+      "name": "Bushehr Nuclear Power Plant Unit 1",
+      "actor_id": "iran",
+      "facility_type": "nuclear",
+      "status": "degraded",
+      "capacity_pct": 0,
+      "lat": 28.8297,
+      "lng": 50.8876,
+      "strike_date": "2026-04-04",
+      "notes": "Precautionary shutdown by Rosatom; struck four times with near-misses; Russian staff evacuating; no radiation release confirmed."
+    },
+    {
+      "facility_id": "kharg_island_terminal",
+      "name": "Kharg Island Oil Export Terminal",
+      "actor_id": "iran",
+      "facility_type": "oil_gas",
+      "status": "degraded",
+      "capacity_pct": 10,
+      "lat": 29.2406,
+      "lng": 50.3167,
+      "strike_date": "2026-03-13",
+      "notes": "Oil terminal physically intact after March 13 raid targeting military sites only; functionally useless due to Hormuz closure."
+    },
+    {
+      "facility_id": "south_pars_gas",
+      "name": "South Pars Gas Field",
+      "actor_id": "iran",
+      "facility_type": "oil_gas",
+      "status": "degraded",
+      "capacity_pct": 75,
+      "lat": 27.15,
+      "lng": 52.6,
+      "strike_date": "2026-03-01",
+      "notes": "Israeli strikes caused partial degradation; largely intact but surrounding infrastructure damage cascades into system-wide reduction."
+    },
+    {
+      "facility_id": "ras_laffan_lng",
+      "name": "Ras Laffan LNG Complex",
+      "actor_id": "qatar",
+      "facility_type": "oil_gas",
+      "status": "degraded",
+      "capacity_pct": 83,
+      "lat": 25.9167,
+      "lng": 51.55,
+      "strike_date": "2026-03-18",
+      "notes": "Strike caused 17% reduction in Qatar LNG capacity; fires contained; repairs estimated at 3–5 years; global LNG supply reduced 20%."
+    },
+    {
+      "facility_id": "al_udeid_ab",
+      "name": "Al Udeid Air Base",
+      "actor_id": "usa",
+      "facility_type": "military_base",
+      "status": "degraded",
+      "capacity_pct": 70,
+      "lat": 25.1173,
+      "lng": 51.3147,
+      "strike_date": "2026-03-01",
+      "notes": "AN/FPS-132 early warning radar ($1.1B) destroyed; SATCOM infrastructure destroyed; operationally active but with critical sensor gaps."
+    },
+    {
+      "facility_id": "muwaffaq_salti_ab",
+      "name": "Muwaffaq Salti Air Base",
+      "actor_id": "usa",
+      "facility_type": "military_base",
+      "status": "degraded",
+      "capacity_pct": 65,
+      "lat": 31.9917,
+      "lng": 36.7872,
+      "strike_date": "2026-02-28",
+      "notes": "AN/TPY-2 THAAD radar confirmed destroyed by Pentagon; base operational but BMD capability critically compromised."
+    },
+    {
+      "facility_id": "ain_al_assad_ab",
+      "name": "Ain al-Assad Air Base",
+      "actor_id": "usa",
+      "facility_type": "military_base",
+      "status": "degraded",
+      "capacity_pct": 80,
+      "lat": 33.3786,
+      "lng": 42.4414,
+      "strike_date": "2026-03-02",
+      "notes": "Ballistic missile strike killed 3 US service members (first KIA of conflict) and wounded 12; base remains operational."
+    },
+    {
+      "facility_id": "habshan_gas_facility",
+      "name": "ADNOC Habshan Gas Processing Complex",
+      "actor_id": "uae",
+      "facility_type": "oil_gas",
+      "status": "degraded",
+      "capacity_pct": 40,
+      "lat": 23.4833,
+      "lng": 53.7167,
+      "strike_date": "2026-04-03",
+      "notes": "Twice shut down by interceptor debris igniting fires (March 19 and April 3); significant damage assessed; one Egyptian national killed April 3."
+    },
+    {
+      "facility_id": "bandar_abbas_port",
+      "name": "Bandar Abbas Naval Port and Refinery",
+      "actor_id": "iran",
+      "facility_type": "port",
+      "status": "degraded",
+      "capacity_pct": 30,
+      "lat": 27.1832,
+      "lng": 56.2666,
+      "strike_date": "2026-02-28",
+      "notes": "IRNS Makran ablaze at pier; naval fuel facilities damaged; IRGC Navy commander Tangsiri killed here March 26 by Israeli airstrike."
+    },
+    {
+      "facility_id": "tehran_power_grid",
+      "name": "Tehran–Karaj Power Grid (Alborz Province)",
+      "actor_id": "iran",
+      "facility_type": "power_grid",
+      "status": "degraded",
+      "capacity_pct": 87,
+      "lat": 35.7219,
+      "lng": 51.3347,
+      "strike_date": "2026-03-29",
+      "notes": "Strikes on Alborz province substations caused partial Tehran blackouts; grid partially restored but stability compromised; catastrophic failure threatened by Trump's April 7 deadline."
+    },
+    {
+      "facility_id": "tehran_b1_bridge",
+      "name": "Tehran–Karaj B1 Bridge",
+      "actor_id": "iran",
+      "facility_type": "civilian",
+      "status": "destroyed",
+      "capacity_pct": 0,
+      "lat": 35.75,
+      "lng": 51.1,
+      "strike_date": "2026-04-02",
+      "notes": "Destroyed by US airstrike; identified as key missile supply route to western Iran; Trump posted video of collapse."
+    },
+    {
+      "facility_id": "kuwait_mina_ahmadi",
+      "name": "Mina Al-Ahmadi Refinery",
+      "actor_id": "kuwait",
+      "facility_type": "oil_gas",
+      "status": "degraded",
+      "capacity_pct": 50,
+      "lat": 29.0769,
+      "lng": 48.1328,
+      "strike_date": "2026-04-03",
+      "notes": "Kuwait's largest refinery struck by drone attacks April 3 setting units on fire; Kuwait Petroleum Corporation reported significant operational facility damage April 5."
+    },
+    {
+      "facility_id": "saudi_east_west_pipeline",
+      "name": "Saudi Arabia East-West Pipeline (Petroline)",
+      "actor_id": "saudi_arabia",
+      "facility_type": "oil_gas",
+      "status": "operational",
+      "capacity_pct": 100,
+      "lat": 26.3,
+      "lng": 44,
+      "notes": "Surged to full 7 million bpd capacity by end of March from 770,000 bpd pre-war baseline; single most important Hormuz bypass route globally."
+    }
+  ],
+  "global_variable_timeline": [
+    {
+      "date": "2026-02-27",
+      "oil_price_usd": 67,
+      "hormuz_throughput_pct": 100,
+      "global_economic_stress": 8,
+      "notes": "Pre-war baseline; Omani FM announced diplomatic breakthrough day before strikes began."
+    },
+    {
+      "date": "2026-02-28",
+      "oil_price_usd": 78,
+      "hormuz_throughput_pct": 60,
+      "global_economic_stress": 22,
+      "notes": "Operation Epic Fury launched; Hormuz shipping halted as IRGC issued closure warnings and attacks on vessels began."
+    },
+    {
+      "date": "2026-03-04",
+      "oil_price_usd": 88,
+      "hormuz_throughput_pct": 15,
+      "global_economic_stress": 38,
+      "notes": "Iran formally declared Strait closed; IRGC began merchant vessel attacks; 2,000+ ships stranded in Persian Gulf."
+    },
+    {
+      "date": "2026-03-08",
+      "oil_price_usd": 101,
+      "hormuz_throughput_pct": 8,
+      "global_economic_stress": 52,
+      "notes": "Brent surpassed $100/bbl for first time in four years; IEA described supply loss as exceeding 1973 and 1979 crises combined."
+    },
+    {
+      "date": "2026-03-11",
+      "oil_price_usd": 112,
+      "hormuz_throughput_pct": 5,
+      "global_economic_stress": 61,
+      "notes": "IEA unanimously approved 400 million barrel emergency release (largest in agency history); price impact limited without Hormuz reopening."
+    },
+    {
+      "date": "2026-03-25",
+      "oil_price_usd": 98,
+      "hormuz_throughput_pct": 6,
+      "global_economic_stress": 65,
+      "notes": "Brent briefly dipped below $100 after Trump signaled military wind-down in two to three weeks; Ras Laffan damage locked in LNG shortfall."
+    },
+    {
+      "date": "2026-04-02",
+      "oil_price_usd": 111,
+      "hormuz_throughput_pct": 8,
+      "global_economic_stress": 74,
+      "notes": "Trump national address warning further aggression sent WTI surging 11%; physical spot touched $141.36 briefly; B1 bridge destroyed."
+    },
+    {
+      "date": "2026-04-07",
+      "oil_price_usd": 110,
+      "hormuz_throughput_pct": 9,
+      "global_economic_stress": 78,
+      "notes": "Trump 8pm ET deadline for Hormuz reopening or power grid/bridge strikes; 53 weekly transits recorded under Iran's selective passage system, still down 90%+ from normal."
+    }
+  ],
+  "casualties": {
+    "iran_military": {
+      "military_cumulative": 1138,
+      "civilian_cumulative": 1354,
+      "as_of_date": "2026-03-17",
+      "confidence": "low"
+    },
+    "usa": {
+      "military_cumulative": 9,
+      "civilian_cumulative": 0,
+      "as_of_date": "2026-04-07",
+      "confidence": "low"
+    },
+    "israel": {
+      "military_cumulative": 2,
+      "civilian_cumulative": 12,
+      "as_of_date": "2026-03-13",
+      "confidence": "medium"
+    },
+    "gulf_states": {
+      "military_cumulative": 0,
+      "civilian_cumulative": 15,
+      "as_of_date": "2026-04-07",
+      "confidence": "medium"
+    }
+  },
+  "political_indicators": {
+    "us_approval_pct": 34,
+    "us_congressional_status": "War Powers Resolutions failed in both chambers (47-53 Senate, 212-219 House); no AUMF voted on; $200B supplemental proposed but facing resistance from both parties.",
+    "iran_domestic_status": "Mojtaba Khamenei installed as Supreme Leader March 9 under heavy IRGC pressure; no video or audio released; state apparatus effectively IRGC-controlled; Iran formally rejected US ceasefire framework and issued 10 counter-demands via Pakistani intermediaries.",
+    "nato_cohesion": "No NATO member providing direct military support; Spain denied US base access entirely; seven allies signed Hormuz political statement with no naval commitments; Trump called alliance a 'paper tiger' and threatened its future.",
+    "as_of_date": "2026-04-07"
+  }
+}
