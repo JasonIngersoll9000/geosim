@@ -5,18 +5,24 @@
  *
  * The actors.escalation_ladder column stores a serialized EscalationLadder
  * object (from lib/types/simulation.ts) seeded by the research pipeline.
- * This module parses it and uses the same algorithm as getDeescalationOptions()
- * in escalation.ts to compute blocked-rung state — without the `Actor` type
- * dependency, since panel-layer data does not carry the full simulation graph.
+ * This module parses it and applies:
+ *   1. The same algorithm as getDeescalationOptions() in escalation.ts for
+ *      irreversibility-based de-escalation blocking.
+ *   2. The same constraint-checking logic as canEscalateTo() in escalation.ts
+ *      for hard-constraint-based escalation blocking — sourced from the static
+ *      IRAN_SCENARIO_CONSTRAINTS registry (lib/scenarios/iran/initial-state.ts),
+ *      which holds the same Constraint[] data embedded in IRAN_INITIAL_STATE.
  *
- * Note on constraints:
- *   Actor.constraints[] is not stored in scenario_actors.  When the actors
- *   table constraint data becomes available, wire it in here to enable the
- *   full canEscalateTo() check.  Until then, blocking is irreversibility-based.
+ * Note: IRAN_SCENARIO_CONSTRAINTS carries the initial-state constraint status.
+ *   Dynamic constraint mutations (e.g. Iran's fatwa removal at Day 1) are
+ *   reflected in the 'removed'/'weakened' status already baked into the exported
+ *   arrays — so a 'removed' hard constraint does NOT block escalation.
  */
 
-import type { EscalationRung } from '@/lib/types/simulation'
+import type { Constraint, EscalationRung } from '@/lib/types/simulation'
 import type { EscalationRungSummary } from '@/lib/types/panels'
+import { IRAN_SCENARIO_CONSTRAINTS } from '@/lib/scenarios/iran/initial-state'
+import { norm } from '@/lib/game/actor-meta'
 
 // ── EscalationLadder subset (no full simulation graph required) ───────────────
 
@@ -61,6 +67,32 @@ export function parseDbEscalationLadder(
   }
 }
 
+// ── Constraint-based escalation blocking ────────────────────────────────────
+
+/**
+ * Return the active hard constraints that block escalation to targetRung.
+ * Mirrors the hard-block check in canEscalateTo() from escalation.ts:
+ *   "Hard constraints with status='active' block escalation entirely."
+ *
+ * A constraint applies at targetRung when:
+ *   - no rung threshold set (applies globally), OR
+ *   - targetRung >= constraint.overriddenAtEscalationRung
+ *
+ * Constraints whose status is 'removed' or 'weakened' are non-blocking.
+ */
+function getActiveHardConstraints(
+  constraints: Constraint[],
+  targetRung: number
+): Constraint[] {
+  return constraints.filter(c => {
+    if (c.severity !== 'hard' || c.status !== 'active') return false
+    const appliesToRung =
+      c.overriddenAtEscalationRung === undefined ||
+      targetRung >= c.overriddenAtEscalationRung
+    return appliesToRung
+  })
+}
+
 // ── De-escalation blocking logic ─────────────────────────────────────────────
 
 /**
@@ -70,13 +102,10 @@ export function parseDbEscalationLadder(
  *   "Cannot de-escalate below an irreversible rung that has been passed."
  *
  * Returns the set of rung levels that CAN be de-escalated to.
- * Note: When Actor.constraints[] data becomes available in the DB, add a
- * canEscalateTo() check here to enable constraint-based blocking.
  */
 function computeDeescalableRungs(ladder: ParsedLadder, currentRung: number): Set<number> {
   const { rungs } = ladder
 
-  // Mirror of getDeescalationOptions() algorithm — no Actor type needed
   const irreversibleRungs = rungs.filter(
     r => r.reversibility === 'irreversible' && r.level <= currentRung
   )
@@ -98,8 +127,10 @@ function computeDeescalableRungs(ladder: ParsedLadder, currentRung: number): Set
  * Build the full set of EscalationRungSummary entries for the panel, using:
  *   1. Real rung definitions from actors.escalation_ladder (if available)
  *   2. The same algorithm as escalation.ts getDeescalationOptions() for
- *      blocked-rung computation based on irreversible threshold crossings
- *   3. Returns an empty array when no DB ladder data is available
+ *      irreversibility-based de-escalation blocking
+ *   3. The same constraint-check logic as canEscalateTo() in escalation.ts,
+ *      with real constraint descriptions surfaced in blockReason labels
+ *   4. Returns an empty array when no DB ladder data is available
  *
  * @param actorId    Canonical actor ID (e.g., 'iran', 'us')
  * @param dbLadder   Parsed result of parseDbEscalationLadder(), or null
@@ -122,26 +153,43 @@ export function buildRungSummaries(
   const irreversibleFloor =
     crossedIrreversible.length > 0 ? Math.min(...crossedIrreversible) : null
 
+  // Look up static constraints for this actor from the scenario constraint registry
+  const canonicalId = norm(actorId)
+  const actorConstraints: Constraint[] = IRAN_SCENARIO_CONSTRAINTS[canonicalId] ?? []
+
   return dbLadder.rungs.map((rung): EscalationRungSummary => {
     const isBelowFloor =
       irreversibleFloor !== null && rung.level < irreversibleFloor
     const isBlockedByIrreversibility =
       rung.level < currentRung && !deescalable.has(rung.level)
 
-    const isBlocked = isBelowFloor || isBlockedByIrreversibility || undefined
+    // Check hard constraints that would block escalation to this rung
+    // (mirrors canEscalateTo() in escalation.ts)
+    const hardBlocks = rung.level > currentRung
+      ? getActiveHardConstraints(actorConstraints, rung.level)
+      : []
+    const isBlockedByConstraint = hardBlocks.length > 0
+
+    const isBlocked = isBelowFloor || isBlockedByIrreversibility || isBlockedByConstraint || undefined
+
+    // Build a human-readable blockReason that surfaces the constraint label
+    let blockReason: string | undefined
+    if (isBelowFloor) {
+      blockReason = `De-escalation blocked: irreversible threshold crossed at rung ${irreversibleFloor}`
+    } else if (isBlockedByIrreversibility) {
+      blockReason = 'De-escalation unavailable from current position'
+    } else if (isBlockedByConstraint) {
+      const labels = hardBlocks.map(c => c.description).join('; ')
+      blockReason = `Hard constraint: ${labels}`
+    }
 
     return {
       level:         rung.level,
       name:          rung.name,
       description:   rung.description,
       reversibility: rung.reversibility,
-      isBlocked:   isBlocked,
-      blockReason: isBelowFloor
-        ? `De-escalation blocked: irreversible threshold crossed at rung ${irreversibleFloor}`
-        : isBlockedByIrreversibility
-          ? 'De-escalation unavailable from current position'
-          : undefined,
+      isBlocked,
+      blockReason,
     }
   })
 }
-

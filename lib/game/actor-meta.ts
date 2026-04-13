@@ -3,7 +3,7 @@ import type { EscalationRungSummary, RelationshipStance } from '@/lib/types/pane
 // ── Actor ID normalisation ────────────────────────────────────────────────────
 
 /** Canonical actor ID for lookups (handles aliases like 'usa', 'us', 'united_states') */
-function norm(actorId: string): string {
+export function norm(actorId: string): string {
   const id = actorId.toLowerCase().replace(/-/g, '_')
   if (id === 'usa' || id === 'united_states' || id === 'unitedstates') return 'us'
   if (id === 'irn') return 'iran'

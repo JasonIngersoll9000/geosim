@@ -22,7 +22,7 @@ import type { DispatchLine } from '@/components/game/DispatchTerminal'
 import type { ActorSummary, ActorDetail, DecisionDetail, ActionSlot } from '@/lib/types/panels'
 import type { GameInitialData, ChronicleEntry } from '@/lib/types/game-init'
 import { getRelationshipStance, isAdversaryActor, hasLimitedIntel } from '@/lib/game/actor-meta'
-import { inferIntelConfidence, applyFogOfWarToActorDetail, parseIntelProfile } from '@/lib/game/fow-panel'
+import { inferIntelConfidence, applyFogOfWarToActorDetail, parseIntelProfile, applyScoreNoise } from '@/lib/game/fow-panel'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -77,12 +77,15 @@ function ActorsPanel({
           const stance = STANCE_LABEL[liveStance] ?? STANCE_LABEL.neutral
           const isAdv = liveStance === 'adversary'
           const color = actor.actorColor
-          // Apply estimation noise to adversary metrics — ground-truth values should
-          // not be displayed for actors the viewer has limited intel on.
+          // Apply deterministic estimation noise to adversary metrics.
+          // Uses applyScoreNoise() from fow-panel.ts (seeded by actor ID) so the
+          // believed values are stable across renders — mirroring the fixed
+          // IntelligencePicture.believedX snapshot that the simulation engine carries.
+          const actorSeed = actor.id.split('').reduce((s, c) => s + c.charCodeAt(0), 0)
           const metrics = (rawMetrics && isAdv) ? {
-            military:  Math.round(Math.min(100, Math.max(0, rawMetrics.military  + (Math.random() * 14 - 7)))),
-            economic:  Math.round(Math.min(100, Math.max(0, rawMetrics.economic  + (Math.random() * 10 - 5)))),
-            political: Math.round(Math.min(100, Math.max(0, rawMetrics.political + (Math.random() * 12 - 6)))),
+            military:  applyScoreNoise(rawMetrics.military,  'unverified', actorSeed),
+            economic:  applyScoreNoise(rawMetrics.economic,  'unverified', actorSeed + 1),
+            political: applyScoreNoise(rawMetrics.political, 'unverified', actorSeed + 2),
           } : rawMetrics
 
           return (
