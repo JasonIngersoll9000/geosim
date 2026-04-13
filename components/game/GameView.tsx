@@ -437,17 +437,18 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             </div>
           )}
 
-          {/* NEXT EVENT button — ground truth observer mode */}
+          {/* NEXT EVENT / FORK button — ground truth observer mode */}
           {isGtMode && (
-            <div className="shrink-0 px-3 pt-2 flex flex-col gap-1.5">
-              <button
-                onClick={handleNextGroundTruthEvent}
-                disabled={!gtHasNext || gtLoading}
-                className="w-full py-2 font-mono text-xs font-semibold bg-surface-3 border border-border-subtle text-text-secondary hover:text-text-primary hover:border-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {gtLoading ? 'LOADING…' : gtHasNext ? 'NEXT EVENT →' : 'END OF TIMELINE'}
-              </button>
-              {!gtHasNext && (
+            <div className="shrink-0 px-3 pt-2">
+              {gtHasNext ? (
+                <button
+                  onClick={handleNextGroundTruthEvent}
+                  disabled={gtLoading}
+                  className="w-full py-2 font-mono text-xs font-semibold bg-surface-3 border border-border-subtle text-text-secondary hover:text-text-primary hover:border-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {gtLoading ? 'LOADING…' : 'NEXT EVENT →'}
+                </button>
+              ) : (
                 <button
                   onClick={() => void handleForkNewBranch()}
                   disabled={forkingBranch}

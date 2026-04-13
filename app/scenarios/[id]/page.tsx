@@ -38,24 +38,39 @@ type BranchRow = {
   is_trunk: boolean
   status: string
   head_commit_id: string | null
+  fork_point_commit_id: string | null
   created_at: string
   parent_branch_id: string | null
-  turn_commits: Array<{ turn_number: number; simulated_date: string }>
+  turn_commits: Array<{ id: string; turn_number: number; simulated_date: string }>
 }
 
 function buildBranchTree(rows: BranchRow[]): BranchNode | null {
+  // Build a global commit-id → turn_number map across all branches
+  const commitTurnMap = new Map<string, number>()
+  for (const row of rows) {
+    for (const c of row.turn_commits ?? []) {
+      if (c.id) commitTurnMap.set(c.id, c.turn_number)
+    }
+  }
+
   const map = new Map<string, BranchNode>()
   for (const row of rows) {
     const commits = row.turn_commits ?? []
     const maxTurn = commits.reduce((m, c) => Math.max(m, c.turn_number), 0)
     const latestCommit = commits.find(c => c.turn_number === maxTurn)
+    // Resolve fork turn from fork_point_commit_id; trunk always forks at 0
+    const forkTurn = row.is_trunk
+      ? 0
+      : row.fork_point_commit_id
+        ? (commitTurnMap.get(row.fork_point_commit_id) ?? 1)
+        : 1
     map.set(row.id, {
       id: row.id,
       name: row.name,
       isTrunk: row.is_trunk,
       status: row.status === 'active' ? 'active' : 'archived',
-      forkTurn: 0,
-      headTurn: maxTurn,
+      forkTurn,
+      headTurn: Math.max(maxTurn, forkTurn),
       totalTurns: commits.length,
       lastPlayedAt: row.created_at,
       controlledActor: null,

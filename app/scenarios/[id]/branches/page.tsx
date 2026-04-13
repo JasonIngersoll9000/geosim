@@ -31,26 +31,41 @@ type RawBranch = {
   is_trunk: boolean
   status: string
   head_commit_id: string | null
+  fork_point_commit_id: string | null
   created_at: string
   parent_branch_id: string | null
-  turn_commits: Array<{ turn_number: number; simulated_date: string }>
+  turn_commits: Array<{ id: string; turn_number: number; simulated_date: string }>
 }
 
 // ─── Build tree for BranchTree component ────────────────────────────────────
 
 function buildBranchTree(rows: RawBranch[]): BranchNode | null {
+  // Build a global commit-id → turn_number map across all branches
+  const commitTurnMap = new Map<string, number>()
+  for (const row of rows) {
+    for (const c of row.turn_commits ?? []) {
+      if (c.id) commitTurnMap.set(c.id, c.turn_number)
+    }
+  }
+
   const map = new Map<string, BranchNode>()
   for (const row of rows) {
     const commits = row.turn_commits ?? []
     const maxTurn = commits.reduce((m, c) => Math.max(m, c.turn_number), 0)
     const latestCommit = commits.find(c => c.turn_number === maxTurn)
+    // Trunk starts at 0; child branches use fork_point_commit_id for accurate fork turn
+    const forkTurn = row.is_trunk
+      ? 0
+      : row.fork_point_commit_id
+        ? (commitTurnMap.get(row.fork_point_commit_id) ?? 1)
+        : 1
     map.set(row.id, {
       id: row.id,
       name: row.name,
       isTrunk: row.is_trunk,
       status: row.status === 'active' ? 'active' : 'archived',
-      forkTurn: 1,
-      headTurn: Math.max(maxTurn, 1),
+      forkTurn,
+      headTurn: Math.max(maxTurn, forkTurn, 1),
       totalTurns: Math.max(commits.length, 12),
       lastPlayedAt: row.created_at,
       controlledActor: null,
@@ -62,11 +77,7 @@ function buildBranchTree(rows: RawBranch[]): BranchNode | null {
   for (const row of rows) {
     const node = map.get(row.id)!
     if (row.parent_branch_id && map.has(row.parent_branch_id)) {
-      const parent = map.get(row.parent_branch_id)!
-      const parentCommits = rows.find(r => r.id === row.parent_branch_id)?.turn_commits ?? []
-      const forkCommit = parentCommits.find(c => c.simulated_date) ?? parentCommits[0]
-      node.forkTurn = forkCommit ? forkCommit.turn_number : parent.headTurn
-      parent.children.push(node)
+      map.get(row.parent_branch_id)!.children.push(node)
     } else {
       root = node
     }
@@ -77,9 +88,21 @@ function buildBranchTree(rows: RawBranch[]): BranchNode | null {
 // ─── Build flat list for branch cards ────────────────────────────────────────
 
 function buildBranchList(rows: RawBranch[]): BranchRecord[] {
+  // Build a global commit-id → turn_number map for resolving fork points
+  const commitTurnMap = new Map<string, number>()
+  for (const row of rows) {
+    for (const c of row.turn_commits ?? []) {
+      if (c.id) commitTurnMap.set(c.id, c.turn_number)
+    }
+  }
   return rows.map(row => {
     const commits = row.turn_commits ?? []
     const maxTurn = commits.reduce((m, c) => Math.max(m, c.turn_number), 0)
+    const forkTurn = row.is_trunk
+      ? 0
+      : row.fork_point_commit_id
+        ? (commitTurnMap.get(row.fork_point_commit_id) ?? 1)
+        : 1
     const status: BranchRecord['status'] =
       row.status === 'active' ? 'active' :
       row.status === 'completed' ? 'complete' : 'abandoned'
@@ -89,7 +112,7 @@ function buildBranchList(rows: RawBranch[]): BranchRecord[] {
       description: row.is_trunk
         ? 'Ground truth timeline — AI-driven historical record of events as they unfolded.'
         : 'Player branch — alternate timeline diverged from the ground truth.',
-      forkTurn: 0,
+      forkTurn,
       turnReached: maxTurn,
       totalTurns: Math.max(commits.length, 12),
       createdAt: row.created_at,

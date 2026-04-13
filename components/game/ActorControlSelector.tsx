@@ -2,15 +2,34 @@
 import { useState } from 'react'
 
 const ACTOR_COLORS: Record<string, string> = {
-  us:            '#2980b9',
-  united_states: '#2980b9',
-  israel:        '#27ae60',
+  usa:           '#4a90d9',
+  us:            '#4a90d9',
+  united_states: '#4a90d9',
+  united:        '#4a90d9',
+  irn:           '#c0392b',
   iran:          '#c0392b',
+  isr:           '#ffba20',
+  israel:        '#ffba20',
+  sau:           '#5EBD8E',
+  saudi:         '#5EBD8E',
+  chn:           '#4A90B8',
+  china:         '#4A90B8',
+  rus:           '#9B59B6',
+  russia:        '#9B59B6',
+}
+
+function actorColor(actor: ActorLike): string {
+  const key = (actor.shortName ?? actor.name).toLowerCase().trim()
+  for (const [k, v] of Object.entries(ACTOR_COLORS)) {
+    if (key.startsWith(k) || key.includes(k)) return v
+  }
+  return '#8a8880'
 }
 
 interface ActorLike {
   id: string
   name: string
+  shortName?: string
 }
 
 interface Props {
@@ -19,7 +38,7 @@ interface Props {
 }
 
 export function ActorControlSelector({ actors, onConfirm }: Props) {
-  const [selected, setSelected] = useState<Set<string>>(new Set(['us']))
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(actors.length > 0 ? [actors[0].id] : []))
 
   function toggle(actorId: string) {
     setSelected(prev => {
@@ -52,7 +71,7 @@ export function ActorControlSelector({ actors, onConfirm }: Props) {
         <div style={{ marginBottom: 20 }}>
           {actors.map(actor => {
             const isSelected = selected.has(actor.id)
-            const color = ACTOR_COLORS[actor.id] ?? '#8a8880'
+            const color = actorColor(actor)
             return (
               <button
                 key={actor.id}

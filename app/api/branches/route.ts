@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     const [branchRes, actorRes] = await Promise.all([
       supabase
         .from('branches')
-        .select('id, name, is_trunk, status, head_commit_id, created_at, parent_branch_id')
+        .select('id, name, is_trunk, status, head_commit_id, created_at, parent_branch_id, fork_point_commit_id')
         .eq('scenario_id', resolvedId)
         .order('created_at', { ascending: true }),
       supabase
@@ -31,18 +31,18 @@ export async function GET(request: Request) {
     }
 
     const branchIds = (branchRes.data ?? []).map(b => b.id)
-    let commitsByBranch: Record<string, Array<{ turn_number: number; simulated_date: string; chronicle_headline: string | null }>> = {}
+    let commitsByBranch: Record<string, Array<{ id: string; turn_number: number; simulated_date: string; chronicle_headline: string | null }>> = {}
 
     if (branchIds.length > 0) {
       const { data: commits } = await supabase
         .from('turn_commits')
-        .select('branch_id, turn_number, simulated_date, chronicle_headline')
+        .select('id, branch_id, turn_number, simulated_date, chronicle_headline')
         .in('branch_id', branchIds)
 
       for (const c of commits ?? []) {
-        const casted = c as { branch_id: string; turn_number: number; simulated_date: string; chronicle_headline: string | null }
+        const casted = c as { id: string; branch_id: string; turn_number: number; simulated_date: string; chronicle_headline: string | null }
         if (!commitsByBranch[casted.branch_id]) commitsByBranch[casted.branch_id] = []
-        commitsByBranch[casted.branch_id].push({ turn_number: casted.turn_number, simulated_date: casted.simulated_date, chronicle_headline: casted.chronicle_headline ?? null })
+        commitsByBranch[casted.branch_id].push({ id: casted.id, turn_number: casted.turn_number, simulated_date: casted.simulated_date, chronicle_headline: casted.chronicle_headline ?? null })
       }
     }
 
