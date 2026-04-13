@@ -9,7 +9,7 @@ import { getStateAtTurn } from '@/lib/game/state-engine'
 import { IRAN_DECISIONS, IRAN_DECISION_DETAILS } from '@/lib/game/iran-decisions'
 import type { GameInitialData, ChronicleEntry, GroundTruthCommit } from '@/lib/types/game-init'
 import type { ActorSummary, ActorDetail } from '@/lib/types/panels'
-import { getActorColor, getRelationshipStance, isAdversaryActor, getEscalationRungName, getEscalationRungs } from '@/lib/game/actor-meta'
+import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel, getEscalationRungName, getEscalationRungs } from '@/lib/game/actor-meta'
 
 interface Props {
   params: { id: string; branchId: string }
@@ -127,6 +127,22 @@ export default async function PlayPage({ params }: Props) {
       ? a.win_condition.split(/\n|•|–|-/).map((w: string) => w.trim()).filter((w: string) => w.length > 10)
       : []
     const shortName = a.short_name ?? a.name.slice(0, 6).toUpperCase()
+    // Build recent history from chronicle entries mentioning this actor
+    const actorNameLower = a.name.toLowerCase()
+    const recentHistory = (commits ?? [])
+      .filter(c => {
+        const narrative = (c.chronicle_entry ?? c.narrative_entry ?? '').toLowerCase()
+        const headline  = (c.chronicle_headline ?? '').toLowerCase()
+        return narrative.includes(actorNameLower) || headline.includes(actorNameLower)
+      })
+      .slice(-5)
+      .reverse()
+      .map(c => {
+        const headline  = c.chronicle_headline ? `[T${c.turn_number}] ${c.chronicle_headline}` : null
+        const narrative = c.chronicle_entry ?? c.narrative_entry ?? ''
+        return headline ?? narrative.slice(0, 240)
+      })
+
     actorDetails[a.id] = {
       id: a.id,
       name: a.name,
@@ -134,7 +150,7 @@ export default async function PlayPage({ params }: Props) {
       actorColor: getActorColor(a.id),
       escalationRung: rung,
       escalationRungName: getEscalationRungName(a.id, rung),
-      escalationRungs: getEscalationRungs(a.id),
+      escalationRungs: getEscalationRungs(a.id, rung),
       briefing: a.biographical_summary ?? 'No briefing available.',
       militaryStrength:   s ? Math.round(Number(s.military_strength))   : 50,
       economicStrength:   s ? Math.round(Number(s.economic_health))     : 50,
@@ -146,8 +162,11 @@ export default async function PlayPage({ params }: Props) {
       strategicDoctrine:    a.strategic_doctrine ?? undefined,
       historicalPrecedents: a.historical_precedents ?? undefined,
       intelligenceProfile:  a.intelligence_profile as Record<string, unknown> | undefined,
-      isAdversary: isAdversaryActor(a.id),
+      isAdversary:      isAdversaryActor(a.id),
+      hasLimitedIntel:  hasLimitedIntel(a.id),
+      viewerActorId:    'us',
       relationshipStance: getRelationshipStance(a.id),
+      recentHistory: recentHistory.length > 0 ? recentHistory : undefined,
     }
   }
 

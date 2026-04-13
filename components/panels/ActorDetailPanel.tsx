@@ -266,6 +266,11 @@ function IntelligenceTab({ actor }: { actor: ActorDetail }) {
       <section>
         <SectionLabel>Relationship to Player-Controlled Faction</SectionLabel>
         <RelationshipStanceBadge stance={actor.relationshipStance} />
+        {actor.hasLimitedIntel && !actor.isAdversary && (
+          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: '#f39c12', marginTop: 6, letterSpacing: '0.06em' }}>
+            ⚠ LIMITED INTELLIGENCE ACCESS — DATA MAY BE INCOMPLETE
+          </p>
+        )}
       </section>
 
       {/* No intel fallback */}
@@ -273,7 +278,9 @@ function IntelligenceTab({ actor }: { actor: ActorDetail }) {
         <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: 'rgba(229,226,225,0.45)' }}>
           {actor.isAdversary
             ? 'INTEL REDACTED — INSUFFICIENT HUMINT COVERAGE'
-            : 'Leadership profile not available in current briefing.'}
+            : actor.hasLimitedIntel
+              ? 'LIMITED COVERAGE — PARTIAL INTEL ONLY'
+              : 'Leadership profile not available in current briefing.'}
         </p>
       )}
     </div>
@@ -281,11 +288,38 @@ function IntelligenceTab({ actor }: { actor: ActorDetail }) {
 }
 
 function HistoryTab({ actor }: { actor: ActorDetail }) {
-  const hasHistory = actor.historicalPrecedents || actor.strategicDoctrine
+  const hasRecent = actor.recentHistory && actor.recentHistory.length > 0
+  const hasPrecedents = Boolean(actor.historicalPrecedents)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {actor.historicalPrecedents && (
+      {/* Recent events from chronicle — shown when game state is available */}
+      {hasRecent && (
+        <section>
+          <SectionLabel>Recent Actions &amp; Events</SectionLabel>
+          {actor.isAdversary && (
+            <div style={{ marginBottom: 8 }}>
+              <FowLabel label="PARTIALLY VERIFIED" />
+            </div>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {actor.recentHistory!.map((entry, i) => (
+              <div key={i} style={{
+                padding: '8px 10px',
+                background: '#1a1a1a',
+                borderLeft: `2px solid ${actor.actorColor}44`,
+              }}>
+                <p style={{ fontFamily: "'Newsreader', serif", fontSize: 11, lineHeight: 1.55, color: '#a8a6a0', margin: 0 }}>
+                  {entry}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Static historical precedents */}
+      {hasPrecedents && (
         <section>
           <SectionLabel>Historical Precedents</SectionLabel>
           <p style={{
@@ -296,7 +330,8 @@ function HistoryTab({ actor }: { actor: ActorDetail }) {
           </p>
         </section>
       )}
-      {!hasHistory && (
+
+      {!hasRecent && !hasPrecedents && (
         <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: 'rgba(229,226,225,0.45)' }}>
           No historical record available for this actor.
         </p>

@@ -70,9 +70,21 @@ export interface ActorDetail {
   strategicDoctrine?: string
   historicalPrecedents?: string
   winCondition?: string
-  /** Whether this actor is viewed as an adversary by the player — triggers FOW labels */
+  /**
+   * Whether this actor is viewed as an adversary by the viewing actor.
+   * Triggers full fog-of-war redaction on intel fields.
+   */
   isAdversary: boolean
+  /**
+   * Whether the viewer has limited (but not zero) intelligence on this actor.
+   * Triggers partial uncertainty labels (rivals, neutrals).
+   */
+  hasLimitedIntel?: boolean
+  /** Actor ID of the viewing player (defaults to 'us') */
+  viewerActorId?: string
   relationshipStance: RelationshipStance
   escalationRungs: EscalationRungSummary[]
   intelligenceProfile?: Record<string, unknown>
+  /** Recent chronicle entries mentioning this actor, from most recent first */
+  recentHistory?: string[]
 }
