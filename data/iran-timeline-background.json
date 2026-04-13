@@ -1,0 +1,194 @@
+{
+  "_meta": {
+    "description": "Pre-negotiation background events — use for scenario background text, not as turn nodes"
+  },
+  "events": [
+    {
+      "id": "evt_20180301_china_launches_yuandenominated_crude_futures_on_shanghai_international_energy_exchange",
+      "timestamp": "2018-03-01",
+      "timestamp_confidence": "approximate",
+      "title": "China Launches Yuan-Denominated Crude Futures on Shanghai International Energy Exchange",
+      "description": "China's Shanghai International Energy Exchange launched yuan-denominated crude oil futures, establishing an early institutional foundation for yuan participation in global oil markets. By 2020 these contracts accounted for approximately 10.5% of global crude futures volume.",
+      "actors_involved": [
+        "china"
+      ],
+      "dimension": "economic",
+      "is_decision": true,
+      "deciding_actor": "china",
+      "escalation_direction": "lateral",
+      "source_excerpt": "China's Shanghai International Energy Exchange yuan-denominated crude futures launched in March 2018 and accounted for ~10.5% of global crude futures volume by 2020."
+    },
+    {
+      "id": "evt_20190101_iran_completes_irgc_mosaic_defense_restructuring_into_31_autonomous_provincial_commands",
+      "timestamp": "2019-01-01",
+      "timestamp_confidence": "period",
+      "title": "Iran Completes IRGC Mosaic Defense Restructuring into 31 Autonomous Provincial Commands",
+      "description": "Under restructuring completed by 2019, the IRGC was reorganized into 31 semi-autonomous provincial commands, each with independent intelligence, weapons stockpiles, and pre-delegated authority to launch strikes if communication with the center is severed.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Under restructuring completed by 2019, the IRGC was reorganized into 31 semi-autonomous provincial commands, each with independent intelligence, weapons stockpiles, and pre-delegated authority to launch strikes if communication with the center is severed."
+    },
+    {
+      "id": "evt_20190601_mojtaba_khamenei_takes_control_of_basij_paramilitary",
+      "timestamp": "2019-06-01",
+      "timestamp_confidence": "approximate",
+      "title": "Mojtaba Khamenei Takes Control of Basij Paramilitary",
+      "description": "Mojtaba Khamenei assumed control of the Basij paramilitary forces. He is later blamed by reformists for suppressing the Green Movement. US Treasury sanctioned him in 2019.",
+      "actors_involved": [
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "iran",
+      "escalation_direction": "up",
+      "source_excerpt": "Took control of the Basij paramilitary in 2009 and is blamed by reformists for suppressing the Green Movement. Sanctioned by US Treasury in 2019."
+    },
+    {
+      "id": "evt_20210101_china_grants_iran_full_military_access_to_beidou3_encrypted_satellite_navigation_system",
+      "timestamp": "2021-01-01",
+      "timestamp_confidence": "approximate",
+      "title": "China Grants Iran Full Military Access to BeiDou-3 Encrypted Satellite Navigation System",
+      "description": "China granted Iran full military access to its BeiDou-3 encrypted satellite navigation system, a capability experts believe Iran is currently using to guide attacks during the 2026 conflict.",
+      "actors_involved": [
+        "china",
+        "iran"
+      ],
+      "dimension": "military",
+      "is_decision": true,
+      "deciding_actor": "china",
+      "escalation_direction": "up",
+      "source_excerpt": "What is confirmed: China granted Iran full military access to its BeiDou-3 encrypted satellite navigation system in 2021, which experts believe Iran is currently using to guide attacks."
+    },
+    {
+      "id": "evt_20230601_over_20_of_chinas_oil_imports_from_russia_settled_in_yuan",
+      "timestamp": "2023-06-01",
+      "timestamp_confidence": "approximate",
+      "title": "Over 20% of China's Oil Imports from Russia Settled in Yuan",
+      "description": "By mid-2023, over 20% of China's oil imports from Russia were being settled in yuan, reflecting a significant bilateral shift away from dollar-denominated transactions following the 2022 Ukraine invasion sanctions.",
+      "actors_involved": [
+        "china",
+        "russia"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "lateral",
+      "source_excerpt": "Over 20% of China's oil imports from Russia were settled in yuan by mid-2023."
+    },
+    {
+      "id": "evt_20240101_aipac_2024_cycle_spending_reaches_1269_million",
+      "timestamp": "2024-01-01",
+      "timestamp_confidence": "period",
+      "title": "AIPAC 2024 Cycle Spending Reaches ~$126.9 Million",
+      "description": "AIPAC PAC and its United Democracy Project super PAC spent a combined ~$126.9 million during the 2024 election cycle, more than doubling from ~$44 million in 2022. Money reached 349 senators and House members (65% of Congress), covering more than 80% of races.",
+      "actors_involved": [
+        "united_states",
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "AIPAC / United Democracy Project",
+      "escalation_direction": "up",
+      "source_excerpt": "AIPAC PAC plus its United Democracy Project super PAC spent a combined ~$126.9 million (FEC filings via Sludge). This more than doubled from ~$44 million in 2022."
+    },
+    {
+      "id": "evt_20240101_aipac_spends_146_million_to_defeat_rep_jamaal_bowman",
+      "timestamp": "2024-01-01",
+      "timestamp_confidence": "period",
+      "title": "AIPAC Spends $14.6 Million to Defeat Rep. Jamaal Bowman",
+      "description": "AIPAC's United Democracy Project spent $14.6 million to defeat Rep. Jamaal Bowman in his primary, the most expensive outside spending on a House race in history. AIPAC also spent $8.6 million targeting Rep. Cori Bush, both progressive critics of Israel policy.",
+      "actors_involved": [
+        "united_states",
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "AIPAC / United Democracy Project",
+      "escalation_direction": "lateral",
+      "source_excerpt": "AIPAC's UDP spent $14.6 million to defeat Rep. Jamaal Bowman (the most expensive outside spending on a House race in history) and $8.6 million targeting Rep. Cori Bush — both progressive critics of Israel policy."
+    },
+    {
+      "id": "evt_20240101_miriam_adelson_donates_120_million_to_trump_2024_via_preserve_america_pac",
+      "timestamp": "2024-01-01",
+      "timestamp_confidence": "period",
+      "title": "Miriam Adelson Donates $120 Million+ to Trump 2024 via Preserve America PAC",
+      "description": "Miriam Adelson donated over $120 million to Trump's 2024 campaign through Preserve America PAC, making her the single largest individual donor to outside groups in the cycle. Republican Jewish Coalition separately spent $13.3 million in outside spending.",
+      "actors_involved": [
+        "united_states",
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "Miriam Adelson",
+      "escalation_direction": "up",
+      "source_excerpt": "Preserve America PAC (Adelson) | $120M+ to Trump 2024 | Single largest individual donor to outside groups"
+    },
+    {
+      "id": "evt_20250101_marco_rubio_confirmed_as_secretary_of_state",
+      "timestamp": "2025-01-01",
+      "timestamp_confidence": "period",
+      "title": "Marco Rubio Confirmed as Secretary of State",
+      "description": "Marco Rubio began serving as US Secretary of State in January 2025. Per Track AIPAC, Rubio collected more than $1 million in Israel lobby campaign contributions since 2010.",
+      "actors_involved": [
+        "united_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "none",
+      "source_excerpt": "He has served since January 2025. Per Track AIPAC, Rubio collected >$1 million in Israel lobby campaign contributions since 2010."
+    },
+    {
+      "id": "evt_20250101_aipac_lobbying_costs_surge_in_first_half_of_2025",
+      "timestamp": "2025-01-01",
+      "timestamp_confidence": "period",
+      "title": "AIPAC Lobbying Costs Surge in First Half of 2025",
+      "description": "In 2025, AIPAC increased lobbying costs to $1.8 million in the first half alone, up 12.5% year-over-year, and PAC contributions surged 88% to $12.8 million in six months.",
+      "actors_involved": [
+        "united_states",
+        "israel"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "AIPAC",
+      "escalation_direction": "up",
+      "source_excerpt": "In 2025, AIPAC further increased lobbying costs to $1.8 million in the first half alone (up 12.5% year-over-year) and PAC contributions surged 88% to $12.8 million in six months."
+    },
+    {
+      "id": "evt_20250101_russiachina_yuan_oil_trade_reaches_1914_billion_annually",
+      "timestamp": "2025-01-01",
+      "timestamp_confidence": "period",
+      "title": "Russia-China Yuan Oil Trade Reaches $19.14 Billion Annually",
+      "description": "Russia-China crude oil trade settled in yuan reached $19.14 billion in 2025, reflecting the accelerated de-dollarization of bilateral energy trade following Russia's 2022 invasion of Ukraine and subsequent Western sanctions.",
+      "actors_involved": [
+        "russia",
+        "china"
+      ],
+      "dimension": "economic",
+      "is_decision": false,
+      "deciding_actor": "",
+      "escalation_direction": "lateral",
+      "source_excerpt": "Russia-China trade shifted rapidly after the 2022 Ukraine sanctions — $19.14 billion in crude oil was settled in yuan in 2025."
+    },
+    {
+      "id": "evt_20250301_indias_foreign_minister_explicitly_rejects_brics_single_currency_to_replace_dollar",
+      "timestamp": "2025-03-01",
+      "timestamp_confidence": "approximate",
+      "title": "India's Foreign Minister Explicitly Rejects BRICS Single Currency to Replace Dollar",
+      "description": "Indian External Affairs Minister Jaishankar publicly stated India has no policy to replace the dollar, reflecting a fundamental internal divide within BRICS over de-dollarization ambitions.",
+      "actors_involved": [
+        "gulf_states"
+      ],
+      "dimension": "diplomatic",
+      "is_decision": true,
+      "deciding_actor": "india",
+      "escalation_direction": "none",
+      "source_excerpt": "India's External Affairs Minister Jaishankar explicitly stated in March 2025: 'I do not believe we have any policy to have a replacement to the dollar.'"
+    }
+  ]
+}

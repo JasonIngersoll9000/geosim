@@ -43,9 +43,9 @@ export default async function PlayPage({ params }: Props) {
 
   // 3. Fetch actors for this scenario
   const { data: actorRows } = await supabase
-    .from('actors')
-    .select('actor_id, name, win_condition, lose_condition, strategic_posture, escalation_ladder')
-    .eq('scenario_id', params.id)
+    .from('scenario_actors')
+    .select('id, name, biographical_summary, leadership_profile, win_condition, strategic_doctrine, historical_precedents, initial_scores, intelligence_profile')
+    .eq('scenario_id', scenario?.id ?? params.id)
 
   // 4. Fetch current state via state engine
   let currentState = null
@@ -60,8 +60,8 @@ export default async function PlayPage({ params }: Props) {
   // 5. Fetch chronicle (turn_commits on this branch)
   const { data: commits } = await supabase
     .from('turn_commits')
-    .select('turn_number, simulated_date, narrative_entry')
-    .eq('branch_id', params.branchId)
+    .select('turn_number, simulated_date, narrative_entry, chronicle_headline, chronicle_entry, chronicle_date_label, context_summary, is_decision_point')
+    .eq('branch_id', branch?.id ?? params.branchId)
     .order('turn_number', { ascending: true })
 
   // 6. Fetch ground truth branch
@@ -81,34 +81,42 @@ export default async function PlayPage({ params }: Props) {
   // --- Transform DB rows → GameInitialData types ---
 
   const actors: ActorSummary[] = (actorRows ?? []).map(a => {
-    const ladder = a.escalation_ladder as { current_rung?: number } | null
+    const scores = a.initial_scores as { escalationRung?: number } | null
     return {
-      id: a.actor_id,
+      id: a.id,
       name: a.name,
-      escalationRung: ladder?.current_rung ?? 0,
+      escalationRung: scores?.escalationRung ?? 0,
     }
   })
 
   const actorDetails: Record<string, ActorDetail> = {}
   for (const a of actorRows ?? []) {
-    const s = currentState?.actor_states[a.actor_id]
-    actorDetails[a.actor_id] = {
-      id: a.actor_id,
+    const s = currentState?.actor_states[a.id]
+    const scores = a.initial_scores as { escalationRung?: number } | null
+    actorDetails[a.id] = {
+      id: a.id,
       name: a.name,
-      escalationRung: (a.escalation_ladder as { current_rung?: number } | null)?.current_rung ?? 0,
-      briefing: a.strategic_posture ?? 'No briefing available.',
+      escalationRung: scores?.escalationRung ?? 0,
+      briefing: a.biographical_summary ?? 'No briefing available.',
       militaryStrength:   s ? Math.round(Number(s.military_strength))   : 50,
       economicStrength:   s ? Math.round(Number(s.economic_health))     : 50,
       politicalStability: s ? Math.round(Number(s.political_stability)) : 50,
-      objectives: [a.win_condition, a.lose_condition].filter(Boolean) as string[],
+      objectives: [a.win_condition].filter(Boolean) as string[],
+      leadershipProfile:    a.leadership_profile ?? undefined,
+      strategicDoctrine:    a.strategic_doctrine ?? undefined,
+      historicalPrecedents: a.historical_precedents ?? undefined,
+      intelligenceProfile:  a.intelligence_profile as Record<string, unknown> | undefined,
     }
   }
 
   const chronicle: ChronicleEntry[] = (commits ?? []).map(c => ({
     turnNumber: c.turn_number,
     date: c.simulated_date,
-    title: `Turn ${c.turn_number}`,
-    narrative: c.narrative_entry ?? 'No narrative recorded.',
+    title: c.chronicle_headline ?? `Turn ${c.turn_number}`,
+    narrative: c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.',
+    dateLabel: c.chronicle_date_label ?? undefined,
+    contextSummary: c.context_summary ?? undefined,
+    isDecisionPoint: c.is_decision_point ?? false,
     severity: 'major' as const,
     tags: [],
   }))
