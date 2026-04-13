@@ -214,17 +214,23 @@ export default async function PlayPage({ params }: Props) {
     }
   }
 
-  const chronicle: ChronicleEntry[] = (commits ?? []).map(c => ({
-    turnNumber: c.turn_number,
-    date: c.simulated_date,
-    title: c.chronicle_headline ?? `Turn ${c.turn_number}`,
-    narrative: c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.',
-    dateLabel: c.chronicle_date_label ?? undefined,
-    contextSummary: c.context_summary ?? undefined,
-    isDecisionPoint: c.is_decision_point ?? false,
-    severity: 'major' as const,
-    tags: [],
-  }))
+  const chronicle: ChronicleEntry[] = (commits ?? []).map(c => {
+    // Use chronicle_entry as the short narrative; narrative_entry as the expandable detail.
+    // If only narrative_entry exists, it becomes the main narrative (no separate detail).
+    const hasShortAndLong = !!(c.chronicle_entry && c.narrative_entry)
+    return {
+      turnNumber: c.turn_number,
+      date: c.simulated_date,
+      title: c.chronicle_headline ?? `Turn ${c.turn_number}`,
+      narrative: c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.',
+      detail: hasShortAndLong ? c.narrative_entry ?? undefined : undefined,
+      dateLabel: c.chronicle_date_label ?? undefined,
+      contextSummary: c.context_summary ?? undefined,
+      isDecisionPoint: c.is_decision_point ?? false,
+      severity: 'major' as const,
+      tags: [],
+    }
+  })
 
   const gtCommits: GroundTruthCommit[] = (groundTruthCommits ?? []).map(c => ({
     id: c.id,
