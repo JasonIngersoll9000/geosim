@@ -12,12 +12,39 @@ import type { ActorSummary, ActorDetail } from '@/lib/types/panels'
 import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel, getEscalationRungName } from '@/lib/game/actor-meta'
 import { parseIntelProfile, inferIntelConfidence, extractKnownUnknowns } from '@/lib/game/fow-panel'
 import { parseDbEscalationLadder, buildRungSummaries } from '@/lib/game/escalation-from-db'
+import { getIranSeedSnapshot } from '@/lib/game/dev-snapshot'
 
 interface Props {
   params: { id: string; branchId: string }
 }
 
 export default async function PlayPage({ params }: Props) {
+  // ── Dev mode fast path ────────────────────────────────────────────────────
+  // When NEXT_PUBLIC_DEV_MODE=true the full Iran seed snapshot is loaded from
+  // local data files so the UI can be tested without any Supabase connection.
+  if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+    const devData = getIranSeedSnapshot()
+    return (
+      <GameProvider>
+        <ClassificationBanner classification={`TOP SECRET // NOFORN // DEV MODE`} />
+        <TopBar
+          scenarioName={devData.scenario.name}
+          scenarioHref={`/scenarios/${params.id}`}
+          turnNumber={devData.branch.turnNumber}
+          totalTurns={devData.groundTruthCommits.length}
+          phase="Observer"
+        />
+        <main className="h-screen pt-[66px] overflow-hidden">
+          <GameView
+            branchId={params.branchId}
+            scenarioId={params.id}
+            initialData={devData}
+          />
+        </main>
+      </GameProvider>
+    )
+  }
+
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return (
       <div className="h-screen flex items-center justify-center bg-[#050A12]">
