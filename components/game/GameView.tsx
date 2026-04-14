@@ -214,7 +214,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   const [controlledActors, setControlledActors]             = useState<string[] | null>(null)
   const [forkingBranch, setForkingBranch]                   = useState(false)
   const [activeTab, setActiveTab]                           = useState<PanelTab>('actors')
-  const [showObserver, setShowObserver]                     = useState(true)
+  const [showObserver, setShowObserver]                     = useState(initialData.branch.isTrunk)
   const [omniscientMode, setOmniscientMode]                 = useState(false)
   const [selectedDecisionDetail, setSelectedDecisionDetail] = useState<DecisionDetail | null>(null)
   const [decisionPanelOpen, setDecisionPanelOpen]           = useState(false)

@@ -41,7 +41,25 @@ const STEPS: Step[] = [
     tip: 'Adversary metrics are fog-of-war estimated (~). Your own actor shows confirmed values.',
   },
   {
-    tag: '03 / DECISIONS',
+    tag: '03 / ESCALATION',
+    title: 'The Escalation Ladder',
+    body: 'Each actor has an escalation ladder — a ranked sequence of postures from diplomatic restraint to open warfare. Actors always prefer the lowest rung that can achieve their goals. They move up when current options are failing, when they\'re forced to respond to an adversary\'s escalation, or when constraint cascades remove what was previously holding them back. They can de-escalate when objectives are met, when costs become unsustainable, or under diplomatic pressure.\n\nThe ladder for this scenario runs from Rung 1 (back-channel diplomacy) through Rung 15 (full-spectrum warfare). Rung 6 is covert operations and proxy activity. Rung 8 is direct military pressure and sanctions. Rung 11–12 is active conflict with missile exchanges. Rung 14–15 is existential warfare including nuclear signaling. Watch the ESCALATION tab in each actor\'s dossier to see their current posture and what would push them higher.',
+    diagram:
+      '┌────────────────────────────────┐\n' +
+      '│  R01  Diplomatic back-channel  │\n' +
+      '│  R03  Economic pressure        │\n' +
+      '│  R06  Covert ops / proxies     │\n' +
+      '│  R08  ● MAXIMUM PRESSURE  ←US  │\n' +
+      '│  R10  Limited strikes          │\n' +
+      '│  R11  ● MASS ESCALATION  ←IR   │\n' +
+      '│  R12  ● OPEN CONFLICT    ←IL   │\n' +
+      '│  R14  Strategic warfare        │\n' +
+      '│  R15  Nuclear threshold        │\n' +
+      '└────────────────────────────────┘',
+    tip: 'Each submitted turn plan can move an actor\'s rung up or down. Watch the ESCALATION tab in actor dossiers and the Chronicle for rung changes.',
+  },
+  {
+    tag: '04 / DECISIONS',
     title: 'Decision Planning',
     body: 'In player mode, open the DECISIONS tab to browse available actions. Click any decision to review its strategic rationale, expected outcomes, and concurrency rules before committing. Then choose one Primary Action (mandatory) plus up to three concurrent supporting operations per turn.',
     diagram:
@@ -57,7 +75,7 @@ const STEPS: Step[] = [
     tip: 'You need at least one Primary Action to submit. Concurrent actions share remaining resources.',
   },
   {
-    tag: '04 / RESOLUTION',
+    tag: '05 / RESOLUTION',
     title: 'Turn Resolution',
     body: 'When you submit your turn plan, all actors resolve their decisions simultaneously. The AI engine weighs each action against current state, generates narrative outcomes, updates actor strength scores and escalation rungs, and broadcasts the new world state. Watch the resolution log stream in real time.',
     diagram:
@@ -72,7 +90,7 @@ const STEPS: Step[] = [
     tip: 'After resolution, check the EVENTS tab for a structured breakdown of what happened this turn.',
   },
   {
-    tag: '05 / CHRONICLE',
+    tag: '06 / CHRONICLE',
     title: 'The Chronicle',
     body: 'Every resolved turn creates a Chronicle entry — the living narrative history of your simulation. Expand any entry to read the full AI-generated briefing. Entries note severity level, simulated date, and actor actions. The Chronicle is the story you are writing, turn by turn.',
     diagram:
@@ -88,7 +106,7 @@ const STEPS: Step[] = [
     tip: 'Switch to the CHRONICLE tab after any turn submission to read the full narrative outcome.',
   },
   {
-    tag: '06 / FORK',
+    tag: '07 / FORK',
     title: 'Fork the Timeline',
     body: 'At any point in the Ground Truth timeline, press FORK NEW BRANCH to create your own diverging scenario. Each fork runs independently from that decision point forward — you can explore "what if the strike had been delayed?" or "what if Iran had stood down?" without altering the Ground Truth.',
     diagram:

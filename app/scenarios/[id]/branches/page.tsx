@@ -106,7 +106,7 @@ function buildBranchTree(
       status: row.status === 'active' ? 'active' : 'archived',
       forkTurn,
       headTurn: Math.max(maxTurn, forkTurn, 1),
-      totalTurns: Math.max(commits.length, 12),
+      totalTurns: commits.length > 0 ? Math.max(...commits.map(c => c.turn_number)) : 12,
       lastPlayedAt: row.created_at,
       controlledActor: null,
       children: [],
@@ -155,7 +155,7 @@ function buildBranchList(rows: RawBranch[]): BranchRecord[] {
         : 'Player branch — alternate timeline diverged from the ground truth.',
       forkTurn,
       turnReached: maxTurn,
-      totalTurns: Math.max(commits.length, 12),
+      totalTurns: commits.length > 0 ? Math.max(...commits.map(c => c.turn_number)) : 12,
       createdAt: row.created_at,
       status,
       escalationRung: 0,
@@ -167,13 +167,13 @@ function buildBranchList(rows: RawBranch[]): BranchRecord[] {
 
 // ─── Horizontal branch topology SVG ─────────────────────────────────────────
 
-const TURN_COUNT = 12
 const ROW_H     = 36
 const LABEL_W   = 130
 const PADDING   = { top: 10, right: 16, bottom: 8 }
 const BAR_H     = 6
 
 function BranchTopology({ branches }: { branches: BranchRecord[] }) {
+  const TURN_COUNT = Math.max(12, ...branches.map(b => b.totalTurns))
   const svgW = 640
   const trackW = svgW - LABEL_W - PADDING.right
   const svgH = branches.length * ROW_H + PADDING.top + PADDING.bottom
@@ -546,6 +546,15 @@ export default function BranchesPage({ params }: { params: { id: string } }) {
             <DocumentIdHeader
               text="TIMELINE DIVERGENCE MAP // SCENARIO: IRAN-2026"
             />
+          </div>
+
+          <div className="mb-6">
+            <Link
+              href={`/scenarios/${params.id}`}
+              className="font-mono text-2xs uppercase tracking-[0.08em] text-text-tertiary hover:text-text-secondary transition-colors"
+            >
+              ← BACK TO SCENARIO
+            </Link>
           </div>
 
           <div className="mb-8">
