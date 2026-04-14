@@ -7,7 +7,8 @@ import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
 import { TopBar } from '@/components/ui/TopBar'
 import { DocumentIdHeader } from '@/components/ui/DocumentIdHeader'
 import { BranchTree } from '@/components/scenario/BranchTree'
-import type { BranchNode, ActorOption } from '@/components/scenario/BranchTree'
+import type { BranchNode, ActorOption, TurnData } from '@/components/scenario/BranchTree'
+import { DEV_TRUNK_BRANCH, DEV_ACTORS } from '@/lib/game/dev-branches'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -34,7 +35,31 @@ type RawBranch = {
   fork_point_commit_id: string | null
   created_at: string
   parent_branch_id: string | null
-  turn_commits: Array<{ id: string; turn_number: number; simulated_date: string }>
+  turn_commits: Array<{ id: string; turn_number: number; simulated_date: string; chronicle_headline?: string | null }>
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const HIGH_SIG_KEYWORDS = [
+  'nuclear', 'war', 'attack', 'launch', 'crisis', 'invasion', 'strike',
+  'ultimatum', 'missile', 'conflict', 'catastroph', 'collapse', 'intercept',
+  'bomb', 'explosion', 'shot down', 'hostage', 'assassination', 'retaliat',
+]
+
+function getSignificance(headline: string | null | undefined): TurnData['significance'] {
+  if (!headline) return 'low'
+  const lower = headline.toLowerCase()
+  if (HIGH_SIG_KEYWORDS.some(kw => lower.includes(kw))) return 'high'
+  return 'medium'
+}
+
+/** Format an ISO date string as "Apr 1 2025" */
+function formatTurnDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  } catch {
+    return iso
+  }
 }
 
 // ─── Build tree for BranchTree component ────────────────────────────────────
@@ -59,6 +84,17 @@ function buildBranchTree(rows: RawBranch[]): BranchNode | null {
       : row.fork_point_commit_id
         ? (commitTurnMap.get(row.fork_point_commit_id) ?? 1)
         : 1
+
+    // Build per-turn event data from commits
+    const turns: TurnData[] = commits
+      .map(c => ({
+        turn: c.turn_number,
+        date: c.simulated_date ? formatTurnDate(c.simulated_date) : undefined,
+        label: c.chronicle_headline ?? undefined,
+        significance: getSignificance(c.chronicle_headline),
+      }))
+      .sort((a, b) => a.turn - b.turn)
+
     map.set(row.id, {
       id: row.id,
       name: row.name,
@@ -71,6 +107,7 @@ function buildBranchTree(rows: RawBranch[]): BranchNode | null {
       controlledActor: null,
       children: [],
       turnDate: latestCommit?.simulated_date,
+      turns,
     })
   }
   let root: BranchNode | null = null
@@ -322,7 +359,11 @@ const STATUS_STYLES: Record<BranchRecord['status'], { label: string; cls: string
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  try {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  } catch {
+    return iso
+  }
 }
 
 // ─── Branch card ──────────────────────────────────────────────────────────────
@@ -414,21 +455,32 @@ function BranchCard({ branch, scenarioId }: { branch: BranchRecord; scenarioId: 
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+// Pre-compute dev-mode initial state so the page renders immediately without
+// waiting for async fetches (NEXT_PUBLIC_* vars are inlined at build time).
+const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+const devRawBranches: RawBranch[] = isDevMode ? [DEV_TRUNK_BRANCH as RawBranch] : []
+const devInitialBranches = isDevMode ? buildBranchList(devRawBranches) : []
+const devInitialRoot     = isDevMode ? buildBranchTree(devRawBranches) : null
+const devInitialActors: ActorOption[] = isDevMode
+  ? DEV_ACTORS.map(a => ({ id: a.id, name: a.name, flag: (a.short_name ?? a.name.slice(0, 3)).toUpperCase() }))
+  : []
+const devInitialTurns    = isDevMode ? DEV_TRUNK_BRANCH.turn_commits.map(c => c.turn_number) : []
+
 export default function BranchesPage({ params }: { params: { id: string } }) {
-  const [branches, setBranches] = useState<BranchRecord[]>([])
-  const [branchRoot, setBranchRoot] = useState<BranchNode | null>(null)
-  const [actorOptions, setActorOptions] = useState<ActorOption[]>([])
+  const [branches, setBranches] = useState<BranchRecord[]>(devInitialBranches)
+  const [branchRoot, setBranchRoot] = useState<BranchNode | null>(devInitialRoot)
+  const [actorOptions, setActorOptions] = useState<ActorOption[]>(devInitialActors)
   const [scenarioName, setScenarioName] = useState('US-ISRAEL-IRAN CONFLICT 2025-2026')
-  const [loading, setLoading] = useState(true)
-  const [availableTurns, setAvailableTurns] = useState<number[]>([])
+  const [loading, setLoading] = useState(!isDevMode)
+  const [availableTurns, setAvailableTurns] = useState<number[]>(devInitialTurns)
 
   useEffect(() => {
+    // Dev mode: state already pre-populated synchronously — skip all async fetches.
+    if (isDevMode) return
+
     void (async () => {
       try {
-        const [branchApiRes, scenarioApiRes] = await Promise.all([
-          fetch(`/api/branches?scenarioId=${encodeURIComponent(params.id)}`),
-          fetch(`/api/scenarios?limit=1`),
-        ])
+        const branchApiRes = await fetch(`/api/branches?scenarioId=${encodeURIComponent(params.id)}`)
 
         if (branchApiRes.ok) {
           const json = await branchApiRes.json() as {
@@ -459,12 +511,15 @@ export default function BranchesPage({ params }: { params: { id: string } }) {
           }
         }
 
-        const scenarioRes = await fetch(`/api/scenarios/${params.id}`).catch(() => null)
+        const [scenarioRes, scenarioListRes] = await Promise.all([
+          fetch(`/api/scenarios/${params.id}`).catch(() => null),
+          fetch(`/api/scenarios?limit=1`),
+        ])
         if (scenarioRes?.ok) {
           const sJson = await scenarioRes.json() as { data?: { name?: string } }
           if (sJson.data?.name) setScenarioName(sJson.data.name.toUpperCase())
-        } else if (scenarioApiRes.ok) {
-          const sJson = await scenarioApiRes.json() as { data?: Array<{ id: string; name: string }> }
+        } else if (scenarioListRes.ok) {
+          const sJson = await scenarioListRes.json() as { data?: Array<{ id: string; name: string }> }
           const match = (sJson.data ?? []).find(s => s.id === params.id)
           if (match?.name) setScenarioName(match.name.toUpperCase())
         }
