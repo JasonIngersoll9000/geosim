@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export async function GET(request: Request) {
-  const supabase = await createClient();
   const { searchParams } = new URL(request.url);
 
   const category = searchParams.get("category");
@@ -11,18 +11,13 @@ export async function GET(request: Request) {
   const limit = parseInt(searchParams.get("limit") ?? "20", 10);
   const offset = (page - 1) * limit;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Use service client for reads — bypasses RLS so all scenarios are visible
+  // in the browser regardless of auth state or visibility column values.
+  const supabase = createServiceClient();
 
   let query = supabase
     .from("scenarios")
-    .select("*")
-    .or(
-      user
-        ? `visibility.eq.public,created_by.eq.${user.id}`
-        : "visibility.eq.public"
-    );
+    .select("*");
 
   if (category) query = query.eq("category", category);
   if (visibility) query = query.eq("visibility", visibility);
