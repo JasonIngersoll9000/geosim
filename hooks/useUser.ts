@@ -26,6 +26,8 @@ export function useUser(): UserState {
     }
 
     let cancelled = false
+    let unsubscribe: (() => void) | null = null
+
     import('@/lib/supabase/client').then(({ createClient }) => {
       if (cancelled) return
       const supabase = createClient()
@@ -43,9 +45,14 @@ export function useUser(): UserState {
           setLoading(false)
         }
       })
+
+      unsubscribe = () => subscription.unsubscribe()
     })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      unsubscribe?.()
+    }
   }, [])
 
   return { user, loading }
