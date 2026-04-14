@@ -1,9 +1,63 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { onPlayerDecision } from '@/lib/game/game-loop'
-import type { EventStateEffects } from '@/lib/types/simulation'
+import { getStateAtTurn } from '@/lib/game/state-engine'
+import { detectConstraintCascades } from '@/lib/game/decision-prerequisites'
+import { IRAN_DECISIONS } from '@/lib/game/iran-decisions'
+import type { EventStateEffects, PositionedAsset, BranchStateAtTurn, AssetCategory } from '@/lib/types/simulation'
 
 const encoder = new TextEncoder()
+
+/** Infer a valid AssetCategory from an inventory key name. */
+function inferAssetCategory(assetType: string): AssetCategory {
+  const t = assetType.toLowerCase()
+  if (t.includes('missile') || t.includes('tomahawk') || t.includes('jassm') || t.includes('ballistic')) return 'missile'
+  if (t.includes('carrier') || t.includes('destroyer') || t.includes('submarine') || t.includes('naval')) return 'naval'
+  if (t.includes('aircraft') || t.includes('bomber') || t.includes('f-') || t.includes('b-2') || t.includes('air_wing')) return 'air'
+  if (t.includes('thaad') || t.includes('patriot') || t.includes('interceptor') || t.includes('air_defense')) return 'air_defense'
+  if (t.includes('nuclear') || t.includes('warhead')) return 'nuclear'
+  if (t.includes('cyber') || t.includes('intel') || t.includes('signal')) return 'cyber'
+  if (t.includes('infrastructure') || t.includes('port') || t.includes('refinery')) return 'infrastructure'
+  return 'ground'
+}
+
+/**
+ * Build a minimal PositionedAsset[] from a BranchStateAtTurn so that
+ * detectConstraintCascades can evaluate asset-gated decision prerequisites.
+ *
+ * Each asset_inventory entry becomes a stub asset with:
+ *   - status 'operational' if count > 0, 'destroyed' if exhausted
+ *   - assetType = inventory key, category = 'military' (default)
+ *   - empty capabilities / dummy position
+ */
+function buildAssetsFromState(state: BranchStateAtTurn | null): PositionedAsset[] {
+  if (!state) return []
+  const assets: PositionedAsset[] = []
+  for (const [actorId, actorState] of Object.entries(state.actor_states)) {
+    for (const [assetType, count] of Object.entries(actorState.asset_inventory ?? {})) {
+      const asset: PositionedAsset = {
+        id:            `${actorId}:${assetType}`,
+        scenarioId:    state.scenario_id,
+        actorId,
+        name:          assetType,
+        shortName:     assetType.slice(0, 8),
+        category:      inferAssetCategory(assetType),
+        assetType,
+        description:   '',
+        position:      { lat: 0, lng: 0 },
+        zone:          'default',
+        status:        count > 0 ? 'available' : 'destroyed',
+        capabilities:  [],
+        provenance:    'inferred',
+        effectiveFrom: state.as_of_date,
+        discoveredAt:  state.as_of_date,
+        notes:         '',
+      }
+      assets.push(asset)
+    }
+  }
+  return assets
+}
 
 function sendLine(controller: ReadableStreamDefaultController, text: string, type = 'info') {
   const line = JSON.stringify({ text, type, timestamp: new Date().toISOString().slice(11, 19) })
@@ -92,7 +146,15 @@ export async function POST(
 
         sendLine(controller, 'Applying effects to theater state…', 'info')
 
-        // 4. Call state engine
+        // 4. Snapshot state BEFORE resolution (for constraint cascade comparison)
+        let stateBefore: BranchStateAtTurn | null = null
+        try {
+          stateBefore = await getStateAtTurn(branchId, branch.head_commit_id ?? '')
+        } catch {
+          // Non-fatal — cascade detection will produce no results
+        }
+
+        // 5. Call state engine
         const resolvedEffects: EventStateEffects = {
           actor_score_deltas:     {},
           asset_inventory_deltas: {},
@@ -108,7 +170,24 @@ export async function POST(
           sendLine(controller, `State engine: ${e instanceof Error ? e.message : 'skipped'}`, 'info')
         }
 
-        // 5. Update branch head_commit_id and persist controlled actors
+        // 6. Snapshot state AFTER resolution and compute constraint cascades
+        let stateAfter: BranchStateAtTurn | null = null
+        try {
+          stateAfter = await getStateAtTurn(branchId, newCommit.id)
+        } catch {
+          // Non-fatal — cascade detection will produce no results
+        }
+
+        const assetsBefore = buildAssetsFromState(stateBefore)
+        const assetsAfter  = buildAssetsFromState(stateAfter)
+
+        const cascades = detectConstraintCascades(IRAN_DECISIONS, assetsBefore, assetsAfter)
+
+        if (cascades.length > 0) {
+          sendLine(controller, `${cascades.length} decision(s) newly unlocked by this action`, 'confirmed')
+        }
+
+        // 7. Update branch head_commit_id and persist controlled actors
         const branchUpdate: Record<string, unknown> = { head_commit_id: newCommit.id }
         if (body.controlledActors && body.controlledActors.length > 0) {
           branchUpdate.user_controlled_actors = body.controlledActors
@@ -121,6 +200,22 @@ export async function POST(
         sendLine(controller, 'Threshold evaluation complete.', 'info')
         sendLine(controller, `Turn ${prevTurnNumber} → Turn ${newTurnNumber} (${newSimDate})`, 'confirmed')
         sendLine(controller, 'Awaiting next planning phase.', 'info')
+
+        // Structured resolution summary — consumed by the client to populate EventsTab
+        const resolutionSummary = JSON.stringify({
+          type: 'resolution_summary',
+          turnNumber: newTurnNumber,
+          simulatedDate: newSimDate,
+          turnCommitId: newCommit.id,
+          actorActions: [
+            { actorId: body.controlledActors?.[0] ?? 'player', actionId: body.primaryAction, isPrimary: true },
+            ...body.concurrentActions.map(id => ({ actorId: body.controlledActors?.[0] ?? 'player', actionId: id, isPrimary: false })),
+          ],
+          escalationChanges: [],
+          judgeScore: null,
+          constraintCascades: cascades,
+        })
+        controller.enqueue(encoder.encode(`data: ${resolutionSummary}\n\n`))
 
       } catch (err) {
         sendLine(controller, `ERROR: ${err instanceof Error ? err.message : 'Unknown error'}`, 'critical')

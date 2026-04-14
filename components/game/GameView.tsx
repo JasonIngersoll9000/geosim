@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useRealtime } from '@/hooks/useRealtime'
+import { useUser } from '@/hooks/useUser'
 import { useGame } from '@/components/providers/GameProvider'
 import { useSubmitTurn } from '@/hooks/useSubmitTurn'
 import { GameLayout } from '@/components/layout/GameLayout'
@@ -13,6 +14,8 @@ import { DecisionCatalog } from '@/components/panels/DecisionCatalog'
 import { DecisionDetailPanel } from '@/components/panels/DecisionDetailPanel'
 import { TurnPlanBuilder } from '@/components/panels/TurnPlanBuilder'
 import { ChronicleTimeline } from '@/components/chronicle/ChronicleTimeline'
+import { EventsTab } from '@/components/panels/EventsTab'
+import type { TurnResolutionData } from '@/components/panels/EventsTab'
 import { ActorControlSelector } from '@/components/game/ActorControlSelector'
 import { DispatchTerminal } from '@/components/game/DispatchTerminal'
 import { ObserverOverlay } from '@/components/panels/ObserverOverlay'
@@ -21,7 +24,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar'
 import type { DispatchLine } from '@/components/game/DispatchTerminal'
 import type { ActorSummary, ActorDetail, DecisionDetail, ActionSlot } from '@/lib/types/panels'
 import type { GameInitialData, ChronicleEntry } from '@/lib/types/game-init'
-import { getRelationshipStance, isAdversaryActor, hasLimitedIntel } from '@/lib/game/actor-meta'
+import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel } from '@/lib/game/actor-meta'
 import { inferIntelConfidence, applyFogOfWarToActorDetail, parseIntelProfile, applyScoreNoise } from '@/lib/game/fow-panel'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -192,23 +195,34 @@ function buildActorMetrics(
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function GameView({ branchId, scenarioId, initialData }: Props) {
-  useRealtime(branchId)
   const { state, dispatch } = useGame()
-  const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, reset: resetHook } = useSubmitTurn(scenarioId, branchId)
+  const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, resolutionSummary, reset: resetHook } = useSubmitTurn(scenarioId, branchId)
   const shouldSkip = useReducedMotion()
   const router = useRouter()
+  const { user } = useUser()
 
   const actorMetrics = buildActorMetrics(initialData.actorDetails)
+
+  // Live global indicators derived from state snapshot
+  const oilPriceUsd = initialData.currentState?.global_state?.oil_price_usd ?? null
+  const maxEscalationRung = Object.values(initialData.actorDetails).reduce<number>((max, d) => {
+    const rung = (d as { escalationRung?: number }).escalationRung ?? 0
+    return rung > max ? rung : max
+  }, 0)
 
   const [controlledActors, setControlledActors]             = useState<string[] | null>(null)
   const [forkingBranch, setForkingBranch]                   = useState(false)
   const [activeTab, setActiveTab]                           = useState<PanelTab>('actors')
   const [showObserver, setShowObserver]                     = useState(true)
+  const [omniscientMode, setOmniscientMode]                 = useState(false)
   const [selectedDecisionDetail, setSelectedDecisionDetail] = useState<DecisionDetail | null>(null)
   const [decisionPanelOpen, setDecisionPanelOpen]           = useState(false)
   const [primaryAction, setPrimaryAction]                   = useState<ActionSlot | null>(null)
   const [concurrentActions, setConcurrentActions]           = useState<ActionSlot[]>([])
   const [chronicleEntries, setChronicleEntries]             = useState<ChronicleEntry[]>(initialData.chronicle)
+  const [lastTurnResolution, setLastTurnResolution]         = useState<TurnResolutionData | null>(null)
+  const [cascadeAlerts, setCascadeAlerts]                   = useState<Array<{ decisionId: string; decisionTitle: string }>>([])
+  const [showCascadeAlerts, setShowCascadeAlerts]           = useState(false)
   const [turnNumber, setTurnNumber]                         = useState(initialData.branch.turnNumber)
   const [turnCommitId, setTurnCommitId]                     = useState<string | null>(initialData.branch.headCommitId)
   const [dispatchLines, setDispatchLines]                   = useState<DispatchLine[]>([{
@@ -216,6 +230,40 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     text: `BRANCH: ${initialData.branch.name} // TURN ${String(initialData.branch.turnNumber).padStart(2, '0')} // PHASE: ${initialData.branch.isTrunk ? 'observer' : 'planning'}`,
     type: 'info',
   }])
+
+  // ── Realtime: observer live-updates ─────────────────────────────────────────
+  // In observer mode (no controlled actors), refresh server data when a new
+  // turn_commits INSERT fires so chronicle + actor state update without reload.
+  const isObserverMode = controlledActors === null || controlledActors.length === 0
+  const { status: realtimeStatus } = useRealtime(branchId, {
+    onTurnCommit: isObserverMode
+      ? (payload) => {
+          // Directly update client state from the realtime payload so new
+          // chronicle entries appear immediately without waiting for a
+          // full page re-render (router.refresh updates server components
+          // but doesn't reset initialized client state).
+          const newEntry: ChronicleEntry = {
+            turnNumber: payload.turn_number,
+            date:       payload.simulated_date ?? new Date().toISOString().slice(0, 10),
+            title:      payload.chronicle_headline ?? `Turn ${payload.turn_number}`,
+            narrative:  payload.chronicle_entry ?? payload.narrative_entry ?? 'Turn resolved.',
+            detail:     payload.chronicle_entry && payload.narrative_entry
+              ? payload.narrative_entry
+              : undefined,
+            severity: 'major',
+            tags: [],
+          }
+          setChronicleEntries(prev => {
+            // Avoid duplicate entries if the commit was already appended locally
+            const exists = prev.some(e => e.turnNumber === payload.turn_number)
+            return exists ? prev : [...prev, newEntry]
+          })
+          setTurnNumber(payload.turn_number)
+          // Also refresh server components (actor scores, branch state, etc.)
+          router.refresh()
+        }
+      : undefined,
+  })
 
   // Viewer identity — derived from controlledActors so both the actor list and
   // dossier slide-over use the same perspective. Null before the user chooses a
@@ -236,28 +284,83 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   // Show terminal mode during resolution, completion, or on a non-fallback error
   const showTerminal = isSubmitting || isComplete || !!error
 
-  // Auto-append chronicle entry and switch to CHRONICLE tab when turn completes
+  // Auto-append chronicle entry and build EventsTab data when turn completes
   useEffect(() => {
     if (!isComplete) return
     dispatch({ type: 'SET_TURN_PHASE', payload: 'complete' })
 
-    // Chronicle append — capture action titles before reset
-    const nextTurn = turnNumber + 1
-    const actionTitles = [primaryAction, ...concurrentActions]
-      .filter(Boolean).map(a => a!.title)
+    const allSubmittedActions = primaryAction ? [primaryAction, ...concurrentActions] : [...concurrentActions]
+    const actionTitles = allSubmittedActions.map(a => a.title)
+    const actorId = controlledActors?.[0] ?? 'us'
+    const actorDetail = initialData.actorDetails[actorId]
+
+    // Build events list from server resolution summary if available, else from submitted plan
+    const actorActions = resolutionSummary?.actorActions ?? allSubmittedActions.map(slot => ({
+      actorId,
+      actionId: slot.id,
+      isPrimary: slot.id === primaryAction?.id,
+    }))
+
+    const events = actorActions.map(a => {
+      const decision = initialData.decisions.find(d => d.id === a.actionId) ?? initialData.decisions.find(d => d.title === a.actionId)
+      return {
+        actorId: a.actorId,
+        actorName: initialData.actorDetails[a.actorId]?.name ?? actorDetail?.name ?? a.actorId,
+        actorColor: getActorColor(a.actorId),
+        actionTitle: decision?.title ?? a.actionId,
+        dimension: decision?.dimension ?? 'unknown',
+      }
+    })
+
+    const resolvedTurnNumber = resolutionSummary?.turnNumber ?? turnNumber + 1
+    const rawSimDate = resolutionSummary?.simulatedDate ?? null
+    const simulatedDate = rawSimDate
+      ? (() => {
+          const d = new Date(rawSimDate)
+          return isNaN(d.getTime()) ? rawSimDate : d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+        })()
+      : new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+
+    const headline = primaryAction
+      ? `Turn ${resolvedTurnNumber} — ${primaryAction.title}`
+      : `Turn ${resolvedTurnNumber} Complete`
+
+    const escalationChanges = (resolutionSummary?.escalationChanges ?? []).map(ec => ({
+      actorId: ec.actorId,
+      actorName: initialData.actorDetails[ec.actorId]?.name ?? ec.actorId,
+      previousRung: ec.previousRung,
+      newRung: ec.newRung,
+      rationale: ec.rationale,
+    }))
+
+    setLastTurnResolution({
+      turnNumber: resolvedTurnNumber,
+      simulatedDate,
+      chronicleHeadline: headline,
+      narrativeSummary: `Resolution complete. Actions executed: ${actionTitles.join(', ')}.`,
+      judgeScore: resolutionSummary?.judgeScore ?? 0,
+      events,
+      escalationChanges,
+    })
+
+    // Surface newly-unlocked decisions from constraint cascade detection
+    const cascades = resolutionSummary?.constraintCascades ?? []
+    if (cascades.length > 0) {
+      setCascadeAlerts(cascades.map(c => ({ decisionId: c.decisionId, decisionTitle: c.decisionTitle })))
+      setShowCascadeAlerts(true)
+    }
+
     const newEntry: ChronicleEntry = {
-      turnNumber: nextTurn,
-      date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }),
-      title: primaryAction
-        ? `Turn ${nextTurn} — ${primaryAction.title}`
-        : `Turn ${nextTurn} Complete`,
-      narrative: `Resolution complete. Actions executed: ${actionTitles.join(', ')}. Judged at 86/100.`,
+      turnNumber: resolvedTurnNumber,
+      date: simulatedDate,
+      title: headline,
+      narrative: `Resolution complete. Actions executed: ${actionTitles.join(', ')}.`,
       severity: 'major',
       tags: primaryAction ? [primaryAction.dimension.charAt(0).toUpperCase() + primaryAction.dimension.slice(1)] : [],
     }
     setChronicleEntries(prev => [...prev, newEntry])
 
-    // Reset TurnPlanBuilder immediately on completion (not deferred to button click)
+    // Reset TurnPlanBuilder immediately on completion
     setPrimaryAction(null)
     setConcurrentActions([])
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -403,15 +506,45 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   const panelContent = (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
       {/* Global indicators bar */}
-      <div className="flex items-center gap-4 px-4 py-2 bg-bg-surface-dim border-b border-border-subtle font-mono text-2xs shrink-0">
-        <span className="text-text-tertiary">OIL: <span className="text-status-critical">$142/bbl</span></span>
-        <span className="text-text-tertiary">
+      <div className="flex items-center gap-4 px-4 py-2 bg-bg-surface-dim border-b border-border-subtle font-mono text-2xs shrink-0 overflow-x-auto">
+        <span className="text-text-tertiary shrink-0">OIL: <span className="text-status-critical">{oilPriceUsd !== null ? `$${oilPriceUsd}/bbl` : '—'}</span></span>
+        <span className="text-text-tertiary shrink-0">
           TURN: <span className="text-text-secondary">{String(turnNumber).padStart(2, '0')} / 12</span>
         </span>
-        <span className="text-text-tertiary">
+        <span className="text-text-tertiary shrink-0">
           PHASE: <TurnPhaseIndicator phase={state.turnPhase || 'planning'} />
         </span>
-        <span className="text-text-tertiary">ESCALATION: <span className="text-status-critical">RUNG 6</span></span>
+        <span className="text-text-tertiary shrink-0">ESCALATION: <span className="text-status-critical">{maxEscalationRung > 0 ? `RUNG ${maxEscalationRung}` : '—'}</span></span>
+        {/* User actor assignment — shows when user has chosen an actor to control */}
+        {componentViewerActorId && (
+          <span className="text-text-tertiary shrink-0 ml-auto">
+            PLAYING:{' '}
+            <span className="text-gold">
+              {initialData.actors.find(a => a.id === componentViewerActorId)?.shortName ?? componentViewerActorId.toUpperCase()}
+            </span>
+            {user?.email && (
+              <span className="text-text-tertiary ml-1">
+                [{user.email.split('@')[0]?.toUpperCase()}]
+              </span>
+            )}
+          </span>
+        )}
+        {/* Realtime connection status — visible in observer mode */}
+        {isObserverMode && (
+          <span className={`shrink-0 font-mono text-[8px] uppercase tracking-[0.08em] ${
+            componentViewerActorId ? '' : 'ml-auto'
+          } ${
+            realtimeStatus === 'connected'    ? 'text-status-stable'   :
+            realtimeStatus === 'error'        ? 'text-status-critical' :
+            realtimeStatus === 'disconnected' ? 'text-text-tertiary'   :
+            'text-text-tertiary animate-pulse'
+          }`}>
+            {realtimeStatus === 'connected'    ? '● LIVE'         :
+             realtimeStatus === 'error'        ? '● RT ERROR'     :
+             realtimeStatus === 'disconnected' ? '○ OFFLINE'      :
+             '○ CONNECTING'}
+          </span>
+        )}
       </div>
 
       {/* ── Terminal mode: full panel DispatchTerminal during resolution ── */}
@@ -434,21 +567,47 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             <DispatchTerminal lines={hookLines} isRunning={isSubmitting} />
           </div>
 
-          {/* Footer: completion return button or error dismiss */}
+          {/* Footer: constraint cascade alerts + completion return button or error dismiss */}
           {!isSubmitting && (isComplete || !!error) && (
-            <div className="shrink-0 p-4 border-t border-border-subtle bg-bg-surface-dim">
-              {error && !isComplete && (
-                <div className="font-mono text-2xs text-status-critical mb-3">{error}</div>
+            <div className="shrink-0 border-t border-border-subtle bg-bg-surface-dim">
+              {/* Constraint cascade alert banner */}
+              {isComplete && showCascadeAlerts && cascadeAlerts.length > 0 && (
+                <div className="px-4 py-3 border-b border-[#2a3a1f] bg-[#0f1a0a]">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-[#6ab04c]">
+                      ● {cascadeAlerts.length} DECISION{cascadeAlerts.length > 1 ? 'S' : ''} NEWLY UNLOCKED
+                    </span>
+                    <button
+                      onClick={() => setShowCascadeAlerts(false)}
+                      className="font-mono text-[9px] text-text-tertiary hover:text-text-secondary"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <ul className="space-y-0.5">
+                    {cascadeAlerts.map(c => (
+                      <li key={c.decisionId} className="font-mono text-[10px] text-[#9fd36e] flex items-center gap-1.5">
+                        <span className="text-[#6ab04c]">→</span>
+                        {c.decisionTitle}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
-              <button
-                onClick={handleReturnToPlanning}
-                className="w-full py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.1em] border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors"
-              >
-                {isComplete
-                  ? `RETURN TO PLANNING // TURN ${turnNumber + 1} →`
-                  : 'DISMISS ERROR — RETURN TO PLANNING →'
-                }
-              </button>
+              <div className="p-4">
+                {error && !isComplete && (
+                  <div className="font-mono text-2xs text-status-critical mb-3">{error}</div>
+                )}
+                <button
+                  onClick={handleReturnToPlanning}
+                  className="w-full py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.1em] border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors"
+                >
+                  {isComplete
+                    ? `RETURN TO PLANNING // TURN ${turnNumber + 1} →`
+                    : 'DISMISS ERROR — RETURN TO PLANNING →'
+                  }
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -463,7 +622,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             transition={{ duration: 0.4, ease: 'easeOut' }}
           >
             {PANEL_TABS
-              .filter(({ id }) => !(isGtMode && id === 'decisions'))
+              .filter(({ id }) => !(isGtMode && id === 'decisions') && !(omniscientMode && id === 'decisions'))
               .map(({ id, label }) => (
               <button
                 key={id}
@@ -490,7 +649,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
                 onSelect={(id) => dispatch({ type: 'SELECT_ACTOR', payload: id })}
               />
             )}
-            {activeTab === 'decisions' && !isGtMode && (
+            {activeTab === 'decisions' && !isGtMode && !omniscientMode && (
               <DecisionCatalog
                 decisions={initialData.decisions}
                 onSelect={handleDecisionSelect}
@@ -499,15 +658,15 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
               />
             )}
             {activeTab === 'events' && (
-              <ChronicleTimeline entries={chronicleEntries} />
+              <EventsTab resolution={lastTurnResolution} />
             )}
             {activeTab === 'chronicle' && (
               <ChronicleTimeline entries={chronicleEntries} />
             )}
           </div>
 
-          {/* Turn plan builder — fixed at bottom when on decisions tab (not in GT mode) */}
-          {activeTab === 'decisions' && !isGtMode && (
+          {/* Turn plan builder — fixed at bottom when on decisions tab (not in GT mode, not in omniscient) */}
+          {activeTab === 'decisions' && !isGtMode && !omniscientMode && (
             <div className="shrink-0">
               <TurnPlanBuilder
                 primaryAction={primaryAction}
@@ -585,14 +744,24 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
         const limitedIntel    = hasLimitedIntel(selectedActorDetail.id, viewerActorId)
         const intelConfidence = inferIntelConfidence(viewerIntelProfile, stance)
 
-        const fowActor = applyFogOfWarToActorDetail({
-          ...selectedActorDetail,
-          viewerActorId,
-          relationshipStance: stance,
-          isAdversary:     isAdv,
-          hasLimitedIntel: limitedIntel,
-          intelConfidence,
-        })
+        // Omniscient mode: bypass fog-of-war entirely — show all intel as confirmed
+        const fowActor = omniscientMode
+          ? applyFogOfWarToActorDetail({
+              ...selectedActorDetail,
+              viewerActorId: selectedActorDetail.id, // view as self = full intel
+              relationshipStance: 'ally' as const,
+              isAdversary:     false,
+              hasLimitedIntel: false,
+              intelConfidence: 'high' as const,
+            })
+          : applyFogOfWarToActorDetail({
+              ...selectedActorDetail,
+              viewerActorId,
+              relationshipStance: stance,
+              isAdversary:     isAdv,
+              hasLimitedIntel: limitedIntel,
+              intelConfidence,
+            })
 
         return (
           <ActorDetailPanel
@@ -621,6 +790,15 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
       <ObserverOverlay
         isVisible={showObserver}
         onDismiss={() => setShowObserver(false)}
+        actors={initialData.actors}
+        perspectiveActorId={componentViewerActorId}
+        omniscientMode={omniscientMode}
+        onChangePerspective={(actorId) => {
+          // Switching perspective changes the *viewer* but never nullifies controlledActors
+          // (null = actor not yet chosen; we never revert to the actor-picker from inside a session)
+          if (actorId) setControlledActors([actorId])
+        }}
+        onToggleOmniscient={() => setOmniscientMode(prev => !prev)}
       />
     </>
   )

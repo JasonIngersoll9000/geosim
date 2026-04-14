@@ -53,14 +53,14 @@ export function TurnEntry({ entry }: { entry: EntryData }) {
         <div className="mt-2 border border-border-subtle">
           <button
             onClick={() => setExpanded(e => !e)}
-            className="w-full flex justify-between items-center px-3 py-2 font-mono text-[11px] transition-colors text-status-info"
+            className="w-full flex justify-between items-center px-3 py-2 font-mono text-[10px] uppercase tracking-[0.08em] transition-colors text-status-info hover:bg-bg-surface"
             aria-expanded={expanded}
           >
-            <span>Detail</span>
-            <span>{expanded ? '▲' : '▼'}</span>
+            <span>Full Briefing</span>
+            <span className="text-[8px]">{expanded ? '▲ COLLAPSE' : '▼ EXPAND'}</span>
           </button>
           <div className={`chronicle-detail${expanded ? ' open' : ''}`}>
-            <div className="px-3 pb-3 font-mono text-[11px] text-text-secondary bg-bg-surface">
+            <div className="px-3 pb-3 font-serif text-[12px] italic leading-relaxed text-text-secondary bg-bg-surface border-t border-border-subtle">
               {entry.detail}
             </div>
           </div>

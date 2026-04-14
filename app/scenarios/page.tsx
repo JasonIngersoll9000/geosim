@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
@@ -242,9 +243,17 @@ export default function ScenarioBrowserPage() {
             initial={shouldSkip ? 'visible' : 'hidden'}
             animate="visible"
           >
-            <h1 className="font-label font-bold text-xl text-text-primary uppercase tracking-[0.04em]">
-              Scenario Library
-            </h1>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <h1 className="font-label font-bold text-xl text-text-primary uppercase tracking-[0.04em]">
+                Scenario Library
+              </h1>
+              <Link
+                href="/scenarios/new"
+                className="inline-flex items-center gap-2 px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] bg-gold text-bg-base hover:bg-[#e5a600] transition-colors"
+              >
+                + Create Scenario
+              </Link>
+            </div>
             <p className="font-sans text-base text-text-secondary mt-2 max-w-2xl leading-[1.6]">
               Select a scenario to observe AI vs AI play or take direct control of a strategic actor.
               All scenarios are modeled with actor-neutral rigor.

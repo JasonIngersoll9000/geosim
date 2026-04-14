@@ -12,12 +12,39 @@ import type { ActorSummary, ActorDetail } from '@/lib/types/panels'
 import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel, getEscalationRungName } from '@/lib/game/actor-meta'
 import { parseIntelProfile, inferIntelConfidence, extractKnownUnknowns } from '@/lib/game/fow-panel'
 import { parseDbEscalationLadder, buildRungSummaries } from '@/lib/game/escalation-from-db'
+import { getIranSeedSnapshot } from '@/lib/game/dev-snapshot'
 
 interface Props {
   params: { id: string; branchId: string }
 }
 
 export default async function PlayPage({ params }: Props) {
+  // ── Dev mode fast path ────────────────────────────────────────────────────
+  // When NEXT_PUBLIC_DEV_MODE=true the full Iran seed snapshot is loaded from
+  // local data files so the UI can be tested without any Supabase connection.
+  if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+    const devData = getIranSeedSnapshot()
+    return (
+      <GameProvider initialData={devData}>
+        <ClassificationBanner classification={`TOP SECRET // NOFORN // DEV MODE`} />
+        <TopBar
+          scenarioName={devData.scenario.name}
+          scenarioHref={`/scenarios/${params.id}`}
+          turnNumber={devData.branch.turnNumber}
+          totalTurns={devData.groundTruthCommits.length}
+          phase="Observer"
+        />
+        <main className="h-screen pt-[66px] overflow-hidden">
+          <GameView
+            branchId={params.branchId}
+            scenarioId={params.id}
+            initialData={devData}
+          />
+        </main>
+      </GameProvider>
+    )
+  }
+
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return (
       <div className="h-screen flex items-center justify-center bg-[#050A12]">
@@ -214,17 +241,23 @@ export default async function PlayPage({ params }: Props) {
     }
   }
 
-  const chronicle: ChronicleEntry[] = (commits ?? []).map(c => ({
-    turnNumber: c.turn_number,
-    date: c.simulated_date,
-    title: c.chronicle_headline ?? `Turn ${c.turn_number}`,
-    narrative: c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.',
-    dateLabel: c.chronicle_date_label ?? undefined,
-    contextSummary: c.context_summary ?? undefined,
-    isDecisionPoint: c.is_decision_point ?? false,
-    severity: 'major' as const,
-    tags: [],
-  }))
+  const chronicle: ChronicleEntry[] = (commits ?? []).map(c => {
+    // Use chronicle_entry as the short narrative; narrative_entry as the expandable detail.
+    // If only narrative_entry exists, it becomes the main narrative (no separate detail).
+    const hasShortAndLong = !!(c.chronicle_entry && c.narrative_entry)
+    return {
+      turnNumber: c.turn_number,
+      date: c.simulated_date,
+      title: c.chronicle_headline ?? `Turn ${c.turn_number}`,
+      narrative: c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.',
+      detail: hasShortAndLong ? c.narrative_entry ?? undefined : undefined,
+      dateLabel: c.chronicle_date_label ?? undefined,
+      contextSummary: c.context_summary ?? undefined,
+      isDecisionPoint: c.is_decision_point ?? false,
+      severity: 'major' as const,
+      tags: [],
+    }
+  })
 
   const gtCommits: GroundTruthCommit[] = (groundTruthCommits ?? []).map(c => ({
     id: c.id,

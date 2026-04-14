@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useContext, useReducer, ReactNode } from "react";
+import { createContext, useContext, useReducer, useEffect, ReactNode } from "react";
 import type { Scenario } from "@/lib/types/simulation";
+import type { GameInitialData } from "@/lib/types/game-init";
 
 interface GameState {
   scenarioId: string | null;
@@ -25,6 +26,11 @@ interface GameState {
 
   isResolutionRunning: boolean;
   resolutionProgress: string;
+
+  /** True when running from local seed data without Supabase (NEXT_PUBLIC_DEV_MODE=true) */
+  devMode: boolean;
+  /** Populated in dev mode — the full seed snapshot passed from the server page */
+  devInitialData: GameInitialData | null;
 }
 
 type GameAction =
@@ -50,7 +56,8 @@ type GameAction =
   | { type: "SET_RESOLUTION_RUNNING"; payload: boolean }
   | { type: "SET_RESOLUTION_PROGRESS"; payload: string }
   | { type: "LOAD_SCENARIO"; payload: Scenario }
-  | { type: "RESET_TURN" };
+  | { type: "RESET_TURN" }
+  | { type: "DEV_INIT"; payload: GameInitialData };
 
 const initialState: GameState = {
   scenarioId: null,
@@ -74,6 +81,9 @@ const initialState: GameState = {
 
   isResolutionRunning: false,
   resolutionProgress: "",
+
+  devMode: process.env.NEXT_PUBLIC_DEV_MODE === "true",
+  devInitialData: null,
 };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -137,6 +147,17 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         resolutionProgress: "",
       };
 
+    case "DEV_INIT":
+      return {
+        ...state,
+        devMode: true,
+        devInitialData: action.payload,
+        scenarioId: action.payload.scenario.id,
+        branchId: action.payload.branch.id,
+        turnNumber: action.payload.branch.turnNumber,
+        turnPhase: "planning",
+      };
+
     default:
       return state;
   }
@@ -147,8 +168,23 @@ const GameContext = createContext<{
   dispatch: React.Dispatch<GameAction>;
 } | null>(null);
 
-export function GameProvider({ children }: { children: ReactNode }) {
+interface GameProviderProps {
+  children: ReactNode;
+  /** When provided (dev mode), GameProvider dispatches DEV_INIT on mount so all
+   *  game hooks read coherent seed state without any Supabase connection. */
+  initialData?: GameInitialData;
+}
+
+export function GameProvider({ children, initialData }: GameProviderProps) {
   const [state, dispatch] = useReducer(gameReducer, initialState);
+
+  useEffect(() => {
+    if (initialData) {
+      dispatch({ type: "DEV_INIT", payload: initialData });
+    }
+    // Only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <GameContext.Provider value={{ state, dispatch }}>

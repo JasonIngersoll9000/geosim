@@ -5,11 +5,29 @@ import type { ActionSlot } from '@/lib/types/panels'
 
 // Mock fallback only in development — production surfaces real API errors
 const DEV_MOCK_ENABLED = process.env.NODE_ENV === 'development'
+const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
 
 interface TurnPlan {
   primaryAction: ActionSlot
   concurrentActions: ActionSlot[]
   controlledActors?: string[]
+}
+
+export interface TurnResolutionSummary {
+  turnNumber: number
+  simulatedDate: string
+  turnCommitId: string
+  actorActions: Array<{ actorId: string; actionId: string; isPrimary: boolean }>
+  escalationChanges: Array<{ actorId: string; previousRung: number; newRung: number; rationale: string }>
+  judgeScore: number | null
+  /** Decisions that flipped from blocked → available during this turn's resolution */
+  constraintCascades?: Array<{
+    decisionId: string
+    decisionTitle: string
+    previouslyBlocked: boolean
+    nowAvailable: boolean
+    previousBlockReasons: string[]
+  }>
 }
 
 interface UseSubmitTurnResult {
@@ -18,6 +36,7 @@ interface UseSubmitTurnResult {
   isComplete: boolean
   error: string | null
   lines: DispatchLine[]
+  resolutionSummary: TurnResolutionSummary | null
   reset: () => void
 }
 
@@ -49,7 +68,7 @@ function makeMockLines(plan: TurnPlan): Array<{ text: string; type: DispatchLine
 
 // ─── SSE / text stream parser ─────────────────────────────────────────────────
 
-function parseStreamLine(raw: string): { text: string; type: DispatchLine['type'] } | null {
+function parseStreamLine(raw: string): { text: string; type: DispatchLine['type']; resolution?: TurnResolutionSummary } | null {
   const trimmed = raw.trim()
   if (!trimmed || trimmed === ':') return null  // SSE comment / keepalive
 
@@ -57,7 +76,11 @@ function parseStreamLine(raw: string): { text: string; type: DispatchLine['type'
   const dataPrefix = 'data: '
   if (trimmed.startsWith(dataPrefix)) {
     try {
-      const payload = JSON.parse(trimmed.slice(dataPrefix.length))
+      const payload = JSON.parse(trimmed.slice(dataPrefix.length)) as Record<string, unknown>
+      // Structured resolution summary — not a display line
+      if (payload.type === 'resolution_summary') {
+        return { text: '', type: 'default', resolution: payload as unknown as TurnResolutionSummary }
+      }
       return {
         text: String(payload.text ?? payload.content ?? payload.message ?? ''),
         type: (payload.type as DispatchLine['type']) ?? 'default',
@@ -81,10 +104,11 @@ function nowStamp(): string {
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useSubmitTurn(scenarioId: string, branchId: string): UseSubmitTurnResult {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isComplete, setIsComplete]     = useState(false)
-  const [error, setError]               = useState<string | null>(null)
-  const [lines, setLines]               = useState<DispatchLine[]>([])
+  const [isSubmitting, setIsSubmitting]           = useState(false)
+  const [isComplete, setIsComplete]               = useState(false)
+  const [error, setError]                         = useState<string | null>(null)
+  const [lines, setLines]                         = useState<DispatchLine[]>([])
+  const [resolutionSummary, setResolutionSummary] = useState<TurnResolutionSummary | null>(null)
 
   const appendLine = useCallback((line: DispatchLine) => {
     setLines(prev => [...prev, line])
@@ -110,6 +134,15 @@ export function useSubmitTurn(scenarioId: string, branchId: string): UseSubmitTu
       text: 'INITIALIZING TURN SUBMISSION…',
       type: 'info',
     }])
+
+    // In dev mode, skip the real API entirely and run the mock stream
+    if (DEV_MODE) {
+      appendLine({ timestamp: nowStamp(), text: 'DEV MODE — simulating turn resolution locally', type: 'info' })
+      await runMockStream(plan)
+      setIsComplete(true)
+      setIsSubmitting(false)
+      return
+    }
 
     try {
       const res = await fetch(`/api/scenarios/${scenarioId}/branches/${branchId}/advance`, {
@@ -158,7 +191,9 @@ export function useSubmitTurn(scenarioId: string, branchId: string): UseSubmitTu
 
         for (const part of parts) {
           const parsed = parseStreamLine(part)
-          if (parsed?.text) {
+          if (parsed?.resolution) {
+            setResolutionSummary(parsed.resolution)
+          } else if (parsed?.text) {
             // 40ms stagger between streamed lines
             await new Promise(res => setTimeout(res, 40))
             appendLine({ timestamp: nowStamp(), text: parsed.text, type: parsed.type })
@@ -169,7 +204,8 @@ export function useSubmitTurn(scenarioId: string, branchId: string): UseSubmitTu
       // Flush any remaining buffer
       if (buffer.trim()) {
         const parsed = parseStreamLine(buffer)
-        if (parsed?.text) appendLine({ timestamp: nowStamp(), text: parsed.text, type: parsed.type })
+        if (parsed?.resolution) setResolutionSummary(parsed.resolution)
+        else if (parsed?.text) appendLine({ timestamp: nowStamp(), text: parsed.text, type: parsed.type })
       }
 
       setIsComplete(true)
@@ -195,7 +231,8 @@ export function useSubmitTurn(scenarioId: string, branchId: string): UseSubmitTu
     setIsComplete(false)
     setError(null)
     setLines([])
+    setResolutionSummary(null)
   }, [])
 
-  return { submitTurn, isSubmitting, isComplete, error, lines, reset }
+  return { submitTurn, isSubmitting, isComplete, error, lines, resolutionSummary, reset }
 }
