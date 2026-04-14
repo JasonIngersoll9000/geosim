@@ -10,6 +10,7 @@ import type { GameInitialData } from '@/lib/types/game-init'
 import type { ActorSummary, ActorDetail, DecisionOption, DecisionDetail, EscalationRungSummary } from '@/lib/types/panels'
 import type { BranchStateAtTurn, LiveActorState } from '@/lib/types/simulation'
 import { IRAN_DECISIONS, IRAN_DECISION_DETAILS } from '@/lib/game/iran-decisions'
+import { DEV_TRUNK_COMMITS } from '@/lib/game/dev-branches'
 
 import actorProfilesRaw from '@/data/actor-profiles.json'
 import iranStateSnapshotsRaw from '@/data/iran-state-snapshots.json'
@@ -53,7 +54,7 @@ interface RawTimelineEvent {
   timestamp?: string
   title?: string
   description?: string
-  full_description?: string
+  source_excerpt?: string
   actors_involved?: string[]
 }
 
@@ -257,16 +258,24 @@ function formatDate(dateStr?: string): string {
 function buildChronicle() {
   const events = (iranTimelineRaw as { events: RawTimelineEvent[] }).events ?? []
   const recent = [...events].reverse().slice(0, 30)
-  return recent.map((evt, i) => ({
-    turnNumber:  i + 1,
-    date:        evt.timestamp ?? '2026-01-01',
-    title:       evt.title ?? 'Unknown Event',
-    narrative:   evt.description ?? '',
-    severity:    guessSeverity(evt.title ?? ''),
-    tags:        (evt.actors_involved ?? []).slice(0, 3),
-    detail:      evt.full_description ?? evt.description ?? '',
-    dateLabel:   formatDate(evt.timestamp),
-  }))
+  return recent.map((evt, i) => {
+    const narrative = evt.description ?? ''
+    // source_excerpt provides additional sourcing context distinct from the summary;
+    // only expose it as a "Full Briefing" if it actually differs from the narrative.
+    const excerptDetail = evt.source_excerpt && evt.source_excerpt.trim() !== narrative.trim()
+      ? evt.source_excerpt
+      : undefined
+    return {
+      turnNumber:  i + 1,
+      date:        evt.timestamp ?? '2026-01-01',
+      title:       evt.title ?? 'Unknown Event',
+      narrative,
+      severity:    guessSeverity(evt.title ?? ''),
+      tags:        (evt.actors_involved ?? []).slice(0, 3),
+      detail:      excerptDetail,
+      dateLabel:   formatDate(evt.timestamp),
+    }
+  })
 }
 
 // ─── Main export ─────────────────────────────────────────────────────────────
@@ -303,14 +312,13 @@ export function getIranSeedSnapshot(): GameInitialData {
     decisionDetails,
     chronicle,
     groundTruthBranchId: 'dev-trunk',
-    groundTruthCommits: [
-      {
-        id:             'dev-commit-0',
-        turnNumber:     1,
-        simulatedDate:  '2026-03-22',
-        narrativeEntry: 'Simulation initialized from ground-truth data as of March 22, 2026.',
-      },
-    ],
+    // Use the real 12-turn commit list so the turn counter (XX / 12) is correct.
+    groundTruthCommits: DEV_TRUNK_COMMITS.map(c => ({
+      id:             c.id,
+      turnNumber:     c.turn_number,
+      simulatedDate:  c.simulated_date,
+      narrativeEntry: c.chronicle_headline ?? null,
+    })),
     currentState,
   }
 }

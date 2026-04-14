@@ -24,21 +24,49 @@ export default async function PlayPage({ params }: Props) {
   // local data files so the UI can be tested without any Supabase connection.
   if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
     const devData = getIranSeedSnapshot()
+
+    // A forked branch in dev mode has an ID like "dev-branch-t5-1234567890".
+    // Detect this to set isTrunk=false so the DECISIONS tab and TurnPlanBuilder
+    // are accessible (they are hidden in Ground Truth / observer mode).
+    const isDevFork = params.branchId.startsWith('dev-branch-')
+    const forkTurnMatch = isDevFork ? params.branchId.match(/dev-branch-t(\d+)-/) : null
+    const forkTurn = forkTurnMatch ? parseInt(forkTurnMatch[1], 10) : devData.branch.turnNumber
+
+    // For a dev fork, filter chronicle to only include entries up to the fork point
+    // so the simulation starts from the correct history.
+    const devChronicle = isDevFork
+      ? devData.chronicle.filter(e => e.turnNumber <= forkTurn)
+      : devData.chronicle
+
+    const devDataForBranch = isDevFork
+      ? {
+          ...devData,
+          branch: {
+            id:           params.branchId,
+            name:         `Player Branch (T${forkTurn})`,
+            isTrunk:      false,
+            headCommitId: `dev-commit-${forkTurn}`,
+            turnNumber:   forkTurn,
+          },
+          chronicle: devChronicle,
+        }
+      : devData
+
     return (
-      <GameProvider initialData={devData}>
-        <ClassificationBanner classification={`TOP SECRET // NOFORN // DEV MODE`} />
+      <GameProvider initialData={devDataForBranch}>
+        <ClassificationBanner classification="TOP SECRET // NOFORN // DEV MODE" />
         <TopBar
-          scenarioName={devData.scenario.name}
+          scenarioName={devDataForBranch.scenario.name}
           scenarioHref={`/scenarios/${params.id}`}
-          turnNumber={devData.branch.turnNumber}
+          turnNumber={devDataForBranch.branch.turnNumber}
           totalTurns={devData.groundTruthCommits.length}
-          phase="Observer"
+          phase={isDevFork ? 'Planning' : 'Observer'}
         />
         <main className="h-screen pt-[66px] overflow-hidden">
           <GameView
             branchId={params.branchId}
             scenarioId={params.id}
-            initialData={devData}
+            initialData={devDataForBranch}
           />
         </main>
       </GameProvider>
@@ -242,15 +270,21 @@ export default async function PlayPage({ params }: Props) {
   }
 
   const chronicle: ChronicleEntry[] = (commits ?? []).map(c => {
-    // Use chronicle_entry as the short narrative; narrative_entry as the expandable detail.
-    // If only narrative_entry exists, it becomes the main narrative (no separate detail).
-    const hasShortAndLong = !!(c.chronicle_entry && c.narrative_entry)
+    // chronicle_entry = short summary shown above the fold.
+    // narrative_entry = extended full briefing shown when user expands.
+    // Only expose a distinct "Full Briefing" when narrative_entry is non-empty
+    // AND actually different from chronicle_entry (prevents duplicate text).
+    const shortNarrative = c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.'
+    const longNarrative  = c.narrative_entry ?? ''
+    const distinctDetail = c.chronicle_entry && longNarrative && longNarrative.trim() !== shortNarrative.trim()
+      ? longNarrative
+      : undefined
     return {
       turnNumber: c.turn_number,
       date: c.simulated_date,
       title: c.chronicle_headline ?? `Turn ${c.turn_number}`,
-      narrative: c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.',
-      detail: hasShortAndLong ? c.narrative_entry ?? undefined : undefined,
+      narrative: shortNarrative,
+      detail: distinctDetail,
       dateLabel: c.chronicle_date_label ?? undefined,
       contextSummary: c.context_summary ?? undefined,
       isDecisionPoint: c.is_decision_point ?? false,

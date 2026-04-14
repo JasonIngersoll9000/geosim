@@ -405,6 +405,9 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     if (isComplete) {
       setTurnNumber(prev => prev + 1)
       setActiveTab('chronicle')
+      // Refresh server components (TopBar turn counter, actor scores, branch state)
+      // so the turn number in TopBar stays in sync with the indicators bar.
+      router.refresh()
     } else {
       // Error dismiss: clear plan slots and stay on decisions so user can retry
       setPrimaryAction(null)
@@ -435,7 +438,13 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
       const res = await fetch('/api/branches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenarioId }),
+        // Pass forkTurn (current turn) and parentBranchId so the API can set
+        // the correct fork_point_commit_id on the newly created branch.
+        body: JSON.stringify({
+          scenarioId,
+          forkTurn:       turnNumber,
+          parentBranchId: branchId,
+        }),
       })
       if (res.ok) {
         const json = await res.json() as { id?: string }
@@ -509,7 +518,9 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
       <div className="flex items-center gap-4 px-4 py-2 bg-bg-surface-dim border-b border-border-subtle font-mono text-2xs shrink-0 overflow-x-auto">
         <span className="text-text-tertiary shrink-0">OIL: <span className="text-status-critical">{oilPriceUsd !== null ? `$${oilPriceUsd}/bbl` : '—'}</span></span>
         <span className="text-text-tertiary shrink-0">
-          TURN: <span className="text-text-secondary">{String(turnNumber).padStart(2, '0')} / 12</span>
+          TURN: <span className="text-text-secondary">
+            {String(turnNumber).padStart(2, '0')} / {String(initialData.groundTruthCommits.length || 12).padStart(2, '0')}
+          </span>
         </span>
         <span className="text-text-tertiary shrink-0">
           PHASE: <TurnPhaseIndicator phase={state.turnPhase || 'planning'} />
