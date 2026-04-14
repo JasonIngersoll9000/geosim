@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useDevAuth } from '@/hooks/useDevAuth'
 import type { User } from '@supabase/supabase-js'
 
 export interface UserState {
@@ -7,15 +8,14 @@ export interface UserState {
   loading: boolean
 }
 
-const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
-
 export function useUser(): UserState {
+  const devAuth = useDevAuth()
   const [user, setUser]       = useState<User | null>(null)
-  const [loading, setLoading] = useState(!DEV_MODE)
+  const [loading, setLoading] = useState(devAuth === null)
 
   useEffect(() => {
-    if (DEV_MODE) {
-      setUser({ id: 'dev-user', email: 'dev@geosim.local' } as unknown as User)
+    if (devAuth !== null) {
+      setUser({ id: devAuth.id, email: devAuth.email } as unknown as User)
       setLoading(false)
       return
     }
