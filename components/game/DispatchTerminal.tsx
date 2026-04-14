@@ -113,7 +113,7 @@ export function DispatchTerminal({ lines, isRunning }: Props) {
             animate={{ opacity: 1 }}
             transition={{ duration: 0, delay: shouldSkip ? 0 : i * 0.04 }}
           >
-            <span className="text-text-tertiary shrink-0">[{line.timestamp}]</span>
+            <span suppressHydrationWarning className="text-text-tertiary shrink-0">[{line.timestamp}]</span>
             <span>{line.text}</span>
           </motion.div>
         ))}
