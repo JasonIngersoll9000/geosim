@@ -114,12 +114,15 @@ export function EscalationLadder({ rungs, currentRung, actorColor }: Props) {
                 )}
               </div>
 
-              {/* Description */}
-              {isCurrent && rung.description && (
+              {/* Description — shown for all rungs, slightly muted for non-current */}
+              {rung.description && (
                 <p style={{
                   fontFamily: "'Newsreader', serif",
-                  fontSize: 11, color: '#a8a6a0', lineHeight: 1.5,
+                  fontSize: isCurrent ? 11 : 10,
+                  color: isCurrent ? '#a8a6a0' : '#5a5856',
+                  lineHeight: 1.5,
                   margin: '3px 0 4px',
+                  fontStyle: isCurrent ? 'normal' : 'italic',
                 }}>
                   {rung.description}
                 </p>

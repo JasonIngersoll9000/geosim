@@ -463,6 +463,22 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     }
   }
 
+  const handlePrevGroundTruthEvent = () => {
+    if (gtIndex <= 0) return
+    const newIndex = gtIndex - 1
+    const commit = initialData.groundTruthCommits[newIndex]
+    if (!commit) return
+    setGtIndex(newIndex)
+    setTurnNumber(commit.turnNumber)
+    setTurnCommitId(commit.id)
+    setGtHasNext(true) // always has next after going back
+    setDispatchLines([{
+      timestamp: new Date().toISOString().slice(11, 19),
+      text: `GROUND TRUTH — TURN ${commit.turnNumber} — ${commit.simulatedDate}`,
+      type: 'info',
+    }])
+  }
+
   const handleNextGroundTruthEvent = async () => {
     if (!gtHasNext || gtLoading) return
     setGtLoading(true)
@@ -693,14 +709,24 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             </div>
           )}
 
-          {/* NEXT EVENT / FORK button — ground truth observer mode */}
+          {/* PREV / NEXT EVENT / FORK — ground truth observer navigation */}
           {isGtMode && (
-            <div className="shrink-0 px-3 pt-2">
+            <div className="shrink-0 px-3 pt-2 flex gap-2">
+              {/* Back button — visible once at least one step has been taken */}
+              <button
+                onClick={handlePrevGroundTruthEvent}
+                disabled={gtIndex <= 0}
+                className="py-2 px-3 font-mono text-xs border border-border-subtle text-text-tertiary hover:text-text-secondary hover:border-border-hi transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+                title="Previous turn"
+              >
+                ← PREV
+              </button>
+
               {gtHasNext ? (
                 <button
                   onClick={handleNextGroundTruthEvent}
                   disabled={gtLoading}
-                  className="w-full py-2 font-mono text-xs font-semibold bg-surface-3 border border-border-subtle text-text-secondary hover:text-text-primary hover:border-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 py-2 font-mono text-xs font-semibold bg-surface-3 border border-border-subtle text-text-secondary hover:text-text-primary hover:border-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {gtLoading ? 'LOADING…' : 'NEXT EVENT →'}
                 </button>
@@ -708,7 +734,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
                 <button
                   onClick={() => void handleForkNewBranch()}
                   disabled={forkingBranch}
-                  className="w-full py-2 font-mono text-xs font-semibold border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-2 font-mono text-xs font-semibold border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {forkingBranch ? 'CREATING BRANCH…' : 'FORK NEW BRANCH →'}
                 </button>
