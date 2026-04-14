@@ -271,7 +271,7 @@ export default function NewScenarioPage() {
 
   return (
     <>
-      <ClassificationBanner classification="TOP SECRET // NOFORN // GEOSIM-CREATE" />
+      <ClassificationBanner classification="TOP SECRET // NOFORN // WAR-GAME-CREATE" />
       <TopBar scenarioName="CREATE SCENARIO" />
 
       <main className="pt-[66px] bg-bg-base min-h-screen">

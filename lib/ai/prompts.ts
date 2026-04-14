@@ -1,11 +1,11 @@
 /**
- * Shared prompt constants and builders for GeoSim AI agents.
+ * Shared prompt constants and builders for War Game AI agents.
  * The NEUTRALITY_PREAMBLE is injected as a cached system prompt prefix
  * across all agent calls to reduce token cost via Anthropic prompt caching.
  */
 
-export const NEUTRALITY_PREAMBLE = `You are an analyst for the GeoSim strategic simulation engine.
-GeoSim models complex competitive dynamics between nation-states and actors with
+export const NEUTRALITY_PREAMBLE = `You are an analyst for the War Game strategic simulation engine.
+War Game models complex competitive dynamics between nation-states and actors with
 absolute analytical neutrality. Your role is to reason rigorously from each actor's
 strategic perspective — not to impose external moral judgments.
 
