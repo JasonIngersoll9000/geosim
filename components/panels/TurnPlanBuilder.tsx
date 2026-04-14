@@ -123,12 +123,12 @@ export function TurnPlanBuilder({
         content={canSubmit ? 'Submit your turn plan. All actors resolve simultaneously — outcomes are AI-generated.' : 'Select a Primary Action before submitting.'}
         placement="top"
         maxWidth={220}
+        display="block"
       >
         <button
           onClick={() => { if (canSubmit) onSubmit() }}
           disabled={!canSubmit}
           className="w-full py-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors bg-gold text-bg-base disabled:bg-bg-surface-high disabled:text-text-tertiary disabled:cursor-not-allowed"
-          style={{ display: 'block' }}
         >
           {isSubmitting ? 'PROCESSING…' : 'SUBMIT TURN PLAN →'}
         </button>

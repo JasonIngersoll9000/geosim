@@ -724,7 +724,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
               </button>
 
               {gtHasNext ? (
-                <Tooltip content="Step forward to the next resolved turn in the Ground Truth timeline." placement="top" maxWidth={200}>
+                <Tooltip content="Step forward to the next resolved turn in the Ground Truth timeline." placement="top" maxWidth={200} display="flex">
                   <button
                     onClick={handleNextGroundTruthEvent}
                     disabled={gtLoading}
@@ -734,7 +734,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
                   </button>
                 </Tooltip>
               ) : (
-                <Tooltip content="Create a diverging timeline from this turn. You take control and make decisions independently from the Ground Truth." placement="top" maxWidth={220}>
+                <Tooltip content="Create a diverging timeline from this turn. You take control and make decisions independently from the Ground Truth." placement="top" maxWidth={220} display="flex">
                   <button
                     onClick={() => void handleForkNewBranch()}
                     disabled={forkingBranch}

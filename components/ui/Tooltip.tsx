@@ -1,16 +1,30 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 
 interface Props {
   content: string
   children: React.ReactNode
   placement?: 'top' | 'bottom' | 'left' | 'right'
   maxWidth?: number
+  display?: 'inline-flex' | 'block' | 'flex' | 'contents'
 }
 
-export function Tooltip({ content, children, placement = 'top', maxWidth = 200 }: Props) {
+export function Tooltip({ content, children, placement = 'top', maxWidth = 200, display = 'inline-flex' }: Props) {
   const [visible, setVisible] = useState(false)
   const ref = useRef<HTMLSpanElement>(null)
+  const touchRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const show = useCallback(() => setVisible(true),  [])
+  const hide = useCallback(() => setVisible(false), [])
+
+  function handleTouchStart() {
+    if (visible) {
+      hide()
+    } else {
+      show()
+      touchRef.current = setTimeout(hide, 2500)
+    }
+  }
 
   const offsetMap = {
     top:    { transform: 'translateX(-50%)', bottom: 'calc(100% + 6px)', left: '50%', top: undefined, right: undefined },
@@ -28,14 +42,20 @@ export function Tooltip({ content, children, placement = 'top', maxWidth = 200 }
   }
   const arrow = arrowMap[placement]
 
+  const wrapperStyle: React.CSSProperties =
+    display === 'contents'
+      ? { display: 'contents' }
+      : { position: 'relative', display, alignItems: display === 'inline-flex' || display === 'flex' ? 'center' : undefined }
+
   return (
     <span
       ref={ref}
-      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
-      onFocus={() => setVisible(true)}
-      onBlur={() => setVisible(false)}
+      style={wrapperStyle}
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      onFocus={show}
+      onBlur={hide}
+      onTouchStart={handleTouchStart}
     >
       {children}
       {visible && (
