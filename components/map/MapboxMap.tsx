@@ -7,6 +7,7 @@ import type { PositionedAsset, City, MapAsset } from '@/lib/types/simulation'
 import type { ChokepointId } from './ChokepointPopup'
 import { createAssetMarkerElement } from './AssetMarker'
 import { createCityMarkerElement } from './CityMarker'
+import { NATION_HEX_COLORS } from '@/lib/game/actor-colors'
 
 // ─── Key cities GeoJSON ───────────────────────────────────────────────────────
 
@@ -41,24 +42,18 @@ const KEY_CITIES_DATA: GeoJSON.FeatureCollection<GeoJSON.Point> = {
   ],
 }
 
-// ─── Nation → dot color ───────────────────────────────────────────────────────
+// ─── Nation → dot color (built from shared NATION_HEX_COLORS) ────────────────
 
-const CITY_NATION_COLORS: mapboxgl.Expression = [
-  'match', ['get', 'nation'],
-  'IR',  'rgba(192,57,43,0.85)',
-  'IL',  'rgba(79,195,247,0.85)',
-  'US',  'rgba(41,128,185,0.85)',
-  'SA',  'rgba(243,156,18,0.85)',
-  'AE',  'rgba(142,68,173,0.75)',
-  'QA',  'rgba(39,174,96,0.75)',
-  'OM',  'rgba(22,160,133,0.75)',
-  'KW',  'rgba(44,62,80,0.75)',
-  'IQ',  'rgba(127,140,141,0.75)',
-  'LB',  'rgba(231,76,60,0.75)',
-  'SY',  'rgba(149,165,166,0.75)',
-  'YE',  'rgba(211,84,0,0.75)',
-  'rgba(229,226,225,0.45)',
-]
+function buildNationMatchExpr(): mapboxgl.Expression {
+  const parts: unknown[] = ['match', ['get', 'nation']]
+  for (const [code, hex] of Object.entries(NATION_HEX_COLORS)) {
+    parts.push(code, hex)
+  }
+  parts.push('rgba(229,226,225,0.45)')  // fallback
+  return parts as mapboxgl.Expression
+}
+
+const CITY_NATION_COLORS = buildNationMatchExpr()
 
 // ─── Military bases GeoJSON ───────────────────────────────────────────────────
 
@@ -89,6 +84,66 @@ function geoCircle(
     coords.push([lng + dLng, lat + dLat])
   }
   return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [coords] } }
+}
+
+// ─── Missile batteries GeoJSON ───────────────────────────────────────────────
+
+const MISSILE_BATTERIES_DATA: GeoJSON.FeatureCollection<GeoJSON.Point> = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', properties: {
+        name: 'IMAM ALI MISSILE BASE', nation: 'IR', type: 'missile',
+        capability: 'IRGC Aerospace Force. Shahab-3, Emad, Ghadr MRBMs. Underground hardened silos near Kermanshah.',
+      }, geometry: { type: 'Point', coordinates: [46.32, 34.32] } },
+    { type: 'Feature', properties: {
+        name: 'SHAHROUD MISSILE TEST', nation: 'IR', type: 'missile',
+        capability: 'Primary IRGC long-range missile test site. Shahab-3, Sejil, Fateh-110 launch facilities.',
+      }, geometry: { type: 'Point', coordinates: [36.42, 36.42] } },
+    { type: 'Feature', properties: {
+        name: 'TABRIZ MISSILE DEPOT', nation: 'IR', type: 'missile',
+        capability: 'IRGC Aerospace Force missile depot. Forward positioned for launches toward Israel.',
+      }, geometry: { type: 'Point', coordinates: [46.30, 38.07] } },
+    { type: 'Feature', properties: {
+        name: 'IRON DOME HQ (NEVATIM)', nation: 'IL', type: 'missile',
+        capability: 'Israeli Air Defense Directorate. Iron Dome, David\'s Sling, Arrow-3 BMD integration hub.',
+      }, geometry: { type: 'Point', coordinates: [34.82, 31.21] } },
+    { type: 'Feature', properties: {
+        name: 'THAAD BATTERY AL DHAFRA', nation: 'US', type: 'missile',
+        capability: 'US Army Terminal High Altitude Area Defense. Protects UAE/Gulf air bases against ballistic missile attack.',
+      }, geometry: { type: 'Point', coordinates: [54.50, 24.25] } },
+    { type: 'Feature', properties: {
+        name: 'PAC-3 PRINCE SULTAN', nation: 'US', type: 'missile',
+        capability: 'Patriot PAC-3 battery at Prince Sultan AB. 100km intercept radius against TBMs and cruise missiles.',
+      }, geometry: { type: 'Point', coordinates: [47.58, 24.06] } },
+  ],
+}
+
+// ─── Radar installations GeoJSON ─────────────────────────────────────────────
+
+const RADAR_INSTALLATIONS_DATA: GeoJSON.FeatureCollection<GeoJSON.Point> = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', properties: {
+        name: 'IRAN AIR DEFENSE HQ', nation: 'IR', type: 'radar',
+        capability: 'Khatam al-Anbiya Air Defense Base, Tehran. Coordinates nationwide radar network and S-300 SAM systems.',
+      }, geometry: { type: 'Point', coordinates: [51.35, 35.72] } },
+    { type: 'Feature', properties: {
+        name: 'BUSHEHR EARLY WARNING', nation: 'IR', type: 'radar',
+        capability: 'Ghadir-class over-the-horizon radar. 3,000km detection range for ballistic missiles.',
+      }, geometry: { type: 'Point', coordinates: [50.85, 28.95] } },
+    { type: 'Feature', properties: {
+        name: 'DIMONA TRACKING RADAR', nation: 'IL', type: 'radar',
+        capability: 'X-band AN/TPY-2 radar (US-operated). 2,000km+ tracking range for Iranian ballistic missiles. Core Arrow BMD system sensor.',
+      }, geometry: { type: 'Point', coordinates: [35.15, 31.05] } },
+    { type: 'Feature', properties: {
+        name: 'MT. KEREN EW STATION', nation: 'IL', type: 'radar',
+        capability: 'Israeli Air Force Unit 8200 signals intelligence site and EW radar covering Lebanon and Syria.',
+      }, geometry: { type: 'Point', coordinates: [34.88, 30.82] } },
+    { type: 'Feature', properties: {
+        name: 'AN/TPY-2 RADAR QATAR', nation: 'US', type: 'radar',
+        capability: 'AN/TPY-2 forward-based mode radar at Al Udeid. Provides early warning for CENTCOM AOR missile defense.',
+      }, geometry: { type: 'Point', coordinates: [51.32, 25.12] } },
+  ],
 }
 
 // ─── Static naval markers ─────────────────────────────────────────────────────
@@ -195,6 +250,7 @@ export interface StaticFeatureClickInfo {
   type: string
   nation?: string
   capability?: string
+  status?: string
   screenX: number
   screenY: number
 }
@@ -532,6 +588,107 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
       })
     }
 
+    // ── Missile batteries ──
+    if (!map.getSource('missile-batteries-src')) {
+      map.addSource('missile-batteries-src', { type: 'geojson', data: MISSILE_BATTERIES_DATA })
+    }
+    if (!map.getLayer('missile-dot')) {
+      map.addLayer({
+        id: 'missile-dot', type: 'circle', source: 'missile-batteries-src',
+        paint: {
+          'circle-radius': 5,
+          'circle-color': buildNationMatchExpr(),
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': 'rgba(255,255,255,0.3)',
+          'circle-blur': 0,
+        },
+        layout: { visibility: ls.militaryBases ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('missile-symbol')) {
+      map.addLayer({
+        id: 'missile-symbol', type: 'symbol', source: 'missile-batteries-src',
+        layout: {
+          'text-field': '✕',
+          'text-font': ['Arial Unicode MS Regular'],
+          'text-size': 9,
+          'text-anchor': 'center',
+          'text-allow-overlap': true,
+          visibility: ls.militaryBases ? 'visible' : 'none',
+        },
+        paint: { 'text-color': 'rgba(255,255,255,0.9)' },
+      })
+    }
+    if (!map.getLayer('missile-label')) {
+      map.addLayer({
+        id: 'missile-label', type: 'symbol', source: 'missile-batteries-src',
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['DIN Pro Mono Medium', 'Arial Unicode MS Regular'],
+          'text-size': 7,
+          'text-letter-spacing': 0.06,
+          'text-anchor': 'top',
+          'text-offset': [0, 0.7],
+          visibility: ls.militaryBases ? 'visible' : 'none',
+        },
+        paint: {
+          'text-color': 'rgba(229,226,225,0.5)',
+          'text-halo-color': 'rgba(5,10,18,0.9)',
+          'text-halo-width': 1.5,
+        },
+      })
+    }
+
+    // ── Radar installations ──
+    if (!map.getSource('radar-src')) {
+      map.addSource('radar-src', { type: 'geojson', data: RADAR_INSTALLATIONS_DATA })
+    }
+    if (!map.getLayer('radar-dot')) {
+      map.addLayer({
+        id: 'radar-dot', type: 'circle', source: 'radar-src',
+        paint: {
+          'circle-radius': 4.5,
+          'circle-color': buildNationMatchExpr(),
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': 'rgba(255,255,255,0.25)',
+        },
+        layout: { visibility: ls.militaryBases ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('radar-symbol')) {
+      map.addLayer({
+        id: 'radar-symbol', type: 'symbol', source: 'radar-src',
+        layout: {
+          'text-field': '◎',
+          'text-font': ['Arial Unicode MS Regular'],
+          'text-size': 9,
+          'text-anchor': 'center',
+          'text-allow-overlap': true,
+          visibility: ls.militaryBases ? 'visible' : 'none',
+        },
+        paint: { 'text-color': 'rgba(255,255,255,0.85)' },
+      })
+    }
+    if (!map.getLayer('radar-label')) {
+      map.addLayer({
+        id: 'radar-label', type: 'symbol', source: 'radar-src',
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['DIN Pro Mono Medium', 'Arial Unicode MS Regular'],
+          'text-size': 7,
+          'text-letter-spacing': 0.06,
+          'text-anchor': 'top',
+          'text-offset': [0, 0.7],
+          visibility: ls.militaryBases ? 'visible' : 'none',
+        },
+        paint: {
+          'text-color': 'rgba(229,226,225,0.5)',
+          'text-halo-color': 'rgba(5,10,18,0.9)',
+          'text-halo-width': 1.5,
+        },
+      })
+    }
+
     // ── Strike rings (missile strike envelopes, shown when strikeRings toggled) ──
     if (!map.getSource('strike-rings-src')) {
       map.addSource('strike-rings-src', {
@@ -668,7 +825,9 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
     const militaryLayers  = ['hormuz-point', 'hormuz-label', 'babelmandeb-label',
                               'naval-dot', 'naval-type-symbol', 'naval-label']
     const cityLayers      = ['cities-dot', 'cities-label']
-    const baseLayers      = ['bases-dot', 'bases-type-symbol', 'bases-label']
+    const baseLayers      = ['bases-dot', 'bases-type-symbol', 'bases-label',
+                              'missile-dot', 'missile-symbol', 'missile-label',
+                              'radar-dot', 'radar-symbol', 'radar-label']
     const strikeRingLayers = ['strike-rings-fill', 'strike-rings-line', 'strike-rings-label']
     const threatRingLayers = ['threat-rings-fill', 'threat-rings-line']
 
@@ -752,6 +911,50 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
             nation:  p.nation,
             screenX: e.point.x,
             screenY: e.point.y,
+          })
+        })
+      }
+    }
+
+    // Missile batteries
+    const missileClickLayers = ['missile-dot', 'missile-symbol']
+    for (const layerId of missileClickLayers) {
+      if (m.getLayer(layerId)) {
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+        m.on('click', layerId, (e) => {
+          const f = e.features?.[0]
+          if (!f) return
+          const p = f.properties as Record<string, string>
+          onStaticFeatureClickRef.current?.({
+            name:       p.name ?? 'UNKNOWN',
+            type:       p.type ?? 'missile',
+            nation:     p.nation,
+            capability: p.capability,
+            screenX:    e.point.x,
+            screenY:    e.point.y,
+          })
+        })
+      }
+    }
+
+    // Radar installations
+    const radarClickLayers = ['radar-dot', 'radar-symbol']
+    for (const layerId of radarClickLayers) {
+      if (m.getLayer(layerId)) {
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+        m.on('click', layerId, (e) => {
+          const f = e.features?.[0]
+          if (!f) return
+          const p = f.properties as Record<string, string>
+          onStaticFeatureClickRef.current?.({
+            name:       p.name ?? 'UNKNOWN',
+            type:       p.type ?? 'radar',
+            nation:     p.nation,
+            capability: p.capability,
+            screenX:    e.point.x,
+            screenY:    e.point.y,
           })
         })
       }
