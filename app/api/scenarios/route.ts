@@ -11,13 +11,28 @@ export async function GET(request: Request) {
   const limit = parseInt(searchParams.get("limit") ?? "20", 10);
   const offset = (page - 1) * limit;
 
-  // Use service client for reads — bypasses RLS so all scenarios are visible
-  // in the browser regardless of auth state or visibility column values.
+  // Determine current user for ownership-based visibility (best-effort; null = unauthenticated)
+  const authClient = await createClient();
+  const { data: { user } } = await authClient.auth.getUser();
+
+  // Use service client so we bypass row-level security policies that may filter
+  // out scenarios whose visibility column was never set to 'public'.
+  // We still apply an application-level visibility filter below.
   const supabase = createServiceClient();
 
+  // Visibility rule: show public scenarios to everyone, plus the current user's
+  // own scenarios if they are authenticated. Private scenarios owned by others
+  // are never returned.
+  const visibilityFilter = user
+    ? `visibility.eq.public,created_by.eq.${user.id}`
+    : "visibility.eq.public";
+
+  // select('*') is safe here — access control is enforced by the visibilityFilter
+  // above (public scenarios + owner's own scenarios only).
   let query = supabase
     .from("scenarios")
-    .select("*");
+    .select("*")
+    .or(visibilityFilter);
 
   if (category) query = query.eq("category", category);
   if (visibility) query = query.eq("visibility", visibility);
