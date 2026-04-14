@@ -10,7 +10,9 @@ import { CityPopup } from './CityPopup'
 import { CityDetailPanel } from './CityDetailPanel'
 import { MapAssetPopup } from './MapAssetPopup'
 import { ChokepointPopup } from './ChokepointPopup'
+import { MapFeaturePopup } from './MapFeaturePopup'
 import type { ChokepointId, ChokepointInfo } from './ChokepointPopup'
+import type { StaticFeatureClickInfo } from './MapboxMap'
 import { ActorStatusPanel } from '@/components/game/ActorStatusPanel'
 import type { LayerState } from './MapLayerControls'
 import type { GlobalState, MapAsset, PositionedAsset, City, ShippingLane } from '@/lib/types/simulation'
@@ -80,6 +82,7 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
   const [cityDetailOpen, setCityDetailOpen] = useState(false)
   const [mapAssetSelection, setMapAssetSelection] = useState<MapAssetSelection | null>(null)
   const [chokepointPopup, setChokepointPopup] = useState<ChokepointInfo | null>(null)
+  const [staticFeaturePopup, setStaticFeaturePopup] = useState<StaticFeatureClickInfo | null>(null)
 
   useEffect(() => {
     if (!branchId || !turnCommitId) return
@@ -139,6 +142,13 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
     setDetailOpen(true)
   }
 
+  function handleStaticFeatureClick(info: StaticFeatureClickInfo) {
+    setMapAssetSelection(null)
+    setChokepointPopup(null)
+    setCityPopup(null)
+    setStaticFeaturePopup(info)
+  }
+
   function handleCityClick(city: City) {
     setMapAssetSelection(null)
     setChokepointPopup(null)
@@ -185,6 +195,7 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
             mapAssets={mapAssets}
             onMapAssetClick={handleMapAssetClick}
             onChokepointClick={handleChokepointClick}
+            onStaticFeatureClick={handleStaticFeatureClick}
           />
 
           {/* PositionedAsset popup (legacy path) */}
@@ -213,6 +224,16 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
               containerWidth={containerW}
               containerHeight={containerH}
               onClose={() => setChokepointPopup(null)}
+            />
+          )}
+
+          {/* Static GeoJSON feature popup (cities, bases, naval) */}
+          {staticFeaturePopup && (
+            <MapFeaturePopup
+              feature={staticFeaturePopup}
+              containerWidth={containerW}
+              containerHeight={containerH}
+              onClose={() => setStaticFeaturePopup(null)}
             />
           )}
 
@@ -327,9 +348,15 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
         style={{ top: 10, right: 44 }}
       />
 
-      {/* ── Map layer controls ── */}
+      {/* ── Map layer controls + legend (stacked, no overlap) ── */}
       {TOKEN && (
-        <MapLayerControls layers={layers} onToggle={toggleLayer} />
+        <div style={{
+          position: 'absolute', bottom: 8, left: 12, zIndex: 10,
+          display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4,
+        }}>
+          <MapLayerControls layers={layers} onToggle={toggleLayer} />
+          <MapLegend />
+        </div>
       )}
 
       {/* ── Asset detail panel (full slide-out) ── */}
@@ -343,9 +370,6 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
       <div style={{ position: 'absolute', bottom: 28, right: 10, zIndex: 40 }}>
         <ActorStatusPanel isGroundTruth={true} />
       </div>
-
-      {/* ── Map legend ── */}
-      <MapLegend />
 
       {/* ── Coordinate reference ── */}
       <div

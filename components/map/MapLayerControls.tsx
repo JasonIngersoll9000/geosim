@@ -61,7 +61,7 @@ interface Props {
 export function MapLayerControls({ layers, onToggle }: Props) {
   return (
     <div
-      className="absolute bottom-8 left-3 z-10 flex flex-col"
+      className="flex flex-col"
       style={{
         background: 'rgba(10,15,24,0.92)',
         border: '1px solid #1e1e1e',
