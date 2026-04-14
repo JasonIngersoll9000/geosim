@@ -1,18 +1,22 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { TutorialModal } from '@/components/ui/TutorialModal'
 
 const STORAGE_KEY = 'wargame_tutorial_seen'
 
 export function HowToPlayButton() {
   const [open, setOpen] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     try {
       if (!localStorage.getItem(STORAGE_KEY)) {
-        setTimeout(() => setOpen(true), 800)
+        timerRef.current = setTimeout(() => setOpen(true), 800)
       }
     } catch { /* localStorage unavailable */ }
+    return () => {
+      if (timerRef.current !== null) clearTimeout(timerRef.current)
+    }
   }, [])
 
   function handleClose() {
