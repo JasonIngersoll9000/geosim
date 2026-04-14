@@ -1,12 +1,9 @@
 'use client'
 import { useState, Suspense } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 function SignupForm() {
-  const router = useRouter()
-
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [confirm,  setConfirm]  = useState('')

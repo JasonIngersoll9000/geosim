@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { getStateAtTurn } from '@/lib/game/state-engine'
 import { runResolutionEngine } from '@/lib/ai/resolution-engine'
 import type { TurnPlan, Decision } from '@/lib/types/simulation'
