@@ -38,3 +38,74 @@ export const DEV_ACTORS = [
   { id: 'russia',        name: 'Russia',        short_name: 'RUS' },
   { id: 'china',         name: 'China',         short_name: 'CHN' },
 ]
+
+/**
+ * Per-turn actor state snapshots for the dev trunk (12 turns).
+ * escalationRung: 1 (peace) → 10 (full-scale war)
+ * military / economic / political: 0–100
+ */
+export const DEV_ACTOR_SNAPSHOTS: Record<number, Array<{
+  actorId: string; actorName: string
+  escalationRung: number; military: number; economic: number; political: number
+}>> = {
+  1:  [
+    { actorId: 'united_states', actorName: 'United States', escalationRung: 3, military: 75, economic: 78, political: 68 },
+    { actorId: 'iran',          actorName: 'Iran',          escalationRung: 3, military: 55, economic: 38, political: 52 },
+    { actorId: 'israel',        actorName: 'Israel',        escalationRung: 4, military: 82, economic: 72, political: 65 },
+  ],
+  2:  [
+    { actorId: 'united_states', actorName: 'United States', escalationRung: 6, military: 78, economic: 76, political: 60 },
+    { actorId: 'iran',          actorName: 'Iran',          escalationRung: 7, military: 62, economic: 35, political: 48 },
+    { actorId: 'israel',        actorName: 'Israel',        escalationRung: 8, military: 88, economic: 68, political: 62 },
+  ],
+  3:  [
+    { actorId: 'united_states', actorName: 'United States', escalationRung: 7, military: 82, economic: 74, political: 55 },
+    { actorId: 'iran',          actorName: 'Iran',          escalationRung: 8, military: 65, economic: 32, political: 44 },
+    { actorId: 'israel',        actorName: 'Israel',        escalationRung: 8, military: 85, economic: 64, political: 58 },
+  ],
+  4:  [
+    { actorId: 'united_states', actorName: 'United States', escalationRung: 9, military: 88, economic: 70, political: 52 },
+    { actorId: 'iran',          actorName: 'Iran',          escalationRung: 9, military: 45, economic: 28, political: 38 },
+    { actorId: 'israel',        actorName: 'Israel',        escalationRung: 8, military: 82, economic: 62, political: 55 },
+  ],
+  5:  [
+    { actorId: 'united_states', actorName: 'United States', escalationRung: 4, military: 80, economic: 72, political: 58 },
+    { actorId: 'iran',          actorName: 'Iran',          escalationRung: 4, military: 42, economic: 30, political: 40 },
+    { actorId: 'israel',        actorName: 'Israel',        escalationRung: 4, military: 80, economic: 66, political: 60 },
+  ],
+  6:  [
+    { actorId: 'united_states', actorName: 'United States', escalationRung: 5, military: 78, economic: 72, political: 60 },
+    { actorId: 'iran',          actorName: 'Iran',          escalationRung: 5, military: 44, economic: 28, political: 42 },
+    { actorId: 'israel',        actorName: 'Israel',        escalationRung: 5, military: 80, economic: 64, political: 58 },
+  ],
+  7:  [
+    { actorId: 'united_states', actorName: 'United States', escalationRung: 6, military: 80, economic: 70, political: 58 },
+    { actorId: 'iran',          actorName: 'Iran',          escalationRung: 6, military: 46, economic: 26, political: 40 },
+    { actorId: 'israel',        actorName: 'Israel',        escalationRung: 7, military: 84, economic: 62, political: 55 },
+  ],
+  8:  [
+    { actorId: 'united_states', actorName: 'United States', escalationRung: 6, military: 80, economic: 70, political: 55 },
+    { actorId: 'iran',          actorName: 'Iran',          escalationRung: 7, military: 48, economic: 25, political: 38 },
+    { actorId: 'israel',        actorName: 'Israel',        escalationRung: 7, military: 84, economic: 60, political: 52 },
+  ],
+  9:  [
+    { actorId: 'united_states', actorName: 'United States', escalationRung: 4, military: 78, economic: 72, political: 60 },
+    { actorId: 'iran',          actorName: 'Iran',          escalationRung: 5, military: 46, economic: 26, political: 40 },
+    { actorId: 'israel',        actorName: 'Israel',        escalationRung: 4, military: 80, economic: 64, political: 58 },
+  ],
+  10: [
+    { actorId: 'united_states', actorName: 'United States', escalationRung: 5, military: 78, economic: 71, political: 58 },
+    { actorId: 'iran',          actorName: 'Iran',          escalationRung: 5, military: 50, economic: 24, political: 35 },
+    { actorId: 'israel',        actorName: 'Israel',        escalationRung: 5, military: 80, economic: 62, political: 56 },
+  ],
+  11: [
+    { actorId: 'united_states', actorName: 'United States', escalationRung: 6, military: 80, economic: 70, political: 56 },
+    { actorId: 'iran',          actorName: 'Iran',          escalationRung: 6, military: 58, economic: 23, political: 38 },
+    { actorId: 'israel',        actorName: 'Israel',        escalationRung: 6, military: 84, economic: 60, political: 54 },
+  ],
+  12: [
+    { actorId: 'united_states', actorName: 'United States', escalationRung: 7, military: 82, economic: 68, political: 52 },
+    { actorId: 'iran',          actorName: 'Iran',          escalationRung: 8, military: 62, economic: 22, political: 36 },
+    { actorId: 'israel',        actorName: 'Israel',        escalationRung: 8, military: 86, economic: 58, political: 50 },
+  ],
+}

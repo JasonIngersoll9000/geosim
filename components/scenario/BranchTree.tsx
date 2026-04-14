@@ -6,6 +6,20 @@ import { useReducedMotion } from 'framer-motion'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+/** Scenario-state snapshot for a single actor at a given turn */
+export interface ActorSnapshot {
+  actorId: string
+  actorName: string
+  /** Escalation rung 1 (ceasefire) → 10 (full-scale war) */
+  escalationRung: number
+  /** Military readiness score 0–100 */
+  military: number
+  /** Economic stability score 0–100 */
+  economic: number
+  /** Political cohesion score 0–100 */
+  political: number
+}
+
 /** Per-turn event data for trunk / branch nodes */
 export interface TurnData {
   turn: number
@@ -15,6 +29,8 @@ export interface TurnData {
   label?: string
   /** Visual significance tier */
   significance: 'high' | 'medium' | 'low'
+  /** Actor-level state snapshot at this turn */
+  actorSnapshots?: ActorSnapshot[]
 }
 
 /**
@@ -231,6 +247,18 @@ function NodePanel({
         </div>
       )}
 
+      {/* Actor state snapshots at this turn */}
+      {activeTurn?.actorSnapshots && activeTurn.actorSnapshots.length > 0 && (
+        <div style={{ borderTop: '1px solid #1c1c1c', paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 8, letterSpacing: '0.1em', color: '#555', textTransform: 'uppercase' }}>
+            SCENARIO STATE — T{String(displayTurn).padStart(2, '0')}
+          </span>
+          {activeTurn.actorSnapshots.map(snap => (
+            <ActorStateRow key={snap.actorId} snap={snap} />
+          ))}
+        </div>
+      )}
+
       {/* Metadata */}
       <div className="flex flex-col gap-1">
         {/* Node type badge + escalation direction */}
@@ -310,6 +338,38 @@ function MetaRow({ label, value, valueColor }: { label: string; value: string; v
       <span className="font-mono text-[10px] uppercase tracking-[0.04em]" style={{ color: valueColor ?? 'var(--text-secondary)' }}>
         {value}
       </span>
+    </div>
+  )
+}
+
+function MiniBar({ value, color }: { value: number; color: string }) {
+  return (
+    <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 1, overflow: 'hidden' }}>
+      <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: 1 }} />
+    </div>
+  )
+}
+
+function ActorStateRow({ snap }: { snap: ActorSnapshot }) {
+  const rungColor = snap.escalationRung >= 8 ? '#e74c3c' : snap.escalationRung >= 6 ? '#e8a020' : '#2ecc71'
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 8, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          {snap.actorName}
+        </span>
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 8, color: rungColor, letterSpacing: '0.04em' }}>
+          RUNG {snap.escalationRung}/10
+        </span>
+      </div>
+      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 7, color: '#444', width: 18 }}>MIL</span>
+        <MiniBar value={snap.military} color="#5dade2" />
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 7, color: '#444', width: 18 }}>ECO</span>
+        <MiniBar value={snap.economic} color="#2ecc71" />
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 7, color: '#444', width: 18 }}>POL</span>
+        <MiniBar value={snap.political} color="#e8a020" />
+      </div>
     </div>
   )
 }
@@ -469,6 +529,20 @@ export function BranchTree({ root, scenarioId, actors }: Props) {
                         fill={SIG_HIGH_STROKE}
                         style={{ pointerEvents: 'none' }}
                       />
+                    )}
+                    {/* On-tree event label: truncated headline below high/medium nodes */}
+                    {td?.label && sig !== 'low' && (
+                      <text
+                        x={x} y={trunkY + nodeR + 10}
+                        textAnchor="middle"
+                        fontFamily="'IBM Plex Mono', monospace"
+                        fontSize={6}
+                        fill={sig === 'high' ? 'rgba(231,76,60,0.7)' : 'rgba(232,160,32,0.55)'}
+                        letterSpacing="0.02em"
+                        style={{ pointerEvents: 'none' }}
+                      >
+                        {td.label.length > 22 ? td.label.slice(0, 20) + '…' : td.label}
+                      </text>
                     )}
                   </>
                 ) : (

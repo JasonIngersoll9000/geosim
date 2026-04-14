@@ -7,8 +7,8 @@ import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
 import { TopBar } from '@/components/ui/TopBar'
 import { DocumentIdHeader } from '@/components/ui/DocumentIdHeader'
 import { BranchTree } from '@/components/scenario/BranchTree'
-import type { BranchNode, ActorOption, TurnData } from '@/components/scenario/BranchTree'
-import { DEV_TRUNK_BRANCH, DEV_ACTORS } from '@/lib/game/dev-branches'
+import type { BranchNode, ActorOption, TurnData, ActorSnapshot } from '@/components/scenario/BranchTree'
+import { DEV_TRUNK_BRANCH, DEV_ACTORS, DEV_ACTOR_SNAPSHOTS } from '@/lib/game/dev-branches'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -64,7 +64,10 @@ function formatTurnDate(iso: string): string {
 
 // ─── Build tree for BranchTree component ────────────────────────────────────
 
-function buildBranchTree(rows: RawBranch[]): BranchNode | null {
+function buildBranchTree(
+  rows: RawBranch[],
+  actorSnapshotsByTurn?: Record<number, ActorSnapshot[]>
+): BranchNode | null {
   // Build a global commit-id → turn_number map across all branches
   const commitTurnMap = new Map<string, number>()
   for (const row of rows) {
@@ -85,13 +88,14 @@ function buildBranchTree(rows: RawBranch[]): BranchNode | null {
         ? (commitTurnMap.get(row.fork_point_commit_id) ?? 1)
         : 1
 
-    // Build per-turn event data from commits
+    // Build per-turn event data from commits (with optional actor snapshots)
     const turns: TurnData[] = commits
       .map(c => ({
         turn: c.turn_number,
         date: c.simulated_date ? formatTurnDate(c.simulated_date) : undefined,
         label: c.chronicle_headline ?? undefined,
         significance: getSignificance(c.chronicle_headline),
+        actorSnapshots: actorSnapshotsByTurn?.[c.turn_number],
       }))
       .sort((a, b) => a.turn - b.turn)
 
@@ -460,7 +464,7 @@ function BranchCard({ branch, scenarioId }: { branch: BranchRecord; scenarioId: 
 const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
 const devRawBranches: RawBranch[] = isDevMode ? [DEV_TRUNK_BRANCH as RawBranch] : []
 const devInitialBranches = isDevMode ? buildBranchList(devRawBranches) : []
-const devInitialRoot     = isDevMode ? buildBranchTree(devRawBranches) : null
+const devInitialRoot     = isDevMode ? buildBranchTree(devRawBranches, DEV_ACTOR_SNAPSHOTS) : null
 const devInitialActors: ActorOption[] = isDevMode
   ? DEV_ACTORS.map(a => ({ id: a.id, name: a.name, flag: (a.short_name ?? a.name.slice(0, 3)).toUpperCase() }))
   : []
