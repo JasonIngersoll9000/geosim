@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useGame } from '@/components/providers/GameProvider'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import type { Scenario } from '@/lib/types/simulation'
 
 export type RealtimeStatus = 'connecting' | 'connected' | 'disconnected' | 'error'
@@ -77,7 +78,7 @@ export function useRealtime(
           table: 'turn_commits',
           filter: `branch_id=eq.${branchId}`,
         },
-        (evt) => {
+        (evt: RealtimePostgresChangesPayload<TurnCommitPayload>) => {
           const row = evt.new as TurnCommitPayload
           onTurnCommitRef.current?.(row)
         }
