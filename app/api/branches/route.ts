@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
+import { DEV_TRUNK_BRANCH, DEV_ACTORS } from '@/lib/game/dev-branches'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -8,6 +9,11 @@ export async function GET(request: Request) {
 
   if (!scenarioId) {
     return NextResponse.json({ error: 'scenarioId is required' }, { status: 400 })
+  }
+
+  // Dev-mode: return realistic mock branch data without hitting Supabase
+  if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+    return NextResponse.json({ branches: [DEV_TRUNK_BRANCH], actors: DEV_ACTORS })
   }
 
   try {
@@ -62,6 +68,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  // Dev-mode fast path: skip DB entirely, return a synthetic branch ID so the
+  // play page (which also bypasses Supabase in dev mode) can still load.
+  if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+    const body = (await request.json()) as { scenarioId?: string; forkTurn?: number }
+    const devBranchId = `dev-branch-t${body.forkTurn ?? 1}-${Date.now()}`
+    return NextResponse.json({ id: devBranchId, dev: true })
+  }
+
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
   }

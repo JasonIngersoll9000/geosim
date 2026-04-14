@@ -386,7 +386,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
 
           <div className="border-b border-[#1a1a1a] mb-4">
             <DocumentIdHeader
-              scenarioCode={`GEOSIM-${params.id.toUpperCase().slice(0, 12)}`}
+              scenarioCode={`WAR-GAME-${params.id.toUpperCase().slice(0, 12)}`}
               branchName="SELECT BRANCH"
             />
           </div>

@@ -21,6 +21,7 @@ import { DispatchTerminal } from '@/components/game/DispatchTerminal'
 import { ObserverOverlay } from '@/components/panels/ObserverOverlay'
 import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
 import { ProgressBar } from '@/components/ui/ProgressBar'
+import { Tooltip } from '@/components/ui/Tooltip'
 import type { DispatchLine } from '@/components/game/DispatchTerminal'
 import type { ActorSummary, ActorDetail, DecisionDetail, ActionSlot } from '@/lib/types/panels'
 import type { GameInitialData, ChronicleEntry } from '@/lib/types/game-init'
@@ -213,7 +214,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   const [controlledActors, setControlledActors]             = useState<string[] | null>(null)
   const [forkingBranch, setForkingBranch]                   = useState(false)
   const [activeTab, setActiveTab]                           = useState<PanelTab>('actors')
-  const [showObserver, setShowObserver]                     = useState(true)
+  const [showObserver, setShowObserver]                     = useState(initialData.branch.isTrunk)
   const [omniscientMode, setOmniscientMode]                 = useState(false)
   const [selectedDecisionDetail, setSelectedDecisionDetail] = useState<DecisionDetail | null>(null)
   const [decisionPanelOpen, setDecisionPanelOpen]           = useState(false)
@@ -242,14 +243,17 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
           // chronicle entries appear immediately without waiting for a
           // full page re-render (router.refresh updates server components
           // but doesn't reset initialized client state).
+          const rtShort = payload.chronicle_entry ?? payload.narrative_entry ?? 'Turn resolved.'
+          const rtLong  = payload.narrative_entry ?? ''
+          const rtDetail = payload.chronicle_entry && rtLong && rtLong.trim() !== rtShort.trim()
+            ? rtLong
+            : undefined
           const newEntry: ChronicleEntry = {
             turnNumber: payload.turn_number,
             date:       payload.simulated_date ?? new Date().toISOString().slice(0, 10),
             title:      payload.chronicle_headline ?? `Turn ${payload.turn_number}`,
-            narrative:  payload.chronicle_entry ?? payload.narrative_entry ?? 'Turn resolved.',
-            detail:     payload.chronicle_entry && payload.narrative_entry
-              ? payload.narrative_entry
-              : undefined,
+            narrative:  rtShort,
+            detail:     rtDetail,
             severity: 'major',
             tags: [],
           }
@@ -405,6 +409,9 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     if (isComplete) {
       setTurnNumber(prev => prev + 1)
       setActiveTab('chronicle')
+      // Refresh server components (TopBar turn counter, actor scores, branch state)
+      // so the turn number in TopBar stays in sync with the indicators bar.
+      router.refresh()
     } else {
       // Error dismiss: clear plan slots and stay on decisions so user can retry
       setPrimaryAction(null)
@@ -435,7 +442,13 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
       const res = await fetch('/api/branches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenarioId }),
+        // Pass forkTurn (current turn) and parentBranchId so the API can set
+        // the correct fork_point_commit_id on the newly created branch.
+        body: JSON.stringify({
+          scenarioId,
+          forkTurn:       turnNumber,
+          parentBranchId: branchId,
+        }),
       })
       if (res.ok) {
         const json = await res.json() as { id?: string }
@@ -449,6 +462,22 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     } finally {
       setForkingBranch(false)
     }
+  }
+
+  const handlePrevGroundTruthEvent = () => {
+    if (gtIndex <= 0) return
+    const newIndex = gtIndex - 1
+    const commit = initialData.groundTruthCommits[newIndex]
+    if (!commit) return
+    setGtIndex(newIndex)
+    setTurnNumber(commit.turnNumber)
+    setTurnCommitId(commit.id)
+    setGtHasNext(true) // always has next after going back
+    setDispatchLines([{
+      timestamp: new Date().toISOString().slice(11, 19),
+      text: `GROUND TRUTH — TURN ${commit.turnNumber} — ${commit.simulatedDate}`,
+      type: 'info',
+    }])
   }
 
   const handleNextGroundTruthEvent = async () => {
@@ -509,7 +538,9 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
       <div className="flex items-center gap-4 px-4 py-2 bg-bg-surface-dim border-b border-border-subtle font-mono text-2xs shrink-0 overflow-x-auto">
         <span className="text-text-tertiary shrink-0">OIL: <span className="text-status-critical">{oilPriceUsd !== null ? `$${oilPriceUsd}/bbl` : '—'}</span></span>
         <span className="text-text-tertiary shrink-0">
-          TURN: <span className="text-text-secondary">{String(turnNumber).padStart(2, '0')} / 12</span>
+          TURN: <span className="text-text-secondary">
+            {String(turnNumber).padStart(2, '0')} / {String(initialData.groundTruthCommits.length || 12).padStart(2, '0')}
+          </span>
         </span>
         <span className="text-text-tertiary shrink-0">
           PHASE: <TurnPhaseIndicator phase={state.turnPhase || 'planning'} />
@@ -679,25 +710,39 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             </div>
           )}
 
-          {/* NEXT EVENT / FORK button — ground truth observer mode */}
+          {/* PREV / NEXT EVENT / FORK — ground truth observer navigation */}
           {isGtMode && (
-            <div className="shrink-0 px-3 pt-2">
+            <div className="shrink-0 px-3 pt-2 flex gap-2">
+              {/* Back button — visible once at least one step has been taken */}
+              <button
+                onClick={handlePrevGroundTruthEvent}
+                disabled={gtIndex <= 0}
+                className="py-2 px-3 font-mono text-xs border border-border-subtle text-text-tertiary hover:text-text-secondary hover:border-border-hi transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+                title="Previous turn"
+              >
+                ← PREV
+              </button>
+
               {gtHasNext ? (
-                <button
-                  onClick={handleNextGroundTruthEvent}
-                  disabled={gtLoading}
-                  className="w-full py-2 font-mono text-xs font-semibold bg-surface-3 border border-border-subtle text-text-secondary hover:text-text-primary hover:border-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {gtLoading ? 'LOADING…' : 'NEXT EVENT →'}
-                </button>
+                <Tooltip content="Step forward to the next resolved turn in the Ground Truth timeline." placement="top" maxWidth={200} display="flex" className="flex-1">
+                  <button
+                    onClick={handleNextGroundTruthEvent}
+                    disabled={gtLoading}
+                    className="w-full py-2 font-mono text-xs font-semibold bg-surface-3 border border-border-subtle text-text-secondary hover:text-text-primary hover:border-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {gtLoading ? 'LOADING…' : 'NEXT EVENT →'}
+                  </button>
+                </Tooltip>
               ) : (
-                <button
-                  onClick={() => void handleForkNewBranch()}
-                  disabled={forkingBranch}
-                  className="w-full py-2 font-mono text-xs font-semibold border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {forkingBranch ? 'CREATING BRANCH…' : 'FORK NEW BRANCH →'}
-                </button>
+                <Tooltip content="Create a diverging timeline from this turn. You take control and make decisions independently from the Ground Truth." placement="top" maxWidth={220} display="flex" className="flex-1">
+                  <button
+                    onClick={() => void handleForkNewBranch()}
+                    disabled={forkingBranch}
+                    className="w-full py-2 font-mono text-xs font-semibold border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {forkingBranch ? 'CREATING BRANCH…' : 'FORK NEW BRANCH →'}
+                  </button>
+                </Tooltip>
               )}
             </div>
           )}

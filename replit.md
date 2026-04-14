@@ -1,6 +1,6 @@
-# GeoSim on Replit
+# War Game on Replit
 
-GeoSim is an AI-powered strategic simulation engine that models competitive dynamics between actors (nations, organizations, political factions) through an interactive decision-making loop with branching scenario trees.
+War Game is an AI-powered strategic simulation engine that models competitive dynamics between actors (nations, organizations, political factions) through an interactive decision-making loop with branching scenario trees.
 
 ## Tech Stack
 

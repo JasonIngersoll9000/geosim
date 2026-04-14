@@ -1,6 +1,7 @@
 // RSC boundary: async server component — no 'use client'
 import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
 import { TopBar } from '@/components/ui/TopBar'
+import { HowToPlayButton } from '@/components/ui/HowToPlayButton'
 import { GameProvider } from '@/components/providers/GameProvider'
 import { GameView } from '@/components/game/GameView'
 import { createClient } from '@/lib/supabase/server'
@@ -24,21 +25,50 @@ export default async function PlayPage({ params }: Props) {
   // local data files so the UI can be tested without any Supabase connection.
   if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
     const devData = getIranSeedSnapshot()
+
+    // A forked branch in dev mode has an ID like "dev-branch-t5-1234567890".
+    // Detect this to set isTrunk=false so the DECISIONS tab and TurnPlanBuilder
+    // are accessible (they are hidden in Ground Truth / observer mode).
+    const isDevFork = params.branchId.startsWith('dev-branch-')
+    const forkTurnMatch = isDevFork ? params.branchId.match(/dev-branch-t(\d+)-/) : null
+    const forkTurn = forkTurnMatch ? parseInt(forkTurnMatch[1], 10) : devData.branch.turnNumber
+
+    // For a dev fork, filter chronicle to only include entries up to the fork point
+    // so the simulation starts from the correct history.
+    const devChronicle = isDevFork
+      ? devData.chronicle.filter(e => e.turnNumber <= forkTurn)
+      : devData.chronicle
+
+    const devDataForBranch = isDevFork
+      ? {
+          ...devData,
+          branch: {
+            id:           params.branchId,
+            name:         `Player Branch (T${forkTurn})`,
+            isTrunk:      false,
+            headCommitId: `dev-commit-${forkTurn}`,
+            turnNumber:   forkTurn,
+          },
+          chronicle: devChronicle,
+        }
+      : devData
+
     return (
-      <GameProvider initialData={devData}>
-        <ClassificationBanner classification={`TOP SECRET // NOFORN // DEV MODE`} />
+      <GameProvider initialData={devDataForBranch}>
+        <ClassificationBanner classification="TOP SECRET // NOFORN // DEV MODE" />
         <TopBar
-          scenarioName={devData.scenario.name}
+          scenarioName={devDataForBranch.scenario.name}
           scenarioHref={`/scenarios/${params.id}`}
-          turnNumber={devData.branch.turnNumber}
+          turnNumber={devDataForBranch.branch.turnNumber}
           totalTurns={devData.groundTruthCommits.length}
-          phase="Observer"
+          phase={isDevFork ? 'Planning' : 'Observer'}
+          howToPlaySlot={<HowToPlayButton />}
         />
         <main className="h-screen pt-[66px] overflow-hidden">
           <GameView
             branchId={params.branchId}
             scenarioId={params.id}
-            initialData={devData}
+            initialData={devDataForBranch}
           />
         </main>
       </GameProvider>
@@ -68,25 +98,35 @@ export default async function PlayPage({ params }: Props) {
     .eq('id', scenarioId)
     .single()
 
-  // 2. Fetch branch record — support "trunk" slug by looking up is_trunk branch
+  // 2. Fetch branch record — support "trunk" slug by looking up is_trunk branch.
+  //    Also fetch lineage columns (parent_branch_id, fork_point_commit_id) so
+  //    forked branches can reconstruct trunk history up to the fork point.
+  type BranchRow = {
+    id: string
+    name: string
+    is_trunk: boolean
+    head_commit_id: string | null
+    parent_branch_id: string | null
+    fork_point_commit_id: string | null
+  }
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-  let branchData: { id: string; name: string; is_trunk: boolean; head_commit_id: string | null } | null = null
+  let branchData: BranchRow | null = null
   if (UUID_RE.test(params.branchId)) {
     const { data } = await supabase
       .from('branches')
-      .select('id, name, is_trunk, head_commit_id')
+      .select('id, name, is_trunk, head_commit_id, parent_branch_id, fork_point_commit_id')
       .eq('id', params.branchId)
       .single()
-    branchData = data
+    branchData = data as BranchRow | null
   } else {
     // slug like "trunk" → look up trunk branch for this scenario
     const { data } = await supabase
       .from('branches')
-      .select('id, name, is_trunk, head_commit_id')
+      .select('id, name, is_trunk, head_commit_id, parent_branch_id, fork_point_commit_id')
       .eq('scenario_id', scenarioId)
       .eq('is_trunk', true)
       .single()
-    branchData = data
+    branchData = data as BranchRow | null
   }
   const branch = branchData
 
@@ -132,12 +172,84 @@ export default async function PlayPage({ params }: Props) {
     }
   }
 
-  // 5. Fetch chronicle (turn_commits on this branch)
-  const { data: commits } = await supabase
-    .from('turn_commits')
-    .select('turn_number, simulated_date, narrative_entry, chronicle_headline, chronicle_entry, chronicle_date_label, context_summary, is_decision_point')
-    .eq('branch_id', branch?.id ?? params.branchId)
-    .order('turn_number', { ascending: true })
+  // 5. Fetch chronicle using branch-lineage logic:
+  //    • Trunk branches: all commits on this branch, ordered by turn_number.
+  //    • Forked branches: trunk commits up to (and including) the fork turn,
+  //      PLUS this branch's own commits after the fork — giving a contiguous,
+  //      correctly scoped history.
+  //    We derive the fork turn number by resolving fork_point_commit_id → turn_number.
+  const COMMIT_COLS = 'turn_number, simulated_date, narrative_entry, chronicle_headline, chronicle_entry, chronicle_date_label, context_summary, is_decision_point'
+
+  type CommitRow = {
+    turn_number: number
+    simulated_date: string
+    narrative_entry: string | null
+    chronicle_headline: string | null
+    chronicle_entry: string | null
+    chronicle_date_label: string | null
+    context_summary: string | null
+    is_decision_point: boolean | null
+  }
+
+  let commits: CommitRow[] | null = null
+
+  const isForkedBranch = !!(branch && !branch.is_trunk && branch.parent_branch_id)
+
+  if (isForkedBranch && branch) {
+    // Step 5a: Resolve the fork turn number from the fork_point_commit_id.
+    let forkTurnNumber: number | null = null
+    if (branch.fork_point_commit_id) {
+      const { data: forkCommit } = await supabase
+        .from('turn_commits')
+        .select('turn_number')
+        .eq('id', branch.fork_point_commit_id)
+        .single()
+      forkTurnNumber = forkCommit?.turn_number ?? null
+    }
+
+    // Step 5b: Fetch trunk history up to fork turn.
+    const { data: trunkCommits } = forkTurnNumber !== null
+      ? await supabase
+          .from('turn_commits')
+          .select(COMMIT_COLS)
+          .eq('branch_id', branch.parent_branch_id)
+          .lte('turn_number', forkTurnNumber)
+          .order('turn_number', { ascending: true })
+      : { data: [] as CommitRow[] }
+
+    // Step 5c: Fetch branch-specific commits after the fork turn.
+    const { data: branchCommits } = forkTurnNumber !== null
+      ? await supabase
+          .from('turn_commits')
+          .select(COMMIT_COLS)
+          .eq('branch_id', branch.id)
+          .gt('turn_number', forkTurnNumber)
+          .order('turn_number', { ascending: true })
+      : await supabase
+          .from('turn_commits')
+          .select(COMMIT_COLS)
+          .eq('branch_id', branch.id)
+          .order('turn_number', { ascending: true })
+
+    // Merge trunk ancestry + branch divergence, deduplicated by turn_number
+    // (branch commits win in case of any overlap).
+    const mergedMap = new Map<number, CommitRow>()
+    for (const c of (trunkCommits ?? []) as CommitRow[]) {
+      mergedMap.set(c.turn_number, c)
+    }
+    for (const c of (branchCommits ?? []) as CommitRow[]) {
+      mergedMap.set(c.turn_number, c)
+    }
+    commits = Array.from(mergedMap.values()).sort((a, b) => a.turn_number - b.turn_number)
+  } else {
+    // Trunk branch (or unknown): simple single-branch query
+    const { data } = await supabase
+      .from('turn_commits')
+      .select(COMMIT_COLS)
+      .eq('branch_id', branch?.id ?? params.branchId)
+      .order('turn_number', { ascending: true })
+    commits = data as CommitRow[] | null
+  }
 
   // 6. Fetch ground truth branch
   const { data: trunkBranch } = await supabase
@@ -242,15 +354,21 @@ export default async function PlayPage({ params }: Props) {
   }
 
   const chronicle: ChronicleEntry[] = (commits ?? []).map(c => {
-    // Use chronicle_entry as the short narrative; narrative_entry as the expandable detail.
-    // If only narrative_entry exists, it becomes the main narrative (no separate detail).
-    const hasShortAndLong = !!(c.chronicle_entry && c.narrative_entry)
+    // chronicle_entry = short summary shown above the fold.
+    // narrative_entry = extended full briefing shown when user expands.
+    // Only expose a distinct "Full Briefing" when narrative_entry is non-empty
+    // AND actually different from chronicle_entry (prevents duplicate text).
+    const shortNarrative = c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.'
+    const longNarrative  = c.narrative_entry ?? ''
+    const distinctDetail = c.chronicle_entry && longNarrative && longNarrative.trim() !== shortNarrative.trim()
+      ? longNarrative
+      : undefined
     return {
       turnNumber: c.turn_number,
       date: c.simulated_date,
       title: c.chronicle_headline ?? `Turn ${c.turn_number}`,
-      narrative: c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.',
-      detail: hasShortAndLong ? c.narrative_entry ?? undefined : undefined,
+      narrative: shortNarrative,
+      detail: distinctDetail,
       dateLabel: c.chronicle_date_label ?? undefined,
       contextSummary: c.context_summary ?? undefined,
       isDecisionPoint: c.is_decision_point ?? false,
@@ -301,6 +419,7 @@ export default async function PlayPage({ params }: Props) {
         turnNumber={turnNumber}
         totalTurns={gtCommits.length}
         phase={branch?.is_trunk ? 'Observer' : 'Planning'}
+        howToPlaySlot={<HowToPlayButton />}
       />
       <main className="h-screen pt-[66px] overflow-hidden">
         <GameView

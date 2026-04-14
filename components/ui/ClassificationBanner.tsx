@@ -1,5 +1,5 @@
 export function ClassificationBanner({
-  classification = "SECRET // GEOSIM ANALYTICAL FRAMEWORK // FOR RESEARCH USE ONLY",
+  classification = "SECRET // WAR GAME ANALYTICAL FRAMEWORK // FOR RESEARCH USE ONLY",
 }: {
   classification?: string;
 }) {

@@ -1,6 +1,7 @@
 'use client'
 
 import type { EscalationRungSummary } from '@/lib/types/panels'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface Props {
   rungs: EscalationRungSummary[]
@@ -39,17 +40,24 @@ export function EscalationLadder({ rungs, currentRung, actorColor }: Props) {
           >
             {/* Left gutter: spine + level number */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 24, flexShrink: 0 }}>
-              <div style={{
-                width:        24, height: 24, borderRadius: '50%', display: 'flex',
-                alignItems:   'center', justifyContent: 'center',
-                flexShrink:   0,
-                background:   isCurrent ? actorColor : isPast ? `${actorColor}44` : 'transparent',
-                border:       `1px solid ${isCurrent ? actorColor : isPast ? `${actorColor}44` : '#3a3a3a'}`,
-                fontSize:     9, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace",
-                color:        isCurrent ? '#0d0d0d' : isPast ? actorColor : '#555',
-              }}>
-                {rung.level}
-              </div>
+              <Tooltip
+                content={isCurrent ? `Current posture: ${rung.name}` : isPast ? `Past posture (rung ${rung.level})` : `Future escalation step — not yet reached`}
+                placement="right"
+                maxWidth={180}
+              >
+                <div style={{
+                  width:        24, height: 24, borderRadius: '50%', display: 'flex',
+                  alignItems:   'center', justifyContent: 'center',
+                  flexShrink:   0,
+                  background:   isCurrent ? actorColor : isPast ? `${actorColor}44` : 'transparent',
+                  border:       `1px solid ${isCurrent ? actorColor : isPast ? `${actorColor}44` : '#3a3a3a'}`,
+                  fontSize:     9, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace",
+                  color:        isCurrent ? '#0d0d0d' : isPast ? actorColor : '#555',
+                  cursor: 'default',
+                }}>
+                  {rung.level}
+                </div>
+              </Tooltip>
               {/* Spine connector — skip for last item */}
               {i < sorted.length - 1 && (
                 <div style={{
@@ -114,15 +122,43 @@ export function EscalationLadder({ rungs, currentRung, actorColor }: Props) {
                 )}
               </div>
 
-              {/* Description */}
-              {isCurrent && rung.description && (
+              {/* Description — shown for all rungs, slightly muted for non-current */}
+              {rung.description && (
                 <p style={{
                   fontFamily: "'Newsreader', serif",
-                  fontSize: 11, color: '#a8a6a0', lineHeight: 1.5,
+                  fontSize: isCurrent ? 11 : 10,
+                  color: isCurrent ? '#a8a6a0' : '#5a5856',
+                  lineHeight: 1.5,
                   margin: '3px 0 4px',
+                  fontStyle: isCurrent ? 'normal' : 'italic',
                 }}>
                   {rung.description}
                 </p>
+              )}
+
+              {/* Trigger/threshold — what causes transition to this rung */}
+              {rung.trigger && (
+                <div style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 4,
+                  marginBottom: 4,
+                }}>
+                  <span style={{
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: 8, color: '#4a6a4a', flexShrink: 0, marginTop: 1,
+                    letterSpacing: '0.08em',
+                  }}>
+                    THRESHOLD:
+                  </span>
+                  <span style={{
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: 8,
+                    color: isCurrent ? '#6a9e6a' : '#3a5a3a',
+                    lineHeight: 1.5,
+                    letterSpacing: '0.04em',
+                  }}>
+                    {rung.trigger}
+                  </span>
+                </div>
               )}
 
               {/* Reversibility badge */}

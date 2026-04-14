@@ -6,6 +6,33 @@ import { useReducedMotion } from 'framer-motion'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+/** Scenario-state snapshot for a single actor at a given turn */
+export interface ActorSnapshot {
+  actorId: string
+  actorName: string
+  /** Escalation rung 1 (ceasefire) → 10 (full-scale war) */
+  escalationRung: number
+  /** Military readiness score 0–100 */
+  military: number
+  /** Economic stability score 0–100 */
+  economic: number
+  /** Political cohesion score 0–100 */
+  political: number
+}
+
+/** Per-turn event data for trunk / branch nodes */
+export interface TurnData {
+  turn: number
+  /** Human-readable in-world date, e.g. "Apr 1 2025" */
+  date?: string
+  /** Chronicle headline / event label for this turn */
+  label?: string
+  /** Visual significance tier */
+  significance: 'high' | 'medium' | 'low'
+  /** Actor-level state snapshot at this turn */
+  actorSnapshots?: ActorSnapshot[]
+}
+
 /**
  * All turn values are ABSOLUTE (1-indexed global turn number).
  * Invariant: headTurn >= forkTurn for every non-trunk node.
@@ -31,6 +58,8 @@ export interface BranchNode {
   escalationDirection?: 'up' | 'down' | 'lateral'
   /** Number of cached alternate responses available at this node */
   cachedAlternates?: number
+  /** Per-turn event data (for trunk: all resolved turns; for branches: at least the head) */
+  turns?: TurnData[]
 }
 
 export interface ActorOption {
@@ -59,7 +88,14 @@ const GOLD_DIM   = 'rgba(255,186,32,0.28)'
 const BRANCH_DIM = '#5a4f32'
 const ARCHIVED   = '#2e2e2e'
 const LINE_GREY  = '#2a2a2a'
-const PANEL_W    = 284
+const PANEL_W    = 300
+
+// Significance-based styling
+const SIG_HIGH_FILL   = '#2a0a0a'
+const SIG_HIGH_STROKE = '#e74c3c'
+const SIG_HIGH_R      = TRUNK_R + 4
+const SIG_MED_R       = TRUNK_R + 1
+const SIG_MED_STROKE  = '#e8a020'
 
 // ─── Layout helpers ──────────────────────────────────────────────────────────
 
@@ -97,6 +133,8 @@ interface PanelState {
   panelLeft: number
   /** Top edge of panel, relative to the outer container div */
   panelTop: number
+  /** When clicking a specific trunk turn, the per-turn event data */
+  activeTurn?: TurnData
 }
 
 // ─── Node info panel ─────────────────────────────────────────────────────────
@@ -115,7 +153,7 @@ function NodePanel({
   onClose: () => void
 }) {
   const router = useRouter()
-  const { node } = state
+  const { node, activeTurn } = state
   const [selectedActor, setSelectedActor] = useState<string>(
     node.controlledActor
       ? (actors.find(a => a.name === node.controlledActor)?.id ?? 'observer')
@@ -126,6 +164,16 @@ function NodePanel({
   const clampedLeft = Math.min(Math.max(state.panelLeft, 0), Math.max(containerWidth - PANEL_W - 8, 0))
 
   const borderColor = node.isTrunk ? GOLD : (node.status === 'archived' ? '#3a3a3a' : BRANCH_DIM)
+
+  // Resolve display values: prefer turn-specific data when available
+  const displayDate = activeTurn?.date ?? (
+    node.turnDate
+      ? new Date(node.turnDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : undefined
+  )
+  const displayTurn = activeTurn?.turn ?? node.headTurn
+  const eventLabel  = activeTurn?.label
+  const sigLevel    = activeTurn?.significance
 
   function handleEnter() {
     const actorParam = selectedActor !== 'observer' ? `?actor=${selectedActor}` : ''
@@ -147,9 +195,15 @@ function NodePanel({
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
-        <span className="font-label text-[11px] font-semibold uppercase tracking-[0.05em] text-text-primary leading-tight">
-          {node.name}
-        </span>
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-text-tertiary">
+            {node.isTrunk ? '● GROUND TRUTH' : `⎇ ${node.name}`}
+          </span>
+          <span className="font-label text-[11px] font-semibold uppercase tracking-[0.05em] text-text-primary leading-tight">
+            T{String(displayTurn).padStart(2, '0')}
+            {displayDate ? ` — ${displayDate}` : ''}
+          </span>
+        </div>
         <button
           onClick={onClose}
           className="font-mono text-[11px] text-text-tertiary hover:text-text-secondary transition-colors shrink-0"
@@ -158,42 +212,82 @@ function NodePanel({
         </button>
       </div>
 
+      {/* Event label (chronicle headline) */}
+      {eventLabel && (
+        <div
+          style={{
+            fontSize: 10,
+            color: sigLevel === 'high' ? '#e74c3c' : GOLD,
+            fontFamily: "'IBM Plex Mono', monospace",
+            lineHeight: 1.5,
+            letterSpacing: '0.02em',
+            borderLeft: `2px solid ${sigLevel === 'high' ? '#e74c3c44' : GOLD_DIM}`,
+            paddingLeft: 8,
+          }}
+        >
+          {eventLabel}
+        </div>
+      )}
+
+      {/* Significance badge */}
+      {sigLevel && sigLevel !== 'low' && (
+        <div style={{ display: 'flex', gap: 6 }}>
+          <span style={{
+            padding: '1px 6px',
+            fontSize: 8,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            fontFamily: "'IBM Plex Mono', monospace",
+            color: sigLevel === 'high' ? '#e74c3c' : '#e8a020',
+            background: sigLevel === 'high' ? 'rgba(231,76,60,0.12)' : 'rgba(232,160,32,0.12)',
+            border: `1px solid ${sigLevel === 'high' ? '#e74c3c44' : '#e8a02044'}`,
+          }}>
+            {sigLevel === 'high' ? '⚠ HIGH SIGNIFICANCE' : 'NOTABLE EVENT'}
+          </span>
+        </div>
+      )}
+
+      {/* Actor state snapshots at this turn */}
+      {activeTurn?.actorSnapshots && activeTurn.actorSnapshots.length > 0 && (
+        <div style={{ borderTop: '1px solid #1c1c1c', paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 8, letterSpacing: '0.1em', color: '#555', textTransform: 'uppercase' }}>
+            SCENARIO STATE — T{String(displayTurn).padStart(2, '0')}
+          </span>
+          {activeTurn.actorSnapshots.map(snap => (
+            <ActorStateRow key={snap.actorId} snap={snap} />
+          ))}
+        </div>
+      )}
+
       {/* Metadata */}
       <div className="flex flex-col gap-1">
-        {/* Date display */}
-        <div style={{ fontSize: 9, color: '#8a8880', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
-          {node.turnDate
-            ? new Date(node.turnDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-            : `Turn ${node.headTurn}`
-          }
-        </div>
-
         {/* Node type badge + escalation direction */}
-        <div className="flex items-center" style={{ marginBottom: 4 }}>
-          {node.nodeType && (
-            <span style={{
-              padding: '1px 5px', borderRadius: 2, fontSize: 8,
-              textTransform: 'uppercase', letterSpacing: '0.1em',
-              color: node.nodeType === 'action' ? '#5dade2' : '#f39c12',
-              background: node.nodeType === 'action' ? 'rgba(41,128,185,0.15)' : 'rgba(230,126,34,0.15)',
-              border: `1px solid ${node.nodeType === 'action' ? '#2980b944' : '#e67e2244'}`,
-              marginRight: 6,
-            }}>
-              {node.nodeType.toUpperCase()}
-            </span>
-          )}
-          {node.escalationDirection && (
-            <span style={{
-              fontSize: 10,
-              color: node.escalationDirection === 'up' ? '#e74c3c' : node.escalationDirection === 'down' ? '#2ecc71' : '#f39c12',
-            }}>
-              {node.escalationDirection === 'up' ? '↑' : node.escalationDirection === 'down' ? '↓' : '→'}
-            </span>
-          )}
-        </div>
+        {(node.nodeType || node.escalationDirection) && (
+          <div className="flex items-center" style={{ marginBottom: 4 }}>
+            {node.nodeType && (
+              <span style={{
+                padding: '1px 5px', borderRadius: 2, fontSize: 8,
+                textTransform: 'uppercase', letterSpacing: '0.1em',
+                color: node.nodeType === 'action' ? '#5dade2' : '#f39c12',
+                background: node.nodeType === 'action' ? 'rgba(41,128,185,0.15)' : 'rgba(230,126,34,0.15)',
+                border: `1px solid ${node.nodeType === 'action' ? '#2980b944' : '#e67e2244'}`,
+                marginRight: 6,
+              }}>
+                {node.nodeType.toUpperCase()}
+              </span>
+            )}
+            {node.escalationDirection && (
+              <span style={{
+                fontSize: 10,
+                color: node.escalationDirection === 'up' ? '#e74c3c' : node.escalationDirection === 'down' ? '#2ecc71' : '#f39c12',
+              }}>
+                {node.escalationDirection === 'up' ? '↑ ESCALATING' : node.escalationDirection === 'down' ? '↓ DE-ESCALATING' : '→ STABLE'}
+              </span>
+            )}
+          </div>
+        )}
 
-        <MetaRow label="TURN" value={`${String(node.headTurn).padStart(2, '0')} / ${String(node.totalTurns).padStart(2, '0')}`} />
-        <MetaRow label="LAST ACTIVE" value={node.lastPlayedAt} />
+        <MetaRow label="TURN" value={`${String(displayTurn).padStart(2, '0')} / ${String(node.totalTurns).padStart(2, '0')}`} />
         <MetaRow
           label="STATUS"
           value={node.isTrunk ? 'GROUND TRUTH' : node.status.toUpperCase()}
@@ -248,6 +342,38 @@ function MetaRow({ label, value, valueColor }: { label: string; value: string; v
   )
 }
 
+function MiniBar({ value, color }: { value: number; color: string }) {
+  return (
+    <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 1, overflow: 'hidden' }}>
+      <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: 1 }} />
+    </div>
+  )
+}
+
+function ActorStateRow({ snap }: { snap: ActorSnapshot }) {
+  const rungColor = snap.escalationRung >= 8 ? '#e74c3c' : snap.escalationRung >= 6 ? '#e8a020' : '#2ecc71'
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 8, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          {snap.actorName}
+        </span>
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 8, color: rungColor, letterSpacing: '0.04em' }}>
+          RUNG {snap.escalationRung}/10
+        </span>
+      </div>
+      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 7, color: '#444', width: 18 }}>MIL</span>
+        <MiniBar value={snap.military} color="#5dade2" />
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 7, color: '#444', width: 18 }}>ECO</span>
+        <MiniBar value={snap.economic} color="#2ecc71" />
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 7, color: '#444', width: 18 }}>POL</span>
+        <MiniBar value={snap.political} color="#e8a020" />
+      </div>
+    </div>
+  )
+}
+
 function ActorChip({ id: _id, label, selected, onSelect }: { id: string; label: string; selected: boolean; onSelect: () => void }) {
   return (
     <button
@@ -284,16 +410,18 @@ export function BranchTree({ root, scenarioId, actors }: Props) {
    * Uses clientX/clientY + container bounding rect to stay scroll-aware.
    */
   const handleNodeClick = useCallback(
-    (e: React.MouseEvent, node: BranchNode, _row: number) => {
+    (e: React.MouseEvent, node: BranchNode, _row: number, activeTurn?: TurnData) => {
       e.stopPropagation()
-      if (panel?.node.id === node.id) { setPanel(null); return }
+      if (panel?.node.id === node.id && panel?.activeTurn?.turn === activeTurn?.turn) {
+        setPanel(null)
+        return
+      }
       const container = containerRef.current
       if (!container) return
       const rect = container.getBoundingClientRect()
-      // Position panel just below the click point, relative to the container
       const panelLeft = e.clientX - rect.left - 20
       const panelTop  = e.clientY - rect.top  + 14
-      setPanel({ node, panelLeft, panelTop })
+      setPanel({ node, panelLeft, panelTop, activeTurn })
     },
     [panel]
   )
@@ -323,23 +451,37 @@ export function BranchTree({ root, scenarioId, actors }: Props) {
           viewBox={`0 0 ${svgW} ${svgH}`}
           style={{ display: 'block', minWidth: svgW }}
         >
-          {/* ── Turn number labels ── */}
+          {/* ── Turn number + date labels ── */}
           {Array.from({ length: root.totalTurns }, (_, i) => {
             const t = i + 1
             const x = turnX(t)
             const resolved = t <= root.headTurn
+            const td = root.turns?.find(d => d.turn === t)
             return (
-              <text
-                key={`lbl-${t}`}
-                x={x} y={16}
-                textAnchor="middle"
-                fontFamily="'IBM Plex Mono', monospace"
-                fontSize={9}
-                fill={resolved ? 'rgba(255,186,32,0.6)' : 'rgba(255,255,255,0.12)'}
-                letterSpacing="0.08em"
-              >
-                T{String(t).padStart(2, '0')}
-              </text>
+              <g key={`lbl-${t}`}>
+                <text
+                  x={x} y={16}
+                  textAnchor="middle"
+                  fontFamily="'IBM Plex Mono', monospace"
+                  fontSize={9}
+                  fill={resolved ? 'rgba(255,186,32,0.6)' : 'rgba(255,255,255,0.12)'}
+                  letterSpacing="0.08em"
+                >
+                  T{String(t).padStart(2, '0')}
+                </text>
+                {td?.date && resolved && (
+                  <text
+                    x={x} y={28}
+                    textAnchor="middle"
+                    fontFamily="'IBM Plex Mono', monospace"
+                    fontSize={7}
+                    fill="rgba(255,186,32,0.35)"
+                    letterSpacing="0.04em"
+                  >
+                    {td.date}
+                  </text>
+                )}
+              </g>
             )
           })}
 
@@ -363,15 +505,46 @@ export function BranchTree({ root, scenarioId, actors }: Props) {
             const x = turnX(t)
             const resolved = t <= root.headTurn
             const isHead = t === root.headTurn
+            const td = root.turns?.find(d => d.turn === t)
+            const sig = td?.significance ?? 'low'
+
+            // Significance-based sizing and color
+            const nodeR      = sig === 'high' ? SIG_HIGH_R : sig === 'medium' ? SIG_MED_R : (isHead ? TRUNK_R + 1 : TRUNK_R)
+            const nodeStroke = sig === 'high' ? SIG_HIGH_STROKE : sig === 'medium' ? SIG_MED_STROKE : GOLD
+            const nodeFill   = sig === 'high' ? SIG_HIGH_FILL : '#0d0d0d'
+
             return (
               <g key={`tn-${t}`} data-node="1">
                 {resolved ? (
-                  <circle cx={x} cy={trunkY} r={isHead ? TRUNK_R + 1 : TRUNK_R}
-                    fill={isHead ? GOLD : '#0d0d0d'}
-                    stroke={GOLD} strokeWidth={isHead ? 2.5 : 2}
-                    style={{ cursor: 'pointer' }}
-                    onClick={e => handleNodeClick(e, root, 0)}
-                  />
+                  <>
+                    <circle cx={x} cy={trunkY} r={nodeR}
+                      fill={isHead ? (sig === 'high' ? SIG_HIGH_STROKE : GOLD) : nodeFill}
+                      stroke={nodeStroke} strokeWidth={isHead ? 2.5 : sig !== 'low' ? 2.5 : 2}
+                      style={{ cursor: 'pointer' }}
+                      onClick={e => handleNodeClick(e, root, 0, td)}
+                    />
+                    {/* Significance indicator dot for high events */}
+                    {sig === 'high' && !isHead && (
+                      <circle cx={x + nodeR - 2} cy={trunkY - nodeR + 2} r={3}
+                        fill={SIG_HIGH_STROKE}
+                        style={{ pointerEvents: 'none' }}
+                      />
+                    )}
+                    {/* On-tree event label: truncated headline below high/medium nodes */}
+                    {td?.label && sig !== 'low' && (
+                      <text
+                        x={x} y={trunkY + nodeR + 10}
+                        textAnchor="middle"
+                        fontFamily="'IBM Plex Mono', monospace"
+                        fontSize={6}
+                        fill={sig === 'high' ? 'rgba(231,76,60,0.7)' : 'rgba(232,160,32,0.55)'}
+                        letterSpacing="0.02em"
+                        style={{ pointerEvents: 'none' }}
+                      >
+                        {td.label.length > 22 ? td.label.slice(0, 20) + '…' : td.label}
+                      </text>
+                    )}
+                  </>
                 ) : (
                   <circle cx={x} cy={trunkY} r={TRUNK_R - 2}
                     fill="none" stroke="rgba(255,186,32,0.12)"
@@ -397,13 +570,17 @@ export function BranchTree({ root, scenarioId, actors }: Props) {
             const forkX   = turnX(node.forkTurn)
             const branchY = rowY(row)
 
-            // headTurn must be >= forkTurn (absolute turn semantics)
             const safeHeadTurn = Math.max(node.headTurn, node.forkTurn)
             const headX = turnX(safeHeadTurn)
 
             const isActive     = node.status === 'active'
             const lineColor    = isActive ? BRANCH_DIM : ARCHIVED
             const strokeColor  = isActive ? '#ffba20' : '#3a3a3a'
+
+            // Head turn significance for branch node
+            const headTd   = node.turns?.find(d => d.turn === safeHeadTurn)
+            const headSig  = headTd?.significance ?? 'low'
+            const bNodeR   = headSig === 'high' ? BRANCH_R + 3 : headSig === 'medium' ? BRANCH_R + 1 : BRANCH_R
 
             return (
               <g key={node.id}>
@@ -439,17 +616,18 @@ export function BranchTree({ root, scenarioId, actors }: Props) {
 
                 {/* Head node (clickable) */}
                 <circle
-                  cx={headX} cy={branchY} r={BRANCH_R}
+                  cx={headX} cy={branchY} r={bNodeR}
                   fill={isActive ? '#0d0d0d' : '#141414'}
-                  stroke={strokeColor} strokeWidth={isActive ? 2 : 1.5}
+                  stroke={headSig === 'high' ? SIG_HIGH_STROKE : strokeColor}
+                  strokeWidth={isActive ? 2 : 1.5}
                   style={{ cursor: 'pointer' }}
                   data-node="1"
-                  onClick={e => handleNodeClick(e, node, row)}
+                  onClick={e => handleNodeClick(e, node, row, headTd)}
                 />
 
                 {/* Pulse ring on active head nodes */}
                 {isActive && (
-                  <circle cx={headX} cy={branchY} r={BRANCH_R + 4}
+                  <circle cx={headX} cy={branchY} r={bNodeR + 4}
                     fill="none" stroke={GOLD_DIM} strokeWidth={1}
                     style={shouldSkip ? { opacity: 0.4 } : { animation: 'pulseRing 2s ease-out infinite' }}
                   />

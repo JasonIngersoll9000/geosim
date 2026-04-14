@@ -131,7 +131,11 @@ export function ObserverOverlay({
             onClick={onDismiss}
             className="flex-1 py-2 font-mono text-2xs uppercase tracking-[0.1em] text-text-primary bg-transparent border border-border-subtle hover:bg-bg-surface-high transition-colors"
           >
-            Continue Observing
+            {!omniscientMode && perspectiveActorId
+              ? `Play as ${actors.find(a => a.id === perspectiveActorId)?.shortName ?? perspectiveActorId.toUpperCase()}`
+              : omniscientMode
+                ? 'Enter Omniscient View'
+                : 'Continue Observing'}
           </button>
         </div>
       </div>

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { SlideOverPanel } from '@/components/ui/SlideOverPanel'
+import { useState, useEffect } from 'react'
 import { EscalationLadder } from '@/components/panels/EscalationLadder'
+import { getActorMilitaryByDomain } from '@/lib/game/military-assets'
 import type { ActorDetail } from '@/lib/types/panels'
 
 interface Props {
@@ -83,7 +83,6 @@ function ScoreBar({ label, value, isAdversary, actorColor }: {
 function OverviewTab({ actor }: { actor: ActorDetail }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Briefing */}
       {actor.briefing && (
         <section>
           <SectionLabel>Intelligence Briefing</SectionLabel>
@@ -103,7 +102,6 @@ function OverviewTab({ actor }: { actor: ActorDetail }) {
         </section>
       )}
 
-      {/* Objectives */}
       {actor.objectives.length > 0 && (
         <section>
           <SectionLabel>Strategic Objectives</SectionLabel>
@@ -120,27 +118,19 @@ function OverviewTab({ actor }: { actor: ActorDetail }) {
         </section>
       )}
 
-      {/* Strategic Doctrine */}
       {actor.strategicDoctrine && (
         <section>
           <SectionLabel>Strategic Doctrine</SectionLabel>
-          <p style={{
-            fontFamily: "'Newsreader', serif",
-            fontSize: 12, lineHeight: 1.65, color: '#a8a6a0',
-          }}>
+          <p style={{ fontFamily: "'Newsreader', serif", fontSize: 12, lineHeight: 1.65, color: '#a8a6a0' }}>
             {actor.strategicDoctrine}
           </p>
         </section>
       )}
 
-      {/* Win condition */}
       {actor.winCondition && (
         <section>
           <SectionLabel>Win / Success Condition</SectionLabel>
-          <p style={{
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: 11, lineHeight: 1.6, color: '#5ebd8e',
-          }}>
+          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, lineHeight: 1.6, color: '#5ebd8e' }}>
             {actor.winCondition}
           </p>
         </section>
@@ -149,31 +139,122 @@ function OverviewTab({ actor }: { actor: ActorDetail }) {
   )
 }
 
+function AssetRow({
+  name, description, quantity, unit, deploymentStatus, actorColor, isAdversary,
+}: {
+  name: string; description: string; quantity: number | null; unit: string | null
+  deploymentStatus: string; actorColor: string; isAdversary: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const displayName = isAdversary ? name.replace(/—.*/, '').trim() : name
+  const displayQty  = quantity !== null
+    ? (isAdversary
+        ? `~${Math.round(quantity / 100) * 100}${unit ? ' ' + unit : ''}`
+        : `${quantity.toLocaleString()}${unit ? ' ' + unit : ''}`)
+    : null
+  const truncDesc = isAdversary
+    ? description.split('. ').slice(0, 3).join('. ') + (description.split('. ').length > 3 ? '…' : '')
+    : description
+
+  return (
+    <div style={{
+      border: `1px solid ${open ? actorColor + '55' : '#1e1e1e'}`,
+      background: open ? `${actorColor}06` : 'transparent',
+      borderRadius: 2, overflow: 'hidden',
+    }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', textAlign: 'left', background: 'none', border: 'none',
+          cursor: 'pointer', padding: '7px 10px',
+          display: 'flex', alignItems: 'flex-start', gap: 7,
+        }}
+      >
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 8, color: actorColor, flexShrink: 0, marginTop: 2 }}>
+          {open ? '▼' : '▶'}
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, fontWeight: 600, color: '#e5e2e1', lineHeight: 1.3 }}>
+            {displayName}
+          </div>
+          {displayQty && (
+            <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: actorColor, marginTop: 1, letterSpacing: '0.05em' }}>
+              {displayQty}
+            </div>
+          )}
+        </div>
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 8, color: '#5ebd8e', flexShrink: 0, marginTop: 2, letterSpacing: '0.05em' }}>
+          {deploymentStatus === 'available' ? 'AVAIL' : deploymentStatus.toUpperCase()}
+        </span>
+      </button>
+      {open && (
+        <div style={{ padding: '0 10px 9px 25px' }}>
+          <p style={{
+            fontFamily: "'Newsreader', serif", fontSize: 11,
+            color: isAdversary ? '#c8a850' : '#8a8880',
+            lineHeight: 1.55, margin: 0,
+            fontStyle: isAdversary ? 'italic' : 'normal',
+          }}>
+            {truncDesc}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function MilitaryTab({ actor }: { actor: ActorDetail }) {
+  const domains = getActorMilitaryByDomain(actor.id)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Score bars */}
+      {/* Aggregate combat-power score bar from simulation state */}
       <section>
-        <SectionLabel>Operational Metrics</SectionLabel>
-        <ScoreBar label="Military Strength"   value={actor.militaryStrength}   isAdversary={actor.isAdversary} actorColor={actor.actorColor} />
-        <ScoreBar label="Economic Health"     value={actor.economicStrength}   isAdversary={actor.isAdversary} actorColor={actor.actorColor} />
-        <ScoreBar label="Political Stability" value={actor.politicalStability} isAdversary={actor.isAdversary} actorColor={actor.actorColor} />
+        <SectionLabel>Combat Power Index (Simulation State)</SectionLabel>
+        <ScoreBar
+          label="Military Strength"
+          value={actor.militaryStrength}
+          isAdversary={actor.isAdversary}
+          actorColor={actor.actorColor}
+        />
         {actor.isAdversary && (
-          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: '#f39c12', marginTop: 6, letterSpacing: '0.06em' }}>
-            ⚠ ADVERSARY DATA — ALL METRICS ARE ESTIMATES BASED ON AVAILABLE INTEL
+          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: '#f39c12', marginTop: 4, letterSpacing: '0.06em' }}>
+            ⚠ ADVERSARY — METRICS ESTIMATED FROM AVAILABLE INTEL
           </p>
         )}
       </section>
 
-      {/* Historical precedents */}
-      {actor.historicalPrecedents && (
+      {/* Domain-grouped capability sections */}
+      {domains.length > 0 ? (
+        domains.map(({ domain, label, items }) => (
+          <section key={domain}>
+            <SectionLabel>
+              {label}
+              {actor.isAdversary && <FowLabel label="PARTIAL INTEL" />}
+            </SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {items.map((asset, i) => (
+                <AssetRow
+                  key={i}
+                  name={asset.name}
+                  description={asset.description}
+                  quantity={asset.quantity}
+                  unit={asset.unit}
+                  deploymentStatus={asset.deploymentStatus}
+                  actorColor={actor.actorColor}
+                  isAdversary={actor.isAdversary}
+                />
+              ))}
+            </div>
+          </section>
+        ))
+      ) : (
         <section>
-          <SectionLabel>Historical Precedents</SectionLabel>
-          <p style={{
-            fontFamily: "'Newsreader', serif",
-            fontSize: 12, lineHeight: 1.65, color: '#a8a6a0',
-          }}>
-            {actor.historicalPrecedents}
+          <SectionLabel>Order of Battle &amp; Capabilities</SectionLabel>
+          <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: 'rgba(229,226,225,0.3)' }}>
+            {actor.isAdversary
+              ? 'CAPABILITY DATA REDACTED — INSUFFICIENT INTEL COVERAGE'
+              : 'Military capability data not available for this actor.'}
           </p>
         </section>
       )}
@@ -186,7 +267,6 @@ function EscalationTab({ actor }: { actor: ActorDetail }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Current rung summary */}
       <section>
         <SectionLabel>Current Posture</SectionLabel>
         <div style={{
@@ -202,10 +282,7 @@ function EscalationTab({ actor }: { actor: ActorDetail }) {
             </span>
             {actor.isAdversary && <FowLabel label="ESTIMATED" />}
           </div>
-          <div style={{
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 14, fontWeight: 700, color: actor.actorColor,
-          }}>
+          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, fontWeight: 700, color: actor.actorColor }}>
             {actor.escalationRungName}
           </div>
           {currentRungData?.description && (
@@ -216,7 +293,6 @@ function EscalationTab({ actor }: { actor: ActorDetail }) {
         </div>
       </section>
 
-      {/* Full ladder */}
       <section>
         <SectionLabel>Full Escalation Ladder</SectionLabel>
         {actor.escalationRungs.length > 0 ? (
@@ -248,7 +324,6 @@ function IntelligenceTab({ actor }: { actor: ActorDetail }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Intel confidence banner — derived from viewer's intel profile + stance */}
       <section>
         <SectionLabel>Intelligence Assessment Quality</SectionLabel>
         <div style={{
@@ -256,16 +331,12 @@ function IntelligenceTab({ actor }: { actor: ActorDetail }) {
           padding: '6px 10px', background: '#1a1a1a',
           borderLeft: `3px solid ${conf.color}`,
         }}>
-          <span style={{
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: 9, letterSpacing: '0.1em', color: conf.color, fontWeight: 700,
-          }}>
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, letterSpacing: '0.1em', color: conf.color, fontWeight: 700 }}>
             {conf.text}
           </span>
         </div>
       </section>
 
-      {/* Relationship stance */}
       <section>
         <SectionLabel>Relationship to Player-Controlled Faction</SectionLabel>
         <RelationshipStanceBadge stance={actor.relationshipStance} />
@@ -276,16 +347,12 @@ function IntelligenceTab({ actor }: { actor: ActorDetail }) {
         )}
       </section>
 
-      {/* Leadership profile */}
       {actor.leadershipProfile && (
         <section>
           <SectionLabel>Key Figures &amp; Leadership</SectionLabel>
           {actor.isAdversary && (
             <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{
-                fontFamily: "'IBM Plex Mono', monospace",
-                fontSize: 9, color: '#f39c12', letterSpacing: '0.06em',
-              }}>
+              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: '#f39c12', letterSpacing: '0.06em' }}>
                 ⚠ UNVERIFIED — BASED ON OPEN-SOURCE &amp; SIGINT
               </span>
             </div>
@@ -300,22 +367,13 @@ function IntelligenceTab({ actor }: { actor: ActorDetail }) {
         </section>
       )}
 
-      {/* Known unknowns — intelligence gaps from viewer's intel profile.
-          Mirrors knownUnknowns on IntelligencePicture in the simulation engine. */}
       {hasKnownUnknowns && (
         <section>
           <SectionLabel>Known Intelligence Gaps</SectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {actor.knownUnknowns!.map((gap, i) => (
-              <div key={i} style={{
-                padding: '7px 10px',
-                background: '#1a1a1a',
-                borderLeft: '2px solid #f39c1244',
-              }}>
-                <p style={{
-                  fontFamily: "'IBM Plex Mono', monospace",
-                  fontSize: 9, lineHeight: 1.6, color: '#c8a850', margin: 0,
-                }}>
+              <div key={i} style={{ padding: '7px 10px', background: '#1a1a1a', borderLeft: '2px solid #f39c1244' }}>
+                <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, lineHeight: 1.6, color: '#c8a850', margin: 0 }}>
                   {gap}
                 </p>
               </div>
@@ -324,7 +382,6 @@ function IntelligenceTab({ actor }: { actor: ActorDetail }) {
         </section>
       )}
 
-      {/* No intel fallback */}
       {!actor.leadershipProfile && !hasKnownUnknowns && (
         <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: 'rgba(229,226,225,0.45)' }}>
           {actor.isAdversary
@@ -344,7 +401,6 @@ function HistoryTab({ actor }: { actor: ActorDetail }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Recent events from chronicle — shown when game state is available */}
       {hasRecent && (
         <section>
           <SectionLabel>Recent Actions &amp; Events</SectionLabel>
@@ -355,11 +411,7 @@ function HistoryTab({ actor }: { actor: ActorDetail }) {
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {actor.recentHistory!.map((entry, i) => (
-              <div key={i} style={{
-                padding: '8px 10px',
-                background: '#1a1a1a',
-                borderLeft: `2px solid ${actor.actorColor}44`,
-              }}>
+              <div key={i} style={{ padding: '8px 10px', background: '#1a1a1a', borderLeft: `2px solid ${actor.actorColor}44` }}>
                 <p style={{ fontFamily: "'Newsreader', serif", fontSize: 11, lineHeight: 1.55, color: '#a8a6a0', margin: 0 }}>
                   {entry}
                 </p>
@@ -369,14 +421,10 @@ function HistoryTab({ actor }: { actor: ActorDetail }) {
         </section>
       )}
 
-      {/* Static historical precedents */}
       {hasPrecedents && (
         <section>
           <SectionLabel>Historical Precedents</SectionLabel>
-          <p style={{
-            fontFamily: "'Newsreader', serif",
-            fontSize: 12, lineHeight: 1.7, color: '#c1c7d3',
-          }}>
+          <p style={{ fontFamily: "'Newsreader', serif", fontSize: 12, lineHeight: 1.7, color: '#c1c7d3' }}>
             {actor.historicalPrecedents}
           </p>
         </section>
@@ -414,37 +462,87 @@ function RelationshipStanceBadge({ stance }: { stance: string }) {
   )
 }
 
-// ── Main component ───────────────────────────────────────────────────────────
+// ── Main component — centered modal ─────────────────────────────────────────
 
 export function ActorDetailPanel({ actor, open, onClose }: Props) {
   const [activeTab, setActiveTab] = useState<DossierTab>('overview')
 
+  // ESC to close
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    if (open) document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open, onClose])
+
+  // Reset to overview tab when a new actor is opened
+  useEffect(() => {
+    if (open) setActiveTab('overview')
+  }, [actor.id, open])
+
+  if (!open) return null
+
   return (
-    <SlideOverPanel open={open} onClose={onClose} title={actor.name}>
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        {/* Actor sub-header: rung + stance — name already shown by SlideOverPanel */}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: 'rgba(5,10,18,0.80)', backdropFilter: 'blur(2px)' }}
+      onClick={onClose}
+    >
+      {/* Modal panel */}
+      <div
+        className="relative flex flex-col bg-bg-surface border border-border-subtle overflow-hidden"
+        style={{
+          width: 'min(92vw, 860px)',
+          height: 'min(88vh, 720px)',
+          boxShadow: '0 0 60px rgba(0,0,0,0.7)',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* ── Modal header ── */}
         <div style={{
-          padding: '8px 16px 0',
+          padding: '12px 16px 0',
           borderBottom: '1px solid #1c1f23',
+          flexShrink: 0,
         }}>
-          {/* Color dot + short name + rung + stance badge */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              position: 'absolute', top: 10, right: 12,
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: 16, color: 'rgba(229,226,225,0.4)',
+              lineHeight: 1, padding: '2px 4px',
+            }}
+          >
+            ×
+          </button>
+
+          {/* Actor identity row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <div style={{
-              width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+              width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
               background: `${actor.actorColor}22`,
               border: `2px solid ${actor.actorColor}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontFamily: "'IBM Plex Mono', monospace",
-              fontSize: 8, fontWeight: 700, color: actor.actorColor, letterSpacing: '0.05em',
+              fontSize: 9, fontWeight: 700, color: actor.actorColor, letterSpacing: '0.05em',
             }}>
               {actor.shortName.slice(0, 3).toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontSize: 15, fontWeight: 700, color: '#e5e2e1', lineHeight: 1.2,
+              }}>
+                {actor.name}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
                 <span style={{
                   fontFamily: "'IBM Plex Mono', monospace",
                   fontSize: 9, color: actor.actorColor, letterSpacing: '0.1em',
-                  whiteSpace: 'nowrap',
                 }}>
                   RUNG {actor.escalationRung} — {actor.escalationRungName.toUpperCase()}
                 </span>
@@ -458,9 +556,9 @@ export function ActorDetailPanel({ actor, open, onClose }: Props) {
                     ADVERSARY
                   </span>
                 )}
+                <RelationshipStanceBadge stance={actor.relationshipStance} />
               </div>
             </div>
-            <RelationshipStanceBadge stance={actor.relationshipStance} />
           </div>
 
           {/* Tab bar */}
@@ -474,7 +572,7 @@ export function ActorDetailPanel({ actor, open, onClose }: Props) {
                   fontSize: 9, letterSpacing: '0.1em', fontWeight: activeTab === tab.id ? 700 : 400,
                   color: activeTab === tab.id ? actor.actorColor : 'rgba(229,226,225,0.45)',
                   background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '6px 10px 8px',
+                  padding: '6px 12px 8px',
                   borderBottom: activeTab === tab.id ? `2px solid ${actor.actorColor}` : '2px solid transparent',
                   transition: 'color 0.15s, border-color 0.15s',
                   whiteSpace: 'nowrap',
@@ -486,8 +584,8 @@ export function ActorDetailPanel({ actor, open, onClose }: Props) {
           </div>
         </div>
 
-        {/* Tab content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px' }}>
+        {/* ── Tab content (scrollable) ── */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
           {activeTab === 'overview'     && <OverviewTab     actor={actor} />}
           {activeTab === 'military'     && <MilitaryTab     actor={actor} />}
           {activeTab === 'escalation'   && <EscalationTab   actor={actor} />}
@@ -495,6 +593,6 @@ export function ActorDetailPanel({ actor, open, onClose }: Props) {
           {activeTab === 'history'      && <HistoryTab      actor={actor} />}
         </div>
       </div>
-    </SlideOverPanel>
+    </div>
   )
 }
