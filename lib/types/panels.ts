@@ -46,6 +46,8 @@ export interface EscalationRungSummary {
   level: number
   name: string
   description: string
+  /** What event or threshold causes a transition to this rung. */
+  trigger?: string
   reversibility: 'easy' | 'moderate' | 'difficult' | 'irreversible'
   isBlocked?: boolean
   blockReason?: string

@@ -128,6 +128,31 @@ export function EscalationLadder({ rungs, currentRung, actorColor }: Props) {
                 </p>
               )}
 
+              {/* Trigger/threshold — what causes transition to this rung */}
+              {rung.trigger && (
+                <div style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 4,
+                  marginBottom: 4,
+                }}>
+                  <span style={{
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: 8, color: '#4a6a4a', flexShrink: 0, marginTop: 1,
+                    letterSpacing: '0.08em',
+                  }}>
+                    THRESHOLD:
+                  </span>
+                  <span style={{
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: 8,
+                    color: isCurrent ? '#6a9e6a' : '#3a5a3a',
+                    lineHeight: 1.5,
+                    letterSpacing: '0.04em',
+                  }}>
+                    {rung.trigger}
+                  </span>
+                </div>
+              )}
+
               {/* Reversibility badge */}
               {(isCurrent || !isFuture) && (
                 <span style={{

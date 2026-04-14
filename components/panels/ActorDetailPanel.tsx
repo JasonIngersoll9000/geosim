@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { EscalationLadder } from '@/components/panels/EscalationLadder'
-import { getActorMilitaryAssets } from '@/lib/game/military-assets'
+import { getActorMilitaryByDomain } from '@/lib/game/military-assets'
 import type { ActorDetail } from '@/lib/types/panels'
 
 interface Props {
@@ -139,15 +139,78 @@ function OverviewTab({ actor }: { actor: ActorDetail }) {
   )
 }
 
+function AssetRow({
+  name, description, quantity, unit, deploymentStatus, actorColor, isAdversary,
+}: {
+  name: string; description: string; quantity: number | null; unit: string | null
+  deploymentStatus: string; actorColor: string; isAdversary: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const displayName = isAdversary ? name.replace(/—.*/, '').trim() : name
+  const displayQty  = quantity !== null
+    ? (isAdversary
+        ? `~${Math.round(quantity / 100) * 100}${unit ? ' ' + unit : ''}`
+        : `${quantity.toLocaleString()}${unit ? ' ' + unit : ''}`)
+    : null
+  const truncDesc = isAdversary
+    ? description.split('. ').slice(0, 3).join('. ') + (description.split('. ').length > 3 ? '…' : '')
+    : description
+
+  return (
+    <div style={{
+      border: `1px solid ${open ? actorColor + '55' : '#1e1e1e'}`,
+      background: open ? `${actorColor}06` : 'transparent',
+      borderRadius: 2, overflow: 'hidden',
+    }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', textAlign: 'left', background: 'none', border: 'none',
+          cursor: 'pointer', padding: '7px 10px',
+          display: 'flex', alignItems: 'flex-start', gap: 7,
+        }}
+      >
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 8, color: actorColor, flexShrink: 0, marginTop: 2 }}>
+          {open ? '▼' : '▶'}
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, fontWeight: 600, color: '#e5e2e1', lineHeight: 1.3 }}>
+            {displayName}
+          </div>
+          {displayQty && (
+            <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: actorColor, marginTop: 1, letterSpacing: '0.05em' }}>
+              {displayQty}
+            </div>
+          )}
+        </div>
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 8, color: '#5ebd8e', flexShrink: 0, marginTop: 2, letterSpacing: '0.05em' }}>
+          {deploymentStatus === 'available' ? 'AVAIL' : deploymentStatus.toUpperCase()}
+        </span>
+      </button>
+      {open && (
+        <div style={{ padding: '0 10px 9px 25px' }}>
+          <p style={{
+            fontFamily: "'Newsreader', serif", fontSize: 11,
+            color: isAdversary ? '#c8a850' : '#8a8880',
+            lineHeight: 1.55, margin: 0,
+            fontStyle: isAdversary ? 'italic' : 'normal',
+          }}>
+            {truncDesc}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function MilitaryTab({ actor }: { actor: ActorDetail }) {
-  const assets = getActorMilitaryAssets(actor.id)
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
+  const domains = getActorMilitaryByDomain(actor.id)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Combat power readout */}
+      {/* Aggregate combat-power score bar from simulation state */}
       <section>
-        <SectionLabel>Combat Power Index</SectionLabel>
+        <SectionLabel>Combat Power Index (Simulation State)</SectionLabel>
         <ScoreBar
           label="Military Strength"
           value={actor.militaryStrength}
@@ -156,97 +219,35 @@ function MilitaryTab({ actor }: { actor: ActorDetail }) {
         />
         {actor.isAdversary && (
           <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: '#f39c12', marginTop: 4, letterSpacing: '0.06em' }}>
-            ⚠ ADVERSARY — ALL METRICS ESTIMATED FROM AVAILABLE INTEL
+            ⚠ ADVERSARY — METRICS ESTIMATED FROM AVAILABLE INTEL
           </p>
         )}
       </section>
 
-      {/* Asset inventory */}
-      {assets.length > 0 ? (
-        <section>
-          <SectionLabel>
-            Order of Battle &amp; Capabilities
-            {actor.isAdversary && <FowLabel label="PARTIAL INTEL" />}
-          </SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {assets.map((asset, i) => {
-              const isOpen = expandedIdx === i
-              return (
-                <div
+      {/* Domain-grouped capability sections */}
+      {domains.length > 0 ? (
+        domains.map(({ domain, label, items }) => (
+          <section key={domain}>
+            <SectionLabel>
+              {label}
+              {actor.isAdversary && <FowLabel label="PARTIAL INTEL" />}
+            </SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {items.map((asset, i) => (
+                <AssetRow
                   key={i}
-                  style={{
-                    border: `1px solid ${isOpen ? actor.actorColor + '66' : '#222'}`,
-                    background: isOpen ? `${actor.actorColor}08` : '#111',
-                    borderRadius: 3,
-                    overflow: 'hidden',
-                    transition: 'border-color 0.15s',
-                  }}
-                >
-                  {/* Header row — always visible */}
-                  <button
-                    onClick={() => setExpandedIdx(isOpen ? null : i)}
-                    style={{
-                      width: '100%', textAlign: 'left', background: 'none', border: 'none',
-                      cursor: 'pointer', padding: '8px 10px',
-                      display: 'flex', alignItems: 'flex-start', gap: 8,
-                    }}
-                  >
-                    <span style={{
-                      fontFamily: "'IBM Plex Mono', monospace",
-                      fontSize: 9, color: actor.actorColor, flexShrink: 0, marginTop: 1,
-                    }}>
-                      {isOpen ? '▼' : '▶'}
-                    </span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontFamily: "'Space Grotesk', sans-serif",
-                        fontSize: 12, fontWeight: 600, color: '#e5e2e1', lineHeight: 1.3,
-                      }}>
-                        {actor.isAdversary
-                          ? asset.name.replace(/—.*/, '').trim()
-                          : asset.name}
-                      </div>
-                      {asset.quantity !== null && (
-                        <div style={{
-                          fontFamily: "'IBM Plex Mono', monospace",
-                          fontSize: 9, color: actor.actorColor, marginTop: 2, letterSpacing: '0.06em',
-                        }}>
-                          {actor.isAdversary
-                            ? `~${Math.round(asset.quantity / 100) * 100} ${asset.unit ?? ''}`
-                            : `${asset.quantity.toLocaleString()} ${asset.unit ?? ''}`}
-                        </div>
-                      )}
-                    </div>
-                    <span style={{
-                      fontFamily: "'IBM Plex Mono', monospace",
-                      fontSize: 8, color: '#5ebd8e', flexShrink: 0, marginTop: 1,
-                      letterSpacing: '0.06em',
-                    }}>
-                      {asset.deploymentStatus === 'available' ? 'AVAIL' : asset.deploymentStatus.toUpperCase()}
-                    </span>
-                  </button>
-
-                  {/* Expanded description */}
-                  {isOpen && (
-                    <div style={{ padding: '0 10px 10px 27px' }}>
-                      <p style={{
-                        fontFamily: "'Newsreader', serif",
-                        fontSize: actor.isAdversary ? 11 : 11,
-                        color: actor.isAdversary ? '#c8a850' : '#a8a6a0',
-                        lineHeight: 1.6, margin: 0,
-                        fontStyle: actor.isAdversary ? 'italic' : 'normal',
-                      }}>
-                        {actor.isAdversary
-                          ? asset.description.split('. ').slice(0, 3).join('. ') + (asset.description.split('. ').length > 3 ? '…' : '')
-                          : asset.description}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </section>
+                  name={asset.name}
+                  description={asset.description}
+                  quantity={asset.quantity}
+                  unit={asset.unit}
+                  deploymentStatus={asset.deploymentStatus}
+                  actorColor={actor.actorColor}
+                  isAdversary={actor.isAdversary}
+                />
+              ))}
+            </div>
+          </section>
+        ))
       ) : (
         <section>
           <SectionLabel>Order of Battle &amp; Capabilities</SectionLabel>
