@@ -46,18 +46,18 @@ function SignupForm() {
     return (
       <div className="text-center py-4">
         <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-status-stable mb-3">
-          ● Clearance Request Submitted
+          ● Account Request Submitted
         </div>
         <p className="font-mono text-[11px] text-text-secondary leading-relaxed mb-4">
-          A confirmation dispatch has been sent to{' '}
+          A confirmation email has been sent to{' '}
           <span className="text-text-primary">{email}</span>.
-          Verify your identity to complete registration.
+          Verify your address to complete registration.
         </p>
         <Link
           href="/auth/login"
           className="inline-block font-mono text-[10px] uppercase tracking-[0.1em] text-status-info hover:underline"
         >
-          ← Return to Authentication Portal
+          ← Return to Sign In
         </Link>
       </div>
     )
@@ -75,7 +75,7 @@ function SignupForm() {
           autoComplete="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
-          placeholder="analyst@geosim.gov"
+          placeholder="analyst@wargame.gov"
           className="w-full px-3 py-2.5 bg-bg-surface border border-border-subtle font-mono text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-gold transition-colors"
         />
       </div>
@@ -124,13 +124,19 @@ function SignupForm() {
         disabled={loading}
         className="w-full py-3 mt-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] bg-gold text-bg-base hover:bg-[#e5a600] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {loading ? 'PROCESSING…' : 'REQUEST CLEARANCE →'}
+        {loading ? 'PROCESSING…' : 'CREATE ACCOUNT →'}
       </button>
 
       <p className="text-center font-mono text-[10px] text-text-tertiary">
-        Already cleared?{' '}
+        Already have an account?{' '}
         <Link href="/auth/login" className="text-status-info hover:underline">
-          AUTHENTICATE
+          SIGN IN
+        </Link>
+      </p>
+
+      <p className="text-center font-mono text-[10px] text-text-tertiary">
+        <Link href="/" className="text-text-tertiary hover:text-text-secondary transition-colors">
+          ← Back to Home
         </Link>
       </p>
     </form>
@@ -143,20 +149,20 @@ export default function SignupPage() {
       {/* Classification header */}
       <div className="mb-8 text-center">
         <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-gold mb-4">
-          ◆&nbsp;&nbsp;SECRET // GEOSIM ANALYTICAL FRAMEWORK // FOR RESEARCH USE ONLY&nbsp;&nbsp;◆
+          ◆&nbsp;&nbsp;SECRET // WAR GAME ANALYTICAL FRAMEWORK // FOR RESEARCH USE ONLY&nbsp;&nbsp;◆
         </div>
         <h1 className="font-label font-bold text-2xl uppercase tracking-[0.08em] text-text-primary mb-1">
-          GEOSIM
+          WAR GAME
         </h1>
         <p className="font-mono text-[10px] text-text-tertiary uppercase tracking-[0.12em]">
-          Analyst Clearance Request
+          Create Analyst Account
         </p>
       </div>
 
       {/* Auth card */}
       <div className="w-full max-w-sm bg-bg-surface-dim border border-border-subtle p-6">
         <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-text-tertiary mb-5 pb-3 border-b border-border-subtle flex items-center justify-between">
-          <span>New Analyst Registration</span>
+          <span>New Account Registration</span>
           <span className="text-status-warning">● SECURE CHANNEL</span>
         </div>
 
@@ -167,7 +173,7 @@ export default function SignupPage() {
 
       {/* Bottom classification */}
       <div className="mt-6 font-mono text-[8px] uppercase tracking-[0.15em] text-text-tertiary text-center">
-        GEOSIM-IRN-2026 // CLASSIFICATION: SECRET // AUTHORIZED USE ONLY
+        WAR-GAME-IRN-2026 // CLASSIFICATION: SECRET // AUTHORIZED USE ONLY
       </div>
     </div>
   )

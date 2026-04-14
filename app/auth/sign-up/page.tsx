@@ -61,10 +61,10 @@ export default function SignUpPage() {
               href="/"
               className="font-label font-bold text-gold text-2xl tracking-[0.04em] hover:opacity-80 transition-opacity"
             >
-              GEOSIM
+              WAR GAME
             </Link>
             <p className="font-mono text-2xs text-text-tertiary mt-1 tracking-[0.12em] uppercase">
-              Geopolitical Simulation Engine
+              Strategic Simulation Engine
             </p>
           </div>
 

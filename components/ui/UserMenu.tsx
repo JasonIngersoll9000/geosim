@@ -1,69 +1,61 @@
 'use client'
-import { useState } from 'react'
-import { useUser } from '@/hooks/useUser'
+
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import type { User } from '@supabase/supabase-js'
 
 export function UserMenu() {
-  const { user, loading } = useUser()
-  const [open, setOpen]   = useState(false)
-  const router            = useRouter()
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  if (loading) {
+  useEffect(() => {
+    const supabase = createClient()
+
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user)
+      setLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  if (loading) return null
+
+  if (!user) {
     return (
-      <div className="font-mono text-[9px] text-text-tertiary animate-pulse">
-        ●
+      <div className="flex items-center gap-2">
+        <Link
+          href="/auth/signup"
+          className="font-mono text-[10px] uppercase tracking-[0.1em] text-text-tertiary hover:text-text-secondary transition-colors"
+        >
+          Create Account
+        </Link>
+        <Link
+          href="/auth/login"
+          className="font-mono text-[10px] uppercase tracking-[0.1em] px-3 py-1.5 border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors"
+        >
+          Sign In
+        </Link>
       </div>
     )
   }
 
-  if (!user) return null
-
-  const displayName = user.email?.split('@')[0]?.toUpperCase() ?? 'ANALYST'
-
-  async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.replace('/auth/login')
-    router.refresh()
-  }
-
   return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.08em] text-text-tertiary hover:text-text-secondary transition-colors"
-        aria-expanded={open}
-        aria-label="User menu"
+    <div className="flex items-center gap-3">
+      <span className="font-mono text-[10px] text-text-tertiary uppercase tracking-[0.08em] hidden sm:inline">
+        {user.email?.split('@')[0]}
+      </span>
+      <Link
+        href="/auth/signout"
+        className="font-mono text-[10px] uppercase tracking-[0.1em] text-text-tertiary hover:text-status-critical transition-colors"
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-status-stable shrink-0" />
-        {displayName}
-        <span className="text-[7px]">{open ? '▲' : '▼'}</span>
-      </button>
-
-      {open && (
-        <>
-          {/* Backdrop */}
-          <button
-            onClick={() => setOpen(false)}
-            className="fixed inset-0 z-40"
-            aria-hidden="true"
-          />
-          {/* Dropdown */}
-          <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-bg-surface border border-border-subtle shadow-lg py-1">
-            <div className="px-3 py-1.5 border-b border-border-subtle">
-              <div className="font-mono text-[8px] uppercase tracking-[0.1em] text-text-tertiary">Signed in as</div>
-              <div className="font-mono text-[10px] text-text-primary truncate">{user.email}</div>
-            </div>
-            <button
-              onClick={handleSignOut}
-              className="w-full text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-status-critical hover:bg-status-critical-bg transition-colors"
-            >
-              Sign Out
-            </button>
-          </div>
-        </>
-      )}
+        Sign Out
+      </Link>
     </div>
   )
 }

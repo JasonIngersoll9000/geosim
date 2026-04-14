@@ -111,7 +111,7 @@ export default function ChroniclePage({ params }: { params: { branchId: string }
         <div className="max-w-2xl mx-auto px-6 py-6">
           <div className="border-b border-border-subtle mb-6">
             <DocumentIdHeader
-              scenarioCode={`GEOSIM-CHRONICLE-${params.branchId.toUpperCase().slice(0, 8)}`}
+              scenarioCode={`WAR-GAME-CHRONICLE-${params.branchId.toUpperCase().slice(0, 8)}`}
               branchName={params.branchId.toUpperCase()}
             />
           </div>

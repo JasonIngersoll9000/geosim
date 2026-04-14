@@ -36,7 +36,7 @@ export function TopBar({
         href="/"
         className="font-label font-bold text-gold text-[16px] tracking-[0.04em] hover:opacity-80 transition-opacity"
       >
-        GEOSIM
+        WAR GAME
       </Link>
 
       {/* Separator */}

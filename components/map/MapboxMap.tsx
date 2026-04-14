@@ -393,7 +393,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
       })
       map = mapRef.current
     } catch (e) {
-      console.error('[GeoSim map] constructor failed:', e)
+      console.error('[War Game map] constructor failed:', e)
       setWebglFailed(true)
       return
     }
@@ -401,7 +401,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
     map.on('error', (e) => {
       const msg = (e as { error?: { message?: string } })?.error?.message ?? ''
       if (msg.includes('token') || msg.includes('style')) {
-        console.error('[GeoSim map]', msg)
+        console.error('[War Game map]', msg)
       }
     })
 

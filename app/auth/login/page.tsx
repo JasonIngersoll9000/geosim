@@ -52,7 +52,7 @@ function LoginForm() {
           autoComplete="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
-          placeholder="analyst@geosim.gov"
+          placeholder="analyst@wargame.gov"
           className="w-full px-3 py-2.5 bg-bg-surface border border-border-subtle font-mono text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-gold transition-colors"
         />
       </div>
@@ -90,9 +90,15 @@ function LoginForm() {
       </button>
 
       <p className="text-center font-mono text-[10px] text-text-tertiary">
-        No clearance?{' '}
+        No account?{' '}
         <Link href="/auth/signup" className="text-status-info hover:underline">
-          REQUEST ACCESS
+          CREATE ACCOUNT
+        </Link>
+      </p>
+
+      <p className="text-center font-mono text-[10px] text-text-tertiary">
+        <Link href="/" className="text-text-tertiary hover:text-text-secondary transition-colors">
+          ← Back to Home
         </Link>
       </p>
     </form>
@@ -105,10 +111,10 @@ export default function LoginPage() {
       {/* Classification header */}
       <div className="mb-8 text-center">
         <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-gold mb-4">
-          ◆&nbsp;&nbsp;SECRET // GEOSIM ANALYTICAL FRAMEWORK // FOR RESEARCH USE ONLY&nbsp;&nbsp;◆
+          ◆&nbsp;&nbsp;SECRET // WAR GAME ANALYTICAL FRAMEWORK // FOR RESEARCH USE ONLY&nbsp;&nbsp;◆
         </div>
         <h1 className="font-label font-bold text-2xl uppercase tracking-[0.08em] text-text-primary mb-1">
-          GEOSIM
+          WAR GAME
         </h1>
         <p className="font-mono text-[10px] text-text-tertiary uppercase tracking-[0.12em]">
           Analyst Authentication Portal
@@ -129,7 +135,7 @@ export default function LoginPage() {
 
       {/* Bottom classification */}
       <div className="mt-6 font-mono text-[8px] uppercase tracking-[0.15em] text-text-tertiary text-center">
-        GEOSIM-IRN-2026 // CLASSIFICATION: SECRET // AUTHORIZED USE ONLY
+        WAR-GAME-IRN-2026 // CLASSIFICATION: SECRET // AUTHORIZED USE ONLY
       </div>
     </div>
   )

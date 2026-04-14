@@ -1,5 +1,5 @@
 // ============================================================
-// GEOSIM DATA MODELS v2
+// WAR GAME DATA MODELS v2
 // Key changes from v1:
 //   - Escalation ladder replaces flat scores for conflict posture
 //   - Fog of war / intelligence picture per actor

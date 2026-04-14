@@ -124,16 +124,16 @@ export default function Home() {
             ].join(", "),
           }}
         >
-          {/* GEOSIM watermark — fades in last, no translate */}
+          {/* WAR GAME watermark — fades in last, no translate */}
           <motion.span
             aria-hidden="true"
             className="pointer-events-none select-none absolute inset-0 flex items-center justify-center font-label font-bold uppercase tracking-[0.08em] text-text-primary"
-            style={{ fontSize: "28vw", zIndex: 0 }}
+            style={{ fontSize: "14vw", zIndex: 0 }}
             variants={watermark}
             initial={heroInit}
             animate="visible"
           >
-            GEOSIM
+            WAR GAME
           </motion.span>
 
           <motion.span
@@ -169,7 +169,7 @@ export default function Home() {
             >
               <span className="inline-block w-4 h-px bg-gold opacity-60" />
               <span className="font-mono text-2xs text-text-tertiary tracking-[0.14em] uppercase">
-                Classified Research Framework&nbsp;&nbsp;//&nbsp;&nbsp;GEOSIM-IRN-2026
+                Classified Research Framework&nbsp;&nbsp;//&nbsp;&nbsp;WAR-GAME-IRN-2026
               </span>
               <span className="inline-block w-4 h-px bg-gold opacity-60" />
             </motion.div>
@@ -205,6 +205,9 @@ export default function Home() {
               </Link>
               <Link href="/scenarios">
                 <Button variant="ghost">Browse Scenarios</Button>
+              </Link>
+              <Link href="/auth/login">
+                <Button variant="ghost">Sign In</Button>
               </Link>
             </motion.div>
 
@@ -478,7 +481,7 @@ export default function Home() {
           style={{ borderLeft: "3px solid #ffba20", marginBottom: "80px" }}
         >
           <div className="font-mono text-2xs text-text-tertiary tracking-[0.12em] uppercase mb-3">
-            GeoSim // Strategic Analysis Framework // Research Access
+            War Game // Strategic Analysis Framework // Research Access
           </div>
           <h2 className="font-label font-bold text-2xl text-text-primary uppercase tracking-[0.02em] mb-4">
             Start Your Analysis

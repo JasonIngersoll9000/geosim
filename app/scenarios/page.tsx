@@ -227,7 +227,7 @@ export default function ScenarioBrowserPage() {
 
   return (
     <>
-      <ClassificationBanner classification="TOP SECRET // NOFORN // GEOSIM-BROWSER" />
+      <ClassificationBanner classification="TOP SECRET // NOFORN // WAR-GAME-BROWSER" />
       <TopBar scenarioName="SCENARIO BROWSER" />
 
       <main className="pt-[66px] bg-bg-base min-h-screen">
