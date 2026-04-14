@@ -724,21 +724,21 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
               </button>
 
               {gtHasNext ? (
-                <Tooltip content="Step forward to the next resolved turn in the Ground Truth timeline." placement="top" maxWidth={200} display="flex">
+                <Tooltip content="Step forward to the next resolved turn in the Ground Truth timeline." placement="top" maxWidth={200} display="flex" className="flex-1">
                   <button
                     onClick={handleNextGroundTruthEvent}
                     disabled={gtLoading}
-                    className="flex-1 py-2 font-mono text-xs font-semibold bg-surface-3 border border-border-subtle text-text-secondary hover:text-text-primary hover:border-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full py-2 font-mono text-xs font-semibold bg-surface-3 border border-border-subtle text-text-secondary hover:text-text-primary hover:border-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {gtLoading ? 'LOADING…' : 'NEXT EVENT →'}
                   </button>
                 </Tooltip>
               ) : (
-                <Tooltip content="Create a diverging timeline from this turn. You take control and make decisions independently from the Ground Truth." placement="top" maxWidth={220} display="flex">
+                <Tooltip content="Create a diverging timeline from this turn. You take control and make decisions independently from the Ground Truth." placement="top" maxWidth={220} display="flex" className="flex-1">
                   <button
                     onClick={() => void handleForkNewBranch()}
                     disabled={forkingBranch}
-                    className="flex-1 py-2 font-mono text-xs font-semibold border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-2 font-mono text-xs font-semibold border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {forkingBranch ? 'CREATING BRANCH…' : 'FORK NEW BRANCH →'}
                   </button>

@@ -7,9 +7,10 @@ interface Props {
   placement?: 'top' | 'bottom' | 'left' | 'right'
   maxWidth?: number
   display?: 'inline-flex' | 'block' | 'flex' | 'contents'
+  className?: string
 }
 
-export function Tooltip({ content, children, placement = 'top', maxWidth = 200, display = 'inline-flex' }: Props) {
+export function Tooltip({ content, children, placement = 'top', maxWidth = 200, display = 'inline-flex', className }: Props) {
   const [visible, setVisible] = useState(false)
   const ref = useRef<HTMLSpanElement>(null)
   const touchRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -51,6 +52,7 @@ export function Tooltip({ content, children, placement = 'top', maxWidth = 200, 
     <span
       ref={ref}
       style={wrapperStyle}
+      className={className}
       onMouseEnter={show}
       onMouseLeave={hide}
       onFocus={show}

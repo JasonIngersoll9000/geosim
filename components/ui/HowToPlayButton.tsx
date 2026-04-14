@@ -38,6 +38,8 @@ export function HowToPlayButton() {
           padding: '3px 8px',
           transition: 'color 0.15s, border-color 0.15s',
           textTransform: 'uppercase',
+          display: 'flex', alignItems: 'center', gap: 4,
+          whiteSpace: 'nowrap',
         }}
         onMouseEnter={e => {
           const t = e.currentTarget
@@ -51,7 +53,8 @@ export function HowToPlayButton() {
         }}
         title="How to Play"
       >
-        ?
+        <span style={{ fontSize: 11, lineHeight: 1 }}>?</span>
+        <span>HOW TO PLAY</span>
       </button>
 
       <TutorialModal open={open} onClose={handleClose} />
