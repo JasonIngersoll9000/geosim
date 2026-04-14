@@ -242,14 +242,17 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
           // chronicle entries appear immediately without waiting for a
           // full page re-render (router.refresh updates server components
           // but doesn't reset initialized client state).
+          const rtShort = payload.chronicle_entry ?? payload.narrative_entry ?? 'Turn resolved.'
+          const rtLong  = payload.narrative_entry ?? ''
+          const rtDetail = payload.chronicle_entry && rtLong && rtLong.trim() !== rtShort.trim()
+            ? rtLong
+            : undefined
           const newEntry: ChronicleEntry = {
             turnNumber: payload.turn_number,
             date:       payload.simulated_date ?? new Date().toISOString().slice(0, 10),
             title:      payload.chronicle_headline ?? `Turn ${payload.turn_number}`,
-            narrative:  payload.chronicle_entry ?? payload.narrative_entry ?? 'Turn resolved.',
-            detail:     payload.chronicle_entry && payload.narrative_entry
-              ? payload.narrative_entry
-              : undefined,
+            narrative:  rtShort,
+            detail:     rtDetail,
             severity: 'major',
             tags: [],
           }
