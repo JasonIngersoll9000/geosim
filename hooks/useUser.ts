@@ -32,14 +32,14 @@ export function useUser(): UserState {
       if (cancelled) return
       const supabase = createClient()
 
-      supabase.auth.getUser().then(({ data }) => {
+      supabase.auth.getUser().then(({ data }: { data: { user: import('@supabase/supabase-js').User | null } }) => {
         if (!cancelled) {
           setUser(data.user)
           setLoading(false)
         }
       })
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: import('@supabase/supabase-js').Session | null) => {
         if (!cancelled) {
           setUser(session?.user ?? null)
           setLoading(false)
