@@ -44,12 +44,19 @@ const KEY_CITIES_DATA: GeoJSON.FeatureCollection<GeoJSON.Point> = {
 
 // ─── Nation → dot color (built from shared NATION_HEX_COLORS) ────────────────
 
-function buildNationMatchExpr(): mapboxgl.Expression {
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
+function buildNationMatchExpr(alpha?: number): mapboxgl.Expression {
   const parts: unknown[] = ['match', ['get', 'nation']]
   for (const [code, hex] of Object.entries(NATION_HEX_COLORS)) {
-    parts.push(code, hex)
+    parts.push(code, alpha !== undefined ? hexToRgba(hex, alpha) : hex)
   }
-  parts.push('rgba(229,226,225,0.45)')  // fallback
+  parts.push(alpha !== undefined ? `rgba(229,226,225,${alpha * 0.5})` : 'rgba(229,226,225,0.45)')
   return parts as mapboxgl.Expression
 }
 
@@ -455,15 +462,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         source: 'mil-bases-src',
         paint: {
           'circle-radius': ['case', ['==', ['get', 'type'], 'airbase'], 4.5, 3.5],
-          'circle-color': [
-            'match', ['get', 'nation'],
-            'US',    'rgba(41,128,185,0.75)',
-            'IL',    'rgba(79,195,247,0.75)',
-            'US/IL', 'rgba(60,160,200,0.75)',
-            'IR',    'rgba(192,57,43,0.75)',
-            'SA',    'rgba(243,156,18,0.75)',
-            'rgba(229,226,225,0.4)',
-          ],
+          'circle-color': buildNationMatchExpr(0.75),
           'circle-stroke-width': 1.5,
           'circle-stroke-color': 'rgba(255,255,255,0.25)',
         },
@@ -530,21 +529,9 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         source: 'static-naval-src',
         paint: {
           'circle-radius': ['case', ['==', ['get', 'type'], 'carrier_group'], 6, 4],
-          'circle-color': [
-            'match', ['get', 'nation'],
-            'US',  'rgba(41,128,185,0.8)',
-            'IL',  'rgba(79,195,247,0.8)',
-            'IR',  'rgba(192,57,43,0.8)',
-            'rgba(229,226,225,0.5)',
-          ],
+          'circle-color': buildNationMatchExpr(0.8),
           'circle-stroke-width': 1.5,
-          'circle-stroke-color': [
-            'match', ['get', 'nation'],
-            'US',  'rgba(41,128,185,0.5)',
-            'IL',  'rgba(79,195,247,0.5)',
-            'IR',  'rgba(192,57,43,0.5)',
-            'rgba(229,226,225,0.3)',
-          ],
+          'circle-stroke-color': buildNationMatchExpr(0.5),
           'circle-blur': 0.1,
         },
         layout: { visibility: ls.militaryAssets ? 'visible' : 'none' },
@@ -702,13 +689,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         type: 'fill',
         source: 'strike-rings-src',
         paint: {
-          'fill-color': [
-            'match', ['get', 'nation'],
-            'US',  'rgba(41,128,185,0.04)',
-            'IL',  'rgba(79,195,247,0.04)',
-            'IR',  'rgba(192,57,43,0.06)',
-            'rgba(255,186,32,0.04)',
-          ],
+          'fill-color': buildNationMatchExpr(0.05),
         },
         layout: { visibility: ls.strikeRings ? 'visible' : 'none' },
       })
@@ -719,13 +700,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         type: 'line',
         source: 'strike-rings-src',
         paint: {
-          'line-color': [
-            'match', ['get', 'nation'],
-            'US',  'rgba(41,128,185,0.5)',
-            'IL',  'rgba(79,195,247,0.5)',
-            'IR',  'rgba(192,57,43,0.6)',
-            'rgba(255,186,32,0.5)',
-          ],
+          'line-color': buildNationMatchExpr(0.5),
           'line-width': 1,
           'line-dasharray': [4, 4],
         },
@@ -747,13 +722,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
           visibility: ls.strikeRings ? 'visible' : 'none',
         },
         paint: {
-          'text-color': [
-            'match', ['get', 'nation'],
-            'US',  'rgba(41,128,185,0.7)',
-            'IL',  'rgba(79,195,247,0.7)',
-            'IR',  'rgba(192,57,43,0.7)',
-            'rgba(255,186,32,0.7)',
-          ],
+          'text-color': buildNationMatchExpr(0.7),
           'text-halo-color': 'rgba(5,10,18,0.9)',
           'text-halo-width': 1.5,
         },
@@ -773,12 +742,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         type: 'fill',
         source: 'threat-rings-src',
         paint: {
-          'fill-color': [
-            'match', ['get', 'nation'],
-            'IR',  'rgba(192,57,43,0.07)',
-            'US',  'rgba(41,128,185,0.05)',
-            'rgba(255,186,32,0.04)',
-          ],
+          'fill-color': buildNationMatchExpr(0.05),
         },
         layout: { visibility: ls.threatRings ? 'visible' : 'none' },
       })
@@ -789,16 +753,32 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         type: 'line',
         source: 'threat-rings-src',
         paint: {
-          'line-color': [
-            'match', ['get', 'nation'],
-            'IR',  'rgba(192,57,43,0.7)',
-            'US',  'rgba(41,128,185,0.6)',
-            'rgba(255,186,32,0.6)',
-          ],
+          'line-color': buildNationMatchExpr(0.65),
           'line-width': 0.8,
           'line-dasharray': [2, 3],
         },
         layout: { visibility: ls.threatRings ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('threat-rings-label')) {
+      map.addLayer({
+        id: 'threat-rings-label',
+        type: 'symbol',
+        source: 'threat-rings-src',
+        layout: {
+          'text-field': ['get', 'label'],
+          'text-font': ['DIN Pro Mono Medium', 'Arial Unicode MS Regular'],
+          'text-size': 7,
+          'text-anchor': 'top',
+          'symbol-placement': 'line',
+          'text-letter-spacing': 0.05,
+          visibility: ls.threatRings ? 'visible' : 'none',
+        },
+        paint: {
+          'text-color': buildNationMatchExpr(0.6),
+          'text-halo-color': 'rgba(5,10,18,0.9)',
+          'text-halo-width': 1.5,
+        },
       })
     }
   }, [])
@@ -829,7 +809,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
                               'missile-dot', 'missile-symbol', 'missile-label',
                               'radar-dot', 'radar-symbol', 'radar-label']
     const strikeRingLayers = ['strike-rings-fill', 'strike-rings-line', 'strike-rings-label']
-    const threatRingLayers = ['threat-rings-fill', 'threat-rings-line']
+    const threatRingLayers = ['threat-rings-fill', 'threat-rings-line', 'threat-rings-label']
 
     for (const id of militaryLayers) {
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', ls.militaryAssets ? 'visible' : 'none')

@@ -107,6 +107,7 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
   function handleAssetClick(asset: PositionedAsset) {
     setMapAssetSelection(null)
     setChokepointPopup(null)
+    setStaticFeaturePopup(null)
     setPopupAsset(asset)
     setSelectedAsset(asset)
   }
@@ -114,12 +115,14 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
   function handleMapAssetClick(asset: MapAsset, screenPos: { x: number; y: number }) {
     setPopupAsset(null)
     setChokepointPopup(null)
+    setStaticFeaturePopup(null)
     setMapAssetSelection({ asset, screenX: screenPos.x, screenY: screenPos.y })
   }
 
   function handleChokepointClick(id: ChokepointId, screenPos: { x: number; y: number }) {
     setPopupAsset(null)
     setMapAssetSelection(null)
+    setStaticFeaturePopup(null)
     const hormuzLane   = shippingLanes.find(l => l.id === 'strait_of_hormuz')
     const babLane      = shippingLanes.find(l => l.id === 'bab_el_mandeb')
     const isHormuz     = id === 'strait_of_hormuz'
@@ -152,6 +155,7 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
   function handleCityClick(city: City) {
     setMapAssetSelection(null)
     setChokepointPopup(null)
+    setStaticFeaturePopup(null)
     setCityPopup(city)
     setSelectedCity(city)
   }
