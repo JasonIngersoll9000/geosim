@@ -1,3 +1,5 @@
+import type { AssetRequirement } from './simulation'
+
 export type Dimension = 'military' | 'economic' | 'diplomatic' | 'intelligence' | 'political' | 'information'
 export type EscalationDirection = 'escalate' | 'de-escalate' | 'neutral'
 export type RelationshipStance = 'ally' | 'adversary' | 'neutral' | 'proxy' | 'rival'
@@ -8,6 +10,13 @@ export interface DecisionOption {
   dimension: Dimension
   escalationDirection: EscalationDirection
   resourceWeight: number
+  /**
+   * Optional asset prerequisites — when present, this decision is only available
+   * if all requirements are satisfied against the current asset inventory.
+   * Used by detectConstraintCascades to identify newly-unlocked decisions
+   * after each turn's state resolution.
+   */
+  requiredAssets?: AssetRequirement[]
 }
 
 export interface CompatibilityRule {

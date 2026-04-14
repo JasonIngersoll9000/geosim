@@ -221,6 +221,8 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   const [concurrentActions, setConcurrentActions]           = useState<ActionSlot[]>([])
   const [chronicleEntries, setChronicleEntries]             = useState<ChronicleEntry[]>(initialData.chronicle)
   const [lastTurnResolution, setLastTurnResolution]         = useState<TurnResolutionData | null>(null)
+  const [cascadeAlerts, setCascadeAlerts]                   = useState<Array<{ decisionId: string; decisionTitle: string }>>([])
+  const [showCascadeAlerts, setShowCascadeAlerts]           = useState(false)
   const [turnNumber, setTurnNumber]                         = useState(initialData.branch.turnNumber)
   const [turnCommitId, setTurnCommitId]                     = useState<string | null>(initialData.branch.headCommitId)
   const [dispatchLines, setDispatchLines]                   = useState<DispatchLine[]>([{
@@ -340,6 +342,13 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
       events,
       escalationChanges,
     })
+
+    // Surface newly-unlocked decisions from constraint cascade detection
+    const cascades = resolutionSummary?.constraintCascades ?? []
+    if (cascades.length > 0) {
+      setCascadeAlerts(cascades.map(c => ({ decisionId: c.decisionId, decisionTitle: c.decisionTitle })))
+      setShowCascadeAlerts(true)
+    }
 
     const newEntry: ChronicleEntry = {
       turnNumber: resolvedTurnNumber,
@@ -558,21 +567,47 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             <DispatchTerminal lines={hookLines} isRunning={isSubmitting} />
           </div>
 
-          {/* Footer: completion return button or error dismiss */}
+          {/* Footer: constraint cascade alerts + completion return button or error dismiss */}
           {!isSubmitting && (isComplete || !!error) && (
-            <div className="shrink-0 p-4 border-t border-border-subtle bg-bg-surface-dim">
-              {error && !isComplete && (
-                <div className="font-mono text-2xs text-status-critical mb-3">{error}</div>
+            <div className="shrink-0 border-t border-border-subtle bg-bg-surface-dim">
+              {/* Constraint cascade alert banner */}
+              {isComplete && showCascadeAlerts && cascadeAlerts.length > 0 && (
+                <div className="px-4 py-3 border-b border-[#2a3a1f] bg-[#0f1a0a]">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-[#6ab04c]">
+                      ● {cascadeAlerts.length} DECISION{cascadeAlerts.length > 1 ? 'S' : ''} NEWLY UNLOCKED
+                    </span>
+                    <button
+                      onClick={() => setShowCascadeAlerts(false)}
+                      className="font-mono text-[9px] text-text-tertiary hover:text-text-secondary"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <ul className="space-y-0.5">
+                    {cascadeAlerts.map(c => (
+                      <li key={c.decisionId} className="font-mono text-[10px] text-[#9fd36e] flex items-center gap-1.5">
+                        <span className="text-[#6ab04c]">→</span>
+                        {c.decisionTitle}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
-              <button
-                onClick={handleReturnToPlanning}
-                className="w-full py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.1em] border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors"
-              >
-                {isComplete
-                  ? `RETURN TO PLANNING // TURN ${turnNumber + 1} →`
-                  : 'DISMISS ERROR — RETURN TO PLANNING →'
-                }
-              </button>
+              <div className="p-4">
+                {error && !isComplete && (
+                  <div className="font-mono text-2xs text-status-critical mb-3">{error}</div>
+                )}
+                <button
+                  onClick={handleReturnToPlanning}
+                  className="w-full py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.1em] border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors"
+                >
+                  {isComplete
+                    ? `RETURN TO PLANNING // TURN ${turnNumber + 1} →`
+                    : 'DISMISS ERROR — RETURN TO PLANNING →'
+                  }
+                </button>
+              </div>
             </div>
           )}
         </div>

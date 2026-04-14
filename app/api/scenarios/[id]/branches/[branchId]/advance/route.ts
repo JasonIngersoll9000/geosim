@@ -4,9 +4,22 @@ import { onPlayerDecision } from '@/lib/game/game-loop'
 import { getStateAtTurn } from '@/lib/game/state-engine'
 import { detectConstraintCascades } from '@/lib/game/decision-prerequisites'
 import { IRAN_DECISIONS } from '@/lib/game/iran-decisions'
-import type { EventStateEffects, PositionedAsset, BranchStateAtTurn } from '@/lib/types/simulation'
+import type { EventStateEffects, PositionedAsset, BranchStateAtTurn, AssetCategory } from '@/lib/types/simulation'
 
 const encoder = new TextEncoder()
+
+/** Infer a valid AssetCategory from an inventory key name. */
+function inferAssetCategory(assetType: string): AssetCategory {
+  const t = assetType.toLowerCase()
+  if (t.includes('missile') || t.includes('tomahawk') || t.includes('jassm') || t.includes('ballistic')) return 'missile'
+  if (t.includes('carrier') || t.includes('destroyer') || t.includes('submarine') || t.includes('naval')) return 'naval'
+  if (t.includes('aircraft') || t.includes('bomber') || t.includes('f-') || t.includes('b-2') || t.includes('air_wing')) return 'air'
+  if (t.includes('thaad') || t.includes('patriot') || t.includes('interceptor') || t.includes('air_defense')) return 'air_defense'
+  if (t.includes('nuclear') || t.includes('warhead')) return 'nuclear'
+  if (t.includes('cyber') || t.includes('intel') || t.includes('signal')) return 'cyber'
+  if (t.includes('infrastructure') || t.includes('port') || t.includes('refinery')) return 'infrastructure'
+  return 'ground'
+}
 
 /**
  * Build a minimal PositionedAsset[] from a BranchStateAtTurn so that
@@ -22,21 +35,25 @@ function buildAssetsFromState(state: BranchStateAtTurn | null): PositionedAsset[
   const assets: PositionedAsset[] = []
   for (const [actorId, actorState] of Object.entries(state.actor_states)) {
     for (const [assetType, count] of Object.entries(actorState.asset_inventory ?? {})) {
-      assets.push({
-        id:          `${actorId}:${assetType}`,
-        scenarioId:  state.scenario_id,
+      const asset: PositionedAsset = {
+        id:            `${actorId}:${assetType}`,
+        scenarioId:    state.scenario_id,
         actorId,
-        name:        assetType,
-        shortName:   assetType.slice(0, 8),
-        category:    'military',
+        name:          assetType,
+        shortName:     assetType.slice(0, 8),
+        category:      inferAssetCategory(assetType),
         assetType,
-        description: '',
-        position:    { lat: 0, lng: 0 },
-        zone:        'default',
-        status:       count > 0 ? 'available' : 'destroyed',
-        capabilities: [],
-        provenance:   'inferred',
-      } as unknown as PositionedAsset)
+        description:   '',
+        position:      { lat: 0, lng: 0 },
+        zone:          'default',
+        status:        count > 0 ? 'available' : 'destroyed',
+        capabilities:  [],
+        provenance:    'inferred',
+        effectiveFrom: state.as_of_date,
+        discoveredAt:  state.as_of_date,
+        notes:         '',
+      }
+      assets.push(asset)
     }
   }
   return assets
@@ -164,12 +181,7 @@ export async function POST(
         const assetsBefore = buildAssetsFromState(stateBefore)
         const assetsAfter  = buildAssetsFromState(stateAfter)
 
-        // Cast DecisionOption[] → Decision[] (compatible subset — requiredAssets is optional)
-        const cascades = detectConstraintCascades(
-          IRAN_DECISIONS as unknown as Parameters<typeof detectConstraintCascades>[0],
-          assetsBefore,
-          assetsAfter
-        )
+        const cascades = detectConstraintCascades(IRAN_DECISIONS, assetsBefore, assetsAfter)
 
         if (cascades.length > 0) {
           sendLine(controller, `${cascades.length} decision(s) newly unlocked by this action`, 'confirmed')

@@ -5,8 +5,20 @@
 import type { DecisionOption, DecisionDetail } from '@/lib/types/panels'
 
 export const IRAN_DECISIONS: DecisionOption[] = [
-  { id: 'expand-air',       title: 'Expand Air Campaign',          dimension: 'military',     escalationDirection: 'escalate',    resourceWeight: 0.6  },
-  { id: 'special-ops',      title: 'Special Ops Insertion',        dimension: 'military',     escalationDirection: 'escalate',    resourceWeight: 0.4  },
+  {
+    id: 'expand-air', title: 'Expand Air Campaign', dimension: 'military',
+    escalationDirection: 'escalate', resourceWeight: 0.6,
+    requiredAssets: [
+      { assetType: 'tomahawk_cruise_missiles', requiredStatus: ['available'] },
+    ],
+  },
+  {
+    id: 'special-ops', title: 'Special Ops Insertion', dimension: 'military',
+    escalationDirection: 'escalate', resourceWeight: 0.4,
+    requiredAssets: [
+      { assetType: 'carrier_strike_groups_centcom', requiredStatus: ['available'] },
+    ],
+  },
   { id: 'ceasefire-signal', title: 'Signal Ceasefire Willingness', dimension: 'diplomatic',   escalationDirection: 'de-escalate', resourceWeight: 0.2  },
   { id: 'oman-backchannel', title: 'Activate Oman Back-Channel',   dimension: 'diplomatic',   escalationDirection: 'de-escalate', resourceWeight: 0.15 },
   { id: 'iea-release',      title: 'IEA Reserve Release',          dimension: 'economic',     escalationDirection: 'neutral',     resourceWeight: 0.25 },
