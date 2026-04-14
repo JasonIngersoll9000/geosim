@@ -1,5 +1,6 @@
 'use client'
 import type { ActionSlot } from '@/lib/types/panels'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface Props {
   primaryAction: ActionSlot | null
@@ -118,13 +119,20 @@ export function TurnPlanBuilder({
       )}
 
       {/* Submit */}
-      <button
-        onClick={() => { if (canSubmit) onSubmit() }}
-        disabled={!canSubmit}
-        className="w-full py-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors bg-gold text-bg-base disabled:bg-bg-surface-high disabled:text-text-tertiary disabled:cursor-not-allowed"
+      <Tooltip
+        content={canSubmit ? 'Submit your turn plan. All actors resolve simultaneously — outcomes are AI-generated.' : 'Select a Primary Action before submitting.'}
+        placement="top"
+        maxWidth={220}
       >
-        {isSubmitting ? 'PROCESSING…' : 'SUBMIT TURN PLAN →'}
-      </button>
+        <button
+          onClick={() => { if (canSubmit) onSubmit() }}
+          disabled={!canSubmit}
+          className="w-full py-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors bg-gold text-bg-base disabled:bg-bg-surface-high disabled:text-text-tertiary disabled:cursor-not-allowed"
+          style={{ display: 'block' }}
+        >
+          {isSubmitting ? 'PROCESSING…' : 'SUBMIT TURN PLAN →'}
+        </button>
+      </Tooltip>
     </div>
   )
 }

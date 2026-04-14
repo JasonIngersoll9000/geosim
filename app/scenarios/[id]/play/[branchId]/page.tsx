@@ -1,6 +1,7 @@
 // RSC boundary: async server component — no 'use client'
 import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
 import { TopBar } from '@/components/ui/TopBar'
+import { HowToPlayButton } from '@/components/ui/HowToPlayButton'
 import { GameProvider } from '@/components/providers/GameProvider'
 import { GameView } from '@/components/game/GameView'
 import { createClient } from '@/lib/supabase/server'
@@ -61,6 +62,7 @@ export default async function PlayPage({ params }: Props) {
           turnNumber={devDataForBranch.branch.turnNumber}
           totalTurns={devData.groundTruthCommits.length}
           phase={isDevFork ? 'Planning' : 'Observer'}
+          howToPlaySlot={<HowToPlayButton />}
         />
         <main className="h-screen pt-[66px] overflow-hidden">
           <GameView
@@ -417,6 +419,7 @@ export default async function PlayPage({ params }: Props) {
         turnNumber={turnNumber}
         totalTurns={gtCommits.length}
         phase={branch?.is_trunk ? 'Observer' : 'Planning'}
+        howToPlaySlot={<HowToPlayButton />}
       />
       <main className="h-screen pt-[66px] overflow-hidden">
         <GameView

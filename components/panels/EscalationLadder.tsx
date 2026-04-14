@@ -1,6 +1,7 @@
 'use client'
 
 import type { EscalationRungSummary } from '@/lib/types/panels'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface Props {
   rungs: EscalationRungSummary[]
@@ -39,17 +40,24 @@ export function EscalationLadder({ rungs, currentRung, actorColor }: Props) {
           >
             {/* Left gutter: spine + level number */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 24, flexShrink: 0 }}>
-              <div style={{
-                width:        24, height: 24, borderRadius: '50%', display: 'flex',
-                alignItems:   'center', justifyContent: 'center',
-                flexShrink:   0,
-                background:   isCurrent ? actorColor : isPast ? `${actorColor}44` : 'transparent',
-                border:       `1px solid ${isCurrent ? actorColor : isPast ? `${actorColor}44` : '#3a3a3a'}`,
-                fontSize:     9, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace",
-                color:        isCurrent ? '#0d0d0d' : isPast ? actorColor : '#555',
-              }}>
-                {rung.level}
-              </div>
+              <Tooltip
+                content={isCurrent ? `Current posture: ${rung.name}` : isPast ? `Past posture (rung ${rung.level})` : `Future escalation step — not yet reached`}
+                placement="right"
+                maxWidth={180}
+              >
+                <div style={{
+                  width:        24, height: 24, borderRadius: '50%', display: 'flex',
+                  alignItems:   'center', justifyContent: 'center',
+                  flexShrink:   0,
+                  background:   isCurrent ? actorColor : isPast ? `${actorColor}44` : 'transparent',
+                  border:       `1px solid ${isCurrent ? actorColor : isPast ? `${actorColor}44` : '#3a3a3a'}`,
+                  fontSize:     9, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace",
+                  color:        isCurrent ? '#0d0d0d' : isPast ? actorColor : '#555',
+                  cursor: 'default',
+                }}>
+                  {rung.level}
+                </div>
+              </Tooltip>
               {/* Spine connector — skip for last item */}
               {i < sorted.length - 1 && (
                 <div style={{

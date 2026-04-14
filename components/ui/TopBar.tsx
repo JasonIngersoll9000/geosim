@@ -11,6 +11,7 @@ interface TopBarProps {
   totalTurns?: number;
   phase?: string;
   gameMode?: string;
+  howToPlaySlot?: React.ReactNode;
 }
 
 function toPhase(raw: string): Phase {
@@ -26,6 +27,7 @@ export function TopBar({
   totalTurns = 0,
   phase = "Planning",
   gameMode = "Simulation",
+  howToPlaySlot,
 }: TopBarProps) {
   return (
     <div
@@ -61,8 +63,9 @@ export function TopBar({
         {gameMode}
       </span>
 
-      {/* Right side: turn counter + phase badge + user menu */}
+      {/* Right side: how to play + turn counter + phase badge + user menu */}
       <div className="ml-auto flex items-center gap-3">
+        {howToPlaySlot}
         <span className="font-mono text-xs text-text-tertiary">
           TURN {turnNumber > 0 ? String(turnNumber).padStart(2, "0") : "\u2014"} /{" "}
           {totalTurns > 0 ? String(totalTurns).padStart(2, "0") : "\u2014"}
