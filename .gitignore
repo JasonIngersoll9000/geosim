@@ -1,3 +1,9 @@
+# git worktrees
+.worktrees/
+
+# Iran seed pipeline data — all files tracked
+# (previously excluded, now committed so the rich research is version-controlled)
+
 # dependencies
 /node_modules
 /.pnp
