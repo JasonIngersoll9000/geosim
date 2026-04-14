@@ -96,25 +96,35 @@ export default async function PlayPage({ params }: Props) {
     .eq('id', scenarioId)
     .single()
 
-  // 2. Fetch branch record — support "trunk" slug by looking up is_trunk branch
+  // 2. Fetch branch record — support "trunk" slug by looking up is_trunk branch.
+  //    Also fetch lineage columns (parent_branch_id, fork_point_commit_id) so
+  //    forked branches can reconstruct trunk history up to the fork point.
+  type BranchRow = {
+    id: string
+    name: string
+    is_trunk: boolean
+    head_commit_id: string | null
+    parent_branch_id: string | null
+    fork_point_commit_id: string | null
+  }
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-  let branchData: { id: string; name: string; is_trunk: boolean; head_commit_id: string | null } | null = null
+  let branchData: BranchRow | null = null
   if (UUID_RE.test(params.branchId)) {
     const { data } = await supabase
       .from('branches')
-      .select('id, name, is_trunk, head_commit_id')
+      .select('id, name, is_trunk, head_commit_id, parent_branch_id, fork_point_commit_id')
       .eq('id', params.branchId)
       .single()
-    branchData = data
+    branchData = data as BranchRow | null
   } else {
     // slug like "trunk" → look up trunk branch for this scenario
     const { data } = await supabase
       .from('branches')
-      .select('id, name, is_trunk, head_commit_id')
+      .select('id, name, is_trunk, head_commit_id, parent_branch_id, fork_point_commit_id')
       .eq('scenario_id', scenarioId)
       .eq('is_trunk', true)
       .single()
-    branchData = data
+    branchData = data as BranchRow | null
   }
   const branch = branchData
 
@@ -160,12 +170,84 @@ export default async function PlayPage({ params }: Props) {
     }
   }
 
-  // 5. Fetch chronicle (turn_commits on this branch)
-  const { data: commits } = await supabase
-    .from('turn_commits')
-    .select('turn_number, simulated_date, narrative_entry, chronicle_headline, chronicle_entry, chronicle_date_label, context_summary, is_decision_point')
-    .eq('branch_id', branch?.id ?? params.branchId)
-    .order('turn_number', { ascending: true })
+  // 5. Fetch chronicle using branch-lineage logic:
+  //    • Trunk branches: all commits on this branch, ordered by turn_number.
+  //    • Forked branches: trunk commits up to (and including) the fork turn,
+  //      PLUS this branch's own commits after the fork — giving a contiguous,
+  //      correctly scoped history.
+  //    We derive the fork turn number by resolving fork_point_commit_id → turn_number.
+  const COMMIT_COLS = 'turn_number, simulated_date, narrative_entry, chronicle_headline, chronicle_entry, chronicle_date_label, context_summary, is_decision_point'
+
+  type CommitRow = {
+    turn_number: number
+    simulated_date: string
+    narrative_entry: string | null
+    chronicle_headline: string | null
+    chronicle_entry: string | null
+    chronicle_date_label: string | null
+    context_summary: string | null
+    is_decision_point: boolean | null
+  }
+
+  let commits: CommitRow[] | null = null
+
+  const isForkedBranch = !!(branch && !branch.is_trunk && branch.parent_branch_id)
+
+  if (isForkedBranch && branch) {
+    // Step 5a: Resolve the fork turn number from the fork_point_commit_id.
+    let forkTurnNumber: number | null = null
+    if (branch.fork_point_commit_id) {
+      const { data: forkCommit } = await supabase
+        .from('turn_commits')
+        .select('turn_number')
+        .eq('id', branch.fork_point_commit_id)
+        .single()
+      forkTurnNumber = forkCommit?.turn_number ?? null
+    }
+
+    // Step 5b: Fetch trunk history up to fork turn.
+    const { data: trunkCommits } = forkTurnNumber !== null
+      ? await supabase
+          .from('turn_commits')
+          .select(COMMIT_COLS)
+          .eq('branch_id', branch.parent_branch_id)
+          .lte('turn_number', forkTurnNumber)
+          .order('turn_number', { ascending: true })
+      : { data: [] as CommitRow[] }
+
+    // Step 5c: Fetch branch-specific commits after the fork turn.
+    const { data: branchCommits } = forkTurnNumber !== null
+      ? await supabase
+          .from('turn_commits')
+          .select(COMMIT_COLS)
+          .eq('branch_id', branch.id)
+          .gt('turn_number', forkTurnNumber)
+          .order('turn_number', { ascending: true })
+      : await supabase
+          .from('turn_commits')
+          .select(COMMIT_COLS)
+          .eq('branch_id', branch.id)
+          .order('turn_number', { ascending: true })
+
+    // Merge trunk ancestry + branch divergence, deduplicated by turn_number
+    // (branch commits win in case of any overlap).
+    const mergedMap = new Map<number, CommitRow>()
+    for (const c of (trunkCommits ?? []) as CommitRow[]) {
+      mergedMap.set(c.turn_number, c)
+    }
+    for (const c of (branchCommits ?? []) as CommitRow[]) {
+      mergedMap.set(c.turn_number, c)
+    }
+    commits = Array.from(mergedMap.values()).sort((a, b) => a.turn_number - b.turn_number)
+  } else {
+    // Trunk branch (or unknown): simple single-branch query
+    const { data } = await supabase
+      .from('turn_commits')
+      .select(COMMIT_COLS)
+      .eq('branch_id', branch?.id ?? params.branchId)
+      .order('turn_number', { ascending: true })
+    commits = data as CommitRow[] | null
+  }
 
   // 6. Fetch ground truth branch
   const { data: trunkBranch } = await supabase
