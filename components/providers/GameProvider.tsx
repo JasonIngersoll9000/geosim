@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useReducer, ReactNode } from "react";
+import { createContext, useContext, useReducer, useEffect, ReactNode } from "react";
 import type { Scenario } from "@/lib/types/simulation";
 import type { GameInitialData } from "@/lib/types/game-init";
 
@@ -168,8 +168,23 @@ const GameContext = createContext<{
   dispatch: React.Dispatch<GameAction>;
 } | null>(null);
 
-export function GameProvider({ children }: { children: ReactNode }) {
+interface GameProviderProps {
+  children: ReactNode;
+  /** When provided (dev mode), GameProvider dispatches DEV_INIT on mount so all
+   *  game hooks read coherent seed state without any Supabase connection. */
+  initialData?: GameInitialData;
+}
+
+export function GameProvider({ children, initialData }: GameProviderProps) {
   const [state, dispatch] = useReducer(gameReducer, initialState);
+
+  useEffect(() => {
+    if (initialData) {
+      dispatch({ type: "DEV_INIT", payload: initialData });
+    }
+    // Only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <GameContext.Provider value={{ state, dispatch }}>

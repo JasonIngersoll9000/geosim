@@ -25,7 +25,7 @@ export default async function PlayPage({ params }: Props) {
   if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
     const devData = getIranSeedSnapshot()
     return (
-      <GameProvider>
+      <GameProvider initialData={devData}>
         <ClassificationBanner classification={`TOP SECRET // NOFORN // DEV MODE`} />
         <TopBar
           scenarioName={devData.scenario.name}

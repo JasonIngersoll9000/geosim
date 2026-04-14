@@ -32,20 +32,27 @@ interface TurnCompletedPayload {
   snapshot: Scenario
 }
 
+const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+
 export function useRealtime(
   branchId: string,
   options: UseRealtimeOptions = {}
 ): { status: RealtimeStatus } {
   const { onTurnCommit } = options
   const { dispatch } = useGame()
-  const [status, setStatus] = useState<RealtimeStatus>('connecting')
+  const [status, setStatus] = useState<RealtimeStatus>(DEV_MODE ? 'disconnected' : 'connecting')
 
   // Keep callback stable via ref to avoid re-subscribing on every render
   const onTurnCommitRef = useRef(onTurnCommit)
   useEffect(() => { onTurnCommitRef.current = onTurnCommit }, [onTurnCommit])
 
   useEffect(() => {
-    if (!branchId) {
+    if (DEV_MODE || !branchId) {
+      setStatus('disconnected')
+      return
+    }
+
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       setStatus('disconnected')
       return
     }

@@ -1,9 +1,46 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { onPlayerDecision } from '@/lib/game/game-loop'
-import type { EventStateEffects } from '@/lib/types/simulation'
+import { getStateAtTurn } from '@/lib/game/state-engine'
+import { detectConstraintCascades } from '@/lib/game/decision-prerequisites'
+import { IRAN_DECISIONS } from '@/lib/game/iran-decisions'
+import type { EventStateEffects, PositionedAsset, BranchStateAtTurn } from '@/lib/types/simulation'
 
 const encoder = new TextEncoder()
+
+/**
+ * Build a minimal PositionedAsset[] from a BranchStateAtTurn so that
+ * detectConstraintCascades can evaluate asset-gated decision prerequisites.
+ *
+ * Each asset_inventory entry becomes a stub asset with:
+ *   - status 'operational' if count > 0, 'destroyed' if exhausted
+ *   - assetType = inventory key, category = 'military' (default)
+ *   - empty capabilities / dummy position
+ */
+function buildAssetsFromState(state: BranchStateAtTurn | null): PositionedAsset[] {
+  if (!state) return []
+  const assets: PositionedAsset[] = []
+  for (const [actorId, actorState] of Object.entries(state.actor_states)) {
+    for (const [assetType, count] of Object.entries(actorState.asset_inventory ?? {})) {
+      assets.push({
+        id:          `${actorId}:${assetType}`,
+        scenarioId:  state.scenario_id,
+        actorId,
+        name:        assetType,
+        shortName:   assetType.slice(0, 8),
+        category:    'military',
+        assetType,
+        description: '',
+        position:    { lat: 0, lng: 0 },
+        zone:        'default',
+        status:       count > 0 ? 'available' : 'destroyed',
+        capabilities: [],
+        provenance:   'inferred',
+      } as unknown as PositionedAsset)
+    }
+  }
+  return assets
+}
 
 function sendLine(controller: ReadableStreamDefaultController, text: string, type = 'info') {
   const line = JSON.stringify({ text, type, timestamp: new Date().toISOString().slice(11, 19) })
@@ -92,7 +129,15 @@ export async function POST(
 
         sendLine(controller, 'Applying effects to theater state…', 'info')
 
-        // 4. Call state engine
+        // 4. Snapshot state BEFORE resolution (for constraint cascade comparison)
+        let stateBefore: BranchStateAtTurn | null = null
+        try {
+          stateBefore = await getStateAtTurn(branchId, branch.head_commit_id ?? '')
+        } catch {
+          // Non-fatal — cascade detection will produce no results
+        }
+
+        // 5. Call state engine
         const resolvedEffects: EventStateEffects = {
           actor_score_deltas:     {},
           asset_inventory_deltas: {},
@@ -108,7 +153,29 @@ export async function POST(
           sendLine(controller, `State engine: ${e instanceof Error ? e.message : 'skipped'}`, 'info')
         }
 
-        // 5. Update branch head_commit_id and persist controlled actors
+        // 6. Snapshot state AFTER resolution and compute constraint cascades
+        let stateAfter: BranchStateAtTurn | null = null
+        try {
+          stateAfter = await getStateAtTurn(branchId, newCommit.id)
+        } catch {
+          // Non-fatal — cascade detection will produce no results
+        }
+
+        const assetsBefore = buildAssetsFromState(stateBefore)
+        const assetsAfter  = buildAssetsFromState(stateAfter)
+
+        // Cast DecisionOption[] → Decision[] (compatible subset — requiredAssets is optional)
+        const cascades = detectConstraintCascades(
+          IRAN_DECISIONS as unknown as Parameters<typeof detectConstraintCascades>[0],
+          assetsBefore,
+          assetsAfter
+        )
+
+        if (cascades.length > 0) {
+          sendLine(controller, `${cascades.length} decision(s) newly unlocked by this action`, 'confirmed')
+        }
+
+        // 7. Update branch head_commit_id and persist controlled actors
         const branchUpdate: Record<string, unknown> = { head_commit_id: newCommit.id }
         if (body.controlledActors && body.controlledActors.length > 0) {
           branchUpdate.user_controlled_actors = body.controlledActors
@@ -134,6 +201,7 @@ export async function POST(
           ],
           escalationChanges: [],
           judgeScore: null,
+          constraintCascades: cascades,
         })
         controller.enqueue(encoder.encode(`data: ${resolutionSummary}\n\n`))
 

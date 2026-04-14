@@ -139,7 +139,7 @@ function buildCurrentState(): BranchStateAtTurn {
       assetAvailability[key] = {
         count,
         pct_of_initial: 100,
-        status: count > 0 ? 'available' : 'exhausted',
+        status: count > 0 ? ('available' as const) : ('exhausted' as const),
       }
     }
 

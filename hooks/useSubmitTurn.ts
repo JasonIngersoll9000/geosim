@@ -5,6 +5,7 @@ import type { ActionSlot } from '@/lib/types/panels'
 
 // Mock fallback only in development — production surfaces real API errors
 const DEV_MOCK_ENABLED = process.env.NODE_ENV === 'development'
+const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
 
 interface TurnPlan {
   primaryAction: ActionSlot
@@ -19,6 +20,14 @@ export interface TurnResolutionSummary {
   actorActions: Array<{ actorId: string; actionId: string; isPrimary: boolean }>
   escalationChanges: Array<{ actorId: string; previousRung: number; newRung: number; rationale: string }>
   judgeScore: number | null
+  /** Decisions that flipped from blocked → available during this turn's resolution */
+  constraintCascades?: Array<{
+    decisionId: string
+    decisionTitle: string
+    previouslyBlocked: boolean
+    nowAvailable: boolean
+    previousBlockReasons: string[]
+  }>
 }
 
 interface UseSubmitTurnResult {
@@ -125,6 +134,15 @@ export function useSubmitTurn(scenarioId: string, branchId: string): UseSubmitTu
       text: 'INITIALIZING TURN SUBMISSION…',
       type: 'info',
     }])
+
+    // In dev mode, skip the real API entirely and run the mock stream
+    if (DEV_MODE) {
+      appendLine({ timestamp: nowStamp(), text: 'DEV MODE — simulating turn resolution locally', type: 'info' })
+      await runMockStream(plan)
+      setIsComplete(true)
+      setIsSubmitting(false)
+      return
+    }
 
     try {
       const res = await fetch(`/api/scenarios/${scenarioId}/branches/${branchId}/advance`, {
