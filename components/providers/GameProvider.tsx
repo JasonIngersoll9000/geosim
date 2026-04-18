@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useReducer, useEffect, ReactNode } from "react";
-import type { Scenario } from "@/lib/types/simulation";
+import type { Scenario, TurnPhase } from "@/lib/types/simulation";
 import type { GameInitialData } from "@/lib/types/game-init";
 
 interface GameState {
@@ -9,7 +9,8 @@ interface GameState {
   branchId: string | null;
   currentCommitId: string | null;
   turnNumber: number;
-  turnPhase: "planning" | "resolution" | "reaction" | "judging" | "complete";
+  turnPhase: TurnPhase;
+  turnError: string | null;
 
   gameMode: "observer" | "single_actor" | "free_roam";
   userControlledActors: string[];
@@ -40,7 +41,7 @@ type GameAction =
       payload: {
         commitId: string;
         turnNumber: number;
-        snapshot: Scenario;
+        snapshot?: Scenario | null;
       };
     }
   | {
@@ -55,6 +56,7 @@ type GameAction =
   | { type: "SET_PERSPECTIVE"; payload: string | null }
   | { type: "SET_RESOLUTION_RUNNING"; payload: boolean }
   | { type: "SET_RESOLUTION_PROGRESS"; payload: string }
+  | { type: "SET_TURN_ERROR"; payload: string | null }
   | { type: "LOAD_SCENARIO"; payload: Scenario }
   | { type: "RESET_TURN" }
   | { type: "DEV_INIT"; payload: GameInitialData };
@@ -65,6 +67,7 @@ const initialState: GameState = {
   currentCommitId: null,
   turnNumber: 0,
   turnPhase: "planning",
+  turnError: null,
 
   gameMode: "observer",
   userControlledActors: [],
@@ -100,7 +103,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         currentCommitId: action.payload.commitId,
         turnNumber: action.payload.turnNumber,
-        scenarioSnapshot: action.payload.snapshot,
+        ...(action.payload.snapshot ? { scenarioSnapshot: action.payload.snapshot } : {}),
       };
 
     case "SET_TURN_PHASE":
@@ -130,6 +133,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case "SET_RESOLUTION_PROGRESS":
       return { ...state, resolutionProgress: action.payload };
 
+    case "SET_TURN_ERROR":
+      return { ...state, turnError: action.payload };
+
     case "LOAD_SCENARIO":
       return {
         ...state,
@@ -145,6 +151,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         selectedDecisionId: null,
         isResolutionRunning: false,
         resolutionProgress: "",
+        turnError: null,
       };
 
     case "DEV_INIT":
