@@ -22,7 +22,6 @@ import { ObserverOverlay } from '@/components/panels/ObserverOverlay'
 import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Tooltip } from '@/components/ui/Tooltip'
-import type { DispatchLine } from '@/components/game/DispatchTerminal'
 import type { ActorSummary, ActorDetail, DecisionDetail, ActionSlot } from '@/lib/types/panels'
 import type { GameInitialData, ChronicleEntry } from '@/lib/types/game-init'
 import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel } from '@/lib/game/actor-meta'
@@ -197,7 +196,8 @@ function buildActorMetrics(
 
 export function GameView({ branchId, scenarioId, initialData }: Props) {
   const { state, dispatch } = useGame()
-  const { submitTurn, isSubmitting, isComplete, error, lines: hookLines, resolutionSummary, reset: resetHook } = useSubmitTurn(scenarioId, branchId)
+  const { submitTurn, isSubmitting, error, reset: resetHook } = useSubmitTurn(scenarioId, branchId)
+  const isComplete = state.turnPhase === 'complete'
   const shouldSkip = useReducedMotion()
   const router = useRouter()
   const { user } = useUser()
@@ -226,11 +226,6 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   const [showCascadeAlerts, setShowCascadeAlerts]           = useState(false)
   const [turnNumber, setTurnNumber]                         = useState(initialData.branch.turnNumber)
   const [turnCommitId, setTurnCommitId]                     = useState<string | null>(initialData.branch.headCommitId)
-  const [dispatchLines, setDispatchLines]                   = useState<DispatchLine[]>([{
-    timestamp: new Date().toISOString().slice(11, 19),
-    text: `BRANCH: ${initialData.branch.name} // TURN ${String(initialData.branch.turnNumber).padStart(2, '0')} // PHASE: ${initialData.branch.isTrunk ? 'observer' : 'planning'}`,
-    type: 'info',
-  }])
 
   // ── Realtime: observer live-updates ─────────────────────────────────────────
   // In observer mode (no controlled actors), refresh server data when a new
@@ -298,8 +293,8 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     const actorId = controlledActors?.[0] ?? 'us'
     const actorDetail = initialData.actorDetails[actorId]
 
-    // Build events list from server resolution summary if available, else from submitted plan
-    const actorActions = resolutionSummary?.actorActions ?? allSubmittedActions.map(slot => ({
+    // Build events list from submitted plan (resolutionSummary removed in Task 5)
+    const actorActions = allSubmittedActions.map(slot => ({
       actorId,
       actionId: slot.id,
       isPrimary: slot.id === primaryAction?.id,
@@ -316,8 +311,8 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
       }
     })
 
-    const resolvedTurnNumber = resolutionSummary?.turnNumber ?? turnNumber + 1
-    const rawSimDate = resolutionSummary?.simulatedDate ?? null
+    const resolvedTurnNumber = turnNumber + 1
+    const rawSimDate: string | null = null
     const simulatedDate = rawSimDate
       ? (() => {
           const d = new Date(rawSimDate)
@@ -329,30 +324,19 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
       ? `Turn ${resolvedTurnNumber} — ${primaryAction.title}`
       : `Turn ${resolvedTurnNumber} Complete`
 
-    const escalationChanges = (resolutionSummary?.escalationChanges ?? []).map(ec => ({
-      actorId: ec.actorId,
-      actorName: initialData.actorDetails[ec.actorId]?.name ?? ec.actorId,
-      previousRung: ec.previousRung,
-      newRung: ec.newRung,
-      rationale: ec.rationale,
-    }))
+    const escalationChanges: Array<{ actorId: string; actorName: string; previousRung: number; newRung: number; rationale: string }> = []
 
     setLastTurnResolution({
       turnNumber: resolvedTurnNumber,
       simulatedDate,
       chronicleHeadline: headline,
       narrativeSummary: `Resolution complete. Actions executed: ${actionTitles.join(', ')}.`,
-      judgeScore: resolutionSummary?.judgeScore ?? 0,
+      judgeScore: 0,
       events,
       escalationChanges,
     })
 
-    // Surface newly-unlocked decisions from constraint cascade detection
-    const cascades = resolutionSummary?.constraintCascades ?? []
-    if (cascades.length > 0) {
-      setCascadeAlerts(cascades.map(c => ({ decisionId: c.decisionId, decisionTitle: c.decisionTitle })))
-      setShowCascadeAlerts(true)
-    }
+    // Constraint cascade detection removed (resolutionSummary removed in Task 5)
 
     const newEntry: ChronicleEntry = {
       turnNumber: resolvedTurnNumber,
@@ -473,11 +457,6 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
     setTurnNumber(commit.turnNumber)
     setTurnCommitId(commit.id)
     setGtHasNext(true) // always has next after going back
-    setDispatchLines([{
-      timestamp: new Date().toISOString().slice(11, 19),
-      text: `GROUND TRUTH — TURN ${commit.turnNumber} — ${commit.simulatedDate}`,
-      type: 'info',
-    }])
   }
 
   const handleNextGroundTruthEvent = async () => {
@@ -507,11 +486,6 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
             tags: [],
           }])
         }
-        setDispatchLines([{
-          timestamp: new Date().toISOString().slice(11, 19),
-          text: `GROUND TRUTH — TURN ${json.data.turnNumber} — ${json.data.simulatedDate}`,
-          type: 'info',
-        }])
       }
     } catch {
       // non-fatal
@@ -595,7 +569,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
 
           {/* Full-height terminal — reuse <DispatchTerminal /> */}
           <div className="flex-1 overflow-hidden min-h-0">
-            <DispatchTerminal lines={hookLines} isRunning={isSubmitting} />
+            <DispatchTerminal />
           </div>
 
           {/* Footer: constraint cascade alerts + completion return button or error dismiss */}
@@ -749,7 +723,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
 
           {/* Dispatch terminal footer — initial state lines */}
           <div className="shrink-0 overflow-hidden" style={{ height: '120px' }}>
-            <DispatchTerminal lines={dispatchLines} isRunning={false} />
+            <DispatchTerminal />
           </div>
 
         </>
