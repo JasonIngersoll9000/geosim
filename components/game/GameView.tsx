@@ -286,7 +286,6 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   // Auto-append chronicle entry and build EventsTab data when turn completes
   useEffect(() => {
     if (!isComplete) return
-    dispatch({ type: 'SET_TURN_PHASE', payload: 'complete' })
 
     const allSubmittedActions = primaryAction ? [primaryAction, ...concurrentActions] : [...concurrentActions]
     const actionTitles = allSubmittedActions.map(a => a.title)
