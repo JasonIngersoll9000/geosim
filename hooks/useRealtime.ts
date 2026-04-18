@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useGame } from '@/components/providers/GameProvider'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
-import type { Scenario } from '@/lib/types/simulation'
+import type { Scenario, TurnPhase } from '@/lib/types/simulation'
 
 export type RealtimeStatus = 'connecting' | 'connected' | 'disconnected' | 'error'
 
@@ -30,7 +30,7 @@ interface ResolutionProgressPayload {
 interface TurnCompletedPayload {
   commitId: string
   turnNumber: number
-  snapshot: Scenario
+  snapshot?: Scenario | null
 }
 
 const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
@@ -86,14 +86,24 @@ export function useRealtime(
       // ── Broadcast: turn lifecycle events ───────────────────────────────────
       .on('broadcast', { event: 'turn_started' }, ({ payload }: { payload: TurnStartedPayload }) => {
         dispatch({ type: 'SET_TURN_PHASE', payload: 'planning' })
+        dispatch({ type: 'SET_RESOLUTION_RUNNING', payload: true })
         void payload
       })
-      .on('broadcast', { event: 'resolution_progress' }, ({ payload }: { payload: ResolutionProgressPayload }) => {
+      .on('broadcast', { event: 'resolution_progress' }, ({ payload }: { payload: ResolutionProgressPayload & { phase?: string } }) => {
         dispatch({ type: 'SET_RESOLUTION_PROGRESS', payload: payload.message })
+        if (payload.phase) {
+          dispatch({ type: 'SET_TURN_PHASE', payload: payload.phase as TurnPhase })
+        }
       })
       .on('broadcast', { event: 'turn_completed' }, ({ payload }: { payload: TurnCompletedPayload }) => {
-        dispatch({ type: 'SET_COMMIT', payload: { commitId: payload.commitId, turnNumber: payload.turnNumber, snapshot: payload.snapshot } })
+        dispatch({ type: 'SET_COMMIT', payload: { commitId: payload.commitId, turnNumber: payload.turnNumber } })
         dispatch({ type: 'SET_TURN_PHASE', payload: 'complete' })
+        dispatch({ type: 'SET_RESOLUTION_RUNNING', payload: false })
+      })
+      .on('broadcast', { event: 'turn_failed' }, ({ payload }: { payload: { error: string; phase: string } }) => {
+        dispatch({ type: 'SET_TURN_PHASE', payload: 'failed' })
+        dispatch({ type: 'SET_TURN_ERROR', payload: payload.error })
+        dispatch({ type: 'SET_RESOLUTION_RUNNING', payload: false })
       })
       .subscribe((sub_status: string, err?: Error) => {
         if (sub_status === 'SUBSCRIBED') {
