@@ -852,6 +852,24 @@ export interface TurnPlanValidationResult {
   resourceUtilization: number;          // % of capacity used (should be 100)
 }
 
+// ─── TURN PHASE ───────────────────────────────────────────────────────────────
+
+/** Phases of the turn pipeline — used by server broadcasts and client UI */
+export type TurnPhase =
+  | 'submitted'
+  | 'planning'
+  | 'resolving'
+  | 'judging'
+  | 'narrating'
+  | 'finalizing'
+  | 'complete'
+  | 'failed'
+
+/** Ordered array for phase comparison in DispatchTerminal */
+export const TURN_PHASE_ORDER: TurnPhase[] = [
+  'submitted', 'planning', 'resolving', 'judging', 'narrating', 'finalizing', 'complete',
+]
+
 // ------------------------------------------------------------
 // SCENARIO FRAME — Stage 0 output (scenario framing)
 // ------------------------------------------------------------
