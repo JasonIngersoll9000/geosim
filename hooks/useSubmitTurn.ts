@@ -1,7 +1,7 @@
 'use client'
 import { useState, useCallback } from 'react'
 
-interface TurnSubmission {
+export interface TurnSubmission {
   primaryAction: string
   concurrentActions: string[]
   controlledActors: string[]
