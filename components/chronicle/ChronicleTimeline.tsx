@@ -1,4 +1,5 @@
 import { TurnEntry } from './TurnEntry'
+import { EmptyState } from '@/components/game/EmptyState'
 
 type Severity = 'critical' | 'major' | 'moderate' | 'minor'
 
@@ -16,18 +17,30 @@ const severityLabel: Record<Severity, string> = {
   minor:    'Minor development',
 }
 
-export function ChronicleTimeline({ entries }: { entries: React.ComponentProps<typeof TurnEntry>['entry'][] }) {
+interface ChronicleTimelineProps {
+  entries: React.ComponentProps<typeof TurnEntry>['entry'][]
+  /** Pass true when the chronicle fetch errored out. */
+  fetchError?: boolean
+}
+
+export function ChronicleTimeline({ entries, fetchError = false }: ChronicleTimelineProps) {
+  if (fetchError) {
+    return (
+      <EmptyState
+        variant="error"
+        title="Chronicle Unavailable"
+        body="Unable to load chronicle data. Check your connection or refresh the page."
+      />
+    )
+  }
+
   if (entries.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center gap-3" style={{ minHeight: 200 }}>
-        <div className="w-8 h-px" style={{ background: 'var(--border-subtle)' }} />
-        <div className="font-mono text-2xs uppercase tracking-[0.12em] text-text-tertiary">
-          No Chronicle Entries
-        </div>
-        <p className="font-serif italic text-sm text-text-tertiary leading-relaxed max-w-[240px]">
-          Chronicle entries appear here after each resolved turn. Step through Ground Truth or submit a turn plan to begin.
-        </p>
-      </div>
+      <EmptyState
+        variant="empty"
+        title="No Chronicle Entries"
+        body="Chronicle entries appear here after each resolved turn. Step through Ground Truth or submit a turn plan to begin."
+      />
     )
   }
 

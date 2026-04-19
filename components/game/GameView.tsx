@@ -20,6 +20,8 @@ import { ActorControlSelector } from '@/components/game/ActorControlSelector'
 import { DispatchTerminal } from '@/components/game/DispatchTerminal'
 import { ObserverOverlay } from '@/components/panels/ObserverOverlay'
 import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
+import { GameErrorBoundary } from '@/components/game/GameErrorBoundary'
+import { EmptyState } from '@/components/game/EmptyState'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Tooltip } from '@/components/ui/Tooltip'
 import type { ActorSummary, ActorDetail, DecisionDetail, ActionSlot } from '@/lib/types/panels'
@@ -67,6 +69,16 @@ function ActorsPanel({
   viewerActorId: string | null
   onSelect: (id: string) => void
 }) {
+  if (actors.length === 0) {
+    return (
+      <EmptyState
+        variant="empty"
+        title="No Actors"
+        body="Actor data has not loaded yet. Refresh or wait for the scenario to initialise."
+      />
+    )
+  }
+
   return (
     <div className="flex flex-col">
       <div className="flex flex-col divide-y divide-border-subtle">
@@ -744,6 +756,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   }
 
   return (
+    <GameErrorBoundary>
     <>
       <GameLayout
         mapContent={mapContent}
@@ -823,5 +836,6 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
         onToggleOmniscient={() => setOmniscientMode(prev => !prev)}
       />
     </>
+    </GameErrorBoundary>
   )
 }

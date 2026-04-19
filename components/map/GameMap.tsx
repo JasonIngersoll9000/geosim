@@ -83,25 +83,36 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
   const [mapAssetSelection, setMapAssetSelection] = useState<MapAssetSelection | null>(null)
   const [chokepointPopup, setChokepointPopup] = useState<ChokepointInfo | null>(null)
   const [staticFeaturePopup, setStaticFeaturePopup] = useState<StaticFeatureClickInfo | null>(null)
+  const [fetchError, setFetchError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!branchId || !turnCommitId) return
     const url = `/api/scenarios/${scenarioId}/branches/${branchId}/map-assets?turnCommitId=${turnCommitId}`
     fetch(url)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`map-assets: ${r.status}`)
+        return r.json()
+      })
       .then(({ data }: { data: { assets?: MapAsset[]; shipping_lanes?: ShippingLane[] } | null }) => {
-        if (data?.assets)        setMapAssets(data.assets)
+        if (data?.assets)         setMapAssets(data.assets)
         if (data?.shipping_lanes) setShippingLanes(data.shipping_lanes)
       })
-      .catch(() => {})
+      .catch((err: unknown) => {
+        setFetchError(err instanceof Error ? err.message : 'Failed to load map assets')
+      })
   }, [scenarioId, branchId, turnCommitId])
 
   useEffect(() => {
     if (!scenarioId) return
     fetch(`/api/scenarios/${scenarioId}/cities`)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`cities: ${r.status}`)
+        return r.json()
+      })
       .then(({ data }: { data: City[] | null }) => { if (data) setCities(data) })
-      .catch(() => {})
+      .catch((err: unknown) => {
+        setFetchError(err instanceof Error ? err.message : 'Failed to load city data')
+      })
   }, [scenarioId])
 
   function handleAssetClick(asset: PositionedAsset) {
@@ -382,6 +393,30 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
       >
         24°N 56°E // PERSIAN GULF THEATER
       </div>
+
+      {/* ── Network failure banner ── */}
+      {fetchError && (
+        <div
+          className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between gap-3 px-4 py-2 font-mono text-[9px] uppercase tracking-[0.1em] border-b"
+          style={{
+            background: 'rgba(231,76,60,0.12)',
+            borderColor: 'var(--status-critical)',
+            color: 'var(--status-critical)',
+          }}
+          role="alert"
+        >
+          <span>
+            ● ASSET FETCH FAILED — {fetchError}. Map data may be incomplete.
+          </span>
+          <button
+            onClick={() => setFetchError(null)}
+            className="shrink-0 hover:opacity-80 transition-opacity"
+            aria-label="Dismiss error"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   )
 }
