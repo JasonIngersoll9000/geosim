@@ -29,6 +29,7 @@ describe('TurnPlanBuilder', () => {
     const primary = { id: '1', title: 'Air Campaign', dimension: 'military' as const }
     const concurrent = [{ id: '2', title: 'Sanctions', dimension: 'economic' as const }]
     render(<TurnPlanBuilder primaryAction={primary} concurrentActions={concurrent} onSubmit={() => {}} />)
-    expect(screen.getByText(/60%/)).toBeInTheDocument()
+    // 1 primary + 1 concurrent = 2 slots → 50% each (Math.round(100/2) = 50)
+    expect(screen.getByText(/50%/)).toBeInTheDocument()
   })
 })
