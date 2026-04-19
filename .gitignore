@@ -52,6 +52,7 @@ rJVhgwRB6FMEbLgltoQ6D/
 # Playwright MCP + Claude session artifacts
 .playwright-mcp/
 .claude/scheduled_tasks.lock
+.claude/worktrees/
 
 # Screenshots from manual verification
 /geosim-*.png

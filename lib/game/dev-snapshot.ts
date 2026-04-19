@@ -9,7 +9,7 @@
 import type { GameInitialData } from '@/lib/types/game-init'
 import type { ActorSummary, ActorDetail, DecisionOption, DecisionDetail, EscalationRungSummary } from '@/lib/types/panels'
 import type { BranchStateAtTurn, LiveActorState } from '@/lib/types/simulation'
-import { IRAN_DECISIONS, IRAN_DECISION_DETAILS } from '@/lib/game/iran-decisions'
+import { US_DECISIONS, US_DECISION_DETAILS } from '@/lib/game/decisions/united-states'
 import { DEV_TRUNK_COMMITS } from '@/lib/game/dev-branches'
 
 import actorProfilesRaw from '@/data/actor-profiles.json'
@@ -290,8 +290,8 @@ export function getIranSeedSnapshot(): GameInitialData {
   const chronicle = buildChronicle()
   const currentState = buildCurrentState()
 
-  const decisions: DecisionOption[] = IRAN_DECISIONS
-  const decisionDetails: Record<string, DecisionDetail> = IRAN_DECISION_DETAILS
+  const decisions: DecisionOption[] = US_DECISIONS
+  const decisionDetails: Record<string, DecisionDetail> = US_DECISION_DETAILS
 
   return {
     scenario: {

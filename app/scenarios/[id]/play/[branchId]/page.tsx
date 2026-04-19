@@ -7,7 +7,7 @@ import { GameView } from '@/components/game/GameView'
 import { createClient } from '@/lib/supabase/server'
 import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
 import { getStateAtTurn } from '@/lib/game/state-engine'
-import { IRAN_DECISIONS, IRAN_DECISION_DETAILS } from '@/lib/game/iran-decisions'
+import { US_DECISIONS, US_DECISION_DETAILS } from '@/lib/game/decisions/united-states'
 import type { GameInitialData, ChronicleEntry, GroundTruthCommit } from '@/lib/types/game-init'
 import type { ActorSummary, ActorDetail } from '@/lib/types/panels'
 import { getActorColor, getRelationshipStance, isAdversaryActor, hasLimitedIntel, getEscalationRungName } from '@/lib/game/actor-meta'
@@ -402,8 +402,8 @@ export default async function PlayPage({ params }: Props) {
     },
     actors,
     actorDetails,
-    decisions: IRAN_DECISIONS,
-    decisionDetails: IRAN_DECISION_DETAILS,
+    decisions: US_DECISIONS,
+    decisionDetails: US_DECISION_DETAILS,
     chronicle,
     groundTruthBranchId: trunkBranch?.id ?? params.branchId,
     groundTruthCommits: gtCommits,
