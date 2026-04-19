@@ -2,7 +2,7 @@
 Updated by Claude Code at the end of each session.
 
 ## Current sprint: Sprint 3 — Real Data + AI Pipeline
-## Last session: 2026-03-30
+## Last session: 2026-04-18
 
 ### Completed
 - Next.js 14 scaffolding with App Router, TypeScript, Tailwind
@@ -39,10 +39,34 @@ Updated by Claude Code at the end of each session.
   - GitHub issues #27–#41 created (full remaining roadmap)
 
 ### Open PRs
-- None (PR #42 merged to main)
+- **PR #65** — feat: wire player decisions through full AI pipeline
+  Branch: `docs/advance-pipeline-spec` (16 commits ahead of main)
+  Status: OPEN, ready for review/merge pending DB migration + manual smoke test
+
+### Session 2026-04-18 work (PR #65 / plan 2026-04-15-advance-full-pipeline.md)
+- All 10 tasks of the full-pipeline plan complete
+- `/advance` rewritten: instant ~200ms response + `@vercel/functions` `waitUntil` background pipeline
+- Pipeline: actor agents (Promise.allSettled) → resolution → judge+retry → narrator → persist state
+- Progress via Supabase Realtime broadcasts: `turn_started`, `resolution_progress`, `turn_completed`, `turn_failed`
+- `DispatchTerminal` now renders deterministic 6-phase checklist from GameProvider state (not teletype)
+- `TurnPhase` union: `submitted | planning | resolving | judging | narrating | finalizing | complete | failed`
+- DB migration `20260415000000_turn_phase_enum.sql` — NOT YET APPLIED to staging/prod
+- Deleted `/api/game/turn/route.ts` (folded into `/advance`)
+- Added `@vercel/functions@3.4.3` dep
+- New tests: `turn-helpers`, `turn-broadcast`, `DispatchTerminal` (rewritten), `advance` integration
+- All typecheck + lint clean; 217/221 tests passing (4 pre-existing failures: seed-iran, middleware, research-pipeline, TurnPlanBuilder — unrelated)
+- Call-site fixes: GameView passing `.id` strings (was ActionSlot objects); TopBar/TurnPhaseIndicator use new TurnPhase union; panels.`information` → simulation.`intelligence` dimension bridge
+
+### Smoke test results (local, 127.0.0.1:3001)
+- Page renders cleanly, no React runtime errors from type changes
+- TurnPhase indicator renders "planning" correctly in TopBar
+- Full end-to-end pipeline NOT exercised (requires deployed env): Realtime times out on localhost origin cookies; Play-as-Actor requires branch creation (issue #38 not yet implemented)
+
+### Known follow-up (separate PR after #65 merges)
+- `lib/game/state-engine.ts` (`getStateAtTurn`, `persistStateSnapshot`) uses cookie-based `createClient()` — won't work from background pipeline (no HTTP request context). First real run will surface via `turn_failed` broadcast. Fix = inject a service client.
 
 ### In progress
-- Nothing — clean slate on main
+- Nothing — awaiting review/merge of PR #65
 
 ### Next up (in priority order)
 - Issue #29: Landing page (replace component showcase with real product page)
