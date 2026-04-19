@@ -170,8 +170,8 @@ grep -c cache_control lib/ai/actor-agent.ts lib/ai/prompts.ts
 
 ---
 
-### #38 · feat: Branch creation  🔴 (M)
-**Status:** `app/api/branches/route.ts` has only a GET handler (returns branches). No POST to create a new branch. UI shows "Branch creation is not available yet" (confirmed in smoke test). No `app/scenarios/[id]/branches/page.tsx` file.
+### #38 · feat: Branch creation  ✅ DONE (verified 2026-04-19)
+**Status:** On deeper inspection, `app/api/branches/route.ts` DOES have a full POST handler (fork logic with `parent_branch_id`, `fork_point_commit_id`, `head_commit_id` seeded from parent turn commit). `app/scenarios/[id]/branches/page.tsx` exists (614 lines). "FORK NEW BRANCH →" button wired in GameView. The "Branch creation is not available yet" string in the earlier triage was the `branchError` fallback message shown when a POST fails (not a stale placeholder). PR #67 improved this message. **Close this issue** after verifying a real auth'd session creates a branch end-to-end.
 
 **Repro:**
 ```bash
