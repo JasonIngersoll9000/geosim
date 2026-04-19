@@ -22,6 +22,20 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
+// ---------------------------------------------------------------------------
+// Mock @/lib/supabase/service — used by persistPipelineResults in the pipeline
+// ---------------------------------------------------------------------------
+vi.mock("@/lib/supabase/service", () => ({
+  createServiceClient: vi.fn().mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      update: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({}) }),
+      }),
+      upsert: vi.fn().mockReturnValue({}),
+    }),
+  }),
+}));
+
 import { callClaude } from "@/lib/ai/anthropic";
 import * as pipelineModule from "@/lib/ai/research-pipeline";
 import {
