@@ -1,8 +1,7 @@
 import Link from 'next/link'
 import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
 import { UserMenu } from '@/components/ui/UserMenu'
-
-type Phase = 'planning' | 'resolution' | 'reaction' | 'judging' | 'complete'
+import type { TurnPhase } from '@/lib/types/simulation'
 
 interface TopBarProps {
   scenarioName?: string;
@@ -14,10 +13,13 @@ interface TopBarProps {
   howToPlaySlot?: React.ReactNode;
 }
 
-function toPhase(raw: string): Phase {
-  const lower = raw.toLowerCase() as Phase
-  const valid: Phase[] = ['planning', 'resolution', 'reaction', 'judging', 'complete']
-  return valid.includes(lower) ? lower : 'planning'
+const VALID_PHASES: TurnPhase[] = [
+  'submitted', 'planning', 'resolving', 'judging', 'narrating', 'finalizing', 'complete', 'failed',
+]
+
+function toPhase(raw: string): TurnPhase {
+  const lower = raw.toLowerCase() as TurnPhase
+  return VALID_PHASES.includes(lower) ? lower : 'planning'
 }
 
 export function TopBar({

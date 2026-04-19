@@ -48,3 +48,11 @@ next-env.d.ts
 D3KgRAz17m5P7rF3K1Buq/
 fwzfWX0cHbALoGKluWaWV/
 rJVhgwRB6FMEbLgltoQ6D/
+
+# Playwright MCP + Claude session artifacts
+.playwright-mcp/
+.claude/scheduled_tasks.lock
+
+# Screenshots from manual verification
+/geosim-*.png
+/phase*-verification.png
