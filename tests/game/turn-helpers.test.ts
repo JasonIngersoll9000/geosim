@@ -137,7 +137,7 @@ describe('buildTurnPlanFromIds', () => {
 
   it('throws if actor has no decisions in catalog', () => {
     expect(() =>
-      buildTurnPlanFromIds('expand-air', [], 'iran', catalog),
+      buildTurnPlanFromIds('expand-air', [], 'gulf_states', catalog),
     ).toThrow('No decisions')
   })
 })
