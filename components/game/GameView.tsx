@@ -222,7 +222,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   const [concurrentActions, setConcurrentActions]           = useState<ActionSlot[]>([])
   const [chronicleEntries, setChronicleEntries]             = useState<ChronicleEntry[]>(initialData.chronicle)
   const [lastTurnResolution, setLastTurnResolution]         = useState<TurnResolutionData | null>(null)
-  const [cascadeAlerts, setCascadeAlerts]                   = useState<Array<{ decisionId: string; decisionTitle: string }>>([])
+  const [cascadeAlerts, _setCascadeAlerts]                  = useState<Array<{ decisionId: string; decisionTitle: string }>>([])
   const [showCascadeAlerts, setShowCascadeAlerts]           = useState(false)
   const [turnNumber, setTurnNumber]                         = useState(initialData.branch.turnNumber)
   const [turnCommitId, setTurnCommitId]                     = useState<string | null>(initialData.branch.headCommitId)
