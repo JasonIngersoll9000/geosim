@@ -1,10 +1,17 @@
 // lib/game/turn-helpers.ts
 // Helper functions for the turn-advance pipeline.
 
-import type { DecisionOption } from '@/lib/types/panels'
-import type { Decision, TurnPlan, PlannedAction } from '@/lib/types/simulation'
+import type { DecisionOption, Dimension as PanelDimension } from '@/lib/types/panels'
+import type { Decision, TurnPlan, PlannedAction, Dimension as SimDimension } from '@/lib/types/simulation'
 import { IRAN_DECISIONS } from '@/lib/game/iran-decisions'
 import { createServiceClient } from '@/lib/supabase/service'
+
+// panels.Dimension includes 'information' (not in simulation); simulation.Dimension
+// includes 'cultural' (not in panels). Map the panel-only value to the closest
+// simulation equivalent so the AI pipeline receives a valid Decision.dimension.
+function mapDimension(panel: PanelDimension): SimDimension {
+  return panel === 'information' ? 'intelligence' : panel
+}
 
 /**
  * Convert UI-facing DecisionOption[] to AI-pipeline Decision[].
@@ -15,7 +22,7 @@ export function adaptDecisionOptions(options: DecisionOption[]): Decision[] {
     const base: Decision = {
       id: opt.id,
       description: opt.title,
-      dimension: opt.dimension,
+      dimension: mapDimension(opt.dimension),
     }
 
     if (opt.escalationDirection === 'escalate') {
