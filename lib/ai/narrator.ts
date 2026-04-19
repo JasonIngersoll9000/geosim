@@ -5,7 +5,7 @@
  */
 
 import { callClaude } from '@/lib/ai/anthropic'
-import { NEUTRALITY_PREAMBLE } from '@/lib/ai/prompts'
+import { buildCachedSystemBlocks } from '@/lib/ai/prompts'
 import type { TurnPlan, EventStateEffects } from '@/lib/types/simulation'
 
 export interface NarratorInput {
@@ -36,9 +36,11 @@ export interface NarratorOutput {
   fullBriefing: string
 }
 
-const NARRATOR_SYSTEM = `${NEUTRALITY_PREAMBLE}
-
-ROLE: You are the War Chronicle narrator — an analytical journalist writing for a classified
+/**
+ * Stable role text for the narrator — does NOT include NEUTRALITY_PREAMBLE.
+ * Must never contain per-turn data.
+ */
+const NARRATOR_ROLE_TEXT = `ROLE: You are the War Chronicle narrator — an analytical journalist writing for a classified
 strategic intelligence audience. Your prose should be clear, authoritative, and deeply analytical.
 Think: combination of The Economist, a classified ODNI assessment, and a thriller novel.
 
@@ -56,6 +58,8 @@ OUTPUT FORMAT — return ONLY this JSON:
   "chronicle_headline": string,
   "full_briefing": string
 }`
+
+const NARRATOR_SYSTEM_BLOCKS = buildCachedSystemBlocks(NARRATOR_ROLE_TEXT)
 
 export async function runNarrator(input: NarratorInput): Promise<NarratorOutput> {
   const {
@@ -123,7 +127,10 @@ JUDGE ASSESSMENT (${judgeScore}/100): ${judgeCritique}
 
 Write the War Chronicle entry for this turn.`
 
-  const raw = await callClaude(NARRATOR_SYSTEM, userPrompt, { maxTokens: 3000 })
+  const raw = await callClaude('', userPrompt, {
+    maxTokens: 3000,
+    systemBlocks: NARRATOR_SYSTEM_BLOCKS,
+  })
 
   const parsed = raw as {
     chronicle_headline: string

@@ -6,7 +6,7 @@
 
 import { callClaude } from '@/lib/ai/anthropic'
 import {
-  NEUTRALITY_PREAMBLE,
+  buildCachedSystemBlocks,
   buildActorProfileBlock,
   buildLiveScoreBlock,
   buildGlobalStateBlock,
@@ -43,9 +43,11 @@ export interface ActorAgentOutput {
   rationale: string
 }
 
-const ACTOR_AGENT_SYSTEM = `${NEUTRALITY_PREAMBLE}
-
-ROLE: You are the strategic decision-making agent for a specific actor in the simulation.
+/**
+ * Stable role text for the actor agent — does NOT include NEUTRALITY_PREAMBLE
+ * (that is block 1 in buildCachedSystemBlocks). Must never contain per-turn data.
+ */
+const ACTOR_AGENT_ROLE_TEXT = `ROLE: You are the strategic decision-making agent for a specific actor in the simulation.
 Your job is to select the BEST turn plan from available decisions, reasoning from the actor's
 own strategic perspective, objectives, and constraints.
 
@@ -71,6 +73,8 @@ OUTPUT FORMAT — return ONLY this JSON:
   ],
   "rationale": string  // 2-3 sentences explaining the strategic logic
 }`
+
+const ACTOR_AGENT_SYSTEM_BLOCKS = buildCachedSystemBlocks(ACTOR_AGENT_ROLE_TEXT)
 
 export async function runActorAgent(input: ActorAgentInput): Promise<ActorAgentOutput> {
   const {
@@ -116,7 +120,10 @@ ${decisionsBlock}
 
 Select your turn plan. Return the JSON specified in your instructions.`
 
-  const raw = await callClaude(ACTOR_AGENT_SYSTEM, userPrompt, { maxTokens: 2048 })
+  const raw = await callClaude('', userPrompt, {
+    maxTokens: 2048,
+    systemBlocks: ACTOR_AGENT_SYSTEM_BLOCKS,
+  })
 
   const parsed = raw as {
     primaryActionDecisionId: string

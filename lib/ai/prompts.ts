@@ -4,6 +4,8 @@
  * across all agent calls to reduce token cost via Anthropic prompt caching.
  */
 
+import type Anthropic from '@anthropic-ai/sdk'
+
 export const NEUTRALITY_PREAMBLE = `You are an analyst for the War Game strategic simulation engine.
 War Game models complex competitive dynamics between nation-states and actors with
 absolute analytical neutrality. Your role is to reason rigorously from each actor's
@@ -82,6 +84,40 @@ export function buildGlobalStateBlock(global: {
   Oil price: $${global.oil_price_usd}/barrel
   Strait of Hormuz throughput: ${global.hormuz_throughput_pct}% of normal
   Global economic stress index: ${global.global_economic_stress}/100`
+}
+
+/**
+ * Build two separately-cached system content blocks for any agent call.
+ *
+ * Per the Anthropic prompt caching spec, placing `cache_control: { type: 'ephemeral' }`
+ * on the LAST block of each stable section creates a cumulative cache breakpoint.
+ * With two blocks the API stores two breakpoints:
+ *
+ *   Block 1 (NEUTRALITY_PREAMBLE) — shared across ALL agents; cached once per session.
+ *   Block 2 (agent role text)     — stable per agent type; cached once per agent type.
+ *
+ * Turn-variable data (current state, simulated date, turn number, divergence count,
+ * live scores) must NEVER be included in either block — it goes in the user message.
+ *
+ * @param agentRoleText The stable, agent-specific ROLE + OUTPUT FORMAT instructions.
+ *   Must not contain per-turn data.
+ * @returns An array of two TextBlockParam objects, each with cache_control applied.
+ */
+export function buildCachedSystemBlocks(
+  agentRoleText: string
+): Anthropic.Messages.TextBlockParam[] {
+  return [
+    {
+      type: 'text' as const,
+      text: NEUTRALITY_PREAMBLE,
+      cache_control: { type: 'ephemeral' as const },
+    },
+    {
+      type: 'text' as const,
+      text: agentRoleText,
+      cache_control: { type: 'ephemeral' as const },
+    },
+  ]
 }
 
 /**
