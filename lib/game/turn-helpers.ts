@@ -3,7 +3,7 @@
 
 import type { DecisionOption, Dimension as PanelDimension } from '@/lib/types/panels'
 import type { Decision, TurnPlan, PlannedAction, Dimension as SimDimension } from '@/lib/types/simulation'
-import { IRAN_DECISIONS } from '@/lib/game/iran-decisions'
+import { DECISION_CATALOG } from '@/lib/game/decisions'
 import { createServiceClient } from '@/lib/supabase/service'
 
 // panels.Dimension includes 'information' (not in simulation); simulation.Dimension
@@ -39,12 +39,18 @@ export function adaptDecisionOptions(options: DecisionOption[]): Decision[] {
 
 /**
  * Load the decision catalog keyed by actor ID.
- * Currently only the Iran 2026 scenario exists, so we hardcode US decisions.
+ * Pulls from lib/game/decisions/ and filters out actors with empty catalogs
+ * (they'll be skipped by the AI pipeline until their options are authored).
  * The _scenarioId param is reserved for future multi-scenario support.
  */
 export function loadDecisionCatalog(_scenarioId: string): Record<string, Decision[]> {
-  const adapted = adaptDecisionOptions(IRAN_DECISIONS)
-  return { united_states: adapted }
+  const result: Record<string, Decision[]> = {}
+  for (const [actorId, options] of Object.entries(DECISION_CATALOG)) {
+    if (options.length > 0) {
+      result[actorId] = adaptDecisionOptions(options)
+    }
+  }
+  return result
 }
 
 /**
