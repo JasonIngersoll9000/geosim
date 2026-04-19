@@ -84,8 +84,10 @@ export async function GET(
   const { searchParams } = new URL(request.url)
   const turnCommitId = searchParams.get('turnCommitId')
 
+  // When no turnCommitId is provided (e.g. first load before any turn is committed),
+  // fall back to returning an empty asset set with a 200 so the map loads cleanly.
   if (!turnCommitId) {
-    return NextResponse.json({ error: 'turnCommitId is required' }, { status: 400 })
+    return NextResponse.json({ data: { turn_commit_id: null, as_of_date: null, assets: [], shipping_lanes: [] } })
   }
 
   const ASSET_TYPE_MAP: Record<string, string> = {
