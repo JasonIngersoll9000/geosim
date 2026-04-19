@@ -4,6 +4,7 @@
 // the record shape consumed by turn-helpers.ts::loadDecisionCatalog().
 import type { DecisionOption, DecisionDetail } from '@/lib/types/panels'
 import { US_DECISIONS, US_DECISION_DETAILS } from './united-states'
+import { CN_DECISIONS, CN_DECISION_DETAILS } from './china'
 
 // Actor IDs match scenario_actors.id values used in scripts/seed-iran.ts.
 export type ActorId =
@@ -20,7 +21,7 @@ export const DECISION_CATALOG: Record<ActorId, DecisionOption[]> = {
   iran: [],
   israel: [],
   russia: [],
-  china: [],
+  china: CN_DECISIONS,
   gulf_states: [],
 }
 
@@ -30,6 +31,6 @@ export const DECISION_DETAILS: Record<ActorId, Record<string, DecisionDetail>> =
   iran: {},
   israel: {},
   russia: {},
-  china: {},
+  china: CN_DECISION_DETAILS,
   gulf_states: {},
 }
