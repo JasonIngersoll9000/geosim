@@ -136,8 +136,10 @@ describe('buildTurnPlanFromIds', () => {
   })
 
   it('throws if actor has no decisions in catalog', () => {
+    // All scenario actors (united_states, iran, israel, russia, china, gulf_states)
+    // now have non-empty catalogs. Use a synthetic actor id to exercise the guard.
     expect(() =>
-      buildTurnPlanFromIds('expand-air', [], 'iran', catalog),
+      buildTurnPlanFromIds('expand-air', [], 'made_up_actor', catalog),
     ).toThrow('No decisions')
   })
 })
