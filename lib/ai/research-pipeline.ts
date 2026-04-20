@@ -339,4 +339,44 @@ async function persistPipelineResults(
       sequence_number: i,
     });
   }
+
+  // Store Stage 5 escalation ladders back into the actors table.
+  // The escalation output is { escalationLadders: [...], constraintCascades: [...] }
+  // Store per-actor escalation ladder and the full constraint cascades on the scenario.
+  const escalationObj =
+    results.escalation &&
+    typeof results.escalation === "object" &&
+    !Array.isArray(results.escalation)
+      ? (results.escalation as Record<string, unknown>)
+      : null;
+
+  if (escalationObj) {
+    const ladders = Array.isArray(escalationObj.escalationLadders)
+      ? (escalationObj.escalationLadders as Record<string, unknown>[])
+      : [];
+    for (const ladder of ladders) {
+      const actorId = ladder.actorId as string | undefined;
+      if (!actorId) continue;
+      await supabase
+        .from("actors")
+        .update({ escalation_ladder: ladder })
+        .eq("scenario_id", scenarioId)
+        .eq("actor_id", actorId);
+    }
+
+    // Persist constraint cascades and fog-of-war onto the scenario row
+    // using the existing `phases` column as a staging area until a
+    // dedicated column exists.  We store them under scenario_frame extras
+    // so game logic can retrieve them without a schema migration.
+    await supabase
+      .from("scenarios")
+      .update({
+        scenario_frame: {
+          ...confirmedFrame,
+          _constraintCascades: escalationObj.constraintCascades ?? [],
+          _fogOfWar: results.fogOfWar ?? [],
+        },
+      })
+      .eq("id", scenarioId);
+  }
 }
