@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
 import { DEV_TRUNK_BRANCH, DEV_ACTORS } from '@/lib/game/dev-branches'
 
@@ -89,6 +90,31 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient()
+
+    // Auth required — the `branches` table has `created_by NOT NULL` and an
+    // RLS insert policy that checks `created_by = auth.uid()`. Without this
+    // we'd hit either a NOT NULL violation or a silent RLS denial.
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required to create a branch' },
+        { status: 401 },
+      )
+    }
+
+    // Defensive profile bootstrap — the schema has FK `branches.created_by -> profiles(id)`
+    // but there is no trigger to auto-create a profile row when a user signs up via
+    // Supabase Auth. Use the service role to upsert (profiles has no INSERT policy, so
+    // the cookie client would be blocked by RLS).
+    const usernameCandidate = user.email?.split('@')[0] ?? `user_${user.id.slice(0, 8)}`
+    const serviceClient = createServiceClient()
+    await serviceClient
+      .from('profiles')
+      .upsert(
+        { id: user.id, username: usernameCandidate },
+        { onConflict: 'id', ignoreDuplicates: true },
+      )
+
     const scenarioId = await resolveScenarioId(supabase, rawScenarioId)
 
     // Find the trunk branch to use as parent if not supplied
@@ -124,6 +150,7 @@ export async function POST(request: Request) {
       is_trunk:         false,
       status:           'active',
       parent_branch_id: resolvedParentId,
+      created_by:       user.id,
     }
     if (headCommitId) {
       insertData.head_commit_id       = headCommitId
