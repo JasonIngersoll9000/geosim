@@ -352,10 +352,10 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
         style={{ top: 10, right: 44 }}
       />
 
-      {/* ── Map layer controls + legend (stacked, no overlap) ── */}
+      {/* ── Map layer controls + legend (bottom-left, stacked vertically) ── */}
       {TOKEN && (
         <div style={{
-          position: 'absolute', bottom: 8, left: 12, zIndex: 10,
+          position: 'absolute', bottom: 8, left: 12, zIndex: 20,
           display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4,
         }}>
           <MapLayerControls layers={layers} onToggle={toggleLayer} />
@@ -370,8 +370,9 @@ export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', 
         onClose={() => { setDetailOpen(false); setSelectedAsset(null) }}
       />
 
-      {/* ── Actor status panel ── */}
-      <div style={{ position: 'absolute', bottom: 28, right: 10, zIndex: 40 }}>
+      {/* ── Actor status panel (bottom-right, above coordinate reference) ── */}
+      {/* z-index 20 matches MapLayerControls; both panels are on opposite sides so no overlap */}
+      <div style={{ position: 'absolute', bottom: 20, right: 10, zIndex: 20 }}>
         <ActorStatusPanel isGroundTruth={true} />
       </div>
 
