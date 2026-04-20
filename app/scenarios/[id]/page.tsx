@@ -368,7 +368,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
           return
         }
       }
-      setBranchError('Branch creation is not available yet.')
+      setBranchError('Branching is available from the Play page after selecting a turn.')
     } catch {
       setBranchError('Failed to create branch — please try again.')
     } finally {

@@ -67,7 +67,7 @@ function laneStatus(pct: number): ChokepointInfo['status'] {
   return 'open'
 }
 
-export function GameMap({ globalState, scenarioId = 'iran-2026', branchId = '', turnCommitId = null }: Props) {
+export function GameMap({ globalState, scenarioId = '', branchId = '', turnCommitId = null }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [layers, setLayers] = useState<LayerState>(DEFAULT_LAYERS)
   const [assets, _setAssets] = useState<PositionedAsset[]>([])
