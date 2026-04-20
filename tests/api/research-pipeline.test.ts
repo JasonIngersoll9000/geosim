@@ -22,6 +22,33 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
+// ---------------------------------------------------------------------------
+<<<<<<< feat/unified-research-endpoint-31
+// Mock @/lib/supabase/service — used by persistPipelineResults in the pipeline
+// ---------------------------------------------------------------------------
+vi.mock("@/lib/supabase/service", () => ({
+  createServiceClient: vi.fn().mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      update: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({}) }),
+      }),
+      upsert: vi.fn().mockReturnValue({}),
+    }),
+  }),
+=======
+// Mock @/lib/supabase/service for persistPipelineResults (used after stages 1-6)
+// ---------------------------------------------------------------------------
+vi.mock("@/lib/supabase/service", () => ({
+  createServiceClient: vi.fn(() => ({
+    from: vi.fn().mockReturnValue({
+      update: vi.fn().mockReturnThis(),
+      upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
+      eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+    }),
+  })),
+>>>>>>> main
+}));
+
 import { callClaude } from "@/lib/ai/anthropic";
 import * as pipelineModule from "@/lib/ai/research-pipeline";
 import {
