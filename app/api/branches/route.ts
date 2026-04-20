@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { resolveScenarioId } from '@/lib/supabase/resolve-scenario'
 import { DEV_TRUNK_BRANCH, DEV_ACTORS } from '@/lib/game/dev-branches'
+import { forkStateForBranch } from '@/lib/game/state-engine'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -167,7 +168,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error?.message ?? 'Insert failed' }, { status: 500 })
     }
 
-    return NextResponse.json({ id: data.id })
+    const newBranchId = (data as { id: string }).id
+
+    // Copy actor_state_snapshots and daily_depletion_rates from parent to new
+    // branch. Without this, /advance fails at getStateAtTurn with "No state
+    // snapshots found for branch X at turn Y" because snapshots live on the
+    // parent's branch_id, not the new one. Use the service client so we bypass
+    // the actor_state_snapshots RLS policy (writes are server-internal).
+    if (headCommitId && resolvedParentId) {
+      try {
+        await forkStateForBranch(
+          resolvedParentId,
+          headCommitId,
+          newBranchId,
+          { client: serviceClient },
+        )
+      } catch (forkErr) {
+        // Roll back the branch row so the user can retry cleanly instead of
+        // being stuck with a branch that has no state snapshots.
+        await serviceClient.from('branches').delete().eq('id', newBranchId)
+        const msg = forkErr instanceof Error ? forkErr.message : 'Unknown fork error'
+        return NextResponse.json(
+          { error: `Failed to copy parent branch state: ${msg}` },
+          { status: 500 },
+        )
+      }
+    }
+
+    return NextResponse.json({ id: newBranchId })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     return NextResponse.json({ error: message }, { status: 500 })
