@@ -354,16 +354,34 @@ export async function POST(
       .eq('id', (inProgress[0] as Record<string, unknown>).id as string)
   }
 
-  // ── Load head commit for turn number ────────────────────────────────────
+  // ── Load head commit for simulated_date ─────────────────────────────────
   const { data: headCommit } = await supabase
     .from('turn_commits')
     .select('turn_number, simulated_date')
     .eq('id', headCommitId)
     .single()
 
-  const prevTurn = (headCommit as Record<string, unknown> | null)?.turn_number as number ?? 0
+  const headTurn = (headCommit as Record<string, unknown> | null)?.turn_number as number ?? 0
   const prevDate = (headCommit as Record<string, unknown> | null)?.simulated_date as string ?? '2026-03-04'
-  const newTurnNumber = prevTurn + 1
+
+  // Compute next turn_number = max(turn_commits.turn_number on this branch) + 1.
+  // Falling back to head.turn_number + 1 for a fresh fork with no local commits yet.
+  //
+  // Why not just `head.turn_number + 1`? branches.head_commit_id only advances
+  // on successful pipeline completion. If a prior turn failed (marked 'failed'),
+  // the failed row still occupies (branch_id, head.turn_number + 1), and a retry
+  // would collide with unique_turn_per_branch. Using max-on-branch skips past
+  // failed rows.
+  const { data: lastBranchCommit } = await supabase
+    .from('turn_commits')
+    .select('turn_number')
+    .eq('branch_id', branchId)
+    .order('turn_number', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const lastBranchTurn = (lastBranchCommit as { turn_number: number } | null)?.turn_number
+  const newTurnNumber = (lastBranchTurn ?? headTurn) + 1
   const newSimDate = advanceDate(prevDate, 7)
 
   // ── Insert turn_commit ──────────────────────────────────────────────────
