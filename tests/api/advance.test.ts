@@ -37,10 +37,17 @@ vi.mock('@/lib/supabase/service', () => ({
                 // head commit lookup: .select().eq('id', headCommitId).single()
                 return { single: vi.fn().mockResolvedValue({ data: { turn_number: 3, simulated_date: '2026-04-01' }, error: null }) }
               }
-              // duplicate-check query: .select().eq('branch_id', branchId).not(...).limit(1)
+              // Branch-scoped queries:
+              //  - duplicate-check: .select().eq('branch_id', branchId).not(...).limit(1)
+              //  - max turn_number:  .select().eq('branch_id', branchId).order(...).limit(1).maybeSingle()
               return {
                 single: mockSingleShared,
                 not: vi.fn(() => ({ limit: vi.fn().mockResolvedValue({ data: [], error: null }) })),
+                order: vi.fn(() => ({
+                  limit: vi.fn(() => ({
+                    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+                  })),
+                })),
               }
             }),
           })),
