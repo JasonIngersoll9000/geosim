@@ -81,7 +81,7 @@ async function runFullPipeline(
 
     // ── Load branch state + divergence ───────────────────────────────────
     const [branchState, branchDivergence] = await Promise.all([
-      getStateAtTurn(branchId, headCommitId),
+      getStateAtTurn(branchId, headCommitId, undefined, { client: supabase }),
       computeBranchDivergence(supabase, branchId),
     ])
 
@@ -216,7 +216,7 @@ async function runFullPipeline(
 
     // ── Persist state ────────────────────────────────────────────────────
     const newState = applyEventEffects(branchState, resolution.effects)
-    await persistStateSnapshot(scenarioId, branchId, commitId, newState)
+    await persistStateSnapshot(scenarioId, branchId, commitId, newState, { client: supabase })
 
     // ── Update turn_commit with full results ─────────────────────────────
     await supabase.from('turn_commits').update({

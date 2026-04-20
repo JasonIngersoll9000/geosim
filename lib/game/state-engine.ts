@@ -7,6 +7,26 @@ import type {
   LiveGlobalState,
 } from '@/lib/types/simulation'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
+
+/**
+ * Minimal interface for the Supabase client methods used here.
+ * Accepts both the cookie-based server client (from lib/supabase/server)
+ * and the service-role client (from lib/supabase/service) — both expose the
+ * same query-builder shape for the reads/writes these functions perform.
+ *
+ * Callers without an HTTP request context (e.g. background pipelines) MUST
+ * pass a service client via `{ client }` to avoid the cookie() lookup throwing.
+ */
+type StateEngineClient = Awaited<ReturnType<typeof createClient>> | ReturnType<typeof createServiceClient>
+
+/**
+ * Resolve the Supabase client to use. If one is injected, use it. Otherwise
+ * fall back to the cookie-based client (works in HTTP request handlers only).
+ */
+async function resolveClient(injected?: StateEngineClient): Promise<StateEngineClient> {
+  return injected ?? (await createClient())
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -171,9 +191,10 @@ export function applyEventEffects(
 export async function getStateAtTurn(
   branchId: string,
   turnCommitId: string,
-  asOfDate?: string
+  asOfDate?: string,
+  options?: { client?: StateEngineClient }
 ): Promise<BranchStateAtTurn> {
-  const supabase = await createClient()
+  const supabase = await resolveClient(options?.client)
 
   const { data: snapshots, error: snapshotsError } = await supabase
     .from('actor_state_snapshots')
@@ -284,9 +305,10 @@ export async function persistStateSnapshot(
   scenarioId: string,
   branchId: string,
   turnCommitId: string,
-  state: BranchStateAtTurn
+  state: BranchStateAtTurn,
+  options?: { client?: StateEngineClient }
 ): Promise<void> {
-  const supabase = await createClient()
+  const supabase = await resolveClient(options?.client)
 
   const rows = Object.entries(state.actor_states).map(([actorId, actorState]) => ({
     scenario_id:            scenarioId,
@@ -315,10 +337,11 @@ export async function persistStateSnapshot(
 export async function forkStateForBranch(
   parentBranchId: string,
   forkTurnCommitId: string,
-  newBranchId: string
+  newBranchId: string,
+  options?: { client?: StateEngineClient }
 ): Promise<BranchStateAtTurn> {
-  const supabase = await createClient()
-  const parentState = await getStateAtTurn(parentBranchId, forkTurnCommitId)
+  const supabase = await resolveClient(options?.client)
+  const parentState = await getStateAtTurn(parentBranchId, forkTurnCommitId, undefined, options)
 
   // Deep copy — mutations to fork must not affect parent
   const forkedState: BranchStateAtTurn = JSON.parse(JSON.stringify(parentState))
