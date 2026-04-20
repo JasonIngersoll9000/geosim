@@ -5,7 +5,7 @@
  */
 
 import { callClaude } from '@/lib/ai/anthropic'
-import { NEUTRALITY_PREAMBLE } from '@/lib/ai/prompts'
+import { buildCachedSystemBlocks } from '@/lib/ai/prompts'
 import type { TurnPlan, EventStateEffects } from '@/lib/types/simulation'
 
 export const JUDGE_THRESHOLD = 40
@@ -30,9 +30,11 @@ export interface JudgeOutput {
   verdict: 'accept' | 'retry'
 }
 
-const JUDGE_SYSTEM = `${NEUTRALITY_PREAMBLE}
-
-ROLE: You are the Judge — an evaluator of strategic plausibility. You review the
+/**
+ * Stable role text for the judge — does NOT include NEUTRALITY_PREAMBLE.
+ * Must never contain per-turn data.
+ */
+const JUDGE_ROLE_TEXT = `ROLE: You are the Judge — an evaluator of strategic plausibility. You review the
 actions taken and the resolution outcomes and score whether they are realistic,
 historically grounded, and internally consistent.
 
@@ -63,6 +65,8 @@ OUTPUT FORMAT — return ONLY this JSON:
   "critique": string,
   "verdict": "accept" | "retry"
 }`
+
+const JUDGE_SYSTEM_BLOCKS = buildCachedSystemBlocks(JUDGE_ROLE_TEXT)
 
 /**
  * Score a single resolution attempt. Returns score, critique, and verdict.
@@ -105,7 +109,10 @@ ${effectsBlock}
 
 Score the plausibility of this turn resolution.`
 
-  const raw = await callClaude(JUDGE_SYSTEM, userPrompt, { maxTokens: 1024 })
+  const raw = await callClaude('', userPrompt, {
+    maxTokens: 1024,
+    systemBlocks: JUDGE_SYSTEM_BLOCKS,
+  })
 
   const parsed = raw as {
     score: number

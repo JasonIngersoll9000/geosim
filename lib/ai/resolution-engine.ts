@@ -5,7 +5,7 @@
  */
 
 import { callClaude } from '@/lib/ai/anthropic'
-import { NEUTRALITY_PREAMBLE, buildGlobalStateBlock } from '@/lib/ai/prompts'
+import { buildCachedSystemBlocks, buildGlobalStateBlock } from '@/lib/ai/prompts'
 import type { TurnPlan, EventStateEffects, BranchStateAtTurn, Decision } from '@/lib/types/simulation'
 
 export interface ResolutionInput {
@@ -39,9 +39,11 @@ export interface ResolutionOutput {
   narrativeSummary: string
 }
 
-const RESOLUTION_SYSTEM = `${NEUTRALITY_PREAMBLE}
-
-ROLE: You are the omniscient resolution engine. You see ALL actor plans simultaneously
+/**
+ * Stable role text for the resolution engine — does NOT include NEUTRALITY_PREAMBLE.
+ * Must never contain per-turn data.
+ */
+const RESOLUTION_ROLE_TEXT = `ROLE: You are the omniscient resolution engine. You see ALL actor plans simultaneously
 and resolve their simultaneous execution. Your job is to determine realistic outcomes
 when multiple actors execute their strategies at the same time.
 
@@ -111,6 +113,8 @@ OUTPUT FORMAT — return ONLY this JSON:
   "narrative_summary": string
 }`
 
+const RESOLUTION_SYSTEM_BLOCKS = buildCachedSystemBlocks(RESOLUTION_ROLE_TEXT)
+
 export async function runResolutionEngine(input: ResolutionInput): Promise<ResolutionOutput> {
   const {
     turnPlans,
@@ -163,7 +167,10 @@ ${plansBlock}
 ${correctionBlock}
 Resolve all simultaneous actions and return the JSON effects object.`
 
-  const raw = await callClaude(RESOLUTION_SYSTEM, userPrompt, { maxTokens: 4096 })
+  const raw = await callClaude('', userPrompt, {
+    maxTokens: 4096,
+    systemBlocks: RESOLUTION_SYSTEM_BLOCKS,
+  })
 
   const parsed = raw as {
     actor_score_deltas: Record<string, Record<string, number>>
