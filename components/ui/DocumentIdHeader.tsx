@@ -7,7 +7,7 @@ interface DocumentIdHeaderProps {
 }
 
 export function DocumentIdHeader({
-  scenarioCode = "GEOSIM-IRN-2026-0322",
+  scenarioCode = "WAR-GAME-IRN-2026-0322",
   branchName = "MAIN",
   turnNumber = 4,
   totalTurns = 12,

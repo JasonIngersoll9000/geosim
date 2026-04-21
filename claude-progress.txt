@@ -2,90 +2,94 @@
 Updated by Claude Code at the end of each session.
 
 ## Current sprint: Sprint 3 — Real Data + AI Pipeline
-## Last session: 2026-04-11
+## Last session: 2026-04-21 (Jason) / 2026-04-20 (Vartika)
 
-### Completed (this session)
-- **Playable game bug fixes — PR #59 open** (fix/playable-game-bugs, closes #51 + #57)
-  - 10 of 11 bugs fixed; Bug 10 (z-index panel overlap, P2) deferred for browser inspection
-  - 502/502 tests passing, 0 typecheck errors, 0 lint errors
-  - Bug 1: Fixed actors query in scenario hub — `actor_id` not `id`, removed `country_code`
-  - Bug 2: Removed hardcoded `/api/scenarios/iran-2026/cities` fetch from GameMap.tsx
-  - Bug 3: Made `turnCommitId` optional in map-assets route — fallback to `actor_capabilities`
-  - Bug 4: Fixed GameMap response parsing — `{ data }` not `{ assets }` (was reading wrong level)
-  - Bug 5: Removed `<ResearchUpdatePanel>` from GameView — admin-only tool, no permission check
-  - Bug 6: Fixed TopBar hardcoded `turnNumber=4, totalTurns=12` defaults → 0/0 with dash display
-  - Bug 7: Actors query in play page now uses `scenario?.id ?? params.id` (UUID vs slug fix)
-  - Bug 8: Chronicle query now uses `branch?.id ?? params.branchId` (same UUID fix)
-  - Bug 9: Decisions tab and DecisionCatalog hidden when `isGtMode` (observer/trunk mode)
-  - Bug 11: Branch creation error message improved to explain it's available from Play page
-  - Issue #57: Added `public/favicon.svg` and metadata to resolve 404
-  - Excluded `tests/e2e/**` from Vitest to prevent Playwright type conflicts
-- **Wrote bug fix implementation plan** — `docs/superpowers/plans/2026-04-09-playable-game-bug-fixes.md`
-- **Updated docs/scrum-issues.md** — marked completed issues, added GH↔scrum number map, added 5-plan sprint summary
-- **Added GitHub issues #51-#58** for remaining work items
+### Partner work merged (Vartika — PRs #66–#91, merged 2026-04-19–2026-04-21)
+- **PR #66**: GitHub Actions CI — typecheck, lint, vitest (closes #41)
+- **PR #67**: Fix trivial bugs from #51 audit
+- **PR #68**: Post-#65 progress log + triage + #52 design spec
+- **PR #69**: Error boundaries + empty-state handling (closes #56)
+- **PR #70**: Prompt caching for actor/resolution/judge stable prompts
+- **PR #71**: Split decision catalog by actor — foundation (closes #52 partial)
+- **PR #72**: Fix 4 pre-existing test failures
+- **PR #73**: Israel decisions catalog
+- **PR #78**: Migrate consumers + delete iran-decisions shim (closes #52)
+- **PR #79**: Rate limiting + cost controls design spec
+- **PR #80**: Auth polish sign-in/sign-up flows (closes #40)
+- **PR #81**: Unified research pipeline endpoint + caching gap fix (closes #31)
+- **PR #82**: Fix actor panel / map controls z-index overlap (Bug 10, closes #51)
+- **PR #83**: DB migration + cost-tracker module (closes #58 partial)
+- **PR #84**: Inject service client into state-engine for background pipeline
+- **PR #85**: Exclude .claude/worktrees + dist + .next from vitest
+- **PR #86**: branches table: set created_by + bootstrap profile row on fork
+- **PR #87**: advance: skip past failed turn_commits for next turn_number
+- **PR #88**: Copy state snapshots on fork + resolve research test merge markers
+- **PR #89**: Iran + Russia + China + Gulf States decision catalogs (closes #52)
+- **PR #90**: OPEN — fix favicon metadata to /favicon.svg
+- **PR #91**: OPEN — graceful fallbacks for dev-mode map fetches
 
-### Open PRs
-- PR #59: fix/playable-game-bugs — 10 bug fixes (ready for review, closes #51 + #57)
+### Jason's work (PR #59 — fix/playable-game-bugs, now merged via conflict resolution)
+- Bug 1: Fixed actors query in scenario hub — `actor_id` not `id`, removed `country_code`
+- Bug 2: Removed hardcoded `/api/scenarios/iran-2026/cities` fetch from GameMap.tsx
+- Bug 3: Made `turnCommitId` optional in map-assets route — fallback to `actor_capabilities`
+- Bug 4: Fixed GameMap response parsing — `{ data }` not `{ assets }`
+- Bug 5: Removed `<ResearchUpdatePanel>` from GameView — admin-only tool
+- Bug 6: Fixed TopBar hardcoded `turnNumber=4, totalTurns=12` defaults
+- Bug 7: Actors query in play page now uses `scenario?.id ?? params.id`
+- Bug 8: Chronicle query now uses `branch?.id ?? params.branchId`
+- Bug 9: Decisions tab hidden when `isGtMode`
+- Bug 11: Branch creation error message improved
+- Issue #57: Added `public/favicon.svg` and metadata to resolve 404
+
+### Open PRs (as of 2026-04-21)
+- PR #90: fix/favicon-metadata — wire favicon metadata (Vartika)
+- PR #91: fix/dev-mode-map-errors — graceful fallbacks for dev-mode map fetches (Vartika)
 
 ### In progress
-- Nothing — PR #59 is the only open work item
+- Resolving merge conflicts between fix/playable-game-bugs and main
 
 ### Next up (in priority order)
-1. **Merge PR #59** — review and merge the playable game bug fixes
-2. **Plan 2: Research Pipeline (Issue #31)** — 7-stage Iran scenario research pipeline
-   - `lib/ai/research-pipeline.ts`, `app/api/scenarios/[id]/research/route.ts`
-3. **Plan 3: AI Pipeline Core (Issues #32, #33, #52)**
-   - #52: Multi-actor decision catalog (decisions for all 6 actors, not just US)
-   - #32: Actor agent full TurnPlan generation (buildStateContextBlock exists, route missing)
-   - #33: Resolution engine (processes all actor TurnPlans simultaneously)
+1. **Run tests + typecheck** — verify merged state is clean
+2. **PR #90 + #91** — review Vartika's open PRs
+3. **Plan 3: AI Pipeline Core (Issues #32, #33)** — actor agent full TurnPlan, resolution engine
 4. **Plan 4: Judge + Narrator (Issues #34, #35)**
-5. **Plan 5: Game Loop + Player Interaction (Issues #36, #37, #38, #53, #54)**
-6. **Quick tasks: #40 (auth middleware), #41 (CI/CD)**
+5. **Plan 5: Game Loop + Player Interaction (Issues #36, #37, #38)**
+6. **Issue #58**: Rate limiting + cost controls (DB migration done in PR #83)
 
-### Known bugs / debt
-- Bug 10: Actor status panel overlaps map layer toggles — P2, CSS z-index issue, needs browser inspection
-- getConstraintCascadeRisk (lib/game/escalation.ts) uses Iran-specific keyword matching
-  instead of reading from Scenario.constraintCascades — tracked for future sprint
-- scripts/update-ground-truth.ts: Bun.spawn replaced with spawnSync — blocking call,
-  fine for CLI use but would need async refactor if ever called from server context
-- actors tab and chronicle: root cause of empty data (UUID vs slug) is patched with fallback,
-  but underlying data consistency should be verified in Supabase (do actors have UUID scenario_id
-  or slug scenario_id?)
-
-### GitHub issue map (current open)
-- #59: PR — Playable game bug fixes (fix/playable-game-bugs)
-- #31: Research pipeline — OPEN
+### Open GitHub issues (as of 2026-04-21)
 - #32: Actor agent full TurnPlan — OPEN (partial: buildStateContextBlock done)
 - #33: Resolution engine — OPEN
 - #34: Judge agent — OPEN
 - #35: Narrator — OPEN
 - #36: Game loop controller — OPEN
-- #37: Turn submission — OPEN (partial: advance route + useSubmitTurn exist)
+- #37: Turn submission — OPEN (partial: advance route wired)
 - #38: Branch creation — OPEN
-- #40: Auth — OPEN (partial: pages + dev bypass)
-- #41: CI/CD — OPEN
-- #51: Playable game bugs — OPEN (PR #59 in review)
-- #52: Multi-actor decision catalog — OPEN
 - #53: Observer mode full implementation — OPEN
 - #54: Actor dossier data quality — OPEN
 - #55: Seed data quality pass — OPEN
-- #56: Error boundaries + blank state — OPEN
-- #57: Favicon — OPEN (PR #59 in review)
-- #58: Rate limiting + AI cost controls — OPEN
+- #58: Rate limiting + AI cost controls — OPEN (spec + DB migration done)
+
+### Closed by partner (PRs #66–#89)
+- #31: Research pipeline — CLOSED (PR #81)
+- #40: Auth — CLOSED (PR #80)
+- #41: CI/CD — CLOSED (PR #66)
+- #51: Bug fixes — CLOSED (PRs #67, #82)
+- #52: Multi-actor decision catalog — CLOSED (PRs #71, #73, #78, #89)
+- #56: Error boundaries — CLOSED (PR #69)
 
 ### Architecture decisions (this session)
-- map-assets route: when `turnCommitId` absent, use `params.id` (scenario ID) for
-  `actor_capabilities` query; return `turn_commit_id: ''` as sentinel for static snapshot
-- `fillFromCapabilities` extracted as named helper to avoid duplication between the two
-  code paths (with/without turnCommitId)
-- GameMap response parsing: route returns `{ data: MapAssetsResponse }` envelope;
-  client must destructure `{ data }` then access `data.assets`
-- Vitest excludes `tests/e2e/**` — Playwright specs cause type conflicts in Vitest runner
+- map-assets route: rewritten to always query actor_capabilities for rich metadata;
+  early-return empty asset set when no turnCommitId (instead of static capability fallback)
+- map-assets: now includes Bab-el-Mandeb shipping lane (throughput derived from global_economic_stress)
+- play page: chronicle now uses branch-lineage query (trunk ancestry + branch divergence merged)
+- scenario hub page: branches + actors now fetched via /api/branches (bypasses RLS)
+- GameView: decisions tab also hidden in omniscientMode (not just GT/trunk mode)
+- vitest: excludes tests/e2e/** AND .claude/worktrees/** AND dist AND .next
 
 ### Architecture decisions (previous sessions)
 - Using bun (not npm/npx) for all package management — npm/npx are Windows binaries in WSL2
 - Vitest configured with node environment (not jsdom) for server-side logic tests
-- docs/ and scripts/ excluded from TypeScript compilation
+- docs/ excluded from TypeScript compilation (reference docs, not compiled code)
 - ESLint argsIgnorePattern: ^_ must be in .eslintrc.json (Vercel build requires it)
 - prefer-const applies even when mutating object properties via bracket notation
 - Concurrent TurnPlan validation must check every concurrent pair (i<j loop), not just vs primary

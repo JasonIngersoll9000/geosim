@@ -1,0 +1,53 @@
+11:50:07.128 Running build in Washington, D.C., USA (East) – iad1
+11:50:07.129 Build machine configuration: 2 cores, 8 GB
+11:50:07.327 Cloning github.com/JasonIngersoll9000/geosim (Branch: feat/task-9-branch-tree-and-decision-fix, Commit: 9678aa0)
+11:50:08.673 Cloning completed: 1.346s
+11:50:08.993 Restored build cache from previous deployment (4TfikZ6ufxfoS6Ug8xTS8ffGmyUP)
+11:50:09.835 Running "vercel build"
+11:50:10.496 Vercel CLI 50.43.0
+11:50:10.781 Running "install" command: `npm install`...
+11:50:31.625 
+11:50:31.626 up to date, audited 573 packages in 21s
+11:50:31.626 
+11:50:31.626 177 packages are looking for funding
+11:50:31.627   run `npm fund` for details
+11:50:31.742 
+11:50:31.743 12 vulnerabilities (7 moderate, 5 high)
+11:50:31.743 
+11:50:31.744 To address issues that do not require attention, run:
+11:50:31.744   npm audit fix
+11:50:31.745 
+11:50:31.745 To address all issues (including breaking changes), run:
+11:50:31.745   npm audit fix --force
+11:50:31.745 
+11:50:31.746 Run `npm audit` for details.
+11:50:31.784 Detected Next.js version: 14.2.29
+11:50:31.785 Running "npm run build"
+11:50:31.895 
+11:50:31.895 > geosim@0.1.0 build
+11:50:31.895 > next build
+11:50:31.895 
+11:50:32.621   ▲ Next.js 14.2.29
+11:50:32.622 
+11:50:32.644    Creating an optimized production build ...
+11:50:35.764  ⨯ Failed to find font override values for font `Newsreader`
+11:50:46.802 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (140kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+11:50:50.745  ⨯ Failed to find font override values for font `Newsreader`
+11:50:58.276  ✓ Compiled successfully
+11:50:58.277    Linting and checking validity of types ...
+11:51:06.835 
+11:51:06.836 Failed to compile.
+11:51:06.836 
+11:51:06.836 ./app/api/branches/route.ts
+11:51:06.836 34:9  Error: 'commitsByBranch' is never reassigned. Use 'const' instead.  prefer-const
+11:51:06.837 
+11:51:06.837 ./components/map/MapboxMap.tsx
+11:51:06.837 438:22  Warning: The ref value 'cityMarkersRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'cityMarkersRef.current' to a variable inside the effect, and use that variable in the cleanup function.  react-hooks/exhaustive-deps
+11:51:06.838 440:26  Warning: The ref value 'mapAssetMarkersRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'mapAssetMarkersRef.current' to a variable inside the effect, and use that variable in the cleanup function.  react-hooks/exhaustive-deps
+11:51:06.838 
+11:51:06.838 ./lib/game/actor-meta.ts
+11:51:06.838 81:7  Error: 'ADVERSARY_IDS' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+11:51:06.838 81:7  Error: 'ADVERSARY_IDS' is assigned a value but never used. Allowed unused vars must match /^_/u.  no-unused-vars
+11:51:06.838 
+11:51:06.839 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+11:51:06.890 Error: Command "npm run build" exited with 1

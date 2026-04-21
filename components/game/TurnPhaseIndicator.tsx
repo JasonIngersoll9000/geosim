@@ -1,13 +1,17 @@
-type Phase = 'planning' | 'resolution' | 'reaction' | 'judging' | 'complete'
+import type { TurnPhase } from '@/lib/types/simulation'
 
-export function TurnPhaseIndicator({ phase }: { phase: Phase }) {
-  const colors: Record<Phase, string> = {
-    planning:   'var(--status-info)',
-    resolution: 'var(--gold)',
-    reaction:   'var(--status-warning)',
-    judging:    'var(--status-stable)',
-    complete:   'var(--text-tertiary)',
-  }
+const colors: Record<TurnPhase, string> = {
+  submitted:  'var(--status-info)',
+  planning:   'var(--status-info)',
+  resolving:  'var(--gold)',
+  judging:    'var(--status-stable)',
+  narrating:  'var(--status-warning)',
+  finalizing: 'var(--gold)',
+  complete:   'var(--text-tertiary)',
+  failed:     'var(--status-critical)',
+}
+
+export function TurnPhaseIndicator({ phase }: { phase: TurnPhase }) {
   return (
     <span
       className="font-sans text-[10px] font-semibold uppercase tracking-[0.06em]"

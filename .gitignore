@@ -1,10 +1,8 @@
 # git worktrees
 .worktrees/
 
-# Iran seed pipeline — intermediate JSON artifacts (pushed to Supabase, not committed)
-/data/*
-# Curated reference files that ARE tracked
-!/data/radar-network.json
+# Iran seed pipeline data — all files tracked
+# (previously excluded, now committed so the rich research is version-controlled)
 
 # dependencies
 /node_modules
@@ -50,3 +48,12 @@ next-env.d.ts
 D3KgRAz17m5P7rF3K1Buq/
 fwzfWX0cHbALoGKluWaWV/
 rJVhgwRB6FMEbLgltoQ6D/
+
+# Playwright MCP + Claude session artifacts
+.playwright-mcp/
+.claude/scheduled_tasks.lock
+.claude/worktrees/
+
+# Screenshots from manual verification
+/geosim-*.png
+/phase*-verification.png

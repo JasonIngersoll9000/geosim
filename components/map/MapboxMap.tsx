@@ -3,26 +3,64 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { LayerState } from './MapLayerControls'
-import type { PositionedAsset, City } from '@/lib/types/simulation'
+import type { PositionedAsset, City, MapAsset } from '@/lib/types/simulation'
+import type { ChokepointId } from './ChokepointPopup'
 import { createAssetMarkerElement } from './AssetMarker'
 import { createCityMarkerElement } from './CityMarker'
+import { NATION_HEX_COLORS } from '@/lib/game/actor-colors'
 
 // ─── Key cities GeoJSON ───────────────────────────────────────────────────────
 
 const KEY_CITIES_DATA: GeoJSON.FeatureCollection<GeoJSON.Point> = {
   type: 'FeatureCollection',
   features: [
-    { type: 'Feature', properties: { name: 'TEHRAN',      type: 'capital'  }, geometry: { type: 'Point', coordinates: [51.389, 35.689] } },
-    { type: 'Feature', properties: { name: 'BANDAR ABBAS', type: 'port'    }, geometry: { type: 'Point', coordinates: [56.267, 27.183] } },
-    { type: 'Feature', properties: { name: 'NATANZ',       type: 'nuclear' }, geometry: { type: 'Point', coordinates: [51.727, 33.724] } },
-    { type: 'Feature', properties: { name: 'FORDOW',       type: 'nuclear' }, geometry: { type: 'Point', coordinates: [49.599, 34.885] } },
-    { type: 'Feature', properties: { name: 'BUSHEHR',      type: 'nuclear' }, geometry: { type: 'Point', coordinates: [50.846, 28.968] } },
-    { type: 'Feature', properties: { name: 'BAGHDAD',      type: 'capital' }, geometry: { type: 'Point', coordinates: [44.366, 33.315] } },
-    { type: 'Feature', properties: { name: 'DUBAI',        type: 'city'    }, geometry: { type: 'Point', coordinates: [55.271, 25.205] } },
-    { type: 'Feature', properties: { name: 'MUSCAT',       type: 'city'    }, geometry: { type: 'Point', coordinates: [58.593, 23.588] } },
-    { type: 'Feature', properties: { name: 'DOHA',         type: 'city'    }, geometry: { type: 'Point', coordinates: [51.531, 25.286] } },
+    // Iran
+    { type: 'Feature', properties: { name: 'TEHRAN',       type: 'capital', nation: 'IR' }, geometry: { type: 'Point', coordinates: [51.389,  35.689] } },
+    { type: 'Feature', properties: { name: 'BANDAR ABBAS', type: 'port',    nation: 'IR' }, geometry: { type: 'Point', coordinates: [56.267,  27.183] } },
+    { type: 'Feature', properties: { name: 'NATANZ',       type: 'nuclear', nation: 'IR' }, geometry: { type: 'Point', coordinates: [51.727,  33.724] } },
+    { type: 'Feature', properties: { name: 'FORDOW',       type: 'nuclear', nation: 'IR' }, geometry: { type: 'Point', coordinates: [49.599,  34.885] } },
+    { type: 'Feature', properties: { name: 'BUSHEHR',      type: 'nuclear', nation: 'IR' }, geometry: { type: 'Point', coordinates: [50.846,  28.968] } },
+    { type: 'Feature', properties: { name: 'ISFAHAN',      type: 'city',    nation: 'IR' }, geometry: { type: 'Point', coordinates: [51.677,  32.661] } },
+    { type: 'Feature', properties: { name: 'AHVAZ',        type: 'port',    nation: 'IR' }, geometry: { type: 'Point', coordinates: [48.671,  31.319] } },
+    // Israel
+    { type: 'Feature', properties: { name: 'TEL AVIV',     type: 'city',    nation: 'IL' }, geometry: { type: 'Point', coordinates: [34.781,  32.085] } },
+    { type: 'Feature', properties: { name: 'JERUSALEM',    type: 'capital', nation: 'IL' }, geometry: { type: 'Point', coordinates: [35.213,  31.768] } },
+    { type: 'Feature', properties: { name: 'HAIFA',        type: 'port',    nation: 'IL' }, geometry: { type: 'Point', coordinates: [34.989,  32.794] } },
+    // Gulf States
+    { type: 'Feature', properties: { name: 'RIYADH',       type: 'capital', nation: 'SA' }, geometry: { type: 'Point', coordinates: [46.722,  24.688] } },
+    { type: 'Feature', properties: { name: 'DUBAI',        type: 'city',    nation: 'AE' }, geometry: { type: 'Point', coordinates: [55.271,  25.205] } },
+    { type: 'Feature', properties: { name: 'ABU DHABI',    type: 'capital', nation: 'AE' }, geometry: { type: 'Point', coordinates: [54.366,  24.466] } },
+    { type: 'Feature', properties: { name: 'DOHA',         type: 'capital', nation: 'QA' }, geometry: { type: 'Point', coordinates: [51.531,  25.286] } },
+    { type: 'Feature', properties: { name: 'MUSCAT',       type: 'capital', nation: 'OM' }, geometry: { type: 'Point', coordinates: [58.593,  23.588] } },
+    { type: 'Feature', properties: { name: 'KUWAIT CITY',  type: 'capital', nation: 'KW' }, geometry: { type: 'Point', coordinates: [47.978,  29.370] } },
+    // Others
+    { type: 'Feature', properties: { name: 'BAGHDAD',      type: 'capital', nation: 'IQ' }, geometry: { type: 'Point', coordinates: [44.366,  33.315] } },
+    { type: 'Feature', properties: { name: 'BEIRUT',       type: 'capital', nation: 'LB' }, geometry: { type: 'Point', coordinates: [35.495,  33.889] } },
+    { type: 'Feature', properties: { name: 'DAMASCUS',     type: 'capital', nation: 'SY' }, geometry: { type: 'Point', coordinates: [36.292,  33.510] } },
+    { type: 'Feature', properties: { name: "SANA'A",       type: 'capital', nation: 'YE' }, geometry: { type: 'Point', coordinates: [44.206,  15.354] } },
+    { type: 'Feature', properties: { name: 'ADEN',         type: 'port',    nation: 'YE' }, geometry: { type: 'Point', coordinates: [45.037,  12.779] } },
   ],
 }
+
+// ─── Nation → dot color (built from shared NATION_HEX_COLORS) ────────────────
+
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
+function buildNationMatchExpr(alpha?: number): mapboxgl.Expression {
+  const parts: unknown[] = ['match', ['get', 'nation']]
+  for (const [code, hex] of Object.entries(NATION_HEX_COLORS)) {
+    parts.push(code, alpha !== undefined ? hexToRgba(hex, alpha) : hex)
+  }
+  parts.push(alpha !== undefined ? `rgba(229,226,225,${alpha * 0.5})` : 'rgba(229,226,225,0.45)')
+  return parts as mapboxgl.Expression
+}
+
+const CITY_NATION_COLORS = buildNationMatchExpr()
 
 // ─── Military bases GeoJSON ───────────────────────────────────────────────────
 
@@ -36,6 +74,142 @@ const MILITARY_BASES_DATA: GeoJSON.FeatureCollection<GeoJSON.Point> = {
     { type: 'Feature', properties: { name: 'OVDA AB',          nation: 'US/IL', type: 'airbase' }, geometry: { type: 'Point', coordinates: [34.938, 29.940] } },
     { type: 'Feature', properties: { name: 'NEVATIM AB',       nation: 'IL',   type: 'airbase' }, geometry: { type: 'Point', coordinates: [34.822, 31.206] } },
     { type: 'Feature', properties: { name: 'IRGC BANDAR IMAM', nation: 'IR',   type: 'naval'   }, geometry: { type: 'Point', coordinates: [49.073, 30.437] } },
+  ],
+}
+
+// ─── Geo circle helper (true geographic radius) ──────────────────────────────
+
+function geoCircle(
+  lng: number, lat: number, radiusKm: number, steps = 72,
+): GeoJSON.Feature<GeoJSON.Polygon> {
+  const RAD = Math.PI / 180
+  const coords: [number, number][] = []
+  for (let i = 0; i <= steps; i++) {
+    const a  = (i / steps) * 2 * Math.PI
+    const dLng = (radiusKm / (111.32 * Math.cos(lat * RAD))) * Math.cos(a)
+    const dLat = (radiusKm / 110.574) * Math.sin(a)
+    coords.push([lng + dLng, lat + dLat])
+  }
+  return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [coords] } }
+}
+
+// ─── Missile batteries GeoJSON ───────────────────────────────────────────────
+
+const MISSILE_BATTERIES_DATA: GeoJSON.FeatureCollection<GeoJSON.Point> = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', properties: {
+        name: 'IMAM ALI MISSILE BASE', nation: 'IR', type: 'missile',
+        capability: 'IRGC Aerospace Force. Shahab-3, Emad, Ghadr MRBMs. Underground hardened silos near Kermanshah.',
+      }, geometry: { type: 'Point', coordinates: [46.32, 34.32] } },
+    { type: 'Feature', properties: {
+        name: 'SHAHROUD MISSILE TEST', nation: 'IR', type: 'missile',
+        capability: 'Primary IRGC long-range missile test site. Shahab-3, Sejil, Fateh-110 launch facilities.',
+      }, geometry: { type: 'Point', coordinates: [36.42, 36.42] } },
+    { type: 'Feature', properties: {
+        name: 'TABRIZ MISSILE DEPOT', nation: 'IR', type: 'missile',
+        capability: 'IRGC Aerospace Force missile depot. Forward positioned for launches toward Israel.',
+      }, geometry: { type: 'Point', coordinates: [46.30, 38.07] } },
+    { type: 'Feature', properties: {
+        name: 'IRON DOME HQ (NEVATIM)', nation: 'IL', type: 'missile',
+        capability: 'Israeli Air Defense Directorate. Iron Dome, David\'s Sling, Arrow-3 BMD integration hub.',
+      }, geometry: { type: 'Point', coordinates: [34.82, 31.21] } },
+    { type: 'Feature', properties: {
+        name: 'THAAD BATTERY AL DHAFRA', nation: 'US', type: 'missile',
+        capability: 'US Army Terminal High Altitude Area Defense. Protects UAE/Gulf air bases against ballistic missile attack.',
+      }, geometry: { type: 'Point', coordinates: [54.50, 24.25] } },
+    { type: 'Feature', properties: {
+        name: 'PAC-3 PRINCE SULTAN', nation: 'US', type: 'missile',
+        capability: 'Patriot PAC-3 battery at Prince Sultan AB. 100km intercept radius against TBMs and cruise missiles.',
+      }, geometry: { type: 'Point', coordinates: [47.58, 24.06] } },
+  ],
+}
+
+// ─── Radar installations GeoJSON ─────────────────────────────────────────────
+
+const RADAR_INSTALLATIONS_DATA: GeoJSON.FeatureCollection<GeoJSON.Point> = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', properties: {
+        name: 'IRAN AIR DEFENSE HQ', nation: 'IR', type: 'radar',
+        capability: 'Khatam al-Anbiya Air Defense Base, Tehran. Coordinates nationwide radar network and S-300 SAM systems.',
+      }, geometry: { type: 'Point', coordinates: [51.35, 35.72] } },
+    { type: 'Feature', properties: {
+        name: 'BUSHEHR EARLY WARNING', nation: 'IR', type: 'radar',
+        capability: 'Ghadir-class over-the-horizon radar. 3,000km detection range for ballistic missiles.',
+      }, geometry: { type: 'Point', coordinates: [50.85, 28.95] } },
+    { type: 'Feature', properties: {
+        name: 'DIMONA TRACKING RADAR', nation: 'IL', type: 'radar',
+        capability: 'X-band AN/TPY-2 radar (US-operated). 2,000km+ tracking range for Iranian ballistic missiles. Core Arrow BMD system sensor.',
+      }, geometry: { type: 'Point', coordinates: [35.15, 31.05] } },
+    { type: 'Feature', properties: {
+        name: 'MT. KEREN EW STATION', nation: 'IL', type: 'radar',
+        capability: 'Israeli Air Force Unit 8200 signals intelligence site and EW radar covering Lebanon and Syria.',
+      }, geometry: { type: 'Point', coordinates: [34.88, 30.82] } },
+    { type: 'Feature', properties: {
+        name: 'AN/TPY-2 RADAR QATAR', nation: 'US', type: 'radar',
+        capability: 'AN/TPY-2 forward-based mode radar at Al Udeid. Provides early warning for CENTCOM AOR missile defense.',
+      }, geometry: { type: 'Point', coordinates: [51.32, 25.12] } },
+  ],
+}
+
+// ─── Static naval markers ─────────────────────────────────────────────────────
+
+const STATIC_NAVAL_DATA: GeoJSON.FeatureCollection<GeoJSON.Point> = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', properties: { name: 'USS NIMITZ (CSG-11)', type: 'carrier_group', nation: 'US',
+        capability: 'Carrier Strike Group 11. 70 aircraft, Tomahawk cruise missiles, SM-6 air defense.' },
+      geometry: { type: 'Point', coordinates: [62.0, 21.5] } },
+    { type: 'Feature', properties: { name: 'USS EISENHOWER (CSG-2)', type: 'carrier_group', nation: 'US',
+        capability: 'Carrier Strike Group 2. Operating in Red Sea / Gulf of Aden to counter Houthi threats.' },
+      geometry: { type: 'Point', coordinates: [43.5, 14.0] } },
+    { type: 'Feature', properties: { name: 'USS GERALD R. FORD (CSG-12)', type: 'carrier_group', nation: 'US',
+        capability: 'Carrier Strike Group 12. Deployed to Eastern Mediterranean for deterrence operations.' },
+      geometry: { type: 'Point', coordinates: [30.0, 34.5] } },
+    { type: 'Feature', properties: { name: 'IRGCN FAST ATTACK CRAFT', type: 'naval_unit', nation: 'IR',
+        capability: 'IRGC Navy fast-attack and mine-laying vessels. Doctrine: swarm tactics in Hormuz.' },
+      geometry: { type: 'Point', coordinates: [56.3, 27.2] } },
+    { type: 'Feature', properties: { name: 'IRGCN BANDAR LARAK', type: 'naval_unit', nation: 'IR',
+        capability: 'IRGC naval base. Torpedo boats and anti-ship missile systems covering Hormuz eastern flank.' },
+      geometry: { type: 'Point', coordinates: [56.85, 26.85] } },
+    { type: 'Feature', properties: { name: 'INS SAAR-6 CORVETTES', type: 'naval_unit', nation: 'IL',
+        capability: 'Israeli Navy Sa\'ar 6-class corvettes equipped with C-Dome naval missile defense.' },
+      geometry: { type: 'Point', coordinates: [34.9, 32.8] } },
+  ],
+}
+
+// ─── Strike rings GeoJSON (missile strike envelopes) ─────────────────────────
+
+const STRIKE_RINGS_DATA: GeoJSON.FeatureCollection<GeoJSON.Polygon> = {
+  type: 'FeatureCollection',
+  features: [
+    // Iran Shahab-3 / Emad MRBM range (~2000km) from Isfahan missile complex
+    Object.assign(geoCircle(51.677, 32.661, 2000), { properties: { nation: 'IR', label: 'IRAN MRBM 2000km' } }),
+    // Iran Shahed-136 UAS range (~2500km) from western Iran
+    Object.assign(geoCircle(47.0, 34.5, 1500), { properties: { nation: 'IR', label: 'IRAN UAV 1500km' } }),
+    // US Al Udeid strike radius (B-1B ~2400km with AAR, F-15E ~600km unrefueled)
+    Object.assign(geoCircle(51.315, 25.117, 800), { properties: { nation: 'US', label: 'AL UDEID 800km' } }),
+    // Israel Nevatim F-35 range (~1500km)
+    Object.assign(geoCircle(34.822, 31.206, 1500), { properties: { nation: 'IL', label: 'NEVATIM F-35 1500km' } }),
+  ],
+}
+
+// ─── Threat rings GeoJSON (SAM / radar coverage) ──────────────────────────────
+
+const THREAT_RINGS_DATA: GeoJSON.FeatureCollection<GeoJSON.Polygon> = {
+  type: 'FeatureCollection',
+  features: [
+    // Iran S-300 / Bavar-373 coverage over Tehran (~200km)
+    Object.assign(geoCircle(51.389, 35.689, 200), { properties: { nation: 'IR', label: 'TEHRAN SAM 200km' } }),
+    // Iran S-300 coverage over Natanz nuclear facility (~200km)
+    Object.assign(geoCircle(51.727, 33.724, 180), { properties: { nation: 'IR', label: 'NATANZ SAM 180km' } }),
+    // Iran Fordow SAM coverage (~150km)
+    Object.assign(geoCircle(49.599, 34.885, 150), { properties: { nation: 'IR', label: 'FORDOW SAM 150km' } }),
+    // US THAAD / Patriot coverage at Al Udeid (~100km)
+    Object.assign(geoCircle(51.315, 25.117, 100), { properties: { nation: 'US', label: 'AL UDEID THAAD 100km' } }),
+    // US Arrow-3 / Iron Dome layered coverage Israel (~150km)
+    Object.assign(geoCircle(34.9, 31.5, 150), { properties: { nation: 'IL', label: 'ISRAEL AIR DEF 150km' } }),
   ],
 }
 
@@ -76,6 +250,18 @@ const _CUSTOM_LAYER_IDS = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+interface ScreenPos { x: number; y: number }
+
+export interface StaticFeatureClickInfo {
+  name: string
+  type: string
+  nation?: string
+  capability?: string
+  status?: string
+  screenX: number
+  screenY: number
+}
+
 interface Props {
   hormuzClosed: boolean
   layerState: LayerState
@@ -84,45 +270,28 @@ interface Props {
   onAssetClick?: (asset: PositionedAsset) => void
   cities?: City[]
   onCityClick?: (city: City) => void
+  mapAssets?: MapAsset[]
+  onMapAssetClick?: (asset: MapAsset, screenPos: ScreenPos) => void
+  onChokepointClick?: (id: ChokepointId, screenPos: ScreenPos) => void
+  onStaticFeatureClick?: (info: StaticFeatureClickInfo) => void
 }
 
-export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, onAssetClick, cities, onCityClick }: Props) {
+export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, onAssetClick, cities, onCityClick, mapAssets, onMapAssetClick, onChokepointClick, onStaticFeatureClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
-  const nimitzMarkerRef = useRef<mapboxgl.Marker | null>(null)
   const hormuzClosedRef = useRef(hormuzClosed)
   const layerStateRef = useRef(layerState)
+  const onChokepointClickRef = useRef(onChokepointClick)
+  const onStaticFeatureClickRef = useRef(onStaticFeatureClick)
   const [webglFailed, setWebglFailed] = useState(false)
   const isTerrainRef = useRef(false)
+  const chokepointListenersAttachedRef = useRef(false)
   const assetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const cityMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
+  const mapAssetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
 
-  // ── Helper: build the Nimitz DOM marker element ──────────────────────────
-  const buildNimitzElement = useCallback(() => {
-    const el = document.createElement('div')
-    el.style.cssText = 'display:flex;align-items:center;gap:5px;cursor:pointer;pointer-events:auto;'
-    const dot = document.createElement('div')
-    dot.style.cssText = [
-      'width:8px;height:8px;flex-shrink:0;',
-      'background:rgba(74,144,217,0.9);',
-      'border:1.5px solid rgba(74,144,217,1);',
-      'border-radius:50%;',
-      'box-shadow:0 0 0 3px rgba(74,144,217,0.15);',
-    ].join('')
-    const label = document.createElement('div')
-    label.style.cssText = [
-      "font-family:'IBM Plex Mono',monospace;",
-      'font-size:8px;letter-spacing:0.08em;text-transform:uppercase;',
-      'color:rgba(74,144,217,0.9);',
-      'background:rgba(5,10,18,0.85);',
-      'border:1px solid rgba(74,144,217,0.35);',
-      'padding:1px 5px;white-space:nowrap;',
-    ].join('')
-    label.textContent = 'USS NIMITZ // CSG-11'
-    el.appendChild(dot)
-    el.appendChild(label)
-    return el
-  }, [])
+  useEffect(() => { onChokepointClickRef.current = onChokepointClick }, [onChokepointClick])
+  useEffect(() => { onStaticFeatureClickRef.current = onStaticFeatureClick }, [onStaticFeatureClick])
 
   // ── Helper: add all custom sources + layers to the current map ───────────
   const setupCustomLayers = useCallback((map: mapboxgl.Map, closed: boolean, ls: LayerState) => {
@@ -238,16 +407,18 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         type: 'circle',
         source: 'key-cities-src',
         paint: {
-          'circle-radius': ['case', ['==', ['get', 'type'], 'nuclear'], 3.5, 2.5],
-          'circle-color': [
-            'match', ['get', 'type'],
-            'nuclear', 'rgba(255,186,32,0.8)',
-            'capital', 'rgba(229,226,225,0.55)',
-            'port',    'rgba(74,144,217,0.7)',
-            'rgba(229,226,225,0.4)',
+          'circle-radius': ['case',
+            ['==', ['get', 'type'], 'nuclear'], 4,
+            ['==', ['get', 'type'], 'capital'], 3.5,
+            3,
           ],
-          'circle-stroke-width': ['case', ['==', ['get', 'type'], 'nuclear'], 1, 0],
-          'circle-stroke-color': 'rgba(255,186,32,0.5)',
+          'circle-color': CITY_NATION_COLORS,
+          'circle-stroke-width': ['case', ['==', ['get', 'type'], 'nuclear'], 1.5, 1],
+          'circle-stroke-color': ['case',
+            ['==', ['get', 'type'], 'nuclear'], 'rgba(255,186,32,0.7)',
+            ['==', ['get', 'type'], 'capital'], 'rgba(255,255,255,0.25)',
+            'rgba(255,255,255,0.12)',
+          ],
         },
         layout: { visibility: ls.keyCities ? 'visible' : 'none' },
       })
@@ -267,11 +438,9 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
           visibility: ls.keyCities ? 'visible' : 'none',
         },
         paint: {
-          'text-color': [
-            'match', ['get', 'type'],
-            'nuclear', 'rgba(255,186,32,0.9)',
-            'capital', 'rgba(229,226,225,0.7)',
-            'rgba(229,226,225,0.5)',
+          'text-color': ['case',
+            ['==', ['get', 'type'], 'nuclear'], 'rgba(255,186,32,0.95)',
+            'rgba(229,226,225,0.7)',
           ],
           'text-halo-color': 'rgba(5,10,18,0.9)',
           'text-halo-width': 1.5,
@@ -292,19 +461,36 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         type: 'circle',
         source: 'mil-bases-src',
         paint: {
-          'circle-radius': 3,
-          'circle-color': [
-            'match', ['get', 'nation'],
-            'US',   'rgba(74,144,217,0.75)',
-            'IL',   'rgba(255,186,32,0.75)',
-            'US/IL','rgba(74,184,217,0.75)',
-            'IR',   'rgba(192,57,43,0.75)',
-            'rgba(229,226,225,0.4)',
-          ],
-          'circle-stroke-width': 1,
-          'circle-stroke-color': 'rgba(255,255,255,0.2)',
+          'circle-radius': ['case', ['==', ['get', 'type'], 'airbase'], 4.5, 3.5],
+          'circle-color': buildNationMatchExpr(0.75),
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': 'rgba(255,255,255,0.25)',
         },
         layout: { visibility: ls.militaryBases ? 'visible' : 'none' },
+      })
+    }
+    // Type-differentiation symbol: ▲ for airbase, ◆ for naval, ■ for ground base
+    if (!map.getLayer('bases-type-symbol')) {
+      map.addLayer({
+        id: 'bases-type-symbol',
+        type: 'symbol',
+        source: 'mil-bases-src',
+        layout: {
+          'text-field': [
+            'match', ['get', 'type'],
+            'airbase', '▲',
+            'naval',   '◆',
+            '■',
+          ],
+          'text-font': ['Arial Unicode MS Regular'],
+          'text-size': 8,
+          'text-anchor': 'center',
+          'text-allow-overlap': true,
+          visibility: ls.militaryBases ? 'visible' : 'none',
+        },
+        paint: {
+          'text-color': 'rgba(255,255,255,0.85)',
+        },
       })
     }
     if (!map.getLayer('bases-label')) {
@@ -318,11 +504,278 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
           'text-size': 7.5,
           'text-letter-spacing': 0.06,
           'text-anchor': 'top',
-          'text-offset': [0, 0.5],
+          'text-offset': [0, 0.7],
           visibility: ls.militaryBases ? 'visible' : 'none',
         },
         paint: {
           'text-color': 'rgba(229,226,225,0.55)',
+          'text-halo-color': 'rgba(5,10,18,0.9)',
+          'text-halo-width': 1.5,
+        },
+      })
+    }
+
+    // ── Static naval asset markers ──
+    if (!map.getSource('static-naval-src')) {
+      map.addSource('static-naval-src', {
+        type: 'geojson',
+        data: STATIC_NAVAL_DATA,
+      })
+    }
+    if (!map.getLayer('naval-dot')) {
+      map.addLayer({
+        id: 'naval-dot',
+        type: 'circle',
+        source: 'static-naval-src',
+        paint: {
+          'circle-radius': ['case', ['==', ['get', 'type'], 'carrier_group'], 6, 4],
+          'circle-color': buildNationMatchExpr(0.8),
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': buildNationMatchExpr(0.5),
+          'circle-blur': 0.1,
+        },
+        layout: { visibility: ls.militaryAssets ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('naval-type-symbol')) {
+      map.addLayer({
+        id: 'naval-type-symbol',
+        type: 'symbol',
+        source: 'static-naval-src',
+        layout: {
+          'text-field': ['case', ['==', ['get', 'type'], 'carrier_group'], '▶', '◀'],
+          'text-font': ['Arial Unicode MS Regular'],
+          'text-size': 7,
+          'text-anchor': 'center',
+          'text-allow-overlap': true,
+          visibility: ls.militaryAssets ? 'visible' : 'none',
+        },
+        paint: { 'text-color': 'rgba(255,255,255,0.9)' },
+      })
+    }
+    if (!map.getLayer('naval-label')) {
+      map.addLayer({
+        id: 'naval-label',
+        type: 'symbol',
+        source: 'static-naval-src',
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['DIN Pro Mono Medium', 'Arial Unicode MS Regular'],
+          'text-size': 7.5,
+          'text-letter-spacing': 0.06,
+          'text-anchor': 'bottom',
+          'text-offset': [0, -0.7],
+          visibility: ls.militaryAssets ? 'visible' : 'none',
+        },
+        paint: {
+          'text-color': 'rgba(229,226,225,0.6)',
+          'text-halo-color': 'rgba(5,10,18,0.9)',
+          'text-halo-width': 1.5,
+        },
+      })
+    }
+
+    // ── Missile batteries ──
+    if (!map.getSource('missile-batteries-src')) {
+      map.addSource('missile-batteries-src', { type: 'geojson', data: MISSILE_BATTERIES_DATA })
+    }
+    if (!map.getLayer('missile-dot')) {
+      map.addLayer({
+        id: 'missile-dot', type: 'circle', source: 'missile-batteries-src',
+        paint: {
+          'circle-radius': 5,
+          'circle-color': buildNationMatchExpr(),
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': 'rgba(255,255,255,0.3)',
+          'circle-blur': 0,
+        },
+        layout: { visibility: ls.militaryBases ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('missile-symbol')) {
+      map.addLayer({
+        id: 'missile-symbol', type: 'symbol', source: 'missile-batteries-src',
+        layout: {
+          'text-field': '✕',
+          'text-font': ['Arial Unicode MS Regular'],
+          'text-size': 9,
+          'text-anchor': 'center',
+          'text-allow-overlap': true,
+          visibility: ls.militaryBases ? 'visible' : 'none',
+        },
+        paint: { 'text-color': 'rgba(255,255,255,0.9)' },
+      })
+    }
+    if (!map.getLayer('missile-label')) {
+      map.addLayer({
+        id: 'missile-label', type: 'symbol', source: 'missile-batteries-src',
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['DIN Pro Mono Medium', 'Arial Unicode MS Regular'],
+          'text-size': 7,
+          'text-letter-spacing': 0.06,
+          'text-anchor': 'top',
+          'text-offset': [0, 0.7],
+          visibility: ls.militaryBases ? 'visible' : 'none',
+        },
+        paint: {
+          'text-color': 'rgba(229,226,225,0.5)',
+          'text-halo-color': 'rgba(5,10,18,0.9)',
+          'text-halo-width': 1.5,
+        },
+      })
+    }
+
+    // ── Radar installations ──
+    if (!map.getSource('radar-src')) {
+      map.addSource('radar-src', { type: 'geojson', data: RADAR_INSTALLATIONS_DATA })
+    }
+    if (!map.getLayer('radar-dot')) {
+      map.addLayer({
+        id: 'radar-dot', type: 'circle', source: 'radar-src',
+        paint: {
+          'circle-radius': 4.5,
+          'circle-color': buildNationMatchExpr(),
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': 'rgba(255,255,255,0.25)',
+        },
+        layout: { visibility: ls.militaryBases ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('radar-symbol')) {
+      map.addLayer({
+        id: 'radar-symbol', type: 'symbol', source: 'radar-src',
+        layout: {
+          'text-field': '◎',
+          'text-font': ['Arial Unicode MS Regular'],
+          'text-size': 9,
+          'text-anchor': 'center',
+          'text-allow-overlap': true,
+          visibility: ls.militaryBases ? 'visible' : 'none',
+        },
+        paint: { 'text-color': 'rgba(255,255,255,0.85)' },
+      })
+    }
+    if (!map.getLayer('radar-label')) {
+      map.addLayer({
+        id: 'radar-label', type: 'symbol', source: 'radar-src',
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['DIN Pro Mono Medium', 'Arial Unicode MS Regular'],
+          'text-size': 7,
+          'text-letter-spacing': 0.06,
+          'text-anchor': 'top',
+          'text-offset': [0, 0.7],
+          visibility: ls.militaryBases ? 'visible' : 'none',
+        },
+        paint: {
+          'text-color': 'rgba(229,226,225,0.5)',
+          'text-halo-color': 'rgba(5,10,18,0.9)',
+          'text-halo-width': 1.5,
+        },
+      })
+    }
+
+    // ── Strike rings (missile strike envelopes, shown when strikeRings toggled) ──
+    if (!map.getSource('strike-rings-src')) {
+      map.addSource('strike-rings-src', {
+        type: 'geojson',
+        data: STRIKE_RINGS_DATA,
+      })
+    }
+    if (!map.getLayer('strike-rings-fill')) {
+      map.addLayer({
+        id: 'strike-rings-fill',
+        type: 'fill',
+        source: 'strike-rings-src',
+        paint: {
+          'fill-color': buildNationMatchExpr(0.05),
+        },
+        layout: { visibility: ls.strikeRings ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('strike-rings-line')) {
+      map.addLayer({
+        id: 'strike-rings-line',
+        type: 'line',
+        source: 'strike-rings-src',
+        paint: {
+          'line-color': buildNationMatchExpr(0.5),
+          'line-width': 1,
+          'line-dasharray': [4, 4],
+        },
+        layout: { visibility: ls.strikeRings ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('strike-rings-label')) {
+      map.addLayer({
+        id: 'strike-rings-label',
+        type: 'symbol',
+        source: 'strike-rings-src',
+        layout: {
+          'text-field': ['get', 'label'],
+          'text-font': ['DIN Pro Mono Medium', 'Arial Unicode MS Regular'],
+          'text-size': 7,
+          'text-anchor': 'top',
+          'symbol-placement': 'line',
+          'text-letter-spacing': 0.06,
+          visibility: ls.strikeRings ? 'visible' : 'none',
+        },
+        paint: {
+          'text-color': buildNationMatchExpr(0.7),
+          'text-halo-color': 'rgba(5,10,18,0.9)',
+          'text-halo-width': 1.5,
+        },
+      })
+    }
+
+    // ── Threat rings (SAM / radar coverage, shown when threatRings toggled) ──
+    if (!map.getSource('threat-rings-src')) {
+      map.addSource('threat-rings-src', {
+        type: 'geojson',
+        data: THREAT_RINGS_DATA,
+      })
+    }
+    if (!map.getLayer('threat-rings-fill')) {
+      map.addLayer({
+        id: 'threat-rings-fill',
+        type: 'fill',
+        source: 'threat-rings-src',
+        paint: {
+          'fill-color': buildNationMatchExpr(0.05),
+        },
+        layout: { visibility: ls.threatRings ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('threat-rings-line')) {
+      map.addLayer({
+        id: 'threat-rings-line',
+        type: 'line',
+        source: 'threat-rings-src',
+        paint: {
+          'line-color': buildNationMatchExpr(0.65),
+          'line-width': 0.8,
+          'line-dasharray': [2, 3],
+        },
+        layout: { visibility: ls.threatRings ? 'visible' : 'none' },
+      })
+    }
+    if (!map.getLayer('threat-rings-label')) {
+      map.addLayer({
+        id: 'threat-rings-label',
+        type: 'symbol',
+        source: 'threat-rings-src',
+        layout: {
+          'text-field': ['get', 'label'],
+          'text-font': ['DIN Pro Mono Medium', 'Arial Unicode MS Regular'],
+          'text-size': 7,
+          'text-anchor': 'top',
+          'symbol-placement': 'line',
+          'text-letter-spacing': 0.05,
+          visibility: ls.threatRings ? 'visible' : 'none',
+        },
+        paint: {
+          'text-color': buildNationMatchExpr(0.6),
           'text-halo-color': 'rgba(5,10,18,0.9)',
           'text-halo-width': 1.5,
         },
@@ -349,9 +802,14 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
 
   // ── Helper: apply custom layer visibility toggles ─────────────────────────
   const applyCustomLayerVisibility = useCallback((map: mapboxgl.Map, ls: LayerState) => {
-    const militaryLayers  = ['hormuz-point', 'hormuz-label', 'babelmandeb-label']
+    const militaryLayers  = ['hormuz-point', 'hormuz-label', 'babelmandeb-label',
+                              'naval-dot', 'naval-type-symbol', 'naval-label']
     const cityLayers      = ['cities-dot', 'cities-label']
-    const baseLayers      = ['bases-dot', 'bases-label']
+    const baseLayers      = ['bases-dot', 'bases-type-symbol', 'bases-label',
+                              'missile-dot', 'missile-symbol', 'missile-label',
+                              'radar-dot', 'radar-symbol', 'radar-label']
+    const strikeRingLayers = ['strike-rings-fill', 'strike-rings-line', 'strike-rings-label']
+    const threatRingLayers = ['threat-rings-fill', 'threat-rings-line', 'threat-rings-label']
 
     for (const id of militaryLayers) {
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', ls.militaryAssets ? 'visible' : 'none')
@@ -362,11 +820,146 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
     for (const id of baseLayers) {
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', ls.militaryBases ? 'visible' : 'none')
     }
+    for (const id of strikeRingLayers) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', ls.strikeRings ? 'visible' : 'none')
+    }
+    for (const id of threatRingLayers) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', ls.threatRings ? 'visible' : 'none')
+    }
+  }, [])
 
-    // Toggle Nimitz marker (DOM marker — use display style)
-    if (nimitzMarkerRef.current) {
-      const el = nimitzMarkerRef.current.getElement()
-      el.style.display = ls.militaryAssets ? '' : 'none'
+  // ── Helper: attach chokepoint + static feature click / cursor listeners ──
+  // Guards via chokepointListenersAttachedRef to prevent duplicate handlers
+  // accumulating across terrain style reloads.
+  const setupChokepointListeners = useCallback((m: mapboxgl.Map) => {
+    if (chokepointListenersAttachedRef.current) return
+    chokepointListenersAttachedRef.current = true
+
+    // Chokepoints
+    const chokepointLayers = ['hormuz-point', 'babelmandeb-label'] as const
+    for (const layerId of chokepointLayers) {
+      if (m.getLayer(layerId)) {
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+      }
+    }
+    if (m.getLayer('hormuz-point')) {
+      m.on('click', 'hormuz-point', (e) => {
+        onChokepointClickRef.current?.('strait_of_hormuz', { x: e.point.x, y: e.point.y })
+      })
+    }
+    if (m.getLayer('babelmandeb-label')) {
+      m.on('click', 'babelmandeb-label', (e) => {
+        onChokepointClickRef.current?.('bab_el_mandeb', { x: e.point.x, y: e.point.y })
+      })
+    }
+
+    // Cities — click on city dot
+    const cityClickLayers = ['cities-dot', 'cities-label']
+    for (const layerId of cityClickLayers) {
+      if (m.getLayer(layerId)) {
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+        m.on('click', layerId, (e) => {
+          const f = e.features?.[0]
+          if (!f) return
+          const p = f.properties as Record<string, string>
+          onStaticFeatureClickRef.current?.({
+            name:       p.name ?? 'UNKNOWN',
+            type:       p.type ?? 'city',
+            nation:     p.nation,
+            screenX:    e.point.x,
+            screenY:    e.point.y,
+          })
+        })
+      }
+    }
+
+    // Military bases
+    const baseClickLayers = ['bases-dot', 'bases-type-symbol']
+    for (const layerId of baseClickLayers) {
+      if (m.getLayer(layerId)) {
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+        m.on('click', layerId, (e) => {
+          const f = e.features?.[0]
+          if (!f) return
+          const p = f.properties as Record<string, string>
+          onStaticFeatureClickRef.current?.({
+            name:    p.name ?? 'UNKNOWN',
+            type:    p.type ?? 'base',
+            nation:  p.nation,
+            screenX: e.point.x,
+            screenY: e.point.y,
+          })
+        })
+      }
+    }
+
+    // Missile batteries
+    const missileClickLayers = ['missile-dot', 'missile-symbol']
+    for (const layerId of missileClickLayers) {
+      if (m.getLayer(layerId)) {
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+        m.on('click', layerId, (e) => {
+          const f = e.features?.[0]
+          if (!f) return
+          const p = f.properties as Record<string, string>
+          onStaticFeatureClickRef.current?.({
+            name:       p.name ?? 'UNKNOWN',
+            type:       p.type ?? 'missile',
+            nation:     p.nation,
+            capability: p.capability,
+            screenX:    e.point.x,
+            screenY:    e.point.y,
+          })
+        })
+      }
+    }
+
+    // Radar installations
+    const radarClickLayers = ['radar-dot', 'radar-symbol']
+    for (const layerId of radarClickLayers) {
+      if (m.getLayer(layerId)) {
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+        m.on('click', layerId, (e) => {
+          const f = e.features?.[0]
+          if (!f) return
+          const p = f.properties as Record<string, string>
+          onStaticFeatureClickRef.current?.({
+            name:       p.name ?? 'UNKNOWN',
+            type:       p.type ?? 'radar',
+            nation:     p.nation,
+            capability: p.capability,
+            screenX:    e.point.x,
+            screenY:    e.point.y,
+          })
+        })
+      }
+    }
+
+    // Naval markers
+    const navalClickLayers = ['naval-dot', 'naval-type-symbol', 'naval-label']
+    for (const layerId of navalClickLayers) {
+      if (m.getLayer(layerId)) {
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+        m.on('click', layerId, (e) => {
+          const f = e.features?.[0]
+          if (!f) return
+          const p = f.properties as Record<string, string>
+          onStaticFeatureClickRef.current?.({
+            name:       p.name ?? 'UNKNOWN',
+            type:       p.type ?? 'naval_asset',
+            nation:     p.nation,
+            capability: p.capability,
+            screenX:    e.point.x,
+            screenY:    e.point.y,
+          })
+        })
+      }
     }
   }, [])
 
@@ -389,7 +982,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
       })
       map = mapRef.current
     } catch (e) {
-      console.error('[GeoSim map] constructor failed:', e)
+      console.error('[War Game map] constructor failed:', e)
       setWebglFailed(true)
       return
     }
@@ -397,7 +990,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
     map.on('error', (e) => {
       const msg = (e as { error?: { message?: string } })?.error?.message ?? ''
       if (msg.includes('token') || msg.includes('style')) {
-        console.error('[GeoSim map]', msg)
+        console.error('[War Game map]', msg)
       }
     })
 
@@ -423,30 +1016,17 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
       // Add all custom layers
       setupCustomLayers(map, closed, ls)
 
-      // USS Nimitz marker at Strait of Hormuz approach lane (open water)
-      if (nimitzMarkerRef.current) {
-        nimitzMarkerRef.current.remove()
-        nimitzMarkerRef.current = null
-      }
-      const nimitzEl = buildNimitzElement()
-      nimitzEl.style.display = ls.militaryAssets ? '' : 'none'
-      nimitzMarkerRef.current = new mapboxgl.Marker({
-        element: nimitzEl,
-        anchor: 'left',
-      })
-        .setLngLat([56.5, 24.0])
-        .addTo(map)
+      // Wire chokepoint click handlers
+      setupChokepointListeners(map)
     }
 
     map.on('load', onStyleLoad)
 
     return () => {
-      if (nimitzMarkerRef.current) {
-        nimitzMarkerRef.current.remove()
-        nimitzMarkerRef.current = null
-      }
       cityMarkersRef.current.forEach(marker => marker.remove())
       cityMarkersRef.current.clear()
+      mapAssetMarkersRef.current.forEach(marker => marker.remove())
+      mapAssetMarkersRef.current.clear()
       try { map.remove() } catch (e) { console.warn('[MapboxMap] cleanup failed:', e) }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -488,6 +1068,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
     if (newTerrain !== isTerrainRef.current) {
       isTerrainRef.current = newTerrain
       const nextStyle = newTerrain ? TERRAIN_STYLE : DARK_STYLE
+      chokepointListenersAttachedRef.current = false
       map.setStyle(nextStyle)
       map.once('style.load', () => {
         const ls     = layerStateRef.current
@@ -503,20 +1084,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
         }
         applyBuiltinLayerVisibility(map, ls)
         setupCustomLayers(map, closed, ls)
-
-        // Re-add Nimitz marker after style reset
-        if (nimitzMarkerRef.current) {
-          nimitzMarkerRef.current.remove()
-          nimitzMarkerRef.current = null
-        }
-        const reloadNimitzEl = buildNimitzElement()
-        reloadNimitzEl.style.display = ls.militaryAssets ? '' : 'none'
-        nimitzMarkerRef.current = new mapboxgl.Marker({
-          element: reloadNimitzEl,
-          anchor: 'left',
-        })
-          .setLngLat([56.5, 24.0])
-          .addTo(map)
+        setupChokepointListeners(map)
       })
       return
     }
@@ -524,7 +1092,7 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
     // Non-terrain toggles
     applyBuiltinLayerVisibility(map, layerState)
     applyCustomLayerVisibility(map, layerState)
-  }, [layerState, applyBuiltinLayerVisibility, applyCustomLayerVisibility, setupCustomLayers, buildNimitzElement])
+  }, [layerState, applyBuiltinLayerVisibility, applyCustomLayerVisibility, setupCustomLayers, setupChokepointListeners])
 
   // ── Asset markers ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -578,6 +1146,110 @@ export function MapboxMap({ hormuzClosed, layerState, assets, selectedAssetId, o
       cityMarkersRef.current.set(city.id, marker)
     })
   }, [cities, layerState.keyCities, onCityClick])
+
+  // ── MapAsset markers (Supabase-sourced live assets) ──────────────────────
+  useEffect(() => {
+    const map = mapRef.current
+    mapAssetMarkersRef.current.forEach(marker => marker.remove())
+    mapAssetMarkersRef.current.clear()
+    if (!map || !mapAssets || mapAssets.length === 0) return
+
+    mapAssets.forEach(asset => {
+      const isUs     = asset.actor_id === 'us'
+      const isIran   = asset.actor_id === 'iran'
+      const isIsrael = asset.actor_id === 'israel'
+      const isInfra  = asset.asset_type === 'oil_gas_facility' || asset.asset_type === 'nuclear_facility'
+      const isNaval  = asset.asset_type === 'naval_asset' || asset.asset_type === 'carrier_group'
+
+      const actorVisible =
+        (isUs     && layerState.usAssets) ||
+        (isIran   && layerState.iranAssets) ||
+        (isIsrael && layerState.israelAssets) ||
+        (isInfra  && layerState.infrastructure) ||
+        (!isUs && !isIran && !isIsrael && !isInfra && layerState.militaryAssets)
+
+      if (!actorVisible) return
+      if (!layerState.militaryAssets && !isInfra) return
+
+      const destroyed = asset.status === 'destroyed'
+      const degraded  = asset.status === 'degraded'
+      const color     = destroyed ? '#b43232' : degraded ? '#dcaa1e' : asset.actor_color
+
+      const el = document.createElement('div')
+      el.style.cssText = [
+        'display:flex;align-items:center;gap:4px;cursor:pointer;pointer-events:auto;',
+        destroyed ? 'opacity:0.45;' : '',
+      ].join('')
+
+      if (isNaval) {
+        // Larger, distinctive naval marker
+        const shipIcon = document.createElement('div')
+        const size = asset.asset_type === 'carrier_group' ? 14 : 10
+        shipIcon.style.cssText = [
+          `width:${size}px;height:${size}px;flex-shrink:0;`,
+          'transform:rotate(-90deg);',
+          `color:${color};`,
+          'font-size:' + (size + 2) + 'px;line-height:1;',
+          degraded ? 'filter:brightness(0.8) saturate(0.7);' : '',
+        ].join('')
+        shipIcon.textContent = asset.asset_type === 'carrier_group' ? '▶' : '◀'
+
+        const ring = document.createElement('div')
+        ring.style.cssText = [
+          `width:${size + 6}px;height:${size + 6}px;border-radius:50%;flex-shrink:0;`,
+          'display:flex;align-items:center;justify-content:center;',
+          `border:1.5px solid ${color};`,
+          `background:${color}18;`,
+          `box-shadow:0 0 6px ${color}44;`,
+          destroyed ? 'opacity:0.5;' : '',
+        ].join('')
+        ring.appendChild(shipIcon)
+        el.appendChild(ring)
+      } else {
+        // Standard dot marker
+        const dot = document.createElement('div')
+        const dotSize = isInfra ? 8 : 7
+        dot.style.cssText = [
+          `width:${dotSize}px;height:${dotSize}px;flex-shrink:0;`,
+          isInfra ? 'border-radius:2px;' : 'border-radius:50%;',
+          `background:${destroyed ? 'rgba(180,50,50,0.4)' : degraded ? 'rgba(220,170,30,0.7)' : `${color}bb`};`,
+          `border:1.5px solid ${color};`,
+          `box-shadow:0 0 0 2px ${color}1a;`,
+        ].join('')
+        el.appendChild(dot)
+      }
+
+      const label = document.createElement('div')
+      label.style.cssText = [
+        "font-family:'IBM Plex Mono',monospace;",
+        `font-size:${isNaval ? 8 : 7}px;letter-spacing:0.07em;text-transform:uppercase;`,
+        `color:${destroyed ? 'rgba(180,80,80,0.55)' : degraded ? 'rgba(220,170,30,0.9)' : `${color}ee`};`,
+        'background:rgba(5,10,18,0.9);',
+        `border:1px solid ${color}33;`,
+        `padding:${isNaval ? '2px 5px' : '1px 4px'};white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;`,
+        destroyed ? 'text-decoration:line-through;' : '',
+        isNaval ? `font-weight:600;border-left:2px solid ${color};` : '',
+      ].join('')
+      label.textContent = asset.label
+      label.title = asset.tooltip ?? asset.label
+
+      el.appendChild(label)
+
+      el.addEventListener('click', () => {
+        const pos = map.project([asset.lng, asset.lat])
+        onMapAssetClick?.(asset, { x: pos.x, y: pos.y })
+      })
+      el.addEventListener('mouseenter', () => { el.style.opacity = '0.85'; el.style.filter = 'brightness(1.15)' })
+      el.addEventListener('mouseleave', () => { el.style.opacity = destroyed ? '0.45' : '1'; el.style.filter = '' })
+
+      const anchor = isNaval ? 'center' : 'left'
+      const marker = new mapboxgl.Marker({ element: el, anchor })
+        .setLngLat([asset.lng, asset.lat])
+        .addTo(map)
+
+      mapAssetMarkersRef.current.set(asset.id, marker)
+    })
+  }, [mapAssets, layerState.usAssets, layerState.iranAssets, layerState.israelAssets, layerState.infrastructure, layerState.militaryAssets, onMapAssetClick])
 
   // ── Range rings ───────────────────────────────────────────────────────────
   useEffect(() => {

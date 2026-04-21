@@ -12,12 +12,27 @@ function getClient(): Anthropic {
 export interface CallClaudeOptions {
   tools?: unknown[];
   maxTokens?: number;
+  /**
+   * Pre-built system content blocks with cache_control markers already applied.
+   * When provided, overrides the automatic single-block wrapping of `systemPrompt`.
+   * Use `buildCachedSystemBlocks()` from lib/ai/prompts to construct the two-block
+   * array that places separate ephemeral breakpoints on the NEUTRALITY_PREAMBLE
+   * and on the agent-specific role instructions.
+   */
+  systemBlocks?: Anthropic.Messages.TextBlockParam[];
 }
 
 /**
  * Call Claude with prompt caching enabled on the system prompt.
- * The system prompt is sent as a single ephemeral-cached text block,
- * which caches the stable NEUTRALITY_PREAMBLE prefix across pipeline calls.
+ *
+ * Two caching modes:
+ *  - Default (no `systemBlocks`): the entire `systemPrompt` string is wrapped in a
+ *    single cached text block (backward-compatible, single breakpoint).
+ *  - Structured (`systemBlocks` provided): the caller supplies pre-built content
+ *    blocks with `cache_control` markers. Use this to place two separate breakpoints —
+ *    one on the shared NEUTRALITY_PREAMBLE and one on agent-specific role text —
+ *    maximising cache reuse across the pipeline.
+ *
  * Returns the parsed JSON from the last text block in the response.
  */
 export async function callClaude(
@@ -25,18 +40,20 @@ export async function callClaude(
   userPrompt: string,
   options: CallClaudeOptions = {}
 ): Promise<unknown> {
-  const { tools, maxTokens = 8192 } = options;
+  const { tools, maxTokens = 8192, systemBlocks } = options;
+
+  const systemParam: Anthropic.Messages.TextBlockParam[] = systemBlocks ?? [
+    {
+      type: "text" as const,
+      text: systemPrompt,
+      cache_control: { type: "ephemeral" as const },
+    },
+  ];
 
   const response = await getClient().messages.create({
     model: "claude-sonnet-4-6",
     max_tokens: maxTokens,
-    system: [
-      {
-        type: "text" as const,
-        text: systemPrompt,
-        cache_control: { type: "ephemeral" as const },
-      },
-    ],
+    system: systemParam,
     messages: [{ role: "user", content: userPrompt }],
     ...(tools && tools.length > 0
       ? { tools: tools as Anthropic.Messages.Tool[] }

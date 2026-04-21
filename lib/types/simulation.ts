@@ -1,5 +1,5 @@
 // ============================================================
-// GEOSIM DATA MODELS v2
+// WAR GAME DATA MODELS v2
 // Key changes from v1:
 //   - Escalation ladder replaces flat scores for conflict posture
 //   - Fog of war / intelligence picture per actor
@@ -852,6 +852,24 @@ export interface TurnPlanValidationResult {
   resourceUtilization: number;          // % of capacity used (should be 100)
 }
 
+// ─── TURN PHASE ───────────────────────────────────────────────────────────────
+
+/** Phases of the turn pipeline — used by server broadcasts and client UI */
+export type TurnPhase =
+  | 'submitted'
+  | 'planning'
+  | 'resolving'
+  | 'judging'
+  | 'narrating'
+  | 'finalizing'
+  | 'complete'
+  | 'failed'
+
+/** Ordered array for phase comparison in DispatchTerminal */
+export const TURN_PHASE_ORDER: TurnPhase[] = [
+  'submitted', 'planning', 'resolving', 'judging', 'narrating', 'finalizing', 'complete',
+]
+
 // ------------------------------------------------------------
 // SCENARIO FRAME — Stage 0 output (scenario framing)
 // ------------------------------------------------------------
@@ -1091,6 +1109,7 @@ export interface MapAsset {
   id: string
   actor_id: string
   asset_type: MapAssetType
+  category?: string
   label: string
   lat: number
   lng: number
@@ -1098,7 +1117,15 @@ export interface MapAsset {
   capacity_pct: number
   actor_color: string
   tooltip: string
+  description?: string
+  notes?: string
+  strike_range_nm?: number
+  threat_range_nm?: number
   is_approximate_location: boolean
+  /** Intel confidence 0–100: how certain this asset's status/position is for the observing actor */
+  visibility_confidence: number
+  /** Turn-aware narrative derived from live state (status, capacity, date context) */
+  status_narrative: string
 }
 
 export interface ShippingLane {

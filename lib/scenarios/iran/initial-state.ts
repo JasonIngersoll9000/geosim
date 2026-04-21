@@ -1503,3 +1503,13 @@ export const IRAN_INITIAL_STATE: IranInitialState = {
   relationships: RELATIONSHIPS,
   globalState: GLOBAL_STATE,
 }
+
+// ── EXPORTED CONSTRAINT REGISTRY ────────────────────────────────────────────
+// Keyed by canonical actor ID so panel-layer utilities can apply constraint-
+// based escalation blocking without reconstructing the full Actor graph.
+// The same data is embedded in IRAN_INITIAL_STATE above.
+export const IRAN_SCENARIO_CONSTRAINTS: Record<string, Constraint[]> = {
+  us:     US_CONSTRAINTS,
+  iran:   IRAN_CONSTRAINTS,
+  israel: ISRAEL_CONSTRAINTS,
+}

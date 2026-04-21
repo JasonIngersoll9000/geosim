@@ -59,12 +59,15 @@ export function buildScenarioInsert(backgroundContextEnriched: string) {
 }
 
 export function buildActorInsert(profile: ActorProfile, scenarioId: string): ScenarioActorInsert {
+  const biographicalSummary = profile.biographical_summary_continued
+    ? `${profile.biographical_summary}\n\n${profile.biographical_summary_continued}`
+    : profile.biographical_summary
   return {
     id: profile.id,
     scenario_id: scenarioId,
     name: profile.name,
     short_name: profile.short_name,
-    biographical_summary: profile.biographical_summary,
+    biographical_summary: biographicalSummary,
     leadership_profile: profile.leadership_profile,
     win_condition: profile.win_condition,
     strategic_doctrine: profile.strategic_doctrine,
@@ -901,7 +904,7 @@ export async function seedIranScenario(options: SeedOptions = {}): Promise<{
 }
 
 // CLI entry point
-if (process.argv[1] === new URL(import.meta.url).pathname) {
+if (process.argv[1] === decodeURIComponent(new URL(import.meta.url).pathname)) {
   const args = process.argv.slice(2)
   const fromEventId = args.find(a => a.startsWith('--from='))?.split('=')[1]
   const dryRun = args.includes('--dry-run')

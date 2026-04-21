@@ -1,5 +1,5 @@
 // scripts/pipeline/escalation-framework.ts
-// Objective escalation scoring framework for GeoSim.
+// Objective escalation scoring framework for War Game.
 // Grounded in: Kahn (1965), Glasl (1982), Morgan et al. (2008),
 // Lo/Lo/Ng (2022), RAND ROMANCER (2024).
 //

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
-
-type Phase = 'planning' | 'resolution' | 'reaction' | 'judging' | 'complete'
+import { UserMenu } from '@/components/ui/UserMenu'
+import type { TurnPhase } from '@/lib/types/simulation'
 
 interface TopBarProps {
   scenarioName?: string;
@@ -10,12 +10,16 @@ interface TopBarProps {
   totalTurns?: number;
   phase?: string;
   gameMode?: string;
+  howToPlaySlot?: React.ReactNode;
 }
 
-function toPhase(raw: string): Phase {
-  const lower = raw.toLowerCase() as Phase
-  const valid: Phase[] = ['planning', 'resolution', 'reaction', 'judging', 'complete']
-  return valid.includes(lower) ? lower : 'planning'
+const VALID_PHASES: TurnPhase[] = [
+  'submitted', 'planning', 'resolving', 'judging', 'narrating', 'finalizing', 'complete', 'failed',
+]
+
+function toPhase(raw: string): TurnPhase {
+  const lower = raw.toLowerCase() as TurnPhase
+  return VALID_PHASES.includes(lower) ? lower : 'planning'
 }
 
 export function TopBar({
@@ -25,6 +29,7 @@ export function TopBar({
   totalTurns = 0,
   phase = "Planning",
   gameMode = "Simulation",
+  howToPlaySlot,
 }: TopBarProps) {
   return (
     <div
@@ -35,7 +40,7 @@ export function TopBar({
         href="/"
         className="font-label font-bold text-gold text-[16px] tracking-[0.04em] hover:opacity-80 transition-opacity"
       >
-        GEOSIM
+        WAR GAME
       </Link>
 
       {/* Separator */}
@@ -60,16 +65,17 @@ export function TopBar({
         {gameMode}
       </span>
 
-      {/* Right side: turn counter + phase badge */}
+      {/* Right side: how to play + turn counter + phase badge + user menu */}
       <div className="ml-auto flex items-center gap-3">
+        {howToPlaySlot}
         <span className="font-mono text-xs text-text-tertiary">
-          {turnNumber > 0 || totalTurns > 0
-            ? `TURN ${String(turnNumber).padStart(2, '0')} / ${String(totalTurns).padStart(2, '0')}`
-            : 'TURN — / —'}
+          TURN {turnNumber > 0 ? String(turnNumber).padStart(2, "0") : "\u2014"} /{" "}
+          {totalTurns > 0 ? String(totalTurns).padStart(2, "0") : "\u2014"}
         </span>
         <span className="px-2 py-0.5 font-mono text-2xs bg-gold-dim rounded-none border border-gold-border tracking-[0.03em] uppercase">
           <TurnPhaseIndicator phase={toPhase(phase)} />
         </span>
+        <UserMenu />
       </div>
     </div>
   );

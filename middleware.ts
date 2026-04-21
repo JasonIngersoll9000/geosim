@@ -1,9 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const PROTECTED_ROUTES = [
+  /^\/scenarios\/[^/]+\/play/,
+]
+
+function isProtected(pathname: string): boolean {
+  return PROTECTED_ROUTES.some(re => re.test(pathname))
+}
+
 export async function middleware(request: NextRequest) {
-  // Dev bypass: skip auth for scenario routes in dev mode
-  if (process.env.NEXT_PUBLIC_DEV_MODE === 'true' && request.nextUrl.pathname.startsWith('/scenarios')) {
+  const { pathname } = request.nextUrl
+
+  // Dev bypass: skip auth for protected routes in dev mode
+  if (process.env.NEXT_PUBLIC_DEV_MODE === 'true' && isProtected(pathname)) {
     return NextResponse.next()
   }
 
@@ -38,8 +48,18 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session — must not be removed
-  await supabase.auth.getUser();
+  // Refresh session — must not be removed (keeps cookie fresh)
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Gate protected routes: redirect unauthenticated users to /auth/login
+  if (!user && isProtected(pathname)) {
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/auth/login'
+    // Preserve the full path + query string for exact return-path fidelity
+    const search = request.nextUrl.search
+    loginUrl.searchParams.set('redirect', pathname + search)
+    return NextResponse.redirect(loginUrl)
+  }
 
   return supabaseResponse;
 }

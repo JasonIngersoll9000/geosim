@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
@@ -16,15 +17,20 @@ interface ScenarioSummary {
   name: string
   description: string
   category: string
+  visibility?: string
   branch_count: number
   play_count: number
   rating: number | null
+  actorCount?: number
+  turnNumber?: number | null
+  lastActiveDate?: string | null
+  isActive?: boolean
 }
 
 interface ScenarioDisplay extends ScenarioSummary {
   displayCategory: 'ACTIVE CONFLICTS' | 'HISTORICAL' | 'HYPOTHETICAL'
   classification: 'SECRET' | 'CONFIDENTIAL'
-  status: 'ACTIVE' | 'ARCHIVED'
+  status: 'ACTIVE' | 'ARCHIVED' | 'LIVE'
   actorCount: number
   lastActive: string
   turnNumber?: number
@@ -194,10 +200,13 @@ export default function ScenarioBrowserPage() {
         const mapped: ScenarioDisplay[] = (json.data ?? []).map((s) => ({
           ...s,
           displayCategory: CATEGORY_MAP[s.category] ?? 'HYPOTHETICAL',
-          classification: 'CONFIDENTIAL' as const,
-          status: 'ARCHIVED' as const,
-          actorCount: 0,
-          lastActive: '—',
+          classification: (s.visibility === 'public' ? 'CONFIDENTIAL' : 'SECRET') as ScenarioDisplay['classification'],
+          status: (s.isActive ? 'LIVE' : s.branch_count > 0 ? 'ACTIVE' : 'ARCHIVED') as ScenarioDisplay['status'],
+          actorCount: s.actorCount ?? 0,
+          lastActive: s.lastActiveDate
+            ? new Date(s.lastActiveDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()
+            : s.turnNumber != null ? `T${s.turnNumber}` : '—',
+          turnNumber: s.turnNumber ?? undefined,
         }))
         setScenarios(mapped)
       } catch (err) {
@@ -218,7 +227,7 @@ export default function ScenarioBrowserPage() {
 
   return (
     <>
-      <ClassificationBanner classification="TOP SECRET // NOFORN // GEOSIM-BROWSER" />
+      <ClassificationBanner classification="TOP SECRET // NOFORN // WAR-GAME-BROWSER" />
       <TopBar scenarioName="SCENARIO BROWSER" />
 
       <main className="pt-[66px] bg-bg-base min-h-screen">
@@ -234,9 +243,17 @@ export default function ScenarioBrowserPage() {
             initial={shouldSkip ? 'visible' : 'hidden'}
             animate="visible"
           >
-            <h1 className="font-label font-bold text-xl text-text-primary uppercase tracking-[0.04em]">
-              Scenario Library
-            </h1>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <h1 className="font-label font-bold text-xl text-text-primary uppercase tracking-[0.04em]">
+                Scenario Library
+              </h1>
+              <Link
+                href="/scenarios/new"
+                className="inline-flex items-center gap-2 px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] bg-gold text-bg-base hover:bg-[#e5a600] transition-colors"
+              >
+                + Create Scenario
+              </Link>
+            </div>
             <p className="font-sans text-base text-text-secondary mt-2 max-w-2xl leading-[1.6]">
               Select a scenario to observe AI vs AI play or take direct control of a strategic actor.
               All scenarios are modeled with actor-neutral rigor.

@@ -1,12 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
 import { TopBar } from '@/components/ui/TopBar'
 import { DocumentIdHeader } from '@/components/ui/DocumentIdHeader'
+import { BranchTree } from '@/components/scenario/BranchTree'
+import type { BranchNode, ActorOption, TurnData, ActorSnapshot } from '@/components/scenario/BranchTree'
+import { DEV_TRUNK_BRANCH, DEV_ACTORS, DEV_ACTOR_SNAPSHOTS } from '@/lib/game/dev-branches'
 
-// ─── Types & mock data ────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface BranchRecord {
   id: string
@@ -22,84 +26,154 @@ interface BranchRecord {
   parentId?: string | null
 }
 
-const MOCK_SCENARIO = {
-  code: 'GEOSIM-IRN-2026',
-  name: 'US-ISRAEL-IRAN CONFLICT 2025-2026',
+type RawBranch = {
+  id: string
+  name: string
+  is_trunk: boolean
+  status: string
+  head_commit_id: string | null
+  fork_point_commit_id: string | null
+  created_at: string
+  parent_branch_id: string | null
+  turn_commits: Array<{ id: string; turn_number: number; simulated_date: string; chronicle_headline?: string | null }>
 }
 
-const MOCK_BRANCHES: BranchRecord[] = [
-  {
-    id: 'trunk',
-    name: 'TRUNK',
-    description: 'Base timeline — Operation Epic Fury initiates. Full air campaign, Hormuz closure, Hezbollah activation.',
-    forkTurn: 0,
-    turnReached: 4,
-    totalTurns: 12,
-    createdAt: '2026-03-04T08:00:00Z',
-    status: 'active',
-    escalationRung: 6,
-    isBase: true,
-    parentId: null,
-  },
-  {
-    id: 'ceasefire-t3',
-    name: 'CEASEFIRE-T3',
-    description: 'Branch from Turn 3 — US accepts Oman framework. Hormuz reopens. Air campaign suspended.',
-    forkTurn: 3,
-    turnReached: 6,
-    totalTurns: 12,
-    createdAt: '2026-03-14T14:23:00Z',
-    status: 'active',
-    escalationRung: 3,
-    parentId: 'trunk',
-  },
-  {
-    id: 'ground-op-t4',
-    name: 'GROUND-OP-T4',
-    description: 'Branch from Turn 4 — Israel launches northern ground offensive. US deploys ground advisors.',
-    forkTurn: 4,
-    turnReached: 5,
-    totalTurns: 12,
-    createdAt: '2026-03-22T09:41:00Z',
-    status: 'active',
-    escalationRung: 8,
-    parentId: 'trunk',
-  },
-  {
-    id: 'iea-release-t2',
-    name: 'IEA-RELEASE-T2',
-    description: 'Branch from Turn 2 — Coordinated IEA reserve release caps oil at $115/bbl.',
-    forkTurn: 2,
-    turnReached: 12,
-    totalTurns: 12,
-    createdAt: '2026-03-08T11:52:00Z',
-    status: 'complete',
-    escalationRung: 5,
-    parentId: 'trunk',
-  },
-  {
-    id: 'diplomacy-only',
-    name: 'DIPLOMACY-ONLY',
-    description: 'Branch from Turn 1 — No air campaign. Full diplomatic track via UN, Oman, EU. Abandoned.',
-    forkTurn: 1,
-    turnReached: 3,
-    totalTurns: 12,
-    createdAt: '2026-03-04T20:15:00Z',
-    status: 'abandoned',
-    escalationRung: 1,
-    parentId: 'trunk',
-  },
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const HIGH_SIG_KEYWORDS = [
+  'nuclear', 'war', 'attack', 'launch', 'crisis', 'invasion', 'strike',
+  'ultimatum', 'missile', 'conflict', 'catastroph', 'collapse', 'intercept',
+  'bomb', 'explosion', 'shot down', 'hostage', 'assassination', 'retaliat',
 ]
 
-// ─── Horizontal branch tree SVG ───────────────────────────────────────────────
+function getSignificance(headline: string | null | undefined): TurnData['significance'] {
+  if (!headline) return 'low'
+  const lower = headline.toLowerCase()
+  if (HIGH_SIG_KEYWORDS.some(kw => lower.includes(kw))) return 'high'
+  return 'medium'
+}
 
-const TURN_COUNT = 12
+/** Format an ISO date string as "Apr 1 2025" */
+function formatTurnDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  } catch {
+    return iso
+  }
+}
+
+// ─── Build tree for BranchTree component ────────────────────────────────────
+
+function buildBranchTree(
+  rows: RawBranch[],
+  actorSnapshotsByTurn?: Record<number, ActorSnapshot[]>
+): BranchNode | null {
+  // Build a global commit-id → turn_number map across all branches
+  const commitTurnMap = new Map<string, number>()
+  for (const row of rows) {
+    for (const c of row.turn_commits ?? []) {
+      if (c.id) commitTurnMap.set(c.id, c.turn_number)
+    }
+  }
+
+  const map = new Map<string, BranchNode>()
+  for (const row of rows) {
+    const commits = row.turn_commits ?? []
+    const maxTurn = commits.reduce((m, c) => Math.max(m, c.turn_number), 0)
+    const latestCommit = commits.find(c => c.turn_number === maxTurn)
+    // Trunk starts at 0; child branches use fork_point_commit_id for accurate fork turn
+    const forkTurn = row.is_trunk
+      ? 0
+      : row.fork_point_commit_id
+        ? (commitTurnMap.get(row.fork_point_commit_id) ?? 1)
+        : 1
+
+    // Build per-turn event data from commits (with optional actor snapshots)
+    const turns: TurnData[] = commits
+      .map(c => ({
+        turn: c.turn_number,
+        date: c.simulated_date ? formatTurnDate(c.simulated_date) : undefined,
+        label: c.chronicle_headline ?? undefined,
+        significance: getSignificance(c.chronicle_headline),
+        actorSnapshots: actorSnapshotsByTurn?.[c.turn_number],
+      }))
+      .sort((a, b) => a.turn - b.turn)
+
+    map.set(row.id, {
+      id: row.id,
+      name: row.name,
+      isTrunk: row.is_trunk,
+      status: row.status === 'active' ? 'active' : 'archived',
+      forkTurn,
+      headTurn: Math.max(maxTurn, forkTurn, 1),
+      totalTurns: commits.length > 0 ? Math.max(...commits.map(c => c.turn_number)) : 12,
+      lastPlayedAt: row.created_at,
+      controlledActor: null,
+      children: [],
+      turnDate: latestCommit?.simulated_date,
+      turns,
+    })
+  }
+  let root: BranchNode | null = null
+  for (const row of rows) {
+    const node = map.get(row.id)!
+    if (row.parent_branch_id && map.has(row.parent_branch_id)) {
+      map.get(row.parent_branch_id)!.children.push(node)
+    } else {
+      root = node
+    }
+  }
+  return root
+}
+
+// ─── Build flat list for branch cards ────────────────────────────────────────
+
+function buildBranchList(rows: RawBranch[]): BranchRecord[] {
+  // Build a global commit-id → turn_number map for resolving fork points
+  const commitTurnMap = new Map<string, number>()
+  for (const row of rows) {
+    for (const c of row.turn_commits ?? []) {
+      if (c.id) commitTurnMap.set(c.id, c.turn_number)
+    }
+  }
+  return rows.map(row => {
+    const commits = row.turn_commits ?? []
+    const maxTurn = commits.reduce((m, c) => Math.max(m, c.turn_number), 0)
+    const forkTurn = row.is_trunk
+      ? 0
+      : row.fork_point_commit_id
+        ? (commitTurnMap.get(row.fork_point_commit_id) ?? 1)
+        : 1
+    const status: BranchRecord['status'] =
+      row.status === 'active' ? 'active' :
+      row.status === 'completed' ? 'complete' : 'abandoned'
+    return {
+      id: row.id,
+      name: row.name,
+      description: row.is_trunk
+        ? 'Ground truth timeline — AI-driven historical record of events as they unfolded.'
+        : 'Player branch — alternate timeline diverged from the ground truth.',
+      forkTurn,
+      turnReached: maxTurn,
+      totalTurns: commits.length > 0 ? Math.max(...commits.map(c => c.turn_number)) : 12,
+      createdAt: row.created_at,
+      status,
+      escalationRung: 0,
+      isBase: row.is_trunk,
+      parentId: row.parent_branch_id,
+    }
+  })
+}
+
+// ─── Horizontal branch topology SVG ─────────────────────────────────────────
+
 const ROW_H     = 36
 const LABEL_W   = 130
 const PADDING   = { top: 10, right: 16, bottom: 8 }
 const BAR_H     = 6
 
-function BranchTree({ branches }: { branches: BranchRecord[] }) {
+function BranchTopology({ branches }: { branches: BranchRecord[] }) {
+  const TURN_COUNT = Math.max(12, ...branches.map(b => b.totalTurns))
   const svgW = 640
   const trackW = svgW - LABEL_W - PADDING.right
   const svgH = branches.length * ROW_H + PADDING.top + PADDING.bottom
@@ -125,7 +199,6 @@ function BranchTree({ branches }: { branches: BranchRecord[] }) {
       height={svgH}
       aria-label="Branch topology tree"
     >
-      {/* Turn grid lines */}
       {Array.from({ length: TURN_COUNT + 1 }, (_, i) => (
         <g key={i}>
           <line
@@ -144,7 +217,6 @@ function BranchTree({ branches }: { branches: BranchRecord[] }) {
         </g>
       ))}
 
-      {/* Branch rows */}
       {branches.map((branch, rowIndex) => {
         const y    = PADDING.top + rowIndex * ROW_H + ROW_H / 2
         const x0   = turnX(branch.forkTurn)
@@ -152,7 +224,6 @@ function BranchTree({ branches }: { branches: BranchRecord[] }) {
 
         return (
           <g key={branch.id}>
-            {/* Vertical connector from trunk row to this branch */}
             {!branch.isBase && (
               <line
                 x1={x0} y1={PADDING.top + ROW_H / 2}
@@ -162,7 +233,6 @@ function BranchTree({ branches }: { branches: BranchRecord[] }) {
               />
             )}
 
-            {/* Branch label */}
             <text
               x={LABEL_W - 6}
               y={y + 4}
@@ -172,10 +242,9 @@ function BranchTree({ branches }: { branches: BranchRecord[] }) {
               textAnchor="end"
               letterSpacing={0.5}
             >
-              {branch.name}
+              {branch.name.slice(0, 16)}
             </text>
 
-            {/* Background track */}
             <rect
               x={LABEL_W}
               y={y - BAR_H / 2}
@@ -184,7 +253,6 @@ function BranchTree({ branches }: { branches: BranchRecord[] }) {
               fill="var(--bg-surface-high)"
             />
 
-            {/* Progress bar */}
             <rect
               x={x0}
               y={y - BAR_H / 2}
@@ -194,7 +262,6 @@ function BranchTree({ branches }: { branches: BranchRecord[] }) {
               opacity={branch.status === 'abandoned' ? 0.4 : 0.85}
             />
 
-            {/* Start dot */}
             <circle
               cx={x0}
               cy={y}
@@ -204,7 +271,6 @@ function BranchTree({ branches }: { branches: BranchRecord[] }) {
               strokeWidth={branch.isBase ? 2 : 1.5}
             />
 
-            {/* End dot */}
             {branch.turnReached > branch.forkTurn && (
               <circle
                 cx={x1}
@@ -222,8 +288,36 @@ function BranchTree({ branches }: { branches: BranchRecord[] }) {
 
 // ─── Fork turn selector ───────────────────────────────────────────────────────
 
-function ForkSelector({ scenarioId }: { scenarioId: string }) {
-  const [selectedTurn, setSelectedTurn] = useState<number>(4)
+function ForkSelector({ scenarioId, availableTurns }: { scenarioId: string; availableTurns: number[] }) {
+  const router = useRouter()
+  const turns = availableTurns.length > 0 ? availableTurns : [1, 2, 3, 4]
+  const [selectedTurn, setSelectedTurn] = useState<number>(turns[turns.length - 1] ?? 1)
+  const [creating, setCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleFork() {
+    setCreating(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/branches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenarioId, name: `Branch from T${selectedTurn}`, forkTurn: selectedTurn }),
+      })
+      if (res.ok) {
+        const json = await res.json() as { id?: string }
+        if (json.id) {
+          router.push(`/scenarios/${scenarioId}/play/${json.id}`)
+          return
+        }
+      }
+      setError('Failed to create branch — try again.')
+    } catch {
+      setError('Failed to create branch — try again.')
+    } finally {
+      setCreating(false)
+    }
+  }
 
   return (
     <div className="border border-border-subtle bg-bg-surface-dim p-4">
@@ -231,7 +325,7 @@ function ForkSelector({ scenarioId }: { scenarioId: string }) {
         FORK NEW BRANCH FROM TURN
       </div>
       <div className="flex items-center gap-2 mb-3 flex-wrap">
-        {Array.from({ length: 4 }, (_, i) => i + 1).map(turn => (
+        {turns.map(turn => (
           <button
             key={turn}
             onClick={() => setSelectedTurn(turn)}
@@ -245,13 +339,17 @@ function ForkSelector({ scenarioId }: { scenarioId: string }) {
           </button>
         ))}
       </div>
-      <Link
-        href={`/scenarios/${scenarioId}`}
-        className="inline-block font-mono text-2xs uppercase tracking-[0.08em] px-4 py-2 text-bg-base transition-opacity hover:opacity-80"
+      {error && (
+        <p className="font-mono text-2xs text-status-critical mb-2">{error}</p>
+      )}
+      <button
+        onClick={() => void handleFork()}
+        disabled={creating}
+        className="inline-block font-mono text-2xs uppercase tracking-[0.08em] px-4 py-2 text-bg-base transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
         style={{ background: 'var(--gold)' }}
       >
-        + FORK FROM TURN {selectedTurn}
-      </Link>
+        {creating ? 'CREATING…' : `+ FORK FROM TURN ${selectedTurn}`}
+      </button>
     </div>
   )
 }
@@ -265,14 +363,19 @@ const STATUS_STYLES: Record<BranchRecord['status'], { label: string; cls: string
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  try {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  } catch {
+    return iso
+  }
 }
 
 // ─── Branch card ──────────────────────────────────────────────────────────────
 
 function BranchCard({ branch, scenarioId }: { branch: BranchRecord; scenarioId: string }) {
   const { label: statusLabel, cls: statusCls } = STATUS_STYLES[branch.status]
-  const progress = Math.round((branch.turnReached / branch.totalTurns) * 100)
+  const total = branch.totalTurns > 0 ? branch.totalTurns : 12
+  const progress = branch.turnReached > 0 ? Math.round((branch.turnReached / total) * 100) : 0
   const isActive = branch.status === 'active'
 
   return (
@@ -281,12 +384,11 @@ function BranchCard({ branch, scenarioId }: { branch: BranchRecord; scenarioId: 
         isActive ? 'border-l-gold' : 'border-l-transparent'
       }`}
     >
-      {/* Card header */}
       <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
         <div className="flex flex-col gap-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.06em]">
-              {branch.isBase ? '● BASE' : `⎇ FORK T${branch.forkTurn}`}
+              {branch.isBase ? '● BASE' : `⎇ BRANCH`}
             </span>
             <span className={`font-mono text-2xs uppercase tracking-[0.06em] px-2 py-0.5 border ${statusCls}`}>
               {statusLabel}
@@ -298,19 +400,16 @@ function BranchCard({ branch, scenarioId }: { branch: BranchRecord; scenarioId: 
         </div>
 
         <div className="shrink-0 text-right">
-          <div className="font-mono text-2xs text-text-tertiary">RUNG {branch.escalationRung}</div>
           <div className="font-mono text-2xs text-gold">
-            T{String(branch.turnReached).padStart(2, '0')}/{String(branch.totalTurns).padStart(2, '0')}
+            T{String(branch.turnReached).padStart(2, '0')}/{String(total).padStart(2, '0')}
           </div>
         </div>
       </div>
 
-      {/* Description */}
       <div className="px-4 pb-3">
         <p className="font-sans text-2xs text-text-secondary leading-[1.6]">{branch.description}</p>
       </div>
 
-      {/* Progress bar */}
       <div className="px-4 pb-3">
         <div className="flex items-center gap-2">
           <div className="flex-1 h-px bg-border-subtle overflow-hidden relative" style={{ height: '3px' }}>
@@ -327,7 +426,6 @@ function BranchCard({ branch, scenarioId }: { branch: BranchRecord; scenarioId: 
         </div>
       </div>
 
-      {/* Footer */}
       <div className="flex items-center justify-between px-4 py-3 border-t border-border-subtle">
         <span className="font-mono text-2xs text-text-tertiary">{formatDate(branch.createdAt)}</span>
         <div className="flex items-center gap-3">
@@ -361,11 +459,86 @@ function BranchCard({ branch, scenarioId }: { branch: BranchRecord; scenarioId: 
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+// Pre-compute dev-mode initial state so the page renders immediately without
+// waiting for async fetches (NEXT_PUBLIC_* vars are inlined at build time).
+const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+const devRawBranches: RawBranch[] = isDevMode ? [DEV_TRUNK_BRANCH as RawBranch] : []
+const devInitialBranches = isDevMode ? buildBranchList(devRawBranches) : []
+const devInitialRoot     = isDevMode ? buildBranchTree(devRawBranches, DEV_ACTOR_SNAPSHOTS) : null
+const devInitialActors: ActorOption[] = isDevMode
+  ? DEV_ACTORS.map(a => ({ id: a.id, name: a.name, flag: (a.short_name ?? a.name.slice(0, 3)).toUpperCase() }))
+  : []
+const devInitialTurns    = isDevMode ? DEV_TRUNK_BRANCH.turn_commits.map(c => c.turn_number) : []
+
 export default function BranchesPage({ params }: { params: { id: string } }) {
+  const [branches, setBranches] = useState<BranchRecord[]>(devInitialBranches)
+  const [branchRoot, setBranchRoot] = useState<BranchNode | null>(devInitialRoot)
+  const [actorOptions, setActorOptions] = useState<ActorOption[]>(devInitialActors)
+  const [scenarioName, setScenarioName] = useState('US-ISRAEL-IRAN CONFLICT 2025-2026')
+  const [loading, setLoading] = useState(!isDevMode)
+  const [availableTurns, setAvailableTurns] = useState<number[]>(devInitialTurns)
+
+  useEffect(() => {
+    // Dev mode: state already pre-populated synchronously — skip all async fetches.
+    if (isDevMode) return
+
+    void (async () => {
+      try {
+        const branchApiRes = await fetch(`/api/branches?scenarioId=${encodeURIComponent(params.id)}`)
+
+        if (branchApiRes.ok) {
+          const json = await branchApiRes.json() as {
+            branches: RawBranch[];
+            actors: Array<{ id: string; name: string; short_name: string | null }>;
+          }
+
+          if (json.branches && json.branches.length > 0) {
+            const list = buildBranchList(json.branches)
+            setBranches(list)
+
+            const tree = buildBranchTree(json.branches)
+            if (tree) setBranchRoot(tree)
+
+            const trunk = json.branches.find(r => r.is_trunk)
+            if (trunk) {
+              const turns = (trunk.turn_commits ?? []).map(c => c.turn_number).sort((a, b) => a - b)
+              setAvailableTurns(turns)
+            }
+          }
+
+          if (json.actors && json.actors.length > 0) {
+            setActorOptions(json.actors.map(a => ({
+              id: a.id,
+              name: a.name,
+              flag: (a.short_name ?? a.name.slice(0, 3)).toUpperCase(),
+            })))
+          }
+        }
+
+        const [scenarioRes, scenarioListRes] = await Promise.all([
+          fetch(`/api/scenarios/${params.id}`).catch(() => null),
+          fetch(`/api/scenarios?limit=1`),
+        ])
+        if (scenarioRes?.ok) {
+          const sJson = await scenarioRes.json() as { data?: { name?: string } }
+          if (sJson.data?.name) setScenarioName(sJson.data.name.toUpperCase())
+        } else if (scenarioListRes.ok) {
+          const sJson = await scenarioListRes.json() as { data?: Array<{ id: string; name: string }> }
+          const match = (sJson.data ?? []).find(s => s.id === params.id)
+          if (match?.name) setScenarioName(match.name.toUpperCase())
+        }
+      } catch (err) {
+        console.error('[BranchesPage] fetch error:', err)
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [params.id])
+
   return (
     <>
       <ClassificationBanner classification="TOP SECRET // NOFORN // IRAN-CONFLICT" />
-      <TopBar scenarioName={MOCK_SCENARIO.name} />
+      <TopBar scenarioName={scenarioName} />
 
       <main className="pt-[66px] bg-bg-base min-h-screen">
         <div className="max-w-2xl mx-auto px-6 py-6">
@@ -375,7 +548,15 @@ export default function BranchesPage({ params }: { params: { id: string } }) {
             />
           </div>
 
-          {/* Page heading */}
+          <div className="mb-6">
+            <Link
+              href={`/scenarios/${params.id}`}
+              className="font-mono text-2xs uppercase tracking-[0.08em] text-text-tertiary hover:text-text-secondary transition-colors"
+            >
+              ← BACK TO SCENARIO
+            </Link>
+          </div>
+
           <div className="mb-8">
             <h1 className="font-label font-bold text-xl text-text-primary uppercase tracking-[0.04em] mb-1">
               Branch Index
@@ -385,33 +566,47 @@ export default function BranchesPage({ params }: { params: { id: string } }) {
             </p>
           </div>
 
-          {/* Horizontal branch topology tree */}
-          <div className="mb-8 border border-border-subtle bg-bg-surface-dim px-6 pt-4 pb-6 overflow-x-auto">
-            <div className="font-mono text-2xs uppercase tracking-[0.08em] text-text-tertiary mb-4">
-              BRANCH TOPOLOGY — TURN PROGRESSION
+          {loading ? (
+            <div className="font-mono text-2xs text-text-tertiary uppercase tracking-[0.04em] py-8 text-center">
+              LOADING BRANCHES…
             </div>
-            <BranchTree branches={MOCK_BRANCHES} />
-          </div>
+          ) : (
+            <>
+              {/* Branch topology tree */}
+              {branchRoot ? (
+                <div className="mb-8">
+                  <div className="font-mono text-2xs uppercase tracking-[0.08em] text-text-tertiary mb-2">
+                    BRANCH TOPOLOGY — CLICK NODE TO ENTER
+                  </div>
+                  <BranchTree root={branchRoot} scenarioId={params.id} actors={actorOptions} />
+                </div>
+              ) : branches.length > 0 ? (
+                <div className="mb-8 border border-border-subtle bg-bg-surface-dim px-6 pt-4 pb-6 overflow-x-auto">
+                  <div className="font-mono text-2xs uppercase tracking-[0.08em] text-text-tertiary mb-4">
+                    BRANCH TOPOLOGY — TURN PROGRESSION
+                  </div>
+                  <BranchTopology branches={branches} />
+                </div>
+              ) : null}
 
-          {/* Summary counts */}
-          <div className="flex items-center gap-6 mb-6 font-mono text-2xs text-text-tertiary">
-            <span>{MOCK_BRANCHES.length} TOTAL</span>
-            <span>{MOCK_BRANCHES.filter(b => b.status === 'active').length} ACTIVE</span>
-            <span>{MOCK_BRANCHES.filter(b => b.status === 'complete').length} COMPLETE</span>
-            <span>{MOCK_BRANCHES.filter(b => b.status === 'abandoned').length} ABANDONED</span>
-          </div>
+              <div className="flex items-center gap-6 mb-6 font-mono text-2xs text-text-tertiary">
+                <span>{branches.length} TOTAL</span>
+                <span>{branches.filter(b => b.status === 'active').length} ACTIVE</span>
+                <span>{branches.filter(b => b.status === 'complete').length} COMPLETE</span>
+                <span>{branches.filter(b => b.status === 'abandoned').length} ABANDONED</span>
+              </div>
 
-          {/* Fork from turn selector */}
-          <div className="mb-8">
-            <ForkSelector scenarioId={params.id} />
-          </div>
+              <div className="mb-8">
+                <ForkSelector scenarioId={params.id} availableTurns={availableTurns} />
+              </div>
 
-          {/* Branch cards */}
-          <div className="flex flex-col gap-3">
-            {MOCK_BRANCHES.map(branch => (
-              <BranchCard key={branch.id} branch={branch} scenarioId={params.id} />
-            ))}
-          </div>
+              <div className="flex flex-col gap-3">
+                {branches.map(branch => (
+                  <BranchCard key={branch.id} branch={branch} scenarioId={params.id} />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </main>
     </>

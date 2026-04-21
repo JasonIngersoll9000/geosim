@@ -1,13 +1,6 @@
 'use client'
 import type { AssetCategory, AssetStatus } from '@/lib/types/simulation'
-
-const ACTOR_COLORS: Record<string, { border: string; bg: string; text: string }> = {
-  us:            { border: '#2980b9', bg: 'rgba(41,128,185,0.25)', text: '#5dade2' },
-  united_states: { border: '#2980b9', bg: 'rgba(41,128,185,0.25)', text: '#5dade2' },
-  israel:        { border: '#27ae60', bg: 'rgba(39,174,96,0.25)',  text: '#2ecc71' },
-  iran:          { border: '#c0392b', bg: 'rgba(192,57,43,0.25)',  text: '#e74c3c' },
-  default:       { border: '#e67e22', bg: 'rgba(230,126,34,0.25)', text: '#f39c12' },
-}
+import { getActorColor } from '@/lib/game/actor-colors'
 
 const CATEGORY_ICONS: Record<AssetCategory, string> = {
   naval:          '⛵',
@@ -44,7 +37,7 @@ export interface AssetMarkerOptions {
  * Usage: new mapboxgl.Marker(createAssetMarkerElement(opts)).setLngLat([lng, lat]).addTo(map)
  */
 export function createAssetMarkerElement(opts: AssetMarkerOptions): HTMLElement {
-  const colors = ACTOR_COLORS[opts.actorId] ?? ACTOR_COLORS.default
+  const colors = getActorColor(opts.actorId)
   const icon = CATEGORY_ICONS[opts.category] ?? '●'
   const statusStyle = STATUS_STYLES[opts.status] ?? STATUS_STYLES.available
 

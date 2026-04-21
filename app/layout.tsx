@@ -30,9 +30,9 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GeoSim — Strategic Simulation Engine",
+  title: "War Game — Strategic Simulation Engine",
   description:
-    "AI-powered strategic simulation engine modeling competitive dynamics between actors through interactive decision-making and branching scenario trees.",
+    "AI-powered strategic war game simulation engine modeling competitive dynamics between actors through interactive decision-making and branching scenario trees.",
   icons: {
     icon: "/favicon.svg",
   },

@@ -120,6 +120,7 @@ export interface ActorProfile {
   name: string
   short_name: string
   biographical_summary: string
+  biographical_summary_continued?: string
   leadership_profile: string
   win_condition: string
   strategic_doctrine: string

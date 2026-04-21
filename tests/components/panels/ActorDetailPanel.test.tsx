@@ -1,15 +1,28 @@
 import { render, screen } from '@testing-library/react'
 import { ActorDetailPanel } from '@/components/panels/ActorDetailPanel'
+import type { ActorDetail } from '@/lib/types/panels'
 
-const mockActor = {
+const mockActor: ActorDetail = {
   id: 'united_states',
   name: 'United States',
+  shortName: 'USA',
+  actorColor: '#4a90d9',
   escalationRung: 5,
+  escalationRungName: 'Limited Strikes',
   briefing: 'Conventional power with global reach.',
-  militaryStrength: 0.9,
-  economicStrength: 0.85,
-  politicalStability: 0.7,
+  militaryStrength: 90,
+  economicStrength: 85,
+  politicalStability: 70,
   objectives: ['Prevent nuclear Iran', 'Protect Israel'],
+  primaryObjective: 'Prevent nuclear Iran',
+  winCondition: 'Prevent Iran from achieving nuclear capability while avoiding regional war.',
+  isAdversary: false,
+  relationshipStance: 'ally',
+  escalationRungs: [
+    { level: 1, name: 'Diplomatic Pressure', description: 'Statements and sanctions threats.', reversibility: 'easy' },
+    { level: 5, name: 'Limited Strikes', description: 'Tomahawk strikes on military targets.', reversibility: 'moderate' },
+    { level: 8, name: 'Nuclear', description: 'Nuclear use — last resort.', reversibility: 'irreversible' },
+  ],
 }
 
 describe('ActorDetailPanel', () => {

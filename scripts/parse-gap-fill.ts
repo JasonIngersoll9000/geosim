@@ -357,7 +357,7 @@ async function main(): Promise<void> {
   console.log(`  Timeline points: ${gapFill.global_variable_timeline.length}`)
 }
 
-if (process.argv[1] === new URL(import.meta.url).pathname) {
+if (process.argv[1] === decodeURIComponent(new URL(import.meta.url).pathname)) {
   main().catch(err => {
     console.error(err)
     process.exit(1)

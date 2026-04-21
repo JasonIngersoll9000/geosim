@@ -1,4 +1,18 @@
-import type { Decision, PositionedAsset, AssetRequirement } from '@/lib/types/simulation'
+import type { PositionedAsset, AssetRequirement } from '@/lib/types/simulation'
+import type { DecisionOption } from '@/lib/types/panels'
+
+// ─── Constraint cascade detection ────────────────────────────────────────────
+
+export interface DecisionCascade {
+  decisionId: string
+  decisionTitle: string
+  /** Was this decision unavailable before the resolution? */
+  previouslyBlocked: boolean
+  /** Is this decision now available after the resolution? */
+  nowAvailable: boolean
+  /** Reasons why it was blocked before (for display) */
+  previousBlockReasons: string[]
+}
 
 export interface PrerequisiteResult {
   met: boolean
@@ -6,7 +20,7 @@ export interface PrerequisiteResult {
 }
 
 export interface FilteredDecision {
-  decision: Decision
+  decision: DecisionOption
   available: boolean
   unmetReason?: string
 }
@@ -53,7 +67,7 @@ function checkRequirement(req: AssetRequirement, assets: PositionedAsset[]): str
 }
 
 export function checkPrerequisites(
-  decision: Decision,
+  decision: DecisionOption,
   assets: PositionedAsset[]
 ): PrerequisiteResult {
   const requirements = decision.requiredAssets ?? []
@@ -68,7 +82,7 @@ export function checkPrerequisites(
 }
 
 export function filterDecisionsByAssets(
-  decisions: Decision[],
+  decisions: DecisionOption[],
   assets: PositionedAsset[]
 ): FilteredDecision[] {
   return decisions.map(decision => {
@@ -79,4 +93,40 @@ export function filterDecisionsByAssets(
       unmetReason: met ? undefined : unmet.join('; '),
     }
   })
+}
+
+/**
+ * Detect constraint cascades: decisions that were previously blocked by asset
+ * prerequisites but are now available after event resolution applied new assets.
+ *
+ * Compares prerequisite results before and after resolution and returns only
+ * the decisions that flipped from unavailable → available, so the UI can alert
+ * the player to newly unlocked options.
+ */
+export function detectConstraintCascades(
+  decisions: DecisionOption[],
+  assetsBefore: PositionedAsset[],
+  assetsAfter: PositionedAsset[]
+): DecisionCascade[] {
+  const cascades: DecisionCascade[] = []
+
+  for (const decision of decisions) {
+    const before = checkPrerequisites(decision, assetsBefore)
+    const after  = checkPrerequisites(decision, assetsAfter)
+
+    const wasBlocked  = !before.met
+    const nowUnlocked = after.met
+
+    if (wasBlocked && nowUnlocked) {
+      cascades.push({
+        decisionId:           decision.id,
+        decisionTitle:        decision.title,
+        previouslyBlocked:    true,
+        nowAvailable:         true,
+        previousBlockReasons: before.unmet,
+      })
+    }
+  }
+
+  return cascades
 }

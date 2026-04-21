@@ -1,136 +1,430 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { onPlayerDecision } from '@/lib/game/game-loop'
-import type { EventStateEffects } from '@/lib/types/simulation'
+import { createServiceClient } from '@/lib/supabase/service'
+import { getStateAtTurn, applyEventEffects, persistStateSnapshot } from '@/lib/game/state-engine'
+import { runActorAgent } from '@/lib/ai/actor-agent-runner'
+import { runResolutionEngine } from '@/lib/ai/resolution-engine'
+import { runJudge, JUDGE_THRESHOLD } from '@/lib/ai/judge-evaluator'
+import { runNarrator } from '@/lib/ai/narrator'
+import {
+  loadDecisionCatalog,
+  buildTurnPlanFromIds,
+  broadcastTurnEvent,
+  computeBranchDivergence,
+} from '@/lib/game/turn-helpers'
+import type { TurnPlan, Decision } from '@/lib/types/simulation'
 
-const encoder = new TextEncoder()
-
-function sendLine(controller: ReadableStreamDefaultController, text: string, type = 'info') {
-  const line = JSON.stringify({ text, type, timestamp: new Date().toISOString().slice(11, 19) })
-  controller.enqueue(encoder.encode(`data: ${line}\n\n`))
+// waitUntil keeps the serverless function alive after response is sent
+let waitUntil: ((promise: Promise<unknown>) => void) | undefined
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const vercelFunctions = require('@vercel/functions')
+  waitUntil = vercelFunctions.waitUntil
+} catch {
+  // Not on Vercel — local dev, function stays alive naturally
 }
 
-function advanceDate(dateStr: string): string {
-  const [y, m, d] = dateStr.split('-').map(Number)
-  const date = new Date(Date.UTC(y, m - 1, d))
-  date.setUTCDate(date.getUTCDate() + 7)
-  return date.toISOString().split('T')[0]
+function advanceDate(dateStr: string, days: number): string {
+  const d = new Date(dateStr)
+  d.setDate(d.getDate() + days)
+  return d.toISOString().split('T')[0]
 }
+
+const STALE_TURN_MINUTES = 5
+
+// ── Background pipeline ─────────────────────────────────────────────────────
+
+async function runFullPipeline(
+  scenarioId: string,
+  branchId: string,
+  commitId: string,
+  headCommitId: string,
+  playerActorId: string | null,
+  playerPrimaryAction: string,
+  playerConcurrentActions: string[],
+  turnNumber: number,
+  simulatedDate: string,
+) {
+  const supabase = createServiceClient()
+
+  try {
+    // ── Broadcast: planning ──────────────────────────────────────────────
+    await broadcastTurnEvent(branchId, 'turn_started', {
+      turnNumber, simulatedDate, phase: 'planning',
+    })
+
+    // Update phase in DB
+    await supabase.from('turn_commits').update({ current_phase: 'planning' }).eq('id', commitId)
+
+    // ── Load actors + scenario context ───────────────────────────────────
+    const [actorRes, scenarioRes] = await Promise.all([
+      supabase
+        .from('scenario_actors')
+        .select('id, name, short_name, biographical_summary, leadership_profile, win_condition, strategic_doctrine, historical_precedents, initial_scores, intelligence_profile')
+        .eq('scenario_id', scenarioId),
+      supabase
+        .from('scenarios')
+        .select('name, description, critical_context')
+        .eq('id', scenarioId)
+        .single(),
+    ])
+
+    if (actorRes.error || !actorRes.data?.length) {
+      throw new Error(`No actors found for scenario ${scenarioId}`)
+    }
+
+    const actorRows = actorRes.data
+    const scenario = scenarioRes.data as Record<string, unknown> | null
+    const scenarioContext = scenario
+      ? `${scenario.name}: ${scenario.description ?? ''}${scenario.critical_context ? '\n' + scenario.critical_context : ''}`
+      : 'Geopolitical simulation'
+
+    // ── Load branch state + divergence ───────────────────────────────────
+    const [branchState, branchDivergence] = await Promise.all([
+      getStateAtTurn(branchId, headCommitId, undefined, { client: supabase }),
+      computeBranchDivergence(supabase, branchId),
+    ])
+
+    // ── Load decision catalog + build player TurnPlan ────────────────────
+    const decisionCatalog = loadDecisionCatalog(scenarioId)
+
+    let playerTurnPlan: TurnPlan | null = null
+    if (playerActorId && decisionCatalog[playerActorId]) {
+      playerTurnPlan = buildTurnPlanFromIds(
+        playerPrimaryAction, playerConcurrentActions, playerActorId, decisionCatalog
+      )
+    }
+
+    // ── Run AI actor agents ──────────────────────────────────────────────
+    const aiActors = actorRows.filter(
+      a => a.id !== playerActorId && (decisionCatalog[a.id]?.length ?? 0) > 0
+    )
+
+    const aiPlanResults = await Promise.allSettled(
+      aiActors.map(async (actor) => {
+        const result = await runActorAgent({
+          actorId: actor.id,
+          actorProfile: actor as Parameters<typeof runActorAgent>[0]['actorProfile'],
+          branchState,
+          availableDecisions: decisionCatalog[actor.id],
+          branchDivergence,
+          simulatedDate,
+          turnNumber,
+        })
+        return { actorId: actor.id, actorName: actor.name, turnPlan: result.turnPlan, rationale: result.rationale }
+      })
+    )
+
+    const aiTurnPlans: Array<{ actorId: string; actorName: string; turnPlan: TurnPlan; rationale: string }> = []
+    for (const result of aiPlanResults) {
+      if (result.status === 'fulfilled') aiTurnPlans.push(result.value)
+      // Skip failed agents — resolution engine handles missing actors
+    }
+
+    const allTurnPlans: Array<{ actorId: string; actorName: string; turnPlan: TurnPlan; rationale?: string }> = [
+      ...aiTurnPlans,
+    ]
+
+    if (playerActorId && playerTurnPlan) {
+      const playerActor = actorRows.find(a => a.id === playerActorId)
+      allTurnPlans.push({
+        actorId: playerActorId,
+        actorName: playerActor?.name ?? playerActorId,
+        turnPlan: playerTurnPlan,
+        rationale: 'Player decision',
+      })
+    }
+
+    // ── Broadcast: resolving ─────────────────────────────────────────────
+    await broadcastTurnEvent(branchId, 'resolution_progress', {
+      message: `${allTurnPlans.length} actor plan(s) generated`, phase: 'resolving',
+    })
+    await supabase.from('turn_commits').update({ current_phase: 'resolving' }).eq('id', commitId)
+
+    const flatCatalog: Decision[] = Object.values(decisionCatalog).flat()
+
+    // ── Resolution + Judge loop ──────────────────────────────────────────
+    let resolution = await runResolutionEngine({
+      turnPlans: allTurnPlans,
+      branchState,
+      decisionCatalog: flatCatalog,
+      simulatedDate,
+      turnNumber,
+      scenarioContext,
+    })
+
+    await broadcastTurnEvent(branchId, 'resolution_progress', {
+      message: 'Actions resolved — judging plausibility', phase: 'judging',
+    })
+    await supabase.from('turn_commits').update({ current_phase: 'judging' }).eq('id', commitId)
+
+    let judgeResult = await runJudge({
+      turnPlans: allTurnPlans,
+      effects: resolution.effects,
+      headline: resolution.headline,
+      narrativeSummary: resolution.narrativeSummary,
+      simulatedDate,
+      turnNumber,
+      scenarioContext,
+    })
+
+    if (judgeResult.verdict === 'retry' || judgeResult.score < JUDGE_THRESHOLD) {
+      resolution = await runResolutionEngine({
+        turnPlans: allTurnPlans,
+        branchState,
+        decisionCatalog: flatCatalog,
+        simulatedDate,
+        turnNumber,
+        scenarioContext,
+        judgeCorrection: judgeResult.critique,
+      })
+      const retryJudge = await runJudge({
+        turnPlans: allTurnPlans,
+        effects: resolution.effects,
+        headline: resolution.headline,
+        narrativeSummary: resolution.narrativeSummary,
+        simulatedDate,
+        turnNumber,
+        scenarioContext,
+      })
+      judgeResult = { ...retryJudge, verdict: 'accept' }
+    }
+
+    await broadcastTurnEvent(branchId, 'resolution_progress', {
+      message: `Judge score: ${judgeResult.score} — accepted`, phase: 'narrating',
+    })
+    await supabase.from('turn_commits').update({ current_phase: 'narrating' }).eq('id', commitId)
+
+    // ── Narrator ─────────────────────────────────────────────────────────
+    const narration = await runNarrator({
+      turnPlans: allTurnPlans,
+      effects: resolution.effects,
+      headline: resolution.headline,
+      narrativeSummary: resolution.narrativeSummary,
+      judgeScore: judgeResult.score,
+      judgeCritique: judgeResult.critique,
+      simulatedDate,
+      turnNumber,
+      scenarioContext,
+      escalationChanges: resolution.escalationChanges,
+    })
+
+    await broadcastTurnEvent(branchId, 'resolution_progress', {
+      message: 'Narrative generated — finalizing', phase: 'finalizing',
+    })
+    await supabase.from('turn_commits').update({ current_phase: 'finalizing' }).eq('id', commitId)
+
+    // ── Persist state ────────────────────────────────────────────────────
+    const newState = applyEventEffects(branchState, resolution.effects)
+    await persistStateSnapshot(scenarioId, branchId, commitId, newState, { client: supabase })
+
+    // ── Update turn_commit with full results ─────────────────────────────
+    await supabase.from('turn_commits').update({
+      current_phase: 'complete',
+      planning_phase: { turnPlans: allTurnPlans },
+      resolution_phase: {
+        effects: resolution.effects,
+        escalationChanges: resolution.escalationChanges,
+        narrativeSummary: resolution.narrativeSummary,
+      },
+      judging_phase: {
+        score: judgeResult.score,
+        critique: judgeResult.critique,
+        verdict: judgeResult.verdict,
+      },
+      narrative_entry: narration.fullBriefing,
+      full_briefing: narration.fullBriefing,
+      chronicle_headline: narration.chronicleHeadline,
+    }).eq('id', commitId)
+
+    // ── Advance branch head ──────────────────────────────────────────────
+    await supabase.from('branches').update({
+      head_commit_id: commitId,
+      updated_at: new Date().toISOString(),
+    }).eq('id', branchId)
+
+    // ── Broadcast: complete ──────────────────────────────────────────────
+    await broadcastTurnEvent(branchId, 'turn_completed', {
+      commitId, turnNumber, phase: 'complete',
+    })
+
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown pipeline error'
+    console.error('[advance/pipeline]', message)
+
+    try {
+      await supabase.from('turn_commits').update({ current_phase: 'failed' }).eq('id', commitId)
+      await broadcastTurnEvent(branchId, 'turn_failed', { error: message, phase: 'failed' })
+    } catch (broadcastErr) {
+      console.error('[advance/pipeline] failed to broadcast failure:', broadcastErr)
+    }
+  }
+}
+
+// ── Route handler ────────────────────────────────────────────────────────────
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string; branchId: string } }
 ) {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return new Response(JSON.stringify({ error: 'Database not configured' }), { status: 503 })
+  const devMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: 'AI not configured' }, { status: 503 })
+  }
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
   }
 
   const { id: scenarioId, branchId } = params
 
-  let body: { primaryAction: string; concurrentActions: string[] }
+  // ── Parse body ──────────────────────────────────────────────────────────
+  let body: { primaryAction: string; concurrentActions: string[]; controlledActors?: string[] }
   try {
     body = await request.json()
   } catch {
-    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), { status: 400 })
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      try {
-        const supabase = await createClient()
+  if (!body.primaryAction) {
+    return NextResponse.json({ error: 'primaryAction is required' }, { status: 400 })
+  }
 
-        sendLine(controller, 'Turn plan received — validating prerequisites…', 'info')
+  // ── Authenticate ────────────────────────────────────────────────────────
+  const sessionClient = await createClient()
+  const { data: { user } } = await sessionClient.auth.getUser()
 
-        // 1. Get current branch state
-        const { data: branch, error: branchErr } = await supabase
-          .from('branches')
-          .select('id, head_commit_id')
-          .eq('id', branchId)
-          .single()
+  const authConfigured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  if (!user && authConfigured && !devMode) {
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+  }
 
-        if (branchErr || !branch) {
-          sendLine(controller, `ERROR: Branch not found — ${branchErr?.message ?? 'unknown'}`, 'critical')
-          controller.close()
-          return
-        }
+  // ── Load branch ─────────────────────────────────────────────────────────
+  const supabase = createServiceClient()
 
-        // 2. Get latest turn commit to determine turn_number and simulated_date
-        const { data: headCommit } = await supabase
-          .from('turn_commits')
-          .select('id, turn_number, simulated_date')
-          .eq('id', branch.head_commit_id)
-          .single()
+  const { data: branch, error: branchErr } = await supabase
+    .from('branches')
+    .select('id, head_commit_id, scenario_id, user_controlled_actors, created_by')
+    .eq('id', branchId)
+    .single()
 
-        const prevTurnNumber = headCommit?.turn_number ?? 0
-        const prevDate = headCommit?.simulated_date ?? '2026-03-04'
-        const newTurnNumber = prevTurnNumber + 1
-        const newSimDate = advanceDate(prevDate)
+  if (branchErr || !branch) {
+    return NextResponse.json({ error: 'Branch not found' }, { status: 404 })
+  }
 
-        sendLine(controller, 'Operational parameters confirmed.', 'confirmed')
+  const branchRow = branch as {
+    id: string; head_commit_id: string | null; scenario_id: string;
+    user_controlled_actors: string[]; created_by: string | null
+  }
 
-        // 3. Insert new turn_commit
-        const { data: newCommit, error: insertErr } = await supabase
-          .from('turn_commits')
-          .insert({
-            branch_id:         branchId,
-            parent_commit_id:  branch.head_commit_id,
-            turn_number:       newTurnNumber,
-            simulated_date:    newSimDate,
-            scenario_snapshot: { primary_action: body.primaryAction, concurrent_actions: body.concurrentActions },
-            planning_phase:    { primary_action_id: body.primaryAction, concurrent_action_ids: body.concurrentActions },
-            current_phase:     'complete',
-            is_ground_truth:   false,
-          })
-          .select('id')
-          .single()
+  // ── Authorize ───────────────────────────────────────────────────────────
+  const isOwner = user ? branchRow.created_by === user.id : devMode
 
-        if (insertErr || !newCommit) {
-          sendLine(controller, `ERROR: Failed to record turn — ${insertErr?.message ?? 'unknown'}`, 'critical')
-          controller.close()
-          return
-        }
+  if (!isOwner) {
+    const { data: scenarioMeta } = await supabase
+      .from('scenarios').select('visibility').eq('id', branchRow.scenario_id).single()
+    const isPublic = (scenarioMeta as Record<string, unknown> | null)?.visibility === 'public'
+    if (!isPublic) {
+      return NextResponse.json({ error: 'Access denied: private scenario' }, { status: 403 })
+    }
+  }
 
-        sendLine(controller, 'Applying effects to theater state…', 'info')
+  const headCommitId = branchRow.head_commit_id
+  if (!headCommitId) {
+    return NextResponse.json({ error: 'Branch has no head commit' }, { status: 400 })
+  }
 
-        // 4. Call state engine
-        const resolvedEffects: EventStateEffects = {
-          actor_score_deltas:     {},
-          asset_inventory_deltas: {},
-          global_state_deltas:    {},
-          facility_updates:       [],
-          new_depletion_rates:    [],
-        }
+  // ── Check duplicate submission ──────────────────────────────────────────
+  const { data: inProgress } = await supabase
+    .from('turn_commits')
+    .select('id, created_at')
+    .eq('branch_id', branchId)
+    .not('current_phase', 'in', '("complete","failed")')
+    .limit(1)
 
-        try {
-          await onPlayerDecision(scenarioId, branchId, branch.head_commit_id ?? '', newCommit.id, resolvedEffects)
-        } catch (e) {
-          // State engine failure is non-fatal for simplified resolution
-          sendLine(controller, `State engine: ${e instanceof Error ? e.message : 'skipped'}`, 'info')
-        }
+  if (inProgress && inProgress.length > 0) {
+    const createdAt = new Date((inProgress[0] as Record<string, unknown>).created_at as string)
+    const staleThreshold = Date.now() - STALE_TURN_MINUTES * 60 * 1000
+    if (createdAt.getTime() > staleThreshold) {
+      return NextResponse.json({ error: 'Turn already in progress' }, { status: 409 })
+    }
+    // Stale turn — mark as failed and allow new submission
+    await supabase.from('turn_commits')
+      .update({ current_phase: 'failed' })
+      .eq('id', (inProgress[0] as Record<string, unknown>).id as string)
+  }
 
-        // 5. Update branch head_commit_id
-        await supabase
-          .from('branches')
-          .update({ head_commit_id: newCommit.id })
-          .eq('id', branchId)
+  // ── Load head commit for simulated_date ─────────────────────────────────
+  const { data: headCommit } = await supabase
+    .from('turn_commits')
+    .select('turn_number, simulated_date')
+    .eq('id', headCommitId)
+    .single()
 
-        sendLine(controller, 'Threshold evaluation complete.', 'info')
-        sendLine(controller, `Turn ${prevTurnNumber} → Turn ${newTurnNumber} (${newSimDate})`, 'confirmed')
-        sendLine(controller, 'Awaiting next planning phase.', 'info')
+  const headTurn = (headCommit as Record<string, unknown> | null)?.turn_number as number ?? 0
+  const prevDate = (headCommit as Record<string, unknown> | null)?.simulated_date as string ?? '2026-03-04'
 
-      } catch (err) {
-        sendLine(controller, `ERROR: ${err instanceof Error ? err.message : 'Unknown error'}`, 'critical')
-      } finally {
-        controller.close()
-      }
-    },
-  })
+  // Compute next turn_number = max(turn_commits.turn_number on this branch) + 1.
+  // Falling back to head.turn_number + 1 for a fresh fork with no local commits yet.
+  //
+  // Why not just `head.turn_number + 1`? branches.head_commit_id only advances
+  // on successful pipeline completion. If a prior turn failed (marked 'failed'),
+  // the failed row still occupies (branch_id, head.turn_number + 1), and a retry
+  // would collide with unique_turn_per_branch. Using max-on-branch skips past
+  // failed rows.
+  const { data: lastBranchCommit } = await supabase
+    .from('turn_commits')
+    .select('turn_number')
+    .eq('branch_id', branchId)
+    .order('turn_number', { ascending: false })
+    .limit(1)
+    .maybeSingle()
 
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection':    'keep-alive',
-    },
+  const lastBranchTurn = (lastBranchCommit as { turn_number: number } | null)?.turn_number
+  const newTurnNumber = (lastBranchTurn ?? headTurn) + 1
+  const newSimDate = advanceDate(prevDate, 7)
+
+  // ── Insert turn_commit ──────────────────────────────────────────────────
+  const { data: newCommit, error: insertErr } = await supabase
+    .from('turn_commits')
+    .insert({
+      branch_id: branchId,
+      parent_commit_id: headCommitId,
+      turn_number: newTurnNumber,
+      simulated_date: newSimDate,
+      scenario_snapshot: {},
+      planning_phase: { primaryAction: body.primaryAction, concurrentActions: body.concurrentActions },
+      current_phase: 'submitted',
+      is_ground_truth: false,
+    })
+    .select('id')
+    .single()
+
+  if (insertErr || !newCommit) {
+    return NextResponse.json({ error: `Failed to create turn: ${insertErr?.message}` }, { status: 500 })
+  }
+
+  const commitId = (newCommit as { id: string }).id
+  const playerActorId = body.controlledActors?.[0] ?? null
+
+  // ── Fire background pipeline ────────────────────────────────────────────
+  const pipelinePromise = runFullPipeline(
+    scenarioId, branchId, commitId, headCommitId,
+    playerActorId, body.primaryAction, body.concurrentActions ?? [],
+    newTurnNumber, newSimDate,
+  )
+
+  if (waitUntil) {
+    waitUntil(pipelinePromise)
+  } else {
+    void pipelinePromise
+  }
+
+  // ── Instant response ────────────────────────────────────────────────────
+  return NextResponse.json({
+    turnCommitId: commitId,
+    turnNumber: newTurnNumber,
+    simulatedDate: newSimDate,
+    status: 'processing' as const,
   })
 }

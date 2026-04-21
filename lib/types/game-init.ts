@@ -10,6 +10,9 @@ export interface ChronicleEntry {
   severity: 'critical' | 'major' | 'moderate' | 'minor'
   tags: string[]
   detail?: string
+  dateLabel?: string
+  contextSummary?: string
+  isDecisionPoint?: boolean
 }
 
 export interface GroundTruthCommit {

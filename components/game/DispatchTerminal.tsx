@@ -1,55 +1,96 @@
 'use client'
-import { useEffect, useRef } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { useGame } from '@/components/providers/GameProvider'
+import { TURN_PHASE_ORDER } from '@/lib/types/simulation'
+import type { TurnPhase } from '@/lib/types/simulation'
 
-export type LineType = 'default' | 'critical' | 'confirmed' | 'info' | 'stable'
+interface PhaseStep {
+  phase: TurnPhase
+  label: string
+}
 
-export interface DispatchLine {
-  timestamp: string
-  text: string
-  type: LineType
+const PIPELINE_PHASES: PhaseStep[] = [
+  { phase: 'submitted',  label: 'Turn submitted' },
+  { phase: 'planning',   label: 'Generating actor plans' },
+  { phase: 'resolving',  label: 'Resolving actions' },
+  { phase: 'judging',    label: 'Judging plausibility' },
+  { phase: 'narrating',  label: 'Generating narrative' },
+  { phase: 'finalizing', label: 'Finalizing turn' },
+]
+
+function phaseIndex(phase: TurnPhase): number {
+  return TURN_PHASE_ORDER.indexOf(phase)
 }
 
 interface Props {
-  lines: DispatchLine[]
-  isRunning: boolean
+  onRetry?: () => void
 }
 
-const lineTypeClass: Record<LineType, string> = {
-  default:   'text-text-secondary',
-  critical:  'text-status-critical',
-  confirmed: 'text-gold',
-  info:      'text-status-info',
-  stable:    'text-status-stable',
-}
+export function DispatchTerminal({ onRetry }: Props) {
+  const { state } = useGame()
+  const { turnPhase, turnError, resolutionProgress } = state
 
-export function DispatchTerminal({ lines, isRunning }: Props) {
-  const endRef      = useRef<HTMLDivElement>(null)
-  const shouldSkip  = useReducedMotion()
+  const currentIdx = phaseIndex(turnPhase)
+  const isComplete = turnPhase === 'complete'
+  const isFailed = turnPhase === 'failed'
+  const isIdle = !state.isResolutionRunning && turnPhase === 'planning' && !resolutionProgress
 
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [lines.length])
+  if (isIdle) return null
 
   return (
-    <div className="min-h-[400px] p-4 bg-bg-surface-dim border border-border-subtle font-mono overflow-y-auto">
-      {lines.map((line, i) => (
-        <motion.div
-          key={`${line.timestamp}-${i}`}
-          data-line-type={line.type}
-          className={`flex gap-2 text-2xs mb-[2px] ${lineTypeClass[line.type]}`}
-          initial={shouldSkip ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0, delay: shouldSkip ? 0 : i * 0.04 }}
-        >
-          <span className="text-text-tertiary shrink-0">[{line.timestamp}]</span>
-          <span>{line.text}</span>
-        </motion.div>
-      ))}
-      {isRunning && (
-        <div data-cursor className="text-gold text-2xs cursor-blink mt-1">▋</div>
-      )}
-      <div ref={endRef} />
+    <div className="flex flex-col bg-bg-surface-dim border border-border-subtle overflow-hidden">
+      <div className="px-4 py-3 border-b border-border-subtle">
+        <span className="font-mono text-2xs uppercase tracking-widest text-text-tertiary">
+          Turn Pipeline
+        </span>
+      </div>
+
+      <div className="px-4 py-3 space-y-2 font-mono text-2xs">
+        {PIPELINE_PHASES.map((step) => {
+          const stepIdx = phaseIndex(step.phase)
+          const isDone = isComplete || currentIdx > stepIdx
+          const isCurrent = !isComplete && !isFailed && currentIdx === stepIdx
+
+          return (
+            <div key={step.phase} className="flex items-center gap-2">
+              <span className={
+                isDone ? 'text-gold' : isCurrent ? 'text-status-info' : 'text-text-tertiary'
+              }>
+                {isDone ? '\u2713' : isCurrent ? '\u25CB' : '\u2022'}
+              </span>
+              <span className={
+                isDone ? 'text-gold' : isCurrent ? 'text-status-info' : 'text-text-tertiary'
+              }>
+                {step.label}
+                {isCurrent && resolutionProgress ? ` \u2014 ${resolutionProgress}` : ''}
+              </span>
+            </div>
+          )
+        })}
+
+        {isComplete && (
+          <div className="flex items-center gap-2 mt-2 text-gold">
+            <span>{'\u2713'}</span>
+            <span>Turn complete</span>
+          </div>
+        )}
+
+        {isFailed && (
+          <div className="mt-2 space-y-2">
+            <div className="flex items-center gap-2 text-status-critical">
+              <span>{'\u2717'}</span>
+              <span>Pipeline failed{turnError ? `: ${turnError}` : ''}</span>
+            </div>
+            {onRetry && (
+              <button
+                onClick={onRetry}
+                className="px-3 py-1 text-2xs font-mono uppercase tracking-wider bg-gold/10 text-gold border border-gold/30 hover:bg-gold/20 transition-colors"
+              >
+                Retry Turn
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
