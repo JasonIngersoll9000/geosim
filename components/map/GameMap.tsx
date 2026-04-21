@@ -88,7 +88,6 @@ export function GameMap({ globalState, scenarioId = '', branchId = '', turnCommi
     if (!branchId || !turnCommitId) return
     const url = `/api/scenarios/${scenarioId}/branches/${branchId}/map-assets?turnCommitId=${turnCommitId}`
     fetch(url)
-<<<<<<< HEAD
       .then(r => {
         if (!r.ok) throw new Error(`map-assets: ${r.status}`)
         return r.json()
