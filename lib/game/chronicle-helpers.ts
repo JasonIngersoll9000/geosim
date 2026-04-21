@@ -49,10 +49,10 @@ export async function getChronicleUpToTurn(
     ])
 
     const mergedMap = new Map<number, ChronicleCommitRow>()
-    for (const c of (trunkRes.data ?? []) as ChronicleCommitRow[]) {
+    for (const c of (trunkRes.data ?? []) as unknown as ChronicleCommitRow[]) {
       mergedMap.set(c.turn_number, c)
     }
-    for (const c of (branchRes.data ?? []) as ChronicleCommitRow[]) {
+    for (const c of (branchRes.data ?? []) as unknown as ChronicleCommitRow[]) {
       mergedMap.set(c.turn_number, c)
     }
     return Array.from(mergedMap.values()).sort((a, b) => a.turn_number - b.turn_number)
@@ -65,5 +65,5 @@ export async function getChronicleUpToTurn(
     .eq('branch_id', branchId)
     .lte('turn_number', maxTurn)
     .order('turn_number', { ascending: true })
-  return (data ?? []) as ChronicleCommitRow[]
+  return (data ?? []) as unknown as ChronicleCommitRow[]
 }

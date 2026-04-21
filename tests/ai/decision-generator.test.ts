@@ -104,8 +104,8 @@ describe('generateDecisionOptions', () => {
         initial_scores: { escalation_rung: 4 },
       },
     })
-    const [_sysPrompt, _userPrompt, opts] = vi.mocked(callClaude).mock.calls[0]
-    const systemText = JSON.stringify(opts.systemBlocks)
+    const [_sysPrompt, _userPrompt, opts] = vi.mocked(callClaude).mock.calls[0]!
+    const systemText = JSON.stringify(opts!.systemBlocks)
     expect(systemText).toContain('NEUTRALITY')
   })
 })

@@ -25,7 +25,7 @@ vi.mock('@/lib/game/state-engine', () => ({
 }))
 
 // Helpers to build chained Supabase mock responses
-function makeSelectChain(data: unknown, error = null) {
+function makeSelectChain(data: unknown, error: unknown = null) {
   const chain = {
     eq:          vi.fn(() => chain),
     single:      vi.fn().mockResolvedValue({ data, error }),
