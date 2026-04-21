@@ -2,104 +2,91 @@
 Updated by Claude Code at the end of each session.
 
 ## Current sprint: Sprint 3 — Real Data + AI Pipeline
-## Last session: 2026-04-18
+## Last session: 2026-04-21 (Jason) / 2026-04-20 (Vartika)
 
-### Completed
-- Next.js 14 scaffolding with App Router, TypeScript, Tailwind
-- Supabase schema migration (supabase/migrations/20260319000000_initial_schema.sql)
-- TypeScript types: lib/types/database.ts, lib/types/simulation.ts (+ TurnPlan types)
-- Supabase client utilities: lib/supabase/client.ts, lib/supabase/server.ts
-- Supabase middleware: middleware.ts (session token refresh)
-- Vitest setup with tests passing
-- All game logic (fog-of-war, escalation, TurnPlan validation, state updates)
-- Research pipeline API routes (Stages 0–6)
-- Iran scenario data incorporation (seed script, verified actor state)
-- **Sprint 2 Stitch frontend migration — ALL 14 TASKS COMPLETE (PR #42, merged)**
-  - Design tokens: Space Grotesk (font-label), Newsreader (font-serif), IBM Plex Mono (font-mono), Inter (font-sans), gold #ffba20
-  - UI primitives: TopBar, ClassificationBanner, DocumentIdHeader, SectionDivider, Badge, Button, ScoreDisplay, ProgressBar, SlideOverPanel
-  - Game components: EscalationLadder, ActorAvatar, DimensionTag, IntelligenceReportBlock, ConstraintCascadeAlert
-  - War Chronicle: TurnEntry, GlobalTicker, ChronicleTimeline
-  - Map shell: GameMap, ActorLayer, ChokepointMarker, FloatingMetricChip, MapLegend
-  - Actor panels: ActorList, ActorDetailPanel, GlobalIndicators
-  - Decision panels: DecisionCatalog, TurnPlanBuilder, DecisionDetailPanel
-  - DispatchTerminal (turn resolution animation)
-  - EventsTab, ObserverOverlay
-  - Full GameView layout (two-column, all panels wired with mock data)
-  - Realtime shell (useRealtime hook, GameProvider)
-  - Scenario Hub page (/scenarios/[id]) with ActorCard, tab switching, navigation
-  - Scenario Browser page (/scenarios) with category filter
-  - All navigation wired: home → /scenarios → /scenarios/iran-2026 → /play/trunk
-- **Workflow setup:**
-  - Custom skill: geosim-playwright (~/.claude/skills/geosim-playwright/)
-  - Custom skill: geosim-uiux-validation (~/.claude/skills/geosim-uiux-validation/)
-  - CLAUDE.md: Development Workflow Rules added (branch-per-feature, playwright validation, TDD, skill selection guide)
-  - CLAUDE.md: ESLint gotchas documented (JSX comment textnodes, unused params, inline style ordering)
-  - GitHub issues #20–#26 closed (Stitch migration complete)
-  - docs/scrum-issues.md rewritten: full Phase A–D roadmap to playable game
-  - GitHub issues #27–#41 created (full remaining roadmap)
+### Partner work merged (Vartika — PRs #66–#91, merged 2026-04-19–2026-04-21)
+- **PR #66**: GitHub Actions CI — typecheck, lint, vitest (closes #41)
+- **PR #67**: Fix trivial bugs from #51 audit
+- **PR #68**: Post-#65 progress log + triage + #52 design spec
+- **PR #69**: Error boundaries + empty-state handling (closes #56)
+- **PR #70**: Prompt caching for actor/resolution/judge stable prompts
+- **PR #71**: Split decision catalog by actor — foundation (closes #52 partial)
+- **PR #72**: Fix 4 pre-existing test failures
+- **PR #73**: Israel decisions catalog
+- **PR #78**: Migrate consumers + delete iran-decisions shim (closes #52)
+- **PR #79**: Rate limiting + cost controls design spec
+- **PR #80**: Auth polish sign-in/sign-up flows (closes #40)
+- **PR #81**: Unified research pipeline endpoint + caching gap fix (closes #31)
+- **PR #82**: Fix actor panel / map controls z-index overlap (Bug 10, closes #51)
+- **PR #83**: DB migration + cost-tracker module (closes #58 partial)
+- **PR #84**: Inject service client into state-engine for background pipeline
+- **PR #85**: Exclude .claude/worktrees + dist + .next from vitest
+- **PR #86**: branches table: set created_by + bootstrap profile row on fork
+- **PR #87**: advance: skip past failed turn_commits for next turn_number
+- **PR #88**: Copy state snapshots on fork + resolve research test merge markers
+- **PR #89**: Iran + Russia + China + Gulf States decision catalogs (closes #52)
+- **PR #90**: OPEN — fix favicon metadata to /favicon.svg
+- **PR #91**: OPEN — graceful fallbacks for dev-mode map fetches
 
-### Open PRs
-- **PR #65** — feat: wire player decisions through full AI pipeline
-  Branch: `docs/advance-pipeline-spec` (16 commits ahead of main)
-  Status: OPEN, ready for review/merge pending DB migration + manual smoke test
+### Jason's work (PR #59 — fix/playable-game-bugs, now merged via conflict resolution)
+- Bug 1: Fixed actors query in scenario hub — `actor_id` not `id`, removed `country_code`
+- Bug 2: Removed hardcoded `/api/scenarios/iran-2026/cities` fetch from GameMap.tsx
+- Bug 3: Made `turnCommitId` optional in map-assets route — fallback to `actor_capabilities`
+- Bug 4: Fixed GameMap response parsing — `{ data }` not `{ assets }`
+- Bug 5: Removed `<ResearchUpdatePanel>` from GameView — admin-only tool
+- Bug 6: Fixed TopBar hardcoded `turnNumber=4, totalTurns=12` defaults
+- Bug 7: Actors query in play page now uses `scenario?.id ?? params.id`
+- Bug 8: Chronicle query now uses `branch?.id ?? params.branchId`
+- Bug 9: Decisions tab hidden when `isGtMode`
+- Bug 11: Branch creation error message improved
+- Issue #57: Added `public/favicon.svg` and metadata to resolve 404
 
-### Session 2026-04-18 work (PR #65 / plan 2026-04-15-advance-full-pipeline.md)
-- All 10 tasks of the full-pipeline plan complete
-- `/advance` rewritten: instant ~200ms response + `@vercel/functions` `waitUntil` background pipeline
-- Pipeline: actor agents (Promise.allSettled) → resolution → judge+retry → narrator → persist state
-- Progress via Supabase Realtime broadcasts: `turn_started`, `resolution_progress`, `turn_completed`, `turn_failed`
-- `DispatchTerminal` now renders deterministic 6-phase checklist from GameProvider state (not teletype)
-- `TurnPhase` union: `submitted | planning | resolving | judging | narrating | finalizing | complete | failed`
-- DB migration `20260415000000_turn_phase_enum.sql` — NOT YET APPLIED to staging/prod
-- Deleted `/api/game/turn/route.ts` (folded into `/advance`)
-- Added `@vercel/functions@3.4.3` dep
-- New tests: `turn-helpers`, `turn-broadcast`, `DispatchTerminal` (rewritten), `advance` integration
-- All typecheck + lint clean; 217/221 tests passing (4 pre-existing failures: seed-iran, middleware, research-pipeline, TurnPlanBuilder — unrelated)
-- Call-site fixes: GameView passing `.id` strings (was ActionSlot objects); TopBar/TurnPhaseIndicator use new TurnPhase union; panels.`information` → simulation.`intelligence` dimension bridge
-
-### Smoke test results (local, 127.0.0.1:3001)
-- Page renders cleanly, no React runtime errors from type changes
-- TurnPhase indicator renders "planning" correctly in TopBar
-- Full end-to-end pipeline NOT exercised (requires deployed env): Realtime times out on localhost origin cookies; Play-as-Actor requires branch creation (issue #38 not yet implemented)
-
-### Known follow-up (separate PR after #65 merges)
-- `lib/game/state-engine.ts` (`getStateAtTurn`, `persistStateSnapshot`) uses cookie-based `createClient()` — won't work from background pipeline (no HTTP request context). First real run will surface via `turn_failed` broadcast. Fix = inject a service client.
+### Open PRs (as of 2026-04-21)
+- PR #90: fix/favicon-metadata — wire favicon metadata (Vartika)
+- PR #91: fix/dev-mode-map-errors — graceful fallbacks for dev-mode map fetches (Vartika)
 
 ### In progress
-- Nothing — awaiting review/merge of PR #65
+- Resolving merge conflicts between fix/playable-game-bugs and main
 
 ### Next up (in priority order)
-- Issue #29: Landing page (replace component showcase with real product page)
-- Issue #30: Animations pass (entrance animations + premium motion throughout)
-- Issue #27: Iran scenario Supabase seed (gateway to entire real-data path)
-- Issue #28: Replace mock data with Supabase queries (depends on #27)
-- Issue #31–#36: AI pipeline (research → actor → resolution → judge → narrator → game loop)
+1. **Run tests + typecheck** — verify merged state is clean
+2. **PR #90 + #91** — review Vartika's open PRs
+3. **Plan 3: AI Pipeline Core (Issues #32, #33)** — actor agent full TurnPlan, resolution engine
+4. **Plan 4: Judge + Narrator (Issues #34, #35)**
+5. **Plan 5: Game Loop + Player Interaction (Issues #36, #37, #38)**
+6. **Issue #58**: Rate limiting + cost controls (DB migration done in PR #83)
 
-### GitHub issue map (current)
-- #27: Iran scenario Supabase seed
-- #28: Replace mock data with Supabase queries
-- #29: Landing page
-- #30: Animations pass
-- #31: Research pipeline
-- #32: Actor agent
-- #33: Resolution engine
-- #34: Judge evaluator
-- #35: Narrator
-- #36: Game loop controller
-- #37: Turn submission
-- #38: Branch creation
-- #39: Mapbox Tier 1
-- #40: Supabase Auth
-- #41: CI/CD pipeline
+### Open GitHub issues (as of 2026-04-21)
+- #32: Actor agent full TurnPlan — OPEN (partial: buildStateContextBlock done)
+- #33: Resolution engine — OPEN
+- #34: Judge agent — OPEN
+- #35: Narrator — OPEN
+- #36: Game loop controller — OPEN
+- #37: Turn submission — OPEN (partial: advance route wired)
+- #38: Branch creation — OPEN
+- #53: Observer mode full implementation — OPEN
+- #54: Actor dossier data quality — OPEN
+- #55: Seed data quality pass — OPEN
+- #58: Rate limiting + AI cost controls — OPEN (spec + DB migration done)
 
-### Known bugs
-- None
+### Closed by partner (PRs #66–#89)
+- #31: Research pipeline — CLOSED (PR #81)
+- #40: Auth — CLOSED (PR #80)
+- #41: CI/CD — CLOSED (PR #66)
+- #51: Bug fixes — CLOSED (PRs #67, #82)
+- #52: Multi-actor decision catalog — CLOSED (PRs #71, #73, #78, #89)
+- #56: Error boundaries — CLOSED (PR #69)
 
-### Design debt
-- getConstraintCascadeRisk (lib/game/escalation.ts) uses Iran-specific keyword matching
-  instead of reading from Scenario.constraintCascades — tracked for future sprint
+### Architecture decisions (this session)
+- map-assets route: rewritten to always query actor_capabilities for rich metadata;
+  early-return empty asset set when no turnCommitId (instead of static capability fallback)
+- map-assets: now includes Bab-el-Mandeb shipping lane (throughput derived from global_economic_stress)
+- play page: chronicle now uses branch-lineage query (trunk ancestry + branch divergence merged)
+- scenario hub page: branches + actors now fetched via /api/branches (bypasses RLS)
+- GameView: decisions tab also hidden in omniscientMode (not just GT/trunk mode)
+- vitest: excludes tests/e2e/** AND .claude/worktrees/** AND dist AND .next
 
-### Architecture decisions
+### Architecture decisions (previous sessions)
 - Using bun (not npm/npx) for all package management — npm/npx are Windows binaries in WSL2
 - Vitest configured with node environment (not jsdom) for server-side logic tests
 - docs/ excluded from TypeScript compilation (reference docs, not compiled code)
@@ -109,3 +96,11 @@ Updated by Claude Code at the end of each session.
 - JSX comment text: use {' // text '} not // text (react/jsx-no-comment-textnodes ESLint error)
 - Inline style objects: put border shorthand BEFORE borderBottom, not after (shorthand overwrites specific)
 - Frontend validation workflow: geosim-playwright skill → geosim-uiux-validation skill → user approves all 4 CATs → commit
+- Supabase Realtime .subscribe() callback must be typed as (status: string, err?: Error) — implicit any breaks Vercel build
+- BranchStateAtTurn includes initial_inventories: Record<string, Record<string, number>>
+  (not in spec) — needed so applyDepletion can recompute asset_availability without
+  additional DB calls; populated by getStateAtTurn from actor_capabilities table
+- Double cast (as unknown as T) required for LiveGlobalState/LiveActorState index access
+  — TypeScript strict mode doesn't allow direct cast without index signature
+- process.argv[1] === new URL(import.meta.url).pathname replaces Bun.main guard
+  — identical semantics, works without @types/bun

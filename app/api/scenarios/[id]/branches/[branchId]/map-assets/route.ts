@@ -27,6 +27,7 @@ const ACTOR_COLORS: Record<string, string> = {
   china:        '#4a90b8',
 }
 
+
 function facilityTypeToMapAssetType(type: string): MapAssetType {
   const map: Record<string, MapAssetType> = {
     nuclear_facility:  'nuclear_facility',
@@ -164,10 +165,9 @@ export async function GET(
     }
 
     // Merge: include actor_capabilities rows not already covered by facility_statuses.
-    // This ensures naval/capability assets absent from the state engine are still rendered.
     const matchedNormNames = new Set(assets.map(a => normalise(a.label)))
     if (assets.length === 0) {
-      // Pure fallback: state engine had no geocoords at all — use caps as primary source
+      // Pure fallback: state engine had no geocoords — use caps as primary source
       for (const cap of capRows) {
         const rawType   = cap.asset_type ?? cap.category ?? 'military_base'
         const mapType   = (ASSET_TYPE_MAP[rawType] ?? 'military_base') as MapAssetType
@@ -251,10 +251,10 @@ export async function GET(
       assets,
       shipping_lanes,
     }
-
     return NextResponse.json({ data: response })
+
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('[map-assets] Error:', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,7 +1,8 @@
 # GeoSim Scrum Workflow & GitHub Issues
 
-> Last updated: 2026-03-27. Sprint 2 Stitch frontend migration complete.
+> Last updated: 2026-04-09. Sprint 3 real-data wiring complete. Bug fixes in progress.
 > Target state: Full playable game with Iran scenario AI turns.
+> Note: scrum doc uses projected issue numbers (#52–#66). Actual GitHub issue numbers are #27–#41.
 
 ---
 
@@ -31,111 +32,66 @@ Components built:
 - Scenario Hub page (`/scenarios/[id]`) with ActorCard, tab switching
 - Scenario Browser page (`/scenarios`) with category filter
 
+### Sprint 3 — Real Data + AI Pipeline (in progress)
+
+**Issue #27 (scrum #52): Iran scenario Supabase seed ✅ DONE**
+- PR #48 merged — comprehensive Iran seed pipeline (actors, branches, turn_commits, actor_capabilities, actor_state_snapshots)
+- 4MB enriched dataset, scripts/seed-iran-scenario.ts complete
+
+**Issue #28 (scrum #53): Replace frontend mock data with Supabase queries ✅ DONE**
+- PR #50 merged — async RSC play page, GameInitialData type, GameView wired to real data
+- Bugs catalogued in docs/bugs/2026-04-09-playable-game-bugs.md (11 bugs, fix in progress)
+
+**Issue #29 (scrum #54): Landing page ✅ DONE**
+- Closed with PR #29/animations work
+
+**Issue #30 (scrum #55): Animations pass ✅ DONE**
+- Closed with Sprint 2 / PR #30
+
+**Issue #39 (scrum #64): Mapbox GL — real implementation ✅ DONE**
+- PR #46 (Sprint 3 asset layer) — 655 lines, real Mapbox GL, 30 positioned military assets,
+  12 cities, actor status layer, AssetInfoPanel click-to-inspect (PR #50)
+
+**Live State Engine ✅ DONE** (no scrum issue — added retroactively)
+- PR #49 merged — lib/game/state-engine.ts, lib/game/threshold-evaluator.ts,
+  lib/ai/actor-agent.ts (buildStateContextBlock), map-assets route, actor-panel route,
+  lib/game/game-loop.ts integration points
+- 179/179 tests passing
+
+**Issues #10, #11, #12: App layout, UI components, Mapbox shell ✅ DONE**
+- All completed during Sprint 2 Stitch migration — GitHub issues should be closed
+
 ---
 
 ## Remaining Work — Ordered by Dependency
 
-### PHASE A: Foundation for Real Data
+### IMMEDIATE: Bug Fixes (new — 2026-04-09)
 
-**Issue #52: Iran scenario Supabase seed**
-Title: `feat: Seed Iran conflict 2025-2026 scenario into Supabase`
-Labels: `P0-critical`, `backend`
+**GH issue to create: Playable game bug fixes**
+Title: `fix: Resolve 11 post-merge bugs blocking playable game`
+Labels: `P0-critical`, `bug`, `frontend`, `backend`
+See: `docs/bugs/2026-04-09-playable-game-bugs.md`
 
-Seed all Iran scenario data into Supabase so the frontend can drop mock data.
-
-Files:
-- Create: `scripts/seed-iran-scenario.ts`
-- Create: `supabase/seed.sql`
-
-Data to seed:
-- `scenarios`: id='iran-2026', name='US-Israel-Iran Conflict 2025-2026', status='active', turn_number=4
-- `actors`: united_states, iran, israel, russia, china, gulf_states (state JSON matching `lib/types/simulation.ts`)
-- `branches`: id='trunk', scenario_id='iran-2026'
-- `scenario_commits`: turns 1–4 matching MOCK_CHRONICLE_ENTRIES in GameView.tsx
-- `decisions`: 7 decisions matching MOCK_DECISIONS in GameView.tsx
-
-Acceptance criteria:
-- [ ] `bun run seed` populates all tables without error
-- [ ] All 6 actors exist with correct escalation rungs (US:5, Iran:6, Israel:6, Russia:1, China:1, Gulf:2)
-- [ ] Branch 'trunk' exists at turn 4
+Bugs:
+- Bug 1: `app/scenarios/[id]/page.tsx` actors query uses wrong column names (`id`, `country_code`) → 400
+- Bug 2: `GameMap.tsx` still calls hardcoded `/api/scenarios/iran-2026/cities` → 500
+- Bug 3: map-assets route returns 400 when `turnCommitId` missing (should fall back to actor_capabilities)
+- Bug 4: Map shows only USS Nimitz (on land) — caused by Bug 3
+- Bug 5: "Run Research Update" admin button exposed to all users
+- Bug 6: TopBar hardcoded defaults `turnNumber=4, totalTurns=12`
+- Bug 7: Actors tab blank in GameView (actors query mismatch)
+- Bug 8: Chronicle empty (turn_commits query mismatch)
+- Bug 9: Decisions panel visible in observer mode, US-only
+- Bug 10: Actor status panel overlaps map layer toggles (CSS z-index)
+- Bug 11: "Branch creation is not available yet" placeholder text visible
 
 ---
 
-**Issue #53: Wire scenario hub and play view to real Supabase data**
-Title: `feat: Replace frontend mock data with Supabase queries`
-Labels: `P0-critical`, `frontend`
-Depends on: #52
+### PHASE B: AI Pipeline (depends on real data being stable)
 
-Replace MOCK_* constants in GameView.tsx and scenario hub with real Supabase queries.
-
-Files:
-- Modify: `app/scenarios/[id]/page.tsx` (fetch real actors from Supabase)
-- Modify: `app/scenarios/[id]/play/[branchId]/page.tsx` (fetch branch + snapshot)
-- Modify: `components/game/GameView.tsx` (remove mock data, receive props)
-- Create: `lib/queries/scenario.ts` (reusable server-side query functions)
-
-Acceptance criteria:
-- [ ] Scenario hub shows real actors from Supabase
-- [ ] Chronicle timeline shows real events from scenario_commits
-- [ ] Play view loads correct branch data
-- [ ] Mock data constants removed from components
-
----
-
-**Issue #54: Landing page**
-Title: `feat: Landing page with product explanation and CTA`
-Labels: `P1-important`, `frontend`
-
-Replace the current design-system showcase home page with a real landing page.
-Current `app/page.tsx` is a component demo — visitors have no idea what GeoSim is.
-
-Per `docs/frontend-design.md` "Declassified War Room" concept:
-- Hero: classified document aesthetic, dramatic framing of the Iran conflict
-- Value prop: "AI-powered strategic simulation" — what it is, who it's for
-- Single CTA: "Enter the Simulation" → /scenarios
-- Stats: "6 actors, 14 decisions, AI resolution engine"
-
-Files:
-- Modify: `app/page.tsx` (full rewrite as landing page, remove component showcase)
-
-Acceptance criteria:
-- [ ] Visitor understands what GeoSim is without scrolling
-- [ ] Single clear CTA navigates to /scenarios
-- [ ] Passes `geosim-uiux-validation` skill (all 4 categories)
-
----
-
-**Issue #55: Animations pass**
-Title: `feat: Add entrance animations and premium motion to all pages`
-Labels: `P0-critical`, `frontend`
-
-The app looks good statically but feels dead. Add intentional motion.
-
-Required animations:
-- `app/page.tsx`: hero content fades in on load
-- `app/scenarios/page.tsx`: scenario cards stagger-fade on mount
-- `app/scenarios/[id]/page.tsx`: actor cards stagger-fade on tab switch
-- `components/chronicle/TurnEntry.tsx`: entries slide in from left on mount
-- `components/chronicle/GlobalTicker.tsx`: continuous auto-scroll (CSS marquee or JS)
-- `components/panels/ActorDetailPanel.tsx`: slide from right (if not already)
-- `components/game/DispatchTerminal.tsx`: new lines animate in
-- All buttons: `active:scale-[0.97]` press state
-- `components/panels/DecisionCatalog.tsx`: hover reveals DimensionTag with fade
-
-Acceptance criteria:
-- [ ] All listed animations implemented
-- [ ] Nothing feels abrupt or cheap
-- [ ] Animations don't delay interactions (< 300ms entries, instant clicks)
-- [ ] Passes `geosim-uiux-validation` CAT 2 (animations) with user approval
-
----
-
-### PHASE B: AI Pipeline (can work in parallel with Phase A)
-
-**Issue #56: Research pipeline API**
+**Issue #31 (scrum #56): Iran scenario research pipeline — all 7 stages**
 Title: `feat: Iran scenario research pipeline — all 7 stages`
 Labels: `P0-critical`, `ai-pipeline`, `backend`
-Depends on: #52
 
 Implement the 7-stage research pipeline per `docs/research-pipeline.md`.
 
@@ -153,14 +109,16 @@ Acceptance criteria:
 
 ---
 
-**Issue #57: Actor agent with prompt caching**
-Title: `feat: Actor agent — turn plan generation with prompt caching`
+**Issue #32 (scrum #57): Actor agent with prompt caching**
+Title: `feat: Actor agent — full TurnPlan generation with prompt caching`
 Labels: `P0-critical`, `ai-pipeline`, `backend`
-Depends on: #56
+Depends on: #31 (research pipeline)
+
+Status: `buildStateContextBlock` done (PR #49). Full TurnPlan generation route missing.
 
 Files:
 - Modify: `app/api/ai/actor/route.ts`
-- Create: `lib/ai/actor-agent.ts`
+- Modify: `lib/ai/actor-agent.ts` (add TurnPlan generation from context block)
 - Create: `lib/ai/prompts/actor.ts`
 - Create: `tests/api/actor-agent.test.ts`
 
@@ -172,27 +130,27 @@ Acceptance criteria:
 
 ---
 
-**Issue #58: Resolution engine**
+**Issue #33 (scrum #58): Resolution engine**
 Title: `feat: Resolution engine — process all actor TurnPlans into outcomes`
 Labels: `P0-critical`, `ai-pipeline`, `backend`
-Depends on: #57
+Depends on: #32
 
 Files:
-- Modify: `app/api/branches/[branchId]/resolve/route.ts`
+- Create: `app/api/scenarios/[id]/branches/[branchId]/resolve/route.ts`
 - Create: `lib/ai/resolution-engine.ts`
 - Create: `tests/api/resolution-engine.test.ts`
 
 Acceptance criteria:
 - [ ] All actor plans processed together
-- [ ] Outputs EventImpact objects matching `lib/types/simulation.ts`
-- [ ] `applyEventImpact` from `lib/game/state-updates.ts` applied to scenario state
+- [ ] Outputs EventStateEffects matching `lib/types/simulation.ts`
+- [ ] `onPlayerDecision` from `lib/game/game-loop.ts` called with resolved effects
 
 ---
 
-**Issue #59: Judge evaluator with retry loop**
+**Issue #34 (scrum #59): Judge evaluator with retry loop**
 Title: `feat: Judge agent — evaluate resolution quality with retry`
 Labels: `P0-critical`, `ai-pipeline`, `backend`
-Depends on: #58
+Depends on: #33
 
 Evaluator-optimizer pattern. Score < 60 → retry. Max 3 retries.
 
@@ -204,14 +162,14 @@ Files:
 Acceptance criteria:
 - [ ] Judge returns score 0–100 with dimension breakdown
 - [ ] Resolution retries if score < 60 (max 3 attempts)
-- [ ] Judge scores stored in scenario_commits table
+- [ ] Judge scores stored in turn_commits table
 
 ---
 
-**Issue #60: Narrator — chronicle writer**
+**Issue #35 (scrum #60): Narrator — chronicle writer**
 Title: `feat: Narrator agent — generate chronicle entries from resolution`
 Labels: `P1-important`, `ai-pipeline`, `backend`
-Depends on: #59
+Depends on: #34
 
 Files:
 - Modify: `app/api/ai/narrator/route.ts`
@@ -219,101 +177,83 @@ Files:
 - Create: `tests/api/narrator.test.ts`
 
 Acceptance criteria:
-- [ ] Narrator produces EntryData JSON (turnNumber, date, title, narrative, severity, tags)
-- [ ] Output stored as scenario_commit with chronicle_entry field
+- [ ] Narrator produces ChronicleEntry JSON (turnNumber, date, title, narrative, severity, tags)
+- [ ] Output stored as turn_commit with narrative_entry field
 - [ ] Severity chosen by AI based on event magnitude
 
 ---
 
-**Issue #61: Game loop controller — full turn**
+**Issue #36 (scrum #61): Game loop controller — full turn**
 Title: `feat: Game loop controller — orchestrate full turn end-to-end`
 Labels: `P0-critical`, `ai-pipeline`, `backend`
-Depends on: #57, #58, #59, #60
+Depends on: #32, #33, #34, #35
 
 Orchestrator: collect plans → resolve → judge → retry → narrate → commit.
-Broadcasts progress via Supabase Realtime.
+Integration points already stubbed in `lib/game/game-loop.ts` (PR #49).
 
 Files:
-- Modify: `app/api/branches/[branchId]/advance/route.ts`
-- Create: `lib/game/game-loop.ts`
+- Modify: `lib/game/game-loop.ts` (implement full orchestration)
+- Modify: `app/api/scenarios/[id]/branches/[branchId]/advance/route.ts` (call game loop)
 - Create: `tests/game/game-loop.test.ts`
 
 Acceptance criteria:
-- [ ] POST /api/branches/[branchId]/advance runs full turn
-- [ ] Supabase Realtime broadcasts: turn_started, resolution_progress, turn_completed
-- [ ] New scenario_commit created with turn results
-- [ ] DispatchTerminal shows live progress from Realtime events
+- [ ] POST /api/scenarios/[id]/branches/[branchId]/advance runs full turn with AI
+- [ ] SSE streams real dispatch lines from resolution progress
+- [ ] New turn_commit created with narrative_entry from narrator
 - [ ] Turn number increments in Supabase
 
 ---
 
-### PHASE C: Player Interaction (depends on Phases A + B)
+### PHASE C: Player Interaction
 
-**Issue #62: Turn plan submission flow**
+**Issue #37 (scrum #62): Turn plan submission flow**
 Title: `feat: Player turn submission — TurnPlanBuilder → game loop trigger`
 Labels: `P0-critical`, `frontend`
-Depends on: #53, #61
+Depends on: #28 (bugs fixed), #36
 
-Wire TurnPlanBuilder's submit button to POST TurnPlan and trigger game loop.
+Status: advance route and useSubmitTurn hook exist (PR #50). Full AI game loop not yet wired.
 
 Files:
-- Modify: `components/panels/TurnPlanBuilder.tsx` (add onSubmit handler)
-- Modify: `components/game/GameView.tsx` (handle submit, show loading in DispatchTerminal)
-- Create: `hooks/useSubmitTurn.ts`
+- Modify: `components/panels/TurnPlanBuilder.tsx` (verify submit wiring)
+- Modify: `components/game/GameView.tsx` (handle AI response in DispatchTerminal)
+- Modify: `hooks/useSubmitTurn.ts` (already updated in PR #50)
 
 Acceptance criteria:
 - [ ] Player selects primary decision + optional concurrent actions
-- [ ] Submit POSTs to /api/branches/[branchId]/advance
-- [ ] DispatchTerminal shows "SUBMITTING TURN PLAN..." while waiting
-- [ ] ChronicleTimeline updates with new entry on completion
+- [ ] Submit POSTs to /api/scenarios/[id]/branches/[branchId]/advance
+- [ ] DispatchTerminal shows real SSE dispatch lines from resolution
+- [ ] ChronicleTimeline updates with AI-generated narrative on completion
 - [ ] TurnPlanBuilder resets after submission
 
 ---
 
-**Issue #63: Branching — create alternate branches**
+**Issue #38 (scrum #63): Branching — create alternate branches**
 Title: `feat: Branch creation — player diverges from trunk`
 Labels: `P1-important`, `backend`
-Depends on: #61
+Depends on: #36
 
 Files:
-- Modify: `app/api/branches/route.ts` (POST to create branch)
-- Create: `app/scenarios/[id]/branches/page.tsx` (branch list UI)
+- Modify or create: `app/api/scenarios/[id]/branches/route.ts` (POST to create branch)
+- Modify: `components/scenario/BranchTree.tsx` (enable branch creation from a node)
 
 Acceptance criteria:
-- [ ] POST /api/branches creates branch from given commit_id
-- [ ] Branch list page shows all branches for a scenario
+- [ ] POST /api/scenarios/[id]/branches creates branch from given turn_commit_id
+- [ ] New branch appears in BranchTree
 - [ ] New branch is playable at /scenarios/[id]/play/[newBranchId]
-
----
-
-**Issue #64: Mapbox Tier 1 — real map implementation**
-Title: `feat: Mapbox GL — country fills, chokepoint markers, actor positions`
-Labels: `P1-important`, `frontend`
-Depends on: #53
-
-Files:
-- Modify: `components/map/GameMap.tsx` (add Mapbox GL JS initialization)
-- Modify: `components/map/ActorLayer.tsx` (render actor positions)
-- Modify: `components/map/ChokepointMarker.tsx` (render Hormuz, Bab-el-Mandeb)
-
-Acceptance criteria:
-- [ ] Dark map renders in play view (no placeholder)
-- [ ] Iran, US (carrier), Israel, Gulf States positions shown
-- [ ] Strait of Hormuz marker visible with CLOSED status
-- [ ] FloatingMetricChip overlays positioned correctly
 
 ---
 
 ### PHASE D: Auth & Infrastructure
 
-**Issue #65: Real authentication flow**
+**Issue #40 (scrum #65): Real authentication flow**
 Title: `feat: Supabase Auth — replace dev bypass with real auth`
 Labels: `P1-important`, `infrastructure`
 
+Status: auth pages exist, dev bypass active. RLS enforced but bypass circumvents it.
+
 Files:
-- Create: `app/auth/login/page.tsx`
-- Create: `app/auth/callback/route.ts`
-- Modify: `middleware.ts` (real auth check)
+- Modify: `middleware.ts` (enforce real auth check in non-dev mode)
+- Verify: `app/auth/login/page.tsx`, `app/auth/callback/route.ts`
 
 Acceptance criteria:
 - [ ] Users can sign in via Supabase Auth
@@ -322,7 +262,7 @@ Acceptance criteria:
 
 ---
 
-**Issue #66: CI/CD pipeline**
+**Issue #41 (scrum #66): CI/CD pipeline**
 Title: `feat: GitHub Actions CI with Vitest, typecheck, lint`
 Labels: `P0-critical`, `infrastructure`
 
@@ -339,52 +279,88 @@ Acceptance criteria:
 ## Dependency Chain
 
 ```
-#52 (seed)
-  └── #53 (real data wiring)
-        └── #62 (turn submission)
-        └── #64 (Mapbox)
+Bug fixes (new)
+  └── Real data stable
+        └── #37 (turn submission — full AI)
 
-#52 (seed)
-  └── #56 (research pipeline)
-        └── #57 (actor agent)
-              └── #58 (resolution engine)
-                    └── #59 (judge)
-                          └── #60 (narrator)
-                                └── #61 (game loop)
-                                      └── #62 (turn submission)
-                                      └── #63 (branching)
+#31 (research pipeline)
+  └── #32 (actor agent — TurnPlan)
+        └── #33 (resolution engine)
+              └── #34 (judge)
+                    └── #35 (narrator)
+                          └── #36 (game loop controller)
+                                └── #37 (turn submission — full AI)
+                                └── #38 (branching)
 
 Independent (can start any time):
-  #54 (landing page)
-  #55 (animations)
-  #65 (auth)
-  #66 (CI/CD)
+  #40 (auth)
+  #41 (CI/CD)
 ```
 
-## Feature Alignment
+## GitHub Issue → Scrum Doc Map
 
-| Feature | Issue | Status |
-|---------|-------|--------|
-| Infrastructure + game logic | #1–#8 | Done |
-| Design tokens + UI primitives | Sprint 2 | Done |
-| Game components + panels | Sprint 2 | Done |
-| War Chronicle | Sprint 2 | Done |
-| Map shell | Sprint 2 | Done |
-| GameView layout | Sprint 2 | Done |
-| Scenario Hub + Browser | Sprint 2 | Done |
-| Realtime shell | Sprint 2 | Done |
-| Iran scenario seed | #52 | Pending |
-| Real data wiring | #53 | Pending |
-| Landing page | #54 | Pending |
-| Animations pass | #55 | Pending |
-| Research pipeline | #56 | Pending |
-| Actor agent | #57 | Pending |
-| Resolution engine | #58 | Pending |
-| Judge evaluator | #59 | Pending |
-| Narrator | #60 | Pending |
-| Game loop controller | #61 | Pending |
-| Turn submission | #62 | Pending |
-| Branching UI | #63 | Pending |
-| Mapbox Tier 1 | #64 | Pending |
-| Auth | #65 | Pending |
-| CI/CD | #66 | Pending |
+| GitHub # | Scrum # | Title | Status |
+|----------|---------|-------|--------|
+| #1–#9    | —       | Sprint 1 foundation | ✅ CLOSED |
+| #10      | —       | App layout + routing | ✅ DONE (close) |
+| #11      | —       | Shared UI components | ✅ DONE (close) |
+| #12      | —       | Mapbox GL shell | ✅ DONE (close) |
+| #18      | —       | Iran research incorporation | ✅ CLOSED |
+| #20–#25  | —       | Sprint 2 Stitch migration | ✅ CLOSED |
+| #27      | #52     | Iran seed | ✅ DONE → close, link PR #48 |
+| #28      | #53     | Wire real data | ✅ DONE → close, link PR #50 |
+| #29      | #54     | Landing page | ✅ CLOSED |
+| #30      | #55     | Animations | ✅ CLOSED |
+| #31      | #56     | Research pipeline | 🔲 OPEN |
+| #32      | #57     | Actor agent | 🔲 OPEN (partial) |
+| #33      | #58     | Resolution engine | 🔲 OPEN |
+| #34      | #59     | Judge agent | 🔲 OPEN |
+| #35      | #60     | Narrator | 🔲 OPEN |
+| #36      | #61     | Game loop controller | 🔲 OPEN |
+| #37      | #62     | Turn submission | 🔲 OPEN (partial) |
+| #38      | #63     | Branch creation | 🔲 OPEN |
+| #39      | #64     | Mapbox real impl | ✅ CLOSED |
+| #40      | #65     | Auth | 🔲 OPEN (partial) |
+| #41      | #66     | CI/CD | 🔲 OPEN |
+| #51      | —       | Playable game bug fixes (11 bugs) | 🔲 OPEN |
+| #52      | —       | Multi-actor decision catalog | 🔲 OPEN |
+| #53      | —       | Observer mode full implementation | 🔲 OPEN |
+| #54      | —       | Actor dossier data quality | 🔲 OPEN |
+| #55      | —       | Seed data quality pass | 🔲 OPEN |
+| #56      | —       | Error boundaries + blank state handling | 🔲 OPEN |
+| #57      | —       | Favicon | 🔲 OPEN |
+| #58      | —       | Rate limiting + AI cost controls | 🔲 OPEN |
+| new      | —       | Live State Engine | ✅ DONE — PR #49 (no GH issue existed) |
+
+---
+
+## Sprint Planning — Implementation Plans
+
+The remaining open issues group into **5 implementation plans** plus 2 quick tasks:
+
+### Plan 1 — Bug Fixes (Issue #51)
+**Issues:** #51 + #55 (seed data quality), #56 (error boundaries), #57 (favicon)
+**Branch:** `fix/playable-game-bugs`
+**Description:** Fix all 11 post-merge bugs blocking the playable game. Root causes are wrong DB column names, hardcoded URLs, missing API fallbacks, and wrong CSS z-index. No AI involved. One focused pass.
+
+### Plan 2 — Research Pipeline (Issue #31)
+**Issues:** #31
+**Description:** Implement the 7-stage Iran scenario research pipeline per `docs/research-pipeline.md`. Self-contained — feeds enriched context into actor agents.
+
+### Plan 3 — AI Pipeline Core (Issues #32, #33, #52)
+**Issues:** #32 (actor agent full TurnPlan), #33 (resolution engine), #52 (multi-actor decision catalog)
+**Description:** Actor agents generate TurnPlans from their decision catalog → resolution engine processes all actors' plans simultaneously → produces `EventStateEffects`. Tightly coupled: actor output feeds directly into resolution.
+**Blocker:** #52 (multi-actor decision catalog) must be done first or alongside.
+
+### Plan 4 — Judge + Narrator (Issues #34, #35)
+**Issues:** #34 (judge evaluator), #35 (narrator)
+**Description:** Evaluator-optimizer pair. Judge scores resolution output (0–100); if below threshold, resolution retries. Narrator converts final resolution into `ChronicleEntry` narrative. Always work together.
+
+### Plan 5 — Game Loop + Player Interaction (Issues #36, #37, #38, #53, #54)
+**Issues:** #36 (game loop orchestration), #37 (full turn submission), #38 (branch creation), #53 (observer mode), #54 (actor dossier)
+**Description:** Orchestration layer wires Plans 3+4 into a complete turn. Advance route calls game loop → streams SSE → narrator writes chronicle. Also covers player-facing UI improvements: observer mode view and actor dossier quality.
+
+### Quick Tasks (no /plan needed)
+- **#40** — Auth: middleware update only (~2 hours)
+- **#41** — CI/CD: single `.github/workflows/ci.yml` file (~1 hour)
+- **#58** — Rate limiting: add after AI loop is working (cost controls without working loop are premature)

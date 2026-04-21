@@ -265,6 +265,14 @@ export default async function PlayPage({ params }: Props) {
     .eq('branch_id', trunkBranch?.id ?? params.branchId)
     .order('turn_number', { ascending: true })
 
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[play page] params:', { id: params.id, branchId: params.branchId })
+    console.log('[play page] scenario?.id:', scenario?.id)
+    console.log('[play page] branch?.id:', branch?.id)
+    console.log('[play page] actorRows?.length:', actorRows?.length ?? 0)
+    console.log('[play page] commits?.length:', commits?.length ?? 0)
+  }
+
   // --- Transform DB rows → GameInitialData types ---
 
   const actors: ActorSummary[] = (actorRows ?? []).map(a => {

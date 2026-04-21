@@ -76,7 +76,6 @@ export function GameMap({ globalState, scenarioId = '', branchId = '', turnCommi
   const [selectedAsset, setSelectedAsset] = useState<PositionedAsset | null>(null)
   const [popupAsset, setPopupAsset] = useState<PositionedAsset | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
-  const [cities, setCities] = useState<City[]>([])
   const [selectedCity, setSelectedCity] = useState<City | null>(null)
   const [cityPopup, setCityPopup] = useState<City | null>(null)
   const [cityDetailOpen, setCityDetailOpen] = useState(false)
@@ -102,18 +101,6 @@ export function GameMap({ globalState, scenarioId = '', branchId = '', turnCommi
       })
   }, [scenarioId, branchId, turnCommitId])
 
-  useEffect(() => {
-    if (!scenarioId) return
-    fetch(`/api/scenarios/${scenarioId}/cities`)
-      .then(r => {
-        if (!r.ok) throw new Error(`cities: ${r.status}`)
-        return r.json()
-      })
-      .then(({ data }: { data: City[] | null }) => { if (data) setCities(data) })
-      .catch((err: unknown) => {
-        setFetchError(err instanceof Error ? err.message : 'Failed to load city data')
-      })
-  }, [scenarioId])
 
   function handleAssetClick(asset: PositionedAsset) {
     setMapAssetSelection(null)
@@ -205,7 +192,6 @@ export function GameMap({ globalState, scenarioId = '', branchId = '', turnCommi
             assets={assets}
             selectedAssetId={selectedAsset?.id ?? null}
             onAssetClick={handleAssetClick}
-            cities={cities}
             onCityClick={handleCityClick}
             mapAssets={mapAssets}
             onMapAssetClick={handleMapAssetClick}
