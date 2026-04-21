@@ -11,6 +11,12 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     .select('*')
     .eq('scenario_id', scenarioId)
     .order('name')
+  // Degrade gracefully when the table isn't present in the current schema
+  // (e.g. migration not applied to this environment). The map renders fine
+  // without dynamic cities — static GeoJSON in MapboxMap provides the fallback.
+  if (error?.code === 'PGRST205') {
+    return NextResponse.json({ data: [] })
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ data })
 }
