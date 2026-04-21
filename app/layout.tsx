@@ -33,6 +33,9 @@ export const metadata: Metadata = {
   title: "War Game — Strategic Simulation Engine",
   description:
     "AI-powered strategic war game simulation engine modeling competitive dynamics between actors through interactive decision-making and branching scenario trees.",
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({
