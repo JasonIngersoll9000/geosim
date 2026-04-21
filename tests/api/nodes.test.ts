@@ -38,7 +38,9 @@ function makeSelectChain(data: unknown, error = null) {
     order:       vi.fn(() => chain),
     not:         vi.fn(() => chain),
     delete:      vi.fn(() => chain),
-    then:        vi.fn().mockResolvedValue({ data: Array.isArray(data) ? data : [data], error }),
+    then:        vi.fn().mockImplementation((resolve: (v: { data: unknown; error: unknown }) => void) => {
+      resolve({ data: Array.isArray(data) ? data : (data !== null ? [data] : []), error })
+    }),
   }
   return chain
 }
@@ -103,7 +105,7 @@ describe('GET /api/nodes/[commitId]/decision-options', () => {
     mockFrom.mockImplementation((table: string) => {
       if (table === 'turn_commits') {
         return makeSelectChain({
-          id: 'c-1', branch_id: 'b-1', turn_number: 3,
+          id: '00000000-0000-0000-0000-000000000003', branch_id: 'b-1', turn_number: 3,
           simulated_date: '2026-04-03',
           decision_options_cache: {
             us: [{ id: 'naval_blockade', label: 'Naval Blockade', description: 'Block.', category: 'military', prerequisites_met: true, escalation_delta: 2 }],
@@ -114,8 +116,8 @@ describe('GET /api/nodes/[commitId]/decision-options', () => {
     })
 
     const { GET } = await import('@/app/api/nodes/[commitId]/decision-options/route')
-    const req = new Request('http://localhost/api/nodes/c-1/decision-options?actor=us')
-    const res = await GET(req, { params: { commitId: 'c-1' } })
+    const req = new Request('http://localhost/api/nodes/00000000-0000-0000-0000-000000000003/decision-options?actor=us')
+    const res = await GET(req, { params: { commitId: '00000000-0000-0000-0000-000000000003' } })
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json.cached).toBe(true)
