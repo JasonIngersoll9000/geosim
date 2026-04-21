@@ -85,8 +85,9 @@ export async function GET(
   const turnCommitId = searchParams.get('turnCommitId')
 
   // When no turnCommitId is provided (e.g. first load before any turn is committed),
-  // fall back to returning an empty asset set with a 200 so the map loads cleanly.
-  if (!turnCommitId) {
+  // or when a dev-mode synthetic ID is passed (e.g. "dev-commit-0"), fall back to
+  // returning an empty asset set with a 200 so the map loads cleanly.
+  if (!turnCommitId || turnCommitId.startsWith('dev-')) {
     return NextResponse.json({ data: { turn_commit_id: null, as_of_date: null, assets: [], shipping_lanes: [] } })
   }
 
