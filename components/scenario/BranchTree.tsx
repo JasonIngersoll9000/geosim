@@ -122,7 +122,7 @@ function turnX(turn: number) {
   return PAD_X + (turn - 1) * STEP_X
 }
 
-function rowY(row: number) {
+function _rowY(row: number) {
   return PAD_TOP + row * ROW_HEIGHT
 }
 
