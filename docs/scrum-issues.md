@@ -331,6 +331,9 @@ Independent (can start any time):
 | #57      | —       | Favicon | 🔲 OPEN |
 | #58      | —       | Rate limiting + AI cost controls | 🔲 OPEN |
 | new      | —       | Live State Engine | ✅ DONE — PR #49 (no GH issue existed) |
+| #59      | —       | Unified play experience (single-page branch browser + game view) | 🔲 FUTURE — create GH issue |
+| #60      | —       | Decision fidelity — tactical sub-decisions for complex player actions | 🔲 FUTURE — create GH issue |
+| #61      | —       | Cross-branch outcome learning — resolution uses prior similar-branch results | 🔲 FUTURE — create GH issue |
 
 ---
 
@@ -359,6 +362,60 @@ The remaining open issues group into **5 implementation plans** plus 2 quick tas
 ### Plan 5 — Game Loop + Player Interaction (Issues #36, #37, #38, #53, #54)
 **Issues:** #36 (game loop orchestration), #37 (full turn submission), #38 (branch creation), #53 (observer mode), #54 (actor dossier)
 **Description:** Orchestration layer wires Plans 3+4 into a complete turn. Advance route calls game loop → streams SSE → narrator writes chronicle. Also covers player-facing UI improvements: observer mode view and actor dossier quality.
+
+### Plan 6 — Unified Play Experience (Future — Issue #59)
+**Issues:** #59
+**Depends on:** Plan 5 (node-centric API must be complete first)
+**Description:** Redesign the play experience as a single-page app. Hub page becomes a lightweight scenario overview and entry point only. All branch navigation, node browsing, and gameplay happen inside the play view itself. BranchTree moves into a collapsible sidebar. The separate "browse branches" modal is removed (made redundant by the sidebar).
+
+Key changes:
+- Play view gains collapsible BranchTree sidebar; prev/next node nav integrated inline
+- Hub page becomes read-only (actors, scenario description, CTA only — no BranchTree, no timeline)
+- "Browse branches" modal removed entirely
+- Chronicle, tree visualization, and player controls unified in one layout
+- This is a pure UI redesign on top of the Approach B node-centric API — zero API rework needed
+
+**GitHub issue to create:**
+Title: `feat: Unified play experience — single-page branch browser + game view`
+Labels: `P2-nice-to-have`, `frontend`
+Note: Design rationale documented in `docs/superpowers/specs/` (Approach C in the node-centric design spec).
+
+---
+
+### Plan 7 — Decision Fidelity: Sub-Decisions & Tactical Parameters (Future — Issue #60)
+**Issues:** #60
+**Depends on:** Plan 5 (node-centric API + decision option generator must be working)
+**Description:** For complex decisions (ground invasion, air campaign, naval blockade), offer the player follow-up questions that shape how the decision is executed. This is distinct from *what* the player decides to do — it's about *how*. Tactical and strategic parameters materially affect success probability and downstream consequences.
+
+Examples:
+- **Ground invasion**: How does it coordinate with the air campaign? What's the ground force composition? Are supply lines secured?
+- **Airstrikes**: Surgical (precise targets, lower escalation) vs overwhelming (broader suppression, higher escalation)?
+- **Naval blockade**: Enforce at what range? ROE for approaching vessels?
+
+Sub-decisions are modeled as a follow-up modal after the primary decision is selected, before forking. Each sub-decision choice is appended to the `decision_key` on the branch (e.g. `"us::ground_invasion::coordinated_air::overwhelming_force"`), so different tactical approaches create distinct branches.
+
+**GitHub issue to create:**
+Title: `feat: Decision fidelity — tactical sub-decisions for complex player actions`
+Labels: `P2-nice-to-have`, `ai-pipeline`, `frontend`
+
+---
+
+### Plan 8 — Cross-Branch Outcome Learning (Future — Issue #61)
+**Issues:** #61
+**Depends on:** Plan 5 (shared branch tree must be working)
+**Description:** When the AI is generating a resolution for a new player branch, it should consider outcomes already computed in similar branches. If two branches diverge only slightly (e.g. one sanctions Iran at turn 3, another at turn 4), the outcomes should be correlated — the AI shouldn't generate wildly different results for near-identical situations. Likewise, if a player action was already executed in ground truth or another branch, the expected outcome should be similar unless the context materially differs.
+
+Implementation approach (to be designed):
+- Before running the resolution engine for a new branch, query for branches with the same `fork_point_commit_id` that already have a computed outcome for a similar `decision_key`
+- If found, inject those outcomes as "prior results from similar paths" into the resolution engine's context
+- The resolution engine can confirm, attenuate, or diverge from prior outcomes based on contextual differences
+- Outcomes that are highly correlated (same action, same assets, same escalation rung) should produce near-identical results — preserving internal consistency across the shared tree
+
+**GitHub issue to create:**
+Title: `feat: Cross-branch outcome learning — resolution engine uses prior similar-branch results`
+Labels: `P3-future`, `ai-pipeline`, `backend`
+
+---
 
 ### Quick Tasks (no /plan needed)
 - **#40** — Auth: middleware update only (~2 hours)

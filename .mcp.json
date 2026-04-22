@@ -1,0 +1,33 @@
+{
+  "mcpServers": {
+    "context-mode": {
+      "command": "npx",
+      "args": ["-y", "context-mode-mcp@latest"],
+      "description": "Context window optimization and session continuity — indexes tool output into a searchable knowledge base to prevent context overflow"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "description": "Browser automation via accessibility tree — used for E2E testing and UI validation via the geosim-playwright skill"
+    },
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase@latest", "--access-token", "${SUPABASE_ACCESS_TOKEN}"],
+      "description": "Supabase database and auth management — schema inspection, query execution, migration review"
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "description": "GitHub issues, PRs, and repository management — used by pick-issue, create-sprint-issues, and review-pr skills"
+    },
+    "vercel": {
+      "command": "npx",
+      "args": ["-y", "@vercel/mcp-adapter"],
+      "description": "Vercel deployment management — deployment status, preview URLs, environment variable inspection"
+    }
+  },
+  "_note": "Three additional Claude Code plugin integrations (frontend-design, superpowers, claude-md-management) are configured via settings.json enabledPlugins. These are Anthropic-internal Claude Code plugins with no standalone MCP server package — they are activated through the Claude Code plugin ecosystem, not via this file."
+}
