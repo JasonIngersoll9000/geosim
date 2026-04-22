@@ -102,6 +102,7 @@ const SIG_MED_STROKE  = '#e8a020'
 interface LayoutRow {
   node: BranchNode
   parentId: string | null
+  /** Legacy row index — only used to look up parentId connections */
   row: number
 }
 
@@ -123,6 +124,48 @@ function turnX(turn: number) {
 
 function rowY(row: number) {
   return PAD_TOP + row * ROW_HEIGHT
+}
+
+/**
+ * Compute depth-based Y positions for each branch.
+ * Trunk is always at Y = 0 (top). Non-trunk branches are positioned by
+ * how early they forked: early forks appear lower, late forks appear higher.
+ *
+ * Formula: yNorm = 1 - forkTurn / maxTrunkTurn
+ * A branch forking at turn 1 of 115 → yNorm ≈ 1.0 (bottom)
+ * A branch forking at turn 100 of 115 → yNorm ≈ 0.13 (near top)
+ */
+function computeBranchLayout(
+  branches: BranchNode[],
+  containerHeight: number,
+): Map<string, number> {
+  const trunk = branches.find(b => b.isTrunk)
+  const maxTrunkTurn = trunk?.headTurn ?? 1
+  const yMap = new Map<string, number>()
+
+  // Group non-trunk branches by forkTurn to handle stacking
+  const byForkTurn = new Map<number, BranchNode[]>()
+  for (const b of branches) {
+    if (b.isTrunk) {
+      yMap.set(b.id, 0)
+      continue
+    }
+    const group = byForkTurn.get(b.forkTurn) ?? []
+    group.push(b)
+    byForkTurn.set(b.forkTurn, group)
+  }
+
+  const MIN_GAP = 40
+
+  byForkTurn.forEach((group, forkTurn) => {
+    const yNorm = 1 - forkTurn / maxTrunkTurn
+    const baseY = Math.max(MIN_GAP, yNorm * containerHeight)
+    group.forEach((b, i) => {
+      yMap.set(b.id, baseY + i * MIN_GAP)
+    })
+  })
+
+  return yMap
 }
 
 // ─── Panel state ─────────────────────────────────────────────────────────────
@@ -399,9 +442,22 @@ export function BranchTree({ root, scenarioId, actors }: Props) {
   const [panel, setPanel] = useState<PanelState | null>(null)
 
   const rows = flattenTree(root)
-  const maxRow = rows.length - 1
   const svgW = PAD_X * 2 + (root.totalTurns - 1) * STEP_X
-  const svgH = PAD_TOP + (maxRow + 1) * ROW_HEIGHT + PAD_BOTTOM
+
+  // Collect all branch nodes (flat) for layout computation
+  const allBranches: BranchNode[] = rows.map(r => r.node)
+
+  // Estimate container height based on branch count for spread, minimum 200px
+  const branchCount = allBranches.filter(b => !b.isTrunk).length
+  const layoutHeight = Math.max(200, branchCount * ROW_HEIGHT * 1.5)
+
+  const yMap = computeBranchLayout(allBranches, layoutHeight)
+
+  // svgH must accommodate the deepest Y position + padding
+  const maxBranchY = branchCount > 0
+    ? Math.max(...allBranches.filter(b => !b.isTrunk).map(b => yMap.get(b.id) ?? 0))
+    : 0
+  const svgH = PAD_TOP + maxBranchY + ROW_HEIGHT + PAD_BOTTOM
 
   const rowById = Object.fromEntries(rows.map(r => [r.node.id, r]))
 
@@ -428,7 +484,8 @@ export function BranchTree({ root, scenarioId, actors }: Props) {
 
   function closePanel() { setPanel(null) }
 
-  const trunkY = rowY(0)
+  // Trunk is always at the top; branches use depth-based Y from yMap
+  const trunkY = PAD_TOP
 
   return (
     <div
@@ -562,13 +619,14 @@ export function BranchTree({ root, scenarioId, actors }: Props) {
           />
 
           {/* ── Branch lanes ── */}
-          {rows.filter(r => !r.node.isTrunk).map(({ node, parentId, row }) => {
-            const parentRow = parentId ? rowById[parentId] : null
-            const parentRowIndex = parentRow?.row ?? 0
-            const parentRowY = rowY(parentRowIndex)
+          {rows.filter(r => !r.node.isTrunk).map(({ node, parentId }) => {
+            const parentNode = parentId ? rowById[parentId]?.node : null
+            // yMap values are 0-based offsets; add PAD_TOP for SVG coords.
+            // Trunk yMap entry is 0, so PAD_TOP + 0 = trunkY (they are equal).
+            const parentRowY = PAD_TOP + (yMap.get(parentNode?.id ?? '') ?? 0)
 
             const forkX   = turnX(node.forkTurn)
-            const branchY = rowY(row)
+            const branchY = PAD_TOP + (yMap.get(node.id) ?? 0)
 
             const safeHeadTurn = Math.max(node.headTurn, node.forkTurn)
             const headX = turnX(safeHeadTurn)
@@ -622,7 +680,7 @@ export function BranchTree({ root, scenarioId, actors }: Props) {
                   strokeWidth={isActive ? 2 : 1.5}
                   style={{ cursor: 'pointer' }}
                   data-node="1"
-                  onClick={e => handleNodeClick(e, node, row, headTd)}
+                  onClick={e => handleNodeClick(e, node, 0, headTd)}
                 />
 
                 {/* Pulse ring on active head nodes */}
