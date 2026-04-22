@@ -1,6 +1,7 @@
 // RSC boundary: async server component — no 'use client'
 import { ClassificationBanner } from '@/components/ui/ClassificationBanner'
 import { TopBar } from '@/components/ui/TopBar'
+import { NodeNavTopBar } from '@/components/ui/NodeNavTopBar'
 import { HowToPlayButton } from '@/components/ui/HowToPlayButton'
 import { GameProvider } from '@/components/providers/GameProvider'
 import { GameView } from '@/components/game/GameView'
@@ -17,9 +18,10 @@ import { getIranSeedSnapshot } from '@/lib/game/dev-snapshot'
 
 interface Props {
   params: { id: string; branchId: string }
+  searchParams?: Record<string, string | undefined>
 }
 
-export default async function PlayPage({ params }: Props) {
+export default async function PlayPage({ params, searchParams }: Props) {
   // ── Dev mode fast path ────────────────────────────────────────────────────
   // When NEXT_PUBLIC_DEV_MODE=true the full Iran seed snapshot is loaded from
   // local data files so the UI can be tested without any Supabase connection.
@@ -129,6 +131,27 @@ export default async function PlayPage({ params }: Props) {
     branchData = data as BranchRow | null
   }
   const branch = branchData
+
+  // 2b. Resolve active commit (may be overridden by ?commit= param)
+  const commitParam = (searchParams as Record<string, string | undefined> | undefined)?.commit
+  let activeCommitId = branch?.head_commit_id ?? null
+  if (commitParam && UUID_RE.test(commitParam)) {
+    activeCommitId = commitParam
+  }
+
+  // 2c. Fetch prev/next commit IDs for node navigation
+  let prevCommitId: string | null = null
+  let nextCommitId: string | null = null
+  if (activeCommitId) {
+    const nodeRes = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'}/api/nodes/${activeCommitId}`,
+      { cache: 'no-store' }
+    ).then(r => r.ok ? r.json() : null).catch(() => null) as { prev_commit_id?: string | null; next_commit_id?: string | null } | null
+    if (nodeRes) {
+      prevCommitId = nodeRes.prev_commit_id ?? null
+      nextCommitId = nodeRes.next_commit_id ?? null
+    }
+  }
 
   // 3. Fetch actors for this scenario
   const { data: actorRows } = await supabase
@@ -424,7 +447,11 @@ export default async function PlayPage({ params }: Props) {
   return (
     <GameProvider>
       <ClassificationBanner classification="TOP SECRET // NOFORN // IRAN-CONFLICT" />
-      <TopBar
+      <NodeNavTopBar
+        scenarioId={params.id}
+        branchId={params.branchId}
+        prevCommitId={prevCommitId}
+        nextCommitId={nextCommitId}
         scenarioName={initialData.scenario.name}
         scenarioHref={`/scenarios/${params.id}`}
         turnNumber={turnNumber}
