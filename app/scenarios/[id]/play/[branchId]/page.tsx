@@ -367,7 +367,7 @@ export default async function PlayPage({ params }: Props) {
     // Only expose a distinct "Full Briefing" when it is non-empty, different
     // from mainContent, AND more than 200 chars longer (prevents near-duplicates).
     const mainContent  = c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.'
-    const fullBriefing = (c as CommitRow & { full_briefing?: string | null }).full_briefing ?? c.narrative_entry ?? ''
+    const fullBriefing = c.narrative_entry ?? ''
     const distinctDetail =
       fullBriefing.length > 0 &&
       fullBriefing !== mainContent &&
