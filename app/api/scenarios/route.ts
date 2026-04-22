@@ -24,7 +24,14 @@ export async function GET(request: Request) {
   // Use service client so we bypass row-level security policies that may filter
   // out scenarios whose visibility column was never set to 'public'.
   // We still apply an application-level visibility filter below.
-  const supabase = createServiceClient();
+  let supabase: ReturnType<typeof createServiceClient>;
+  try {
+    supabase = createServiceClient();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[scenarios/GET] createServiceClient THREW:', msg);
+    return Response.json({ data: null, error: msg }, { status: 500 });
+  }
 
   // Visibility rule: show public scenarios to everyone, plus the current user's
   // own scenarios if they are authenticated. Private scenarios owned by others
@@ -49,7 +56,15 @@ export async function GET(request: Request) {
 
   query = query.range(offset, offset + limit - 1);
 
-  const { data, error } = await query;
+  let data: Awaited<typeof query>['data'];
+  let error: Awaited<typeof query>['error'];
+  try {
+    ({ data, error } = await query);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[scenarios/GET] query THREW:', msg);
+    return Response.json({ data: null, error: msg }, { status: 500 });
+  }
   console.log('[scenarios/GET] query result: count =', data?.length ?? 0, '| error =', error?.message ?? 'none');
   if (error) {
     console.error('[scenarios/GET] SUPABASE ERROR:', error.code, error.message, error.details);
