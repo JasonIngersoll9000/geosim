@@ -2,7 +2,7 @@
 Updated by Claude Code at the end of each session.
 
 ## Current sprint: Sprint 3 — Real Data + AI Pipeline
-## Last session: 2026-04-21 (Jason) / 2026-04-20 (Vartika)
+## Last session: 2026-04-22 (Jason)
 
 ### Partner work merged (Vartika — PRs #66–#91, merged 2026-04-19–2026-04-21)
 - **PR #66**: GitHub Actions CI — typecheck, lint, vitest (closes #41)
@@ -41,20 +41,37 @@ Updated by Claude Code at the end of each session.
 - Bug 11: Branch creation error message improved
 - Issue #57: Added `public/favicon.svg` and metadata to resolve 404
 
-### Open PRs (as of 2026-04-21)
-- PR #90: fix/favicon-metadata — wire favicon metadata (Vartika)
-- PR #91: fix/dev-mode-map-errors — graceful fallbacks for dev-mode map fetches (Vartika)
+### Session 2026-04-22 — feat/node-centric-branches (PR #93)
 
-### In progress
-- Resolving merge conflicts between fix/playable-game-bugs and main
+**Completed this session:**
+- Fixed Vercel Preview env var crisis: Supabase branching auto-created branch-scoped env vars
+  (`NEXT_PUBLIC_SUPABASE_URL = sjkzjklfhwiibkowuvie`, empty DB) overriding the real project for
+  all preview builds. Root cause: Supabase branching sync was enabled for Preview.
+- Fix: deleted all sjkzj-scoped env vars, disabled Supabase Preview/Dev sync, added server-only
+  `SUPABASE_URL` to `createServiceClient` so future builds don't bake the wrong URL.
+- Scenario library (/scenarios) now loads correctly on preview — Iran scenario card visible.
+- Scenario hub, chronicle, and branches all returning 200s on preview.
+- Catalogued 5 new bugs in docs/scrum-issues.md (auth inconsistency, turn navigation stuck at 115,
+  "No narrative recorded" after fork, decisions in modal instead of panel tab, GameView dead code).
+- Wrote session handoff prompt at docs/superpowers/plans/2026-04-22-session-handoff.md.
+- Cleaned all diagnostic logging from /api/scenarios route.
+
+**Tests:** 288 passed, 1 flaky timeout (ActorDetailPanel close button — passes solo in 2.6s,
+  times out only during full 527s suite run; pre-existing, not introduced this session).
+**Lint:** Clean (2 ref-cleanup warnings in MapboxMap.tsx, pre-existing).
 
 ### Next up (in priority order)
-1. **Run tests + typecheck** — verify merged state is clean
-2. **PR #90 + #91** — review Vartika's open PRs
+1. **Start new session with docs/superpowers/plans/2026-04-22-session-handoff.md** — paste that
+   prompt and invoke /plan to fix the 5 catalogued bugs on feat/node-centric-branches / PR #93:
+   - Bug A: auth redirect inconsistency across entry points
+   - Bug B: turn navigation stuck at turn 115 (node prev/next API unconnected)
+   - Bug C: "Turn 116 / No narrative recorded" after fork (missing pending state + full_briefing field)
+   - Bug D: decision options in modal, should be in Decisions panel tab
+   - Bug E: GameView dead code audit
+2. Once PR #93 is clean, merge to main.
 3. **Plan 3: AI Pipeline Core (Issues #32, #33)** — actor agent full TurnPlan, resolution engine
 4. **Plan 4: Judge + Narrator (Issues #34, #35)**
 5. **Plan 5: Game Loop + Player Interaction (Issues #36, #37, #38)**
-6. **Issue #58**: Rate limiting + cost controls (DB migration done in PR #83)
 
 ### Open GitHub issues (as of 2026-04-21)
 - #32: Actor agent full TurnPlan — OPEN (partial: buildStateContextBlock done)
@@ -77,7 +94,15 @@ Updated by Claude Code at the end of each session.
 - #52: Multi-actor decision catalog — CLOSED (PRs #71, #73, #78, #89)
 - #56: Error boundaries — CLOSED (PR #69)
 
-### Architecture decisions (this session)
+### Architecture decisions (2026-04-22 session)
+- createServiceClient now uses SUPABASE_URL (server-only, never baked by Next.js DefinePlugin)
+  with fallback to NEXT_PUBLIC_SUPABASE_URL — prevents wrong Supabase project when Preview env
+  vars are overridden by Supabase branching feature
+- Supabase branching disabled for Preview/Development in Vercel integration — branching creates
+  empty DB per git branch and auto-injects env vars, breaking preview deployments
+- SUPABASE_URL must be set as a separate server-only env var in Vercel for all environments
+
+### Architecture decisions (previous sessions)
 - map-assets route: rewritten to always query actor_capabilities for rich metadata;
   early-return empty asset set when no turnCommitId (instead of static capability fallback)
 - map-assets: now includes Bab-el-Mandeb shipping lane (throughput derived from global_economic_stress)
