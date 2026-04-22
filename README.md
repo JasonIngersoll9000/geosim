@@ -60,7 +60,7 @@ cp .env.local.example .env.local
 #          NEXT_PUBLIC_MAPBOX_TOKEN
 
 # Start development server
-bun run dev   # http://localhost:3000 (or 5000 in WSL2 config)
+bun run dev   # http://localhost:5000
 
 # Run tests
 bun run test -- --run
@@ -106,9 +106,9 @@ See `.mcp.json` for MCP server configuration and `.claude/settings.json` for hoo
 
 ## CI Pipeline
 
-Every PR triggers: **Typecheck → Lint → Unit Tests → Coverage → Security Audit → E2E Tests**
+Every PR triggers: **Typecheck → Lint → Unit Tests → Coverage → Security Audit → E2E Tests → Vercel Preview Deploy**
 
-Vercel automatically posts preview deploy URLs to every PR. Production deploys on merge to `main`.
+Production deploys automatically on merge to `main`. AI PR review is performed via the `code-reviewer` agent + `review-pr` skill — see `.claude/agents/code-reviewer.md`.
 
 ---
 
@@ -124,8 +124,8 @@ lib/game/               — Game loop, fog of war, escalation, state engine
 lib/ai/                 — Prompt construction, API wrappers with prompt caching
 lib/types/              — TypeScript types (database.ts, simulation.ts)
 tests/                  — Vitest unit/integration/component + Playwright E2E
-.claude/                — Skills, hooks, agents, MCP config
-docs/                   — Architecture docs, sprint docs, standups, research
+.claude/                — Skills, hooks, agents, MCP config (.mcp.json at root)
+docs/                   — Architecture docs, sprint docs, standups, blog post, video script
 supabase/migrations/    — Database schema with RLS policies
 ```
 
