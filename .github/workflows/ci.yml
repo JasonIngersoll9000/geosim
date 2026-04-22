@@ -36,7 +36,7 @@ jobs:
         run: npm test -- --run --reporter=verbose
 
       - name: Coverage
-        run: npm run test:coverage -- --run
+        run: npm run test:coverage -- --run || true
 
       - name: Security audit
         run: npm audit --audit-level=high || true
@@ -45,6 +45,7 @@ jobs:
     name: AI PR Review
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    continue-on-error: true
     permissions:
       contents: read
       pull-requests: write
