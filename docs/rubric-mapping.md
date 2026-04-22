@@ -184,18 +184,18 @@ Vitest v2, @testing-library/react v14, @testing-library/jest-dom v6, @playwright
 
 ## CI/CD & Production (35 pts)
 
-### Pipeline stages — all 8 present
+### Pipeline stages
 
 | Stage | Status | Implementation |
 |---|---|---|
 | Typecheck | ✅ | `npm run typecheck` (tsc --noEmit) |
 | Lint | ✅ | `npm run lint` (next lint + ESLint) |
 | Unit + Integration Tests | ✅ | `npm test -- --run --reporter=verbose` |
-| Coverage | ✅ | `npm run test:coverage -- --run` (60% threshold) |
+| Coverage | ✅ | `npm run test:coverage -- --run` (60% threshold, non-blocking) |
 | Security audit | ✅ | `npm audit --audit-level=high` |
-| AI PR Review | ✅ | `anthropics/claude-code-action@beta` — posts review to PR |
 | E2E Tests | ✅ | Playwright against https://geosim-eight.vercel.app |
 | Preview + Production Deploy | ✅ | Vercel GitHub integration (automatic; bot comments on every PR) |
+| AI PR Review | ⚠️ | Done via `code-reviewer` agent + `review-pr` skill — not automated in CI. Evidence: live C.L.E.A.R. reviews on PRs [#83](https://github.com/JasonIngersoll9000/geosim/pull/83#issuecomment-4293527711), [#88](https://github.com/JasonIngersoll9000/geosim/pull/88#issuecomment-4293526511), [#89](https://github.com/JasonIngersoll9000/geosim/pull/89#issuecomment-4293518723) with AI disclosure metadata |
 
 ### Security gates (5 total)
 1. **`npm audit`** — CI blocks on high-severity vulnerabilities
@@ -208,7 +208,7 @@ Vitest v2, @testing-library/react v14, @testing-library/jest-dom v6, @playwright
 Yes — CLAUDE.md: "Be careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities." The `security-audit.md` skill explicitly covers all 10 categories.
 
 ### Self-assessed score
-**35/35** — All 8 pipeline stages present. 5 security gates (rubric requires 4). OWASP documented in CLAUDE.md. AI review via `claude-code-action` on every PR.
+**32/35** — 7 automated CI stages + Vercel deploy. 5 security gates (rubric requires 4). OWASP documented in CLAUDE.md. AI PR review is performed via the `code-reviewer` agent + `review-pr` skill (skill-driven, not CI-automated) — 3 live GitHub reviews with C.L.E.A.R. structure and AI disclosure are the evidence.
 
 ---
 
@@ -270,10 +270,10 @@ Pending — submitted individually before deadline (500 words each).
 | Application Quality | 40 | **40** |
 | Claude Code Mastery | 55 | **53** |
 | Testing & TDD | 30 | **26** |
-| CI/CD & Production | 35 | **35** |
+| CI/CD & Production | 35 | **32** |
 | Team Process | 25 | **22** |
 | Documentation & Demo | 15 | **14** |
-| **Total** | **200** | **190** |
+| **Total** | **200** | **187** |
 
 **Remaining before submission:**
 - [ ] Peer evaluations (via course Google Form)
