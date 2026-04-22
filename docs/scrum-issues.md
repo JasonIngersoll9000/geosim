@@ -1,6 +1,6 @@
 # GeoSim Scrum Workflow & GitHub Issues
 
-> Last updated: 2026-04-09. Sprint 3 real-data wiring complete. Bug fixes in progress.
+> Last updated: 2026-04-22. Node-centric branch live on preview. Decision generation working. New issues catalogued below.
 > Target state: Full playable game with Iran scenario AI turns.
 > Note: scrum doc uses projected issue numbers (#52–#66). Actual GitHub issue numbers are #27–#41.
 
@@ -64,6 +64,48 @@ Components built:
 ---
 
 ## Remaining Work — Ordered by Dependency
+
+### IMMEDIATE: Node-Centric Branch Issues (new — 2026-04-22)
+
+**Context:** Preview deployment working. Scenario library loading. Decision generation functional. The following issues block a polished playable game.
+
+**Bug A: Auth gets stuck depending on entry point**
+- Reported: signing in from different pages leaves the user stuck (redirect loop or wrong destination)
+- Middleware protects `/scenarios/*/play/*` but redirect chain from `/scenarios/[id]` → sign-in → back may not return correctly
+- Fix: audit every place auth is triggered (`TopBar` sign-in button, middleware redirect, `BranchTree` "Take Control" gate) and ensure they all use `?redirect=` consistently and resolve to the intended post-auth destination
+
+**Bug B: Game only loads from turn 115 — cannot navigate to earlier turns**
+- The play page resolves `activeCommitId` from `branch.head_commit_id`, which is the LATEST turn. There is no UI affordance to jump to an earlier turn in the trunk history.
+- The node navigation API (`GET /api/nodes/[commitId]` returns prev/next) exists but is not wired to a timeline scrubber or turn selector in GameView.
+- The BranchTree in its current form shows branches but does not let the user click a past trunk commit to view that turn's state.
+- Fix: wire the chronicle timeline or BranchTree so clicking a past turn commit sets `turnCommitId` in GameView and reloads actor state for that turn.
+
+**Bug C: Selecting a decision shows "Turn 116 / No narrative recorded"**
+- After forking (selecting a decision), the new branch's head commit has no `chronicle_entry` or `narrative_entry` yet — the advance pipeline runs in the background but the UI immediately navigates to the new branch and renders the empty turn.
+- The chronicle field priority in the play page (`app/scenarios/[id]/play/[branchId]/page.tsx` ~line 387) uses `chronicle_entry ?? narrative_entry ?? 'No narrative recorded.'` but does NOT check `full_briefing`. This is a three-field priority that is only two-deep.
+- Fix: (1) show a loading/pending state for the new turn while advance runs in background, (2) add `full_briefing` to the field priority chain, (3) update realtime handler to refresh the turn entry when advance completes.
+
+**Bug D: Decision options appear in a popup modal instead of the Decisions panel tab**
+- `TakeControlModal` is a modal dialog that shows the 6–8 AI-generated decisions. The mock UI had these in the Decisions tab of the right panel (`DecisionCatalog.tsx`).
+- The modal UX is disorienting — it breaks the spatial logic of the game layout. Decisions should live in the Decisions tab, matching the mock.
+- Fix: remove `TakeControlModal` as a modal; instead, when the user initiates "Take Control" for an actor, populate the Decisions tab with the fetched options and switch the panel to that tab.
+
+**Bug E: UI/UX audit — broken/dead components in GameView**
+From code review, the following are unconfirmed-working or dead:
+1. `_setCascadeAlerts` — underscore-prefixed state setter, purpose unclear, may be dead code
+2. `TakeControlModal` rendering — state `setTakeControlOpen` exists in GameView but the modal may not be rendered in the JSX
+3. Ground truth timeline navigation (`gtIndex`, `gtHasNext`, `gtLoading`) — states set up but no UI handler visible
+4. `maxEscalationRung` — computed from actorDetails but not visibly consumed
+5. `componentViewerActorId` — derived actor ID for dossier panel, verify it actually drives ActorDetailPanel correctly
+6. Any admin controls ("Run Research Update") must be hidden from non-admin users (Bug 5 from original 11-bug list, may still be present)
+- Fix: systematic audit of GameView JSX — render each panel with real data, remove/fix anything that doesn't work
+
+**Bug F: Vercel env var / Supabase branching (RESOLVED 2026-04-22)**
+- Root cause: Supabase auto-created branch-specific env vars (`NEXT_PUBLIC_SUPABASE_URL = sjkzjklfhwiibkowuvie`) for `feat/node-centric-branches`, overriding the real project URL.
+- Fix applied: deleted all branch-scoped Vercel env vars, disabled Supabase branching sync for Preview/Development, added server-only `SUPABASE_URL` to `createServiceClient` to avoid build-time baking.
+- Status: ✅ RESOLVED
+
+---
 
 ### IMMEDIATE: Bug Fixes (new — 2026-04-09)
 
