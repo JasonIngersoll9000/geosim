@@ -11,9 +11,14 @@ export async function GET(request: Request) {
   const limit = parseInt(searchParams.get("limit") ?? "20", 10);
   const offset = (page - 1) * limit;
 
+  // DIAGNOSTIC: surface which Supabase project is actually being used at runtime
+  console.log('[scenarios/GET] SUPABASE_URL =', process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 50));
+  console.log('[scenarios/GET] SERVICE_KEY prefix =', process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 20));
+
   // Determine current user for ownership-based visibility (best-effort; null = unauthenticated)
   const authClient = await createClient();
   const { data: { user } } = await authClient.auth.getUser();
+  console.log('[scenarios/GET] auth user =', user?.id ?? 'null (unauthenticated)');
 
   // Use service client so we bypass row-level security policies that may filter
   // out scenarios whose visibility column was never set to 'public'.
@@ -44,6 +49,7 @@ export async function GET(request: Request) {
   query = query.range(offset, offset + limit - 1);
 
   const { data, error } = await query;
+  console.log('[scenarios/GET] query result: count =', data?.length ?? 0, '| error =', error?.message ?? 'none');
   if (error) {
     return Response.json({ data: null, error: error.message }, { status: 500 });
   }
