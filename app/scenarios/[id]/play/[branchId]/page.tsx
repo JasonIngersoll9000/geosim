@@ -363,19 +363,22 @@ export default async function PlayPage({ params }: Props) {
 
   const chronicle: ChronicleEntry[] = (commits ?? []).map(c => {
     // chronicle_entry = short summary shown above the fold.
-    // narrative_entry = extended full briefing shown when user expands.
-    // Only expose a distinct "Full Briefing" when narrative_entry is non-empty
-    // AND actually different from chronicle_entry (prevents duplicate text).
-    const shortNarrative = c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.'
-    const longNarrative  = c.narrative_entry ?? ''
-    const distinctDetail = c.chronicle_entry && longNarrative && longNarrative.trim() !== shortNarrative.trim()
-      ? longNarrative
-      : undefined
+    // full_briefing / narrative_entry = extended text shown when user expands.
+    // Only expose a distinct "Full Briefing" when it is non-empty, different
+    // from mainContent, AND more than 200 chars longer (prevents near-duplicates).
+    const mainContent  = c.chronicle_entry ?? c.narrative_entry ?? 'No narrative recorded.'
+    const fullBriefing = (c as CommitRow & { full_briefing?: string | null }).full_briefing ?? c.narrative_entry ?? ''
+    const distinctDetail =
+      fullBriefing.length > 0 &&
+      fullBriefing !== mainContent &&
+      fullBriefing.length > mainContent.length + 200
+        ? fullBriefing
+        : undefined
     return {
       turnNumber: c.turn_number,
       date: c.simulated_date,
       title: c.chronicle_headline ?? `Turn ${c.turn_number}`,
-      narrative: shortNarrative,
+      narrative: mainContent,
       detail: distinctDetail,
       dateLabel: c.chronicle_date_label ?? undefined,
       contextSummary: c.context_summary ?? undefined,

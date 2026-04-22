@@ -68,13 +68,19 @@ export default function ChroniclePage({ params }: { params: { branchId: string }
         if (rows.length > 0) {
           const chronicle: ChronicleEntry[] = rows.map(c => {
             const headline = c.chronicle_headline ?? `Turn ${c.turn_number}`
-            const body = c.chronicle_entry ?? c.narrative_entry ?? ''
+            const mainContent = c.chronicle_entry ?? c.narrative_entry ?? ''
+            const fullBriefing = c.narrative_entry ?? ''
+            const showFullBriefing =
+              fullBriefing.length > 0 &&
+              fullBriefing !== mainContent &&
+              fullBriefing.length > mainContent.length + 200
             const severity: ChronicleEntry['severity'] = c.turn_number >= 6 ? 'critical' : 'major'
             return {
               turnNumber: c.turn_number,
               date: c.simulated_date,
               title: headline,
-              narrative: body,
+              narrative: mainContent,
+              detail: showFullBriefing ? fullBriefing : undefined,
               severity,
               tags: [],
             }
