@@ -23,16 +23,16 @@ export async function GET(request: Request) {
   // Visibility rule: show public scenarios to everyone, plus the current user's
   // own scenarios if they are authenticated. Private scenarios owned by others
   // are never returned.
-  const visibilityFilter = user
-    ? `visibility.eq.public,created_by.eq.${user.id}`
-    : "visibility.eq.public";
-
-  // select('*') is safe here — access control is enforced by the visibilityFilter
-  // above (public scenarios + owner's own scenarios only).
-  let query = supabase
-    .from("scenarios")
-    .select("*")
-    .or(visibilityFilter);
+  //
+  // Note: visibility is a USER-DEFINED enum (scenario_visibility). Use .eq()
+  // for unauthenticated users — PostgREST handles enum comparisons in .or()
+  // filter strings less reliably than direct column filters.
+  let query = supabase.from("scenarios").select("*");
+  if (user) {
+    query = query.or(`visibility.eq.public,created_by.eq.${user.id}`);
+  } else {
+    query = query.eq("visibility", "public");
+  }
 
   if (category) query = query.eq("category", category);
   if (visibility) query = query.eq("visibility", visibility);
@@ -100,7 +100,7 @@ export async function GET(request: Request) {
       (best, c) => (!best || c.turn_number > best.turn_number) ? c : best,
       null
     );
-    const isActive = (s.branch_count ?? 0) > 0 && trunk?.status === 'active';
+    const isActive = (s.total_branches ?? 0) > 0 && trunk?.status === 'active';
     return {
       ...s,
       actorCount: actorCounts[s.id] ?? 0,

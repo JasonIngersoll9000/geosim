@@ -200,7 +200,7 @@ export default function Home() {
 
             {/* CTAs */}
             <motion.div variants={heroItem} className="flex items-center gap-4 mt-10">
-              <Link href="/scenarios/iran-2026">
+              <Link href={featured ? `/scenarios/${featured.id}` : '/scenarios/iran-2026'}>
                 <Button variant="primary">Enter Simulation &rarr;</Button>
               </Link>
               <Link href="/scenarios">
@@ -494,7 +494,7 @@ export default function Home() {
             <Link href="/scenarios">
               <Button variant="primary">Browse Scenarios &rarr;</Button>
             </Link>
-            <Link href="/scenarios/iran-2026">
+            <Link href={featured ? `/scenarios/${featured.id}` : '/scenarios/iran-2026'}>
               <Button variant="ghost">Iran 2026 — Strait of Hormuz</Button>
             </Link>
           </div>

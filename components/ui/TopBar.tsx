@@ -11,6 +11,9 @@ interface TopBarProps {
   phase?: string;
   gameMode?: string;
   howToPlaySlot?: React.ReactNode;
+  prevCommitId?: string | null;
+  nextCommitId?: string | null;
+  onNavigate?: (commitId: string) => void;
 }
 
 const VALID_PHASES: TurnPhase[] = [
@@ -30,6 +33,9 @@ export function TopBar({
   phase = "Planning",
   gameMode = "Simulation",
   howToPlaySlot,
+  prevCommitId,
+  nextCommitId,
+  onNavigate,
 }: TopBarProps) {
   return (
     <div
@@ -68,10 +74,30 @@ export function TopBar({
       {/* Right side: how to play + turn counter + phase badge + user menu */}
       <div className="ml-auto flex items-center gap-3">
         {howToPlaySlot}
-        <span className="font-mono text-xs text-text-tertiary">
-          TURN {turnNumber > 0 ? String(turnNumber).padStart(2, "0") : "\u2014"} /{" "}
-          {totalTurns > 0 ? String(totalTurns).padStart(2, "0") : "\u2014"}
-        </span>
+        <div className="flex items-center gap-1">
+          {prevCommitId && onNavigate && (
+            <button
+              onClick={() => onNavigate(prevCommitId)}
+              className="font-mono text-[9px] uppercase tracking-[0.1em] px-2 py-1 border border-border-subtle text-text-tertiary hover:text-text-primary hover:border-text-tertiary transition-colors"
+              aria-label="Previous turn"
+            >
+              ←
+            </button>
+          )}
+          <span className="font-mono text-xs text-text-tertiary">
+            TURN {turnNumber > 0 ? String(turnNumber).padStart(2, "0") : "\u2014"} /{" "}
+            {totalTurns > 0 ? String(totalTurns).padStart(2, "0") : "\u2014"}
+          </span>
+          {nextCommitId && onNavigate && (
+            <button
+              onClick={() => onNavigate(nextCommitId)}
+              className="font-mono text-[9px] uppercase tracking-[0.1em] px-2 py-1 border border-border-subtle text-text-tertiary hover:text-text-primary hover:border-text-tertiary transition-colors"
+              aria-label="Next turn"
+            >
+              →
+            </button>
+          )}
+        </div>
         <span className="px-2 py-0.5 font-mono text-2xs bg-gold-dim rounded-none border border-gold-border tracking-[0.03em] uppercase">
           <TurnPhaseIndicator phase={toPhase(phase)} />
         </span>

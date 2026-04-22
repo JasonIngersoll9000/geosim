@@ -143,7 +143,7 @@ export default function ScenarioHubPage({ params }: { params: { id: string } }) 
       .select('id')
       .ilike('name', `%${keyword}%`)
       .limit(1)
-      .single()
+      .maybeSingle()
       .then(({ data }: { data: { id: string } | null }) => {
         if (data?.id) router.replace(`/scenarios/${data.id}`)
       })

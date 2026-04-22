@@ -196,6 +196,11 @@ async function runFullPipeline(
     await supabase.from('turn_commits').update({ current_phase: 'narrating' }).eq('id', commitId)
 
     // ── Narrator ─────────────────────────────────────────────────────────
+    const { getChronicleUpToTurn } = await import('@/lib/game/chronicle-helpers')
+    const priorChronicle = await getChronicleUpToTurn(
+      supabase, branchId, turnNumber - 1,
+    ).catch(() => [])
+
     const narration = await runNarrator({
       turnPlans: allTurnPlans,
       effects: resolution.effects,
@@ -207,6 +212,7 @@ async function runFullPipeline(
       turnNumber,
       scenarioContext,
       escalationChanges: resolution.escalationChanges,
+      priorChronicle,
     })
 
     await broadcastTurnEvent(branchId, 'resolution_progress', {

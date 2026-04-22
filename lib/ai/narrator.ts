@@ -29,6 +29,11 @@ export interface NarratorInput {
     newRung: number
     rationale: string
   }>
+  priorChronicle?: Array<{
+    turn_number: number
+    chronicle_headline: string | null
+    chronicle_entry: string | null
+  }>
 }
 
 export interface NarratorOutput {
@@ -73,6 +78,7 @@ export async function runNarrator(input: NarratorInput): Promise<NarratorOutput>
     turnNumber,
     scenarioContext,
     escalationChanges,
+    priorChronicle,
   } = input
 
   const plansBlock = turnPlans
@@ -101,6 +107,13 @@ export async function runNarrator(input: NarratorInput): Promise<NarratorOutput>
           .join('\n')
       : 'No escalation changes this turn.'
 
+  const chronicleContext = priorChronicle && priorChronicle.length > 0
+    ? `\nPRIOR CHRONICLE (most recent 3 entries):\n` +
+      priorChronicle.slice(-3).map(e =>
+        `Turn ${e.turn_number}: ${e.chronicle_headline ?? '(no headline)'} — ${(e.chronicle_entry ?? '').slice(0, 200)}`
+      ).join('\n')
+    : ''
+
   const userPrompt = `SIMULATION CONTEXT:
 Turn ${turnNumber} | Simulated date: ${simulatedDate}
 
@@ -124,7 +137,7 @@ Oil: ${effects.global_state_deltas.oil_price_usd !== undefined ? `$${effects.glo
 Hormuz throughput: ${effects.global_state_deltas.hormuz_throughput_pct !== undefined ? `${effects.global_state_deltas.hormuz_throughput_pct > 0 ? '+' : ''}${effects.global_state_deltas.hormuz_throughput_pct}%` : 'unchanged'}
 
 JUDGE ASSESSMENT (${judgeScore}/100): ${judgeCritique}
-
+${chronicleContext}
 Write the War Chronicle entry for this turn.`
 
   const raw = await callClaude('', userPrompt, {

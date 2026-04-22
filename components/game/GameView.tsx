@@ -18,6 +18,7 @@ import { EventsTab } from '@/components/panels/EventsTab'
 import type { TurnResolutionData } from '@/components/panels/EventsTab'
 import { ActorControlSelector } from '@/components/game/ActorControlSelector'
 import { DispatchTerminal } from '@/components/game/DispatchTerminal'
+import { TakeControlModal } from '@/components/game/TakeControlModal'
 import { ObserverOverlay } from '@/components/panels/ObserverOverlay'
 import { TurnPhaseIndicator } from '@/components/game/TurnPhaseIndicator'
 import { GameErrorBoundary } from '@/components/game/GameErrorBoundary'
@@ -236,6 +237,7 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
   const [lastTurnResolution, setLastTurnResolution]         = useState<TurnResolutionData | null>(null)
   const [cascadeAlerts, _setCascadeAlerts]                  = useState<Array<{ decisionId: string; decisionTitle: string }>>([])
   const [showCascadeAlerts, setShowCascadeAlerts]           = useState(false)
+  const [takeControlOpen, setTakeControlOpen]               = useState(false)
   const [turnNumber, setTurnNumber]                         = useState(initialData.branch.turnNumber)
   const [turnCommitId, setTurnCommitId]                     = useState<string | null>(initialData.branch.headCommitId)
 
@@ -701,38 +703,49 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
 
           {/* PREV / NEXT EVENT / FORK — ground truth observer navigation */}
           {isGtMode && (
-            <div className="shrink-0 px-3 pt-2 flex gap-2">
-              {/* Back button — visible once at least one step has been taken */}
-              <button
-                onClick={handlePrevGroundTruthEvent}
-                disabled={gtIndex <= 0}
-                className="py-2 px-3 font-mono text-xs border border-border-subtle text-text-tertiary hover:text-text-secondary hover:border-border-hi transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-                title="Previous turn"
-              >
-                ← PREV
-              </button>
+            <div className="shrink-0 px-3 pt-2 flex flex-col gap-2">
+              <div className="flex gap-2">
+                {/* Back button — visible once at least one step has been taken */}
+                <button
+                  onClick={handlePrevGroundTruthEvent}
+                  disabled={gtIndex <= 0}
+                  className="py-2 px-3 font-mono text-xs border border-border-subtle text-text-tertiary hover:text-text-secondary hover:border-border-hi transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+                  title="Previous turn"
+                >
+                  ← PREV
+                </button>
 
-              {gtHasNext ? (
-                <Tooltip content="Step forward to the next resolved turn in the Ground Truth timeline." placement="top" maxWidth={200} display="flex" className="flex-1">
-                  <button
-                    onClick={handleNextGroundTruthEvent}
-                    disabled={gtLoading}
-                    className="w-full py-2 font-mono text-xs font-semibold bg-surface-3 border border-border-subtle text-text-secondary hover:text-text-primary hover:border-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {gtLoading ? 'LOADING…' : 'NEXT EVENT →'}
-                  </button>
-                </Tooltip>
-              ) : (
-                <Tooltip content="Create a diverging timeline from this turn. You take control and make decisions independently from the Ground Truth." placement="top" maxWidth={220} display="flex" className="flex-1">
-                  <button
-                    onClick={() => void handleForkNewBranch()}
-                    disabled={forkingBranch}
-                    className="w-full py-2 font-mono text-xs font-semibold border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {forkingBranch ? 'CREATING BRANCH…' : 'FORK NEW BRANCH →'}
-                  </button>
-                </Tooltip>
-              )}
+                {gtHasNext ? (
+                  <Tooltip content="Step forward to the next resolved turn in the Ground Truth timeline." placement="top" maxWidth={200} display="flex" className="flex-1">
+                    <button
+                      onClick={handleNextGroundTruthEvent}
+                      disabled={gtLoading}
+                      className="w-full py-2 font-mono text-xs font-semibold bg-surface-3 border border-border-subtle text-text-secondary hover:text-text-primary hover:border-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {gtLoading ? 'LOADING…' : 'NEXT EVENT →'}
+                    </button>
+                  </Tooltip>
+                ) : (
+                  <Tooltip content="Create a diverging timeline from this turn. You take control and make decisions independently from the Ground Truth." placement="top" maxWidth={220} display="flex" className="flex-1">
+                    <button
+                      onClick={() => void handleForkNewBranch()}
+                      disabled={forkingBranch}
+                      className="w-full py-2 font-mono text-xs font-semibold border border-gold text-gold hover:bg-gold hover:text-bg-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {forkingBranch ? 'CREATING BRANCH…' : 'FORK NEW BRANCH →'}
+                    </button>
+                  </Tooltip>
+                )}
+              </div>
+
+              {/* TAKE CONTROL HERE — fork from current browsed commit */}
+              <button
+                onClick={() => setTakeControlOpen(true)}
+                className="font-mono text-[9px] uppercase tracking-[0.18em] px-4 py-2 transition-opacity hover:opacity-80"
+                style={{ border: '1px solid var(--status-warning)', color: 'var(--status-warning)', background: 'var(--bg-surface)' }}
+              >
+                TAKE CONTROL HERE
+              </button>
             </div>
           )}
 
@@ -835,6 +848,25 @@ export function GameView({ branchId, scenarioId, initialData }: Props) {
         }}
         onToggleOmniscient={() => setOmniscientMode(prev => !prev)}
       />
+
+      {/* TakeControlModal — fork from current browsed commit */}
+      {takeControlOpen && turnCommitId && (
+        <TakeControlModal
+          commitId={turnCommitId}
+          scenarioId={scenarioId}
+          branchId={branchId}
+          actors={initialData.actors}
+          onClose={() => setTakeControlOpen(false)}
+          onJoined={(newBranchId) => {
+            setTakeControlOpen(false)
+            router.push(`/scenarios/${scenarioId}/play/${newBranchId}`)
+          }}
+          onForked={(newBranchId) => {
+            setTakeControlOpen(false)
+            router.push(`/scenarios/${scenarioId}/play/${newBranchId}`)
+          }}
+        />
+      )}
     </>
     </GameErrorBoundary>
   )
