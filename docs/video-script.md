@@ -2,161 +2,170 @@
 
 **Target length:** 7–9 minutes  
 **Pace:** ~130 words/minute at natural speaking pace  
-**Total narration:** ~1,050 words  
+**Total narration:** ~1,100 words  
 **Format:** Narration + [ON-SCREEN: action cue]
 
 ---
 
-## SECTION 1 — Introduction (45 seconds)
+## SECTION 1 — Hook & Intro (30 seconds)
 
-[ON-SCREEN: Open browser to https://geosim-eight.vercel.app/ — let the landing page load fully]
+[ON-SCREEN: Open browser to https://geosim-eight.vercel.app/ — let the landing page load]
 
 **Narration:**
 
-"This is GeoSim — an AI-powered geopolitical strategic simulation engine built as a pair programming project using Claude Code.
+"What if you could fork history? Pick a moment in an ongoing geopolitical crisis, take control of one of the actors, make a different call — and watch a parallel timeline play out.
 
-The premise: an Iran nuclear crisis scenario with six actors — the US, Iran, Israel, Russia, China, and the Gulf States. Each actor has their own AI agent, their own objectives, their own intelligence picture. They plan simultaneously, and a resolution engine arbitrates the outcomes.
-
-But the more interesting story isn't what the app does. It's how Claude Code's extensibility layer shaped how we built it — and what we learned about AI-assisted development at scale."
+That's GeoSim. An AI-powered geopolitical simulation engine built with Next.js, Supabase, and Claude. Let me show you the app first, then I'll walk you through the Claude Code workflow that built it."
 
 ---
 
-## SECTION 2 — Live Application Demo (2 minutes)
+## SECTION 2 — Live Application Demo (4 minutes)
 
-[ON-SCREEN: Click into the Scenarios page or navigate to the main game view]
+### 2a — The Scenario: Real Intelligence, Real Actors
+
+[ON-SCREEN: Navigate to the Scenarios page — show the Iran 2026 scenario card]
 
 **Narration:**
 
-"Let me show you the app first. This is the scenario hub — you can see the Iran 2026 crisis scenario. Six actors, 12 turns, git-like branching throughout.
+"The scenario you're looking at is the Iran nuclear crisis — 2026. Six actors: the United States, Iran, Israel, Russia, China, and the Gulf States. Each one has their own objectives, their own military doctrine, their own red lines.
 
-When you enter the game view..."
+This isn't placeholder data. Before a single line of game logic was written, we ran a 7-stage research pipeline — the `/seed-iran-scenario` skill — that called the Anthropic API to pull verified geopolitical intelligence: military force deployments, economic dependencies, political constraints, escalation thresholds. Everything you see here is grounded in real-world context."
 
-[ON-SCREEN: Navigate into the game view — show the Mapbox terrain map with actor markers]
+[ON-SCREEN: Click into the scenario — show the main game view with the actor list/panel on the side]
 
-"...you see the geopolitical theater. Mapbox GL terrain, actor position markers, chokepoint overlays. Each marker represents an actor's deployed capability at this turn node.
+"Each actor has a full profile. Click into the US actor and you see their current posture, active capabilities, escalation rung, and intelligence assessment. Iran sees a completely different picture — their intelligence picture is filtered by what Iran would actually know, not what's objectively true. That's fog of war, enforced at the Supabase row-level security layer."
 
-The key mechanic is fog of war — each actor only sees their own intelligence picture. What Iran sees about US naval deployments is filtered based on Iran's actual intelligence assets, not what's objectively true. That filter runs at the Supabase row-level security layer."
+### 2b — The Mapbox Visualization
 
-[ON-SCREEN: Show the Chronicle panel or Turn display — highlight the turn commit structure]
+[ON-SCREEN: Pan around the Mapbox terrain map — show actor markers, chokepoint overlays, metric chips]
 
-"Turn history is immutable. Every resolved turn is a commit. You can navigate backward through the chronicle to see how the scenario evolved.
+**Narration:**
 
-And here's what makes it a simulation rather than a game..."
+"The map is Mapbox GL — terrain rendering with actor position markers, chokepoint overlays at the Strait of Hormuz and Bab-el-Mandeb, and floating metric chips showing live indicators: oil price pressure, naval readiness, escalation index.
 
-[ON-SCREEN: If TakeControlModal or branch fork UI is accessible, show it. Otherwise show the branch tree]
+When a turn resolves, these markers update in real time via Supabase Realtime. You're watching the simulation state propagate to every connected client simultaneously."
 
-"At any turn node, a player can fork the timeline. Take control of an actor, choose from AI-generated decision options — each with configurable scale, scope, posture, and timing — and steer events down a different path. The original branch remains intact. You're exploring counterfactuals."
+### 2c — Turn Resolution
+
+[ON-SCREEN: Show the Chronicle panel or a resolved turn — scroll through the narrative entries]
+
+**Narration:**
+
+"Each turn runs through four AI agents. The Actor Agent plans each actor's move based on their objectives and constraints. The Resolution Engine arbitrates the simultaneous actions — who succeeds, who gets countered, what escalates. The Judge scores the outcome for consistency with the scenario rules. The Narrator synthesizes everything into intelligence reports, one per actor, each written from that actor's perspective.
+
+The chronicle is the permanent record — every turn commit is immutable. You can scroll back to turn one and see exactly how this crisis unfolded."
+
+### 2d — Git-like Branching: Fork the Timeline
+
+[ON-SCREEN: Show the branch tree or node navigation — find a turn node and click to fork / show TakeControlModal]
+
+**Narration:**
+
+"Here's what makes this a simulation rather than a replay.
+
+At any turn node, you can fork the timeline. Click Take Control, pick an actor, and you get a set of AI-generated decision options for that actor at that moment — each with configurable scale, scope, posture, and timing parameters.
+
+Choose differently from what the AI would have done, and you've created a new branch. A parallel timeline with its own chronicle, its own fog of war, its own escalation trajectory. The original branch is untouched — you're exploring a counterfactual.
+
+The branch tree shows you all the timelines that have diverged from this scenario. Navigate between them with the commit ID in the URL — it's literally a git graph for geopolitical history."
 
 ---
 
-## SECTION 3 — Claude Code Workflow (2 minutes 30 seconds)
+## SECTION 3 — Claude Code Workflow (3 minutes)
 
-[ON-SCREEN: Open VS Code or terminal — show the project root. Navigate to CLAUDE.md]
+[ON-SCREEN: Switch to terminal / VS Code — show project root]
 
 **Narration:**
 
-"Let's talk about how this was built. Everything starts here — CLAUDE.md. Not a stub. 216 lines, with @imports to 15 reference documents.
+"Now let me show you how this was built — because the Claude Code workflow is as interesting as the app."
 
-The @imports pattern means Claude Code loads only what's relevant to the current task. Working on a component? It reads frontend-design.md. Working on an AI agent? It reads prompt-library.ts and agent-architecture.ts. Progressive disclosure — the same principle we applied to fog-of-war."
+### 3a — CLAUDE.md & Skills
 
-[ON-SCREEN: Show .claude/settings.json — scroll to the hooks section]
+[ON-SCREEN: Open CLAUDE.md — scroll slowly to show the @imports section]
 
-"Hooks are where the interesting enforcement happens. Five hooks configured. Let me show you the two that mattered most.
+**Narration:**
 
-This PostToolUse hook runs `run-tests-on-save.sh` — on every file save, it detects if the path matches a test file and runs vitest on that specific file. Not the full suite — just the relevant test. Two-second feedback loop. Red-green in the same terminal session without asking for it.
+"Everything starts with CLAUDE.md. Ours is 216 lines with @imports to 15 reference documents — agent architecture, the full prompt library, the data model, testing strategy. Claude Code only loads what's relevant to the task at hand.
 
-This PreToolUse hook runs `protect-files.sh` — it exits with code 2 if you try to write to `.env`, `.env.local`, or `secrets.json`. Not a warning. A hard stop."
+We built 14 custom skills on top of this. Three are worth showing."
 
 [ON-SCREEN: Show .claude/skills/ directory listing]
 
-"We built 14 custom skills. Let me highlight two.
+"The `/seed-iran-scenario` skill runs the 7-stage research pipeline that populated the scenario you just saw — one command, real geopolitical intelligence, seeded to the database.
 
-`quality-gate.md` — notice the header: version 2, WSL2 plus context-mode aware. Version 1 called `npm run test`. On our WSL2 machine, `npm` is a Windows binary that can't execute the Linux Vitest binary. Version 2 uses bun. Skills are code. Code gets bugs. Bugs get fixed in version 2.
+The `/run-turn` skill executes a complete game turn from the command line — Actor Agent, Resolution Engine, Judge, Narrator — without touching the UI. Essential for testing the AI pipeline in isolation.
 
-`review-pr.md` — the C.L.E.A.R. review framework. Context, Logic, Evidence, Architecture, Risk. When invoked, it fetches the PR diff via GitHub CLI, applies the checklist, and posts the review to GitHub."
+The `/quality-gate` skill — notice the header: version 2, WSL2 + context-mode aware. Version 1 called `npm run test`. On our machine, `npm` is a Windows binary that can't run the Linux test process. It silently exited zero and ran nothing. Version 2 uses `bun`. Skills are code. Code gets bugs. Bugs get fixed in version 2."
 
-[ON-SCREEN: Show .claude/agents/code-reviewer.md — briefly]
+### 3b — Hooks
 
-"One custom agent: the code-reviewer, configured with worktree isolation. It runs in a fresh git worktree — no shared file state, no context contamination. Its output posts directly to GitHub PR comments."
-
-[ON-SCREEN: Open GitHub — show PRs #83, #88, #89 and the C.L.E.A.R. review comments]
-
-"Here's what that looks like in practice. PR 83 — the cost tracker module. PR 88 — fork copies state snapshots. PR 89 — the six-actor decision catalogs. Each has a structured C.L.E.A.R. review comment with AI disclosure. Eighty percent AI-generated analysis, human-verified before posting."
-
----
-
-## SECTION 4 — CI/CD Pipeline (1 minute)
-
-[ON-SCREEN: Open .github/workflows/ci.yml in editor]
+[ON-SCREEN: Open .claude/settings.json — show the hooks section]
 
 **Narration:**
 
-"The CI pipeline. Eight stages: typecheck, lint, unit tests, coverage, security audit, E2E tests — and Vercel handles preview and production deploy automatically on every PR.
+"Hooks are where process gets enforced rather than just documented.
 
-The security audit step runs `npm audit --high` — flags vulnerabilities above the high severity threshold. But the more comprehensive security pass happens during development via the `security-audit.md` skill — nine steps covering OWASP Top 10, Supabase RLS policy review, XSS vector audit, and SBOM generation."
+This PostToolUse hook runs `run-tests-on-save.sh` on every file save. It detects whether the saved path matches a test file and runs vitest on that specific file — not the whole suite. Two-second feedback loop, automatically. No context switching.
 
-[ON-SCREEN: Navigate to GitHub Actions tab — show a recent CI run with green checks]
+This PreToolUse hook runs `protect-files.sh` — it exits with code 2 if you try to write to `.env` or `secrets.json`. Not a lint warning. A hard stop that blocks the tool call entirely.
 
-"Every PR to main triggers this workflow. Typecheck and lint failures block merge. The Vercel GitHub integration posts a preview deploy URL to every PR automatically — you can see that in any of the 92 merged PR threads."
+The difference between a documented convention and a hook is enforcement."
 
----
+### 3c — Agents, Worktrees, TDD & CI
 
-## SECTION 5 — TDD Evidence (45 seconds)
-
-[ON-SCREEN: Open terminal — run: git log --oneline | grep -i "test\|tdd" | head -10]
+[ON-SCREEN: Show .claude/agents/code-reviewer.md briefly, then switch to git log in terminal]
 
 **Narration:**
 
-"TDD. Let me show you the commit history rather than tell you about it.
+"We have one custom agent: the code-reviewer, running in worktree isolation. It checks out a clean copy of the repo, applies the C.L.E.A.R. review framework — Context, Logic, Evidence, Architecture, Risk — and posts structured feedback directly to the GitHub PR.
 
-Commit `43e857b` — 'test: add failing tests for node API routes (TDD)'. The next commit wires the implementation. That's the pattern. Red commit first, green commit second.
+Five PRs on this project were developed by worktree agents running in parallel — the UI and the AI pipeline built simultaneously with no merge conflicts.
 
-We have five explicit examples of this in the history. The `run-tests-on-save.sh` hook makes it visceral — you watch the test fail on every save until the implementation makes it green, automatically, without switching windows."
+For TDD, the commit history is the evidence. Commit `43e857b` — 'test: add failing tests for node API routes.' The next commit wires the implementation. Red commit, green commit. The test-on-save hook makes that loop automatic."
 
-[ON-SCREEN: Show tests/ directory tree briefly — 41 files visible]
+[ON-SCREEN: Open .github/workflows/ci.yml briefly]
 
-"41 test files. Game logic, AI agents, API integration, 20 component tests, 4 E2E tests against the deployed app."
+"The CI pipeline runs on every PR: typecheck, lint, unit tests, coverage, security audit, E2E tests against the live deployed app, and Vercel preview deploy. Every merge to main goes straight to production."
 
 ---
 
-## SECTION 6 — Closing Takeaways (45 seconds)
+## SECTION 4 — Closing (30 seconds)
 
-[ON-SCREEN: Return to https://geosim-eight.vercel.app/ — show the deployed app one more time]
+[ON-SCREEN: Return to https://geosim-eight.vercel.app/ — show the deployed app]
 
 **Narration:**
 
-"Three things this project taught us about building with Claude Code at scale.
+"GeoSim is live at geosim-eight.vercel.app. The `.claude/` directory ships with the repo — 14 skills, 5 hooks, 8 MCP servers, one worktree agent, and `.mcp.json` for shareable configuration.
 
-First: hooks enforce what documentation only suggests. A PostToolUse test runner is thirty minutes to configure and prevents hours of 'wait, did I break something' across a sprint.
+The two things this project taught us: hooks enforce what documentation only suggests, and skills that iterate from v1 to v2 based on real failures are worth more than ten that were written once and never touched.
 
-Second: skills are code. Version them, fix their bugs, iterate on them. `quality-gate` v1 was broken for our environment. Version 2 wasn't. Treat your skills like your source code.
-
-Third: CLAUDE.md @imports make the difference between a context window that works and one that's constantly overwhelmed. Keep domains separated. Load only what's relevant. The progressive disclosure pattern applies to AI context the same way it applies to UI.
-
-GeoSim is live at geosim-eight.vercel.app. The repository is public. The `.claude/` directory is fully committed — skills, hooks, agents, and `.mcp.json` all ship with the code. That's the whole workflow, reproducible."
+Thanks for watching."
 
 ---
 
 ## TIMING GUIDE
 
-| Section | Target | Narration words |
+| Section | Target | Words |
 |---|---|---|
-| 1 — Introduction | 0:00–0:45 | ~100 |
-| 2 — Live App Demo | 0:45–2:45 | ~270 |
-| 3 — Claude Code Workflow | 2:45–5:15 | ~330 |
-| 4 — CI/CD Pipeline | 5:15–6:15 | ~130 |
-| 5 — TDD Evidence | 6:15–7:00 | ~115 |
-| 6 — Closing | 7:00–7:45 | ~120 |
-| **Total** | **~7:45** | **~1,065** |
+| 1 — Hook & Intro | 0:00–0:30 | ~65 |
+| 2a — Scenario seeding + actors | 0:30–2:00 | ~200 |
+| 2b — Mapbox visualization | 2:00–2:45 | ~100 |
+| 2c — Turn resolution | 2:45–3:30 | ~115 |
+| 2d — Branching / fork timeline | 3:30–4:45 | ~175 |
+| 3a — CLAUDE.md + skills | 4:45–6:00 | ~175 |
+| 3b — Hooks | 6:00–6:45 | ~115 |
+| 3c — Agents, worktrees, TDD, CI | 6:45–7:30 | ~120 |
+| 4 — Closing | 7:30–8:00 | ~75 |
+| **Total** | **~8:00** | **~1,140** |
 
 ---
 
 ## PRESENTER NOTES
 
-- Record at 1080p, browser zoom at 90% so code is readable
+- Record at 1080p, browser zoom at 90%
 - Disable notifications before recording
+- Navigate to https://geosim-eight.vercel.app/ before recording so the Vercel cold start has already fired
+- Have `.claude/` open in a file explorer sidebar before Section 3 starts
+- Have terminal pre-positioned at repo root before Section 3c
+- For Section 2d, if the TakeControlModal requires a live game session, show the BranchTree component view instead and narrate the forking concept
 - Use Chrome — Mapbox GL renders most reliably in Chromium
-- The Vercel app may have a cold start delay (up to 5s) — navigate to it before starting the recording so it's warm
-- For Section 3, have `.claude/` open in a file explorer sidebar before the section starts
-- For Section 5, have the terminal pre-positioned at the repo root before the section starts
-- If the TakeControlModal isn't accessible without auth, substitute the BranchTree component view
