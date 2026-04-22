@@ -1,11 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient();
   const { id } = await params;
+
+  if (!UUID_RE.test(id)) {
+    return Response.json({ data: null, error: 'Not found' }, { status: 404 });
+  }
 
   const { data, error } = await supabase
     .from("scenarios")

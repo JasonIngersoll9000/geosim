@@ -18,9 +18,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ branches: [DEV_TRUNK_BRANCH], actors: DEV_ACTORS })
   }
 
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
   try {
     const supabase = await createClient()
     const resolvedId = await resolveScenarioId(supabase, scenarioId)
+
+    // If slug resolution found no match it returns the original slug — a non-UUID
+    // that would cause a PostgreSQL "invalid input syntax for type uuid" 500.
+    if (!UUID_RE.test(resolvedId)) {
+      return NextResponse.json({ error: 'Scenario not found' }, { status: 404 })
+    }
 
     const [branchRes, actorRes] = await Promise.all([
       supabase

@@ -24,7 +24,7 @@ export async function resolveScenarioId(
     .ilike('name', `%${keyword}%`)
     .order('created_at', { ascending: false })
     .limit(1)
-    .single()
+    .maybeSingle()
 
   return (data as { id: string } | null)?.id ?? idOrSlug
 }
