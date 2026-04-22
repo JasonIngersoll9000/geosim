@@ -11,27 +11,14 @@ export async function GET(request: Request) {
   const limit = parseInt(searchParams.get("limit") ?? "20", 10);
   const offset = (page - 1) * limit;
 
-  // DIAGNOSTIC: surface which Supabase project is actually being used at runtime
-  console.log('[scenarios/GET] SUPABASE_URL(server) =', process.env.SUPABASE_URL?.slice(0, 50) ?? 'UNSET');
-  console.log('[scenarios/GET] SUPABASE_URL(public) =', process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 50) ?? 'UNSET');
-  console.log('[scenarios/GET] SERVICE_KEY prefix =', process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 20) ?? 'UNSET');
-
   // Determine current user for ownership-based visibility (best-effort; null = unauthenticated)
   const authClient = await createClient();
   const { data: { user } } = await authClient.auth.getUser();
-  console.log('[scenarios/GET] auth user =', user?.id ?? 'null (unauthenticated)');
 
   // Use service client so we bypass row-level security policies that may filter
   // out scenarios whose visibility column was never set to 'public'.
   // We still apply an application-level visibility filter below.
-  let supabase: ReturnType<typeof createServiceClient>;
-  try {
-    supabase = createServiceClient();
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error('[scenarios/GET] createServiceClient THREW:', msg);
-    return Response.json({ data: null, error: msg }, { status: 500 });
-  }
+  const supabase = createServiceClient();
 
   // Visibility rule: show public scenarios to everyone, plus the current user's
   // own scenarios if they are authenticated. Private scenarios owned by others
@@ -56,18 +43,8 @@ export async function GET(request: Request) {
 
   query = query.range(offset, offset + limit - 1);
 
-  let data: Awaited<typeof query>['data'];
-  let error: Awaited<typeof query>['error'];
-  try {
-    ({ data, error } = await query);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error('[scenarios/GET] query THREW:', msg);
-    return Response.json({ data: null, error: msg }, { status: 500 });
-  }
-  console.log('[scenarios/GET] query result: count =', data?.length ?? 0, '| error =', error?.message ?? 'none');
+  const { data, error } = await query;
   if (error) {
-    console.error('[scenarios/GET] SUPABASE ERROR:', error.code, error.message, error.details);
     return Response.json({ data: null, error: error.message }, { status: 500 });
   }
 
