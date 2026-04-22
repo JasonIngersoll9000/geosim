@@ -12,8 +12,9 @@ export async function GET(request: Request) {
   const offset = (page - 1) * limit;
 
   // DIAGNOSTIC: surface which Supabase project is actually being used at runtime
-  console.log('[scenarios/GET] SUPABASE_URL =', process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 50));
-  console.log('[scenarios/GET] SERVICE_KEY prefix =', process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 20));
+  console.log('[scenarios/GET] SUPABASE_URL(server) =', process.env.SUPABASE_URL?.slice(0, 50) ?? 'UNSET');
+  console.log('[scenarios/GET] SUPABASE_URL(public) =', process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 50) ?? 'UNSET');
+  console.log('[scenarios/GET] SERVICE_KEY prefix =', process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 20) ?? 'UNSET');
 
   // Determine current user for ownership-based visibility (best-effort; null = unauthenticated)
   const authClient = await createClient();
@@ -51,6 +52,7 @@ export async function GET(request: Request) {
   const { data, error } = await query;
   console.log('[scenarios/GET] query result: count =', data?.length ?? 0, '| error =', error?.message ?? 'none');
   if (error) {
+    console.error('[scenarios/GET] SUPABASE ERROR:', error.code, error.message, error.details);
     return Response.json({ data: null, error: error.message }, { status: 500 });
   }
 
